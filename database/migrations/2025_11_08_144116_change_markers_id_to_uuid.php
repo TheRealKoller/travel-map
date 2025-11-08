@@ -12,19 +12,35 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Truncate the table to remove existing data
-        // Warning: This will delete all existing markers
-        DB::table('markers')->truncate();
+        // For SQLite, we need to recreate the table
+        // For MySQL/MariaDB, we can alter it
+        $driver = DB::getDriverName();
+        
+        if ($driver === 'sqlite') {
+            // SQLite: Recreate the table
+            Schema::dropIfExists('markers');
+            Schema::create('markers', function (Blueprint $table) {
+                $table->uuid('id')->primary();
+                $table->foreignId('user_id')->constrained()->onDelete('cascade');
+                $table->string('name')->nullable();
+                $table->string('type');
+                $table->text('notes')->nullable();
+                $table->decimal('latitude', 10, 8);
+                $table->decimal('longitude', 11, 8);
+                $table->timestamps();
+            });
+        } else {
+            // MySQL/MariaDB: Alter the table
+            DB::table('markers')->truncate();
 
-        Schema::table('markers', function (Blueprint $table) {
-            // Drop the old auto-increment id column
-            $table->dropColumn('id');
-        });
+            Schema::table('markers', function (Blueprint $table) {
+                $table->dropColumn('id');
+            });
 
-        Schema::table('markers', function (Blueprint $table) {
-            // Add new UUID id column as primary key
-            $table->uuid('id')->primary()->first();
-        });
+            Schema::table('markers', function (Blueprint $table) {
+                $table->uuid('id')->primary()->first();
+            });
+        }
     }
 
     /**
@@ -32,14 +48,30 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('markers', function (Blueprint $table) {
-            // Drop the UUID id column
-            $table->dropColumn('id');
-        });
+        $driver = DB::getDriverName();
+        
+        if ($driver === 'sqlite') {
+            // SQLite: Recreate the table with original structure
+            Schema::dropIfExists('markers');
+            Schema::create('markers', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->onDelete('cascade');
+                $table->string('name')->nullable();
+                $table->string('type');
+                $table->text('notes')->nullable();
+                $table->decimal('latitude', 10, 8);
+                $table->decimal('longitude', 11, 8);
+                $table->timestamps();
+            });
+        } else {
+            // MySQL/MariaDB: Alter the table
+            Schema::table('markers', function (Blueprint $table) {
+                $table->dropColumn('id');
+            });
 
-        Schema::table('markers', function (Blueprint $table) {
-            // Restore the auto-increment id column
-            $table->id()->first();
-        });
+            Schema::table('markers', function (Blueprint $table) {
+                $table->id()->first();
+            });
+        }
     }
 };
