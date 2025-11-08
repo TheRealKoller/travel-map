@@ -8,6 +8,7 @@ import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
 import MarkerList from '@/components/marker-list';
 import MarkerForm from '@/components/marker-form';
 import { MarkerData, MarkerType } from '@/types/marker';
+import axios from 'axios';
 
 // Helper function to get icon name based on marker type
 const getIconForType = (type: MarkerType): string => {
@@ -136,6 +137,9 @@ export default function TravelMap() {
                 
                 setMarkers((prev) => [...prev, markerData]);
                 setSelectedMarkerId(markerId);
+                
+                // Save to database
+                saveMarkerToDatabase(markerData);
             });
             
             searchMarkerRef.current = searchMarker;
@@ -173,6 +177,9 @@ export default function TravelMap() {
             
             setMarkers((prev) => [...prev, markerData]);
             setSelectedMarkerId(markerId);
+            
+            // Save to database
+            saveMarkerToDatabase(markerData);
         });
 
         // Cleanup on unmount
@@ -203,20 +210,102 @@ export default function TravelMap() {
         });
     }, [selectedMarkerId, markers]);
 
+    // Load markers from database on component mount
+    useEffect(() => {
+        const loadMarkers = async () => {
+            try {
+                const response = await axios.get('/markers');
+                const dbMarkers = response.data;
+                
+                if (mapInstanceRef.current) {
+                    const map = mapInstanceRef.current;
+                    const loadedMarkers: MarkerData[] = dbMarkers.map((dbMarker: any) => {
+                        const icon = (L as any).AwesomeMarkers.icon({
+                            icon: getIconForType(dbMarker.type),
+                            markerColor: getColorForType(dbMarker.type),
+                            iconColor: 'white',
+                            prefix: 'fa',
+                            spin: false,
+                        });
+                        
+                        const marker = L.marker([dbMarker.latitude, dbMarker.longitude], { icon }).addTo(map);
+                        const markerId = `marker-${dbMarker.id}`;
+                        
+                        marker.bindTooltip(dbMarker.name || 'Unnamed Location', { permanent: false, direction: 'top' });
+                        marker.on('click', () => {
+                            setSelectedMarkerId(markerId);
+                        });
+                        
+                        return {
+                            id: markerId,
+                            dbId: dbMarker.id,
+                            lat: dbMarker.latitude,
+                            lng: dbMarker.longitude,
+                            name: dbMarker.name,
+                            type: dbMarker.type,
+                            marker: marker,
+                        };
+                    });
+                    
+                    setMarkers(loadedMarkers);
+                }
+            } catch (error) {
+                console.error('Failed to load markers:', error);
+            }
+        };
+        
+        if (mapInstanceRef.current) {
+            loadMarkers();
+        }
+    }, [mapInstanceRef.current]);
+
     const handleSelectMarker = (id: string) => {
         setSelectedMarkerId(id);
     };
 
-    const handleUpdateMarkerName = (id: string, name: string) => {
+    const handleUpdateMarkerName = async (id: string, name: string) => {
+        const marker = markers.find(m => m.id === id);
+        if (marker?.dbId) {
+            try {
+                await axios.put(`/markers/${marker.dbId}`, { name });
+            } catch (error) {
+                console.error('Failed to update marker name:', error);
+            }
+        }
+        
         setMarkers((prev) =>
             prev.map((m) => (m.id === id ? { ...m, name } : m))
         );
     };
 
-    const handleUpdateMarkerType = (id: string, type: MarkerType) => {
+    const handleUpdateMarkerType = async (id: string, type: MarkerType) => {
+        const marker = markers.find(m => m.id === id);
+        if (marker?.dbId) {
+            try {
+                await axios.put(`/markers/${marker.dbId}`, { type });
+            } catch (error) {
+                console.error('Failed to update marker type:', error);
+            }
+        }
+        
         setMarkers((prev) =>
             prev.map((m) => (m.id === id ? { ...m, type } : m))
         );
+    };
+
+    const saveMarkerToDatabase = async (markerData: Omit<MarkerData, 'marker'>) => {
+        try {
+            const response = await axios.post('/markers', {
+                name: markerData.name,
+                type: markerData.type,
+                latitude: markerData.lat,
+                longitude: markerData.lng,
+            });
+            return response.data.id;
+        } catch (error) {
+            console.error('Failed to save marker:', error);
+            return null;
+        }
     };
 
     const selectedMarker = markers.find((m) => m.id === selectedMarkerId) || null;
