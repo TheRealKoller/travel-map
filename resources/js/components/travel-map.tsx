@@ -19,12 +19,6 @@ export default function TravelMap() {
             maxZoom: 19,
         }).addTo(map);
 
-        // Add a sample marker
-        L.marker([35.6762, 139.6503])
-            .addTo(map)
-            .bindPopup('Tokyo')
-            .openPopup();
-
         // Cleanup on unmount
         return () => {
             if (mapInstanceRef.current) {
