@@ -4,11 +4,13 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet.awesome-markers';
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.css';
 import MarkerList from '@/components/marker-list';
+import MarkerForm from '@/components/marker-form';
 
 interface MarkerData {
     id: string;
     lat: number;
     lng: number;
+    name: string;
     marker: L.Marker;
 }
 
@@ -16,6 +18,7 @@ export default function TravelMap() {
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<L.Map | null>(null);
     const [markers, setMarkers] = useState<MarkerData[]>([]);
+    const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
 
     useEffect(() => {
         if (!mapRef.current || mapInstanceRef.current) return;
@@ -44,13 +47,22 @@ export default function TravelMap() {
             });
             
             const marker = L.marker(e.latlng, { icon: awesomeMarker }).addTo(map);
+            const markerId = `marker-${Date.now()}`;
             const markerData: MarkerData = {
-                id: `marker-${Date.now()}`,
+                id: markerId,
                 lat: e.latlng.lat,
                 lng: e.latlng.lng,
+                name: '',
                 marker: marker,
             };
+            
+            // Add click handler to marker
+            marker.on('click', () => {
+                setSelectedMarkerId(markerId);
+            });
+            
             setMarkers((prev) => [...prev, markerData]);
+            setSelectedMarkerId(markerId);
         });
 
         // Cleanup on unmount
@@ -62,6 +74,18 @@ export default function TravelMap() {
         };
     }, []);
 
+    const handleSelectMarker = (id: string) => {
+        setSelectedMarkerId(id);
+    };
+
+    const handleUpdateMarkerName = (id: string, name: string) => {
+        setMarkers((prev) =>
+            prev.map((m) => (m.id === id ? { ...m, name } : m))
+        );
+    };
+
+    const selectedMarker = markers.find((m) => m.id === selectedMarkerId) || null;
+
     return (
         <div>
             <div 
@@ -70,7 +94,14 @@ export default function TravelMap() {
                 className="w-full h-[600px] mt-5"
             />
             
-            <MarkerList markers={markers} />
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <MarkerForm marker={selectedMarker} onUpdateName={handleUpdateMarkerName} />
+                <MarkerList 
+                    markers={markers} 
+                    selectedMarkerId={selectedMarkerId}
+                    onSelectMarker={handleSelectMarker}
+                />
+            </div>
         </div>
     );
 }
