@@ -344,6 +344,29 @@ export default function TravelMap() {
         }
     };
 
+    const handleDeleteMarker = async (id: string) => {
+        try {
+            await axios.delete(`/markers/${id}`);
+            
+            // Remove marker from map
+            const marker = markers.find(m => m.id === id);
+            if (marker && mapInstanceRef.current) {
+                mapInstanceRef.current.removeLayer(marker.marker);
+            }
+            
+            // Remove from state
+            setMarkers((prev) => prev.filter((m) => m.id !== id));
+            
+            // Clear selection if deleted marker was selected
+            if (selectedMarkerId === id) {
+                setSelectedMarkerId(null);
+            }
+        } catch (error) {
+            console.error('Failed to delete marker:', error);
+            alert('Failed to delete marker. Please try again.');
+        }
+    };
+
     const saveMarkerToDatabase = async (markerData: Omit<MarkerData, 'marker'>) => {
         try {
             const response = await axios.post('/markers', {
@@ -377,6 +400,7 @@ export default function TravelMap() {
                     onUpdateName={handleUpdateMarkerName}
                     onUpdateType={handleUpdateMarkerType}
                     onUpdateNotes={handleUpdateMarkerNotes}
+                    onDeleteMarker={handleDeleteMarker}
                 />
                 <MarkerList 
                     markers={markers} 

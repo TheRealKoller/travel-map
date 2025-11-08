@@ -10,9 +10,10 @@ interface MarkerFormProps {
     onUpdateName: (id: string, name: string) => void;
     onUpdateType: (id: string, type: MarkerType) => void;
     onUpdateNotes: (id: string, notes: string) => void;
+    onDeleteMarker: (id: string) => void;
 }
 
-export default function MarkerForm({ marker, onUpdateName, onUpdateType, onUpdateNotes }: MarkerFormProps) {
+export default function MarkerForm({ marker, onUpdateName, onUpdateType, onUpdateNotes, onDeleteMarker }: MarkerFormProps) {
     if (!marker) {
         return (
             <div className="bg-white rounded-lg shadow p-4">
@@ -32,6 +33,12 @@ export default function MarkerForm({ marker, onUpdateName, onUpdateType, onUpdat
 
     const handleNotesChange = (value: string) => {
         onUpdateNotes(marker.id, value);
+    };
+
+    const handleDelete = () => {
+        if (window.confirm(`Are you sure you want to delete "${marker.name || 'this marker'}"? This action cannot be undone.`)) {
+            onDeleteMarker(marker.id);
+        }
     };
 
     const mdeOptions = useMemo(() => {
@@ -121,6 +128,14 @@ export default function MarkerForm({ marker, onUpdateName, onUpdateType, onUpdat
                     <p className="text-sm text-gray-600">
                         <span className="font-medium">Longitude:</span> {marker.lng.toFixed(6)}
                     </p>
+                </div>
+                <div className="pt-4 border-t border-gray-200">
+                    <button
+                        onClick={handleDelete}
+                        className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
+                    >
+                        Delete Marker
+                    </button>
                 </div>
             </div>
         </div>
