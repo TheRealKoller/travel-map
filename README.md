@@ -2,6 +2,11 @@
 
 A Laravel application with React/Inertia.js frontend for managing travel maps.
 
+## Some infos and links
+* icons https://fontawesome.com/search?o=r&ic=free&s=regular&ip=classic
+* marker icons: https://github.com/lennardv2/Leaflet.awesome-markers
+* map library: https://leafletjs.com/
+
 ## Requirements
 
 - PHP 8.1 or higher

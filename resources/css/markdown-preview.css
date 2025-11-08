@@ -1,0 +1,346 @@
+/* Markdown preview styles */
+.editor-preview,
+.editor-preview-side {
+    padding: 1rem;
+    font-family:
+        -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+        Arial, sans-serif;
+    line-height: 1.2;
+    color: #333;
+}
+
+.editor-preview h1,
+.editor-preview-side h1 {
+    font-size: 2em;
+    font-weight: bold;
+    margin-top: 0.67em;
+    margin-bottom: 0.67em;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 0.3em;
+}
+
+.editor-preview h2,
+.editor-preview-side h2 {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-top: 0.83em;
+    margin-bottom: 0.83em;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 0.3em;
+}
+
+.editor-preview h3,
+.editor-preview-side h3 {
+    font-size: 1.17em;
+    font-weight: bold;
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+.editor-preview h4,
+.editor-preview-side h4 {
+    font-size: 1em;
+    font-weight: bold;
+    margin-top: 1.33em;
+    margin-bottom: 1.33em;
+}
+
+.editor-preview h5,
+.editor-preview-side h5 {
+    font-size: 0.83em;
+    font-weight: bold;
+    margin-top: 1.67em;
+    margin-bottom: 1.67em;
+}
+
+.editor-preview h6,
+.editor-preview-side h6 {
+    font-size: 0.67em;
+    font-weight: bold;
+    margin-top: 2.33em;
+    margin-bottom: 2.33em;
+}
+
+.editor-preview p,
+.editor-preview-side p {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.editor-preview ul,
+.editor-preview-side ul,
+.editor-preview ol,
+.editor-preview-side ol {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    padding-left: 2em;
+}
+
+.editor-preview ul,
+.editor-preview-side ul {
+    list-style-type: disc;
+}
+
+.editor-preview ol,
+.editor-preview-side ol {
+    list-style-type: decimal;
+}
+
+.editor-preview li,
+.editor-preview-side li {
+    margin-top: 0em;
+    margin-bottom: 0em;
+    line-height: 1.5em;
+}
+
+.editor-preview blockquote,
+.editor-preview-side blockquote {
+    border-left: 4px solid #e5e7eb;
+    padding-left: 1em;
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    color: #6b7280;
+}
+
+.editor-preview code,
+.editor-preview-side code {
+    background-color: #f3f4f6;
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9em;
+}
+
+.editor-preview pre,
+.editor-preview-side pre {
+    background-color: #f3f4f6;
+    padding: 1em;
+    border-radius: 5px;
+    overflow-x: auto;
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+.editor-preview pre code,
+.editor-preview-side pre code {
+    background-color: transparent;
+    padding: 0;
+}
+
+.editor-preview a,
+.editor-preview-side a {
+    color: #3b82f6;
+    text-decoration: underline;
+}
+
+.editor-preview img,
+.editor-preview-side img {
+    max-width: 100%;
+    height: auto;
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+.editor-preview hr,
+.editor-preview-side hr {
+    border: none;
+    border-top: 1px solid #e5e7eb;
+    margin-top: 2em;
+    margin-bottom: 2em;
+}
+
+.editor-preview table,
+.editor-preview-side table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+.editor-preview th,
+.editor-preview-side th,
+.editor-preview td,
+.editor-preview-side td {
+    border: 1px solid #e5e7eb;
+    padding: 0.5em;
+    text-align: left;
+}
+
+.editor-preview th,
+.editor-preview-side th {
+    background-color: #f3f4f6;
+    font-weight: bold;
+}
+
+/* Ensure whitespace is preserved */
+.editor-preview,
+.editor-preview-side {
+    white-space: pre-wrap;
+}
+
+/* Fix for empty lines */
+.editor-preview br,
+.editor-preview-side br {
+    display: block;
+    content: '';
+    margin: 0.5em 0;
+}
+
+/* Markdown preview in marker list */
+.markdown-preview {
+    font-family:
+        -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+        Arial, sans-serif;
+    line-height: 1.6;
+}
+
+.markdown-preview h1 {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 0.3em;
+}
+
+.markdown-preview h2 {
+    font-size: 1.3em;
+    font-weight: bold;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 0.2em;
+}
+
+.markdown-preview h3 {
+    font-size: 1.15em;
+    font-weight: bold;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.markdown-preview h4 {
+    font-size: 1.05em;
+    font-weight: bold;
+    margin-top: 0.4em;
+    margin-bottom: 0.4em;
+}
+
+.markdown-preview h5 {
+    font-size: 1em;
+    font-weight: bold;
+    margin-top: 0.4em;
+    margin-bottom: 0.4em;
+}
+
+.markdown-preview h6 {
+    font-size: 0.9em;
+    font-weight: bold;
+    margin-top: 0.4em;
+    margin-bottom: 0.4em;
+}
+
+.markdown-preview p {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.markdown-preview ul,
+.markdown-preview ol {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    padding-left: 1.5em;
+}
+
+.markdown-preview ul {
+    list-style-type: disc;
+}
+
+.markdown-preview ol {
+    list-style-type: decimal;
+}
+
+.markdown-preview li {
+    margin-top: 0.25em;
+    margin-bottom: 0.25em;
+}
+
+.markdown-preview blockquote {
+    border-left: 4px solid #e5e7eb;
+    padding-left: 1em;
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    color: #6b7280;
+}
+
+.markdown-preview code {
+    background-color: #f3f4f6;
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9em;
+}
+
+.markdown-preview pre {
+    background-color: #f3f4f6;
+    padding: 0.75em;
+    border-radius: 5px;
+    overflow-x: auto;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.markdown-preview pre code {
+    background-color: transparent;
+    padding: 0;
+}
+
+.markdown-preview a {
+    color: #3b82f6;
+    text-decoration: underline;
+}
+
+.markdown-preview img {
+    max-width: 100%;
+    height: auto;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.markdown-preview hr {
+    border: none;
+    border-top: 1px solid #e5e7eb;
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+
+.markdown-preview table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.markdown-preview th,
+.markdown-preview td {
+    border: 1px solid #e5e7eb;
+    padding: 0.4em;
+    text-align: left;
+}
+
+.markdown-preview th {
+    background-color: #f3f4f6;
+    font-weight: bold;
+}
+
+.markdown-preview strong {
+    font-weight: bold;
+}
+
+.markdown-preview em {
+    font-style: italic;
+}

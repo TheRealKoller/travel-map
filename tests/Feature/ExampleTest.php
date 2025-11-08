@@ -1,7 +1,7 @@
 <?php
 
-it('returns a successful response', function () {
+it('redirects to login when not authenticated', function () {
     $response = $this->get('/');
 
-    $response->assertStatus(200);
+    $response->assertRedirectToRoute('login');
 });
