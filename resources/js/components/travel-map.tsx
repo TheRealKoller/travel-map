@@ -138,8 +138,14 @@ export default function TravelMap() {
                 setMarkers((prev) => [...prev, markerData]);
                 setSelectedMarkerId(markerId);
                 
-                // Save to database
-                saveMarkerToDatabase(markerData);
+                // Save to database and update marker with dbId
+                saveMarkerToDatabase(markerData).then((dbId) => {
+                    if (dbId) {
+                        setMarkers((prev) =>
+                            prev.map((m) => (m.id === markerId ? { ...m, dbId } : m))
+                        );
+                    }
+                });
             });
             
             searchMarkerRef.current = searchMarker;
@@ -178,8 +184,14 @@ export default function TravelMap() {
             setMarkers((prev) => [...prev, markerData]);
             setSelectedMarkerId(markerId);
             
-            // Save to database
-            saveMarkerToDatabase(markerData);
+            // Save to database and update marker with dbId
+            saveMarkerToDatabase(markerData).then((dbId) => {
+                if (dbId) {
+                    setMarkers((prev) =>
+                        prev.map((m) => (m.id === markerId ? { ...m, dbId } : m))
+                    );
+                }
+            });
         });
 
         // Cleanup on unmount
