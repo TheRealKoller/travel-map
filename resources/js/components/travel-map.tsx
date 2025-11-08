@@ -22,6 +22,9 @@ export default function TravelMap() {
         const map = L.map(mapRef.current).setView([36.2048, 138.2529], 6);
         mapInstanceRef.current = map;
 
+        // Set crosshair cursor
+        map.getContainer().style.cursor = 'crosshair';
+
         // Add OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
