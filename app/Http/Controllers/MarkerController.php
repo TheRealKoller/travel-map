@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Marker;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class MarkerController extends Controller
 {
+    use AuthorizesRequests;
     public function index()
     {
         $markers = auth()->user()->markers;
@@ -17,7 +19,7 @@ class MarkerController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'nullable|string|max:255',
             'type' => 'required|string',
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',

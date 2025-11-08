@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('markers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('name');
+            $table->string('name')->nullable();
             $table->string('type');
             $table->decimal('latitude', 10, 8);
             $table->decimal('longitude', 11, 8);
