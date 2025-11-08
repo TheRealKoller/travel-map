@@ -19,6 +19,11 @@ export default function TravelMap() {
             maxZoom: 19,
         }).addTo(map);
 
+        // Add click event to create markers
+        map.on('click', (e: L.LeafletMouseEvent) => {
+            L.marker(e.latlng).addTo(map);
+        });
+
         // Cleanup on unmount
         return () => {
             if (mapInstanceRef.current) {
