@@ -73,6 +73,7 @@ export default function TravelMap() {
             defaultMarkGeocode: false,
             placeholder: 'Search for places...',
             errorMessage: 'Nothing found.',
+            collapsed: false,
         }).on('markgeocode', (e: any) => {
             const latlng = e.geocode.center;
             const placeName = e.geocode.name || 'Searched Location';
