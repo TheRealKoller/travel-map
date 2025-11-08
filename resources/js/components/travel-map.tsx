@@ -60,6 +60,11 @@ const getColorForType = (type: MarkerType): string => {
     }
 };
 
+// Constants
+const DEFAULT_MAP_CENTER: [number, number] = [36.2048, 138.2529]; // Japan
+const DEFAULT_MAP_ZOOM = 6;
+const DEBOUNCE_DELAY_MS = 500;
+
 export default function TravelMap() {
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<L.Map | null>(null);
@@ -96,8 +101,8 @@ export default function TravelMap() {
     useEffect(() => {
         if (!mapRef.current || mapInstanceRef.current) return;
 
-        // Initialize the map centered on Japan
-        const map = L.map(mapRef.current).setView([36.2048, 138.2529], 6);
+        // Initialize the map
+        const map = L.map(mapRef.current).setView(DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM);
         mapInstanceRef.current = map;
 
         // Set crosshair cursor
@@ -352,7 +357,7 @@ export default function TravelMap() {
             } catch (error) {
                 console.error('Failed to update marker name:', error);
             }
-        }, 500);
+        }, DEBOUNCE_DELAY_MS);
     }, []);
 
     const handleUpdateMarkerName = (id: string, name: string) => {
@@ -394,7 +399,7 @@ export default function TravelMap() {
             } catch (error) {
                 console.error('Failed to update marker notes:', error);
             }
-        }, 500);
+        }, DEBOUNCE_DELAY_MS);
     }, []);
 
     const handleUpdateMarkerNotes = (id: string, notes: string) => {
