@@ -2,6 +2,10 @@
 
 These instructions guide Copilot to generate code that aligns with modern Laravel 12 standards, PHP 8.2/8.4 features, software engineering principles, and industry best practices to improve software quality, maintainability, and security.
 
+## Workflow
+- After finishing the current task, please run all tests to ensure nothing is broken.
+- When all tests pass, please run static analysis tools (e.g., PHPStan, Psalm, or any configured linters) to ensure code quality.
+
 ## ✅ General Coding Standards
 
 -   Follow **PSR-12** coding style and structure.
