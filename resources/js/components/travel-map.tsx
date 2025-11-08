@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import MarkerList from '@/components/marker-list';
 
 interface MarkerData {
     id: string;
@@ -49,10 +50,14 @@ export default function TravelMap() {
     }, []);
 
     return (
-        <div 
-            ref={mapRef} 
-            id="map" 
-            className="w-full h-[600px] mt-5"
-        />
+        <div>
+            <div 
+                ref={mapRef} 
+                id="map" 
+                className="w-full h-[600px] mt-5"
+            />
+            
+            <MarkerList markers={markers} />
+        </div>
     );
 }
