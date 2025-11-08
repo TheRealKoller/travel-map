@@ -1,4 +1,9 @@
 import { MarkerData, MarkerType } from '@/types/marker';
+import { useMemo } from 'react';
+import SimpleMDE from 'react-simplemde-editor';
+import { marked } from 'marked';
+import 'easymde/dist/easymde.min.css';
+import '@/../../resources/css/markdown-preview.css';
 
 interface MarkerFormProps {
     marker: MarkerData | null;
@@ -25,9 +30,42 @@ export default function MarkerForm({ marker, onUpdateName, onUpdateType, onUpdat
         onUpdateType(marker.id, e.target.value as MarkerType);
     };
 
-    const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        onUpdateNotes(marker.id, e.target.value);
+    const handleNotesChange = (value: string) => {
+        onUpdateNotes(marker.id, value);
     };
+
+    const mdeOptions = useMemo(() => {
+        // Configure marked to preserve line breaks
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+        });
+
+        return {
+            spellChecker: false,
+            placeholder: 'Add notes about this location (Markdown supported)...',
+            status: false,
+            previewRender: (text: string) => {
+                return marked.parse(text) as string;
+            },
+            toolbar: [
+                'bold',
+                'italic',
+                'heading',
+                '|',
+                'quote',
+                'unordered-list',
+                'ordered-list',
+                '|',
+                'link',
+                'image',
+                '|',
+                'preview',
+                '|',
+                'guide',
+            ] as any,
+        };
+    }, []);
 
     return (
         <div className="bg-white rounded-lg shadow p-4">
@@ -64,16 +102,13 @@ export default function MarkerForm({ marker, onUpdateName, onUpdateType, onUpdat
                     </select>
                 </div>
                 <div>
-                    <label htmlFor="marker-notes" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                         Notes
                     </label>
-                    <textarea
-                        id="marker-notes"
+                    <SimpleMDE
                         value={marker.notes}
                         onChange={handleNotesChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Add notes about this location..."
-                        rows={4}
+                        options={mdeOptions}
                     />
                 </div>
                 <div>
