@@ -332,7 +332,6 @@ export default function TravelMap() {
         if (mapInstanceRef.current) {
             loadMarkers();
         }
-         
     }, []);
 
     const handleSelectMarker = (id: string) => {
