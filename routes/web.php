@@ -9,7 +9,7 @@ Route::get('/', function () {
         <!DOCTYPE html>
         <html>
         <head>
-            <title>Japanleisegluppe</title>
+            <title>Travelmap</title>
             <meta charset="utf-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -27,7 +27,7 @@ Route::get('/', function () {
             </style>
         </head>
         <body>
-            <h1>Japanleisegluppe</h1>
+            <h1>Travelmap</h1>
             <div id="map"></div>
             
             <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -36,7 +36,7 @@ Route::get('/', function () {
                 var map = L.map("map").setView([36.2048, 138.2529], 6);
                 
                 // Add OpenStreetMap tiles
-                L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                L.tileLayer("https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png", {
                     attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors",
                     maxZoom: 19
                 }).addTo(map);
