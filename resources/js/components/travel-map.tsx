@@ -50,6 +50,7 @@ export default function TravelMap() {
     const mapInstanceRef = useRef<L.Map | null>(null);
     const [markers, setMarkers] = useState<MarkerData[]>([]);
     const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
+    const searchMarkerRef = useRef<L.Marker | null>(null);
 
     useEffect(() => {
         if (!mapRef.current || mapInstanceRef.current) return;
@@ -74,7 +75,69 @@ export default function TravelMap() {
             errorMessage: 'Nothing found.',
         }).on('markgeocode', (e: any) => {
             const latlng = e.geocode.center;
+            const placeName = e.geocode.name || 'Searched Location';
+            
+            // Remove previous search marker if exists
+            if (searchMarkerRef.current) {
+                map.removeLayer(searchMarkerRef.current);
+            }
+            
+            // Center and zoom to the location
             map.setView(latlng, 16);
+            
+            // Create a temporary highlight marker with yellow color
+            const highlightIcon = (L as any).AwesomeMarkers.icon({
+                icon: 'search',
+                markerColor: 'yellow',
+                iconColor: 'black',
+                prefix: 'fa',
+                spin: false,
+            });
+            
+            // Add temporary marker to highlight search result
+            const searchMarker = L.marker(latlng, { icon: highlightIcon }).addTo(map);
+            searchMarker.bindPopup(`<strong>${placeName}</strong><br><small>Click on this marker to add it permanently</small>`).openPopup();
+            
+            // Add click handler to convert temporary marker to permanent
+            searchMarker.on('click', () => {
+                // Remove the temporary marker
+                map.removeLayer(searchMarker);
+                searchMarkerRef.current = null;
+                
+                // Create permanent marker
+                const defaultType = MarkerType.PointOfInterest;
+                const awesomeMarker = (L as any).AwesomeMarkers.icon({
+                    icon: getIconForType(defaultType),
+                    markerColor: getColorForType(defaultType),
+                    iconColor: 'white',
+                    prefix: 'fa',
+                    spin: false,
+                });
+                
+                const marker = L.marker(latlng, { icon: awesomeMarker }).addTo(map);
+                const markerId = `marker-${Date.now()}`;
+                const markerData: MarkerData = {
+                    id: markerId,
+                    lat: latlng.lat,
+                    lng: latlng.lng,
+                    name: placeName,
+                    type: defaultType,
+                    marker: marker,
+                };
+                
+                // Add tooltip to marker
+                marker.bindTooltip(placeName, { permanent: false, direction: 'top' });
+                
+                // Add click handler to permanent marker
+                marker.on('click', () => {
+                    setSelectedMarkerId(markerId);
+                });
+                
+                setMarkers((prev) => [...prev, markerData]);
+                setSelectedMarkerId(markerId);
+            });
+            
+            searchMarkerRef.current = searchMarker;
         }).addTo(map);
 
         // Add click event to create markers with awesome-markers
