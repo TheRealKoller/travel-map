@@ -1,10 +1,4 @@
-interface MarkerData {
-    id: string;
-    lat: number;
-    lng: number;
-    name: string;
-}
-
+import { MarkerData, MarkerType } from '@/types/marker';
 interface MarkerListProps {
     markers: MarkerData[];
     selectedMarkerId: string | null;

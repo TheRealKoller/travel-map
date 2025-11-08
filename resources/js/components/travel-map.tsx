@@ -5,14 +5,7 @@ import 'leaflet.awesome-markers';
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.css';
 import MarkerList from '@/components/marker-list';
 import MarkerForm from '@/components/marker-form';
-
-interface MarkerData {
-    id: string;
-    lat: number;
-    lng: number;
-    name: string;
-    marker: L.Marker;
-}
+import { MarkerData, MarkerType } from '@/types/marker';
 
 export default function TravelMap() {
     const mapRef = useRef<HTMLDivElement>(null);
@@ -53,6 +46,7 @@ export default function TravelMap() {
                 lat: e.latlng.lat,
                 lng: e.latlng.lng,
                 name: '',
+                type: MarkerType.PointOfInterest,
                 marker: marker,
             };
             
@@ -106,6 +100,12 @@ export default function TravelMap() {
         );
     };
 
+    const handleUpdateMarkerType = (id: string, type: MarkerType) => {
+        setMarkers((prev) =>
+            prev.map((m) => (m.id === id ? { ...m, type } : m))
+        );
+    };
+
     const selectedMarker = markers.find((m) => m.id === selectedMarkerId) || null;
 
     return (
@@ -117,7 +117,11 @@ export default function TravelMap() {
             />
             
             <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <MarkerForm marker={selectedMarker} onUpdateName={handleUpdateMarkerName} />
+                <MarkerForm 
+                    marker={selectedMarker} 
+                    onUpdateName={handleUpdateMarkerName}
+                    onUpdateType={handleUpdateMarkerType}
+                />
                 <MarkerList 
                     markers={markers} 
                     selectedMarkerId={selectedMarkerId}
