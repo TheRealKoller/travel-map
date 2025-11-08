@@ -38,7 +38,9 @@ export default function TravelMap() {
             const awesomeMarker = (L as any).AwesomeMarkers.icon({
                 icon: 'map-pin',
                 markerColor: 'gray',
-                prefix: 'fa'
+                iconColor: 'white',
+                prefix: 'fa',
+                spin: false,
             });
             
             const marker = L.marker(e.latlng, { icon: awesomeMarker }).addTo(map);
