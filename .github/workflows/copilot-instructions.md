@@ -127,3 +127,36 @@ These instructions guide Copilot to generate code that aligns with modern Larave
 -   Default to **immutability**, **dependency injection**, and **encapsulation** best practices.
 -   Avoid starting responses with "Sure!", "You're right!" or similar phrases; be direct and concise.
 -   When writing text that'll be visible to users, use **clear, professional language** without unnecessary exclamations or informalities. Also use Sentence case for titles and headings.
+
+---
+
+## React Specific Guidelines
+
+### Component Design
+
+- **Functional Components & Hooks:** Prefer **functional components with React Hooks**. Avoid class components unless explicitly for error boundaries.
+- **Single Responsibility:** Each component should ideally have one primary responsibility. **Components should be kept small and focused.**
+- **Component Naming:** Use `PascalCase` for all component names (e.g., `MyButton`, `UserAvatar`).
+- **Props:**
+  - Use `camelCase` for prop names.
+  - Destructure props in the component's function signature.
+  - Provide clear `interface` or `type` definitions for props in TypeScript.
+- **Immutability:** Never mutate props or state directly. Always create new objects or arrays for updates.
+- **Fragments:** Use `<>...</>` or `React.Fragment` to avoid unnecessary DOM wrapper elements.
+- **Custom Hooks:** Extract reusable stateful logic into **custom hooks** (e.g., `useDebounce`, `useLocalStorage`).
+- **UI Components:** Use [shadcn/ui](https://ui.shadcn.com/) for building UI components to ensure consistency and accessibility.
+
+### State Management
+
+- **Local State:** Use `useState` for component-level state.
+- **Global State:** For global or shared state, prefer **React Context API** or a dedicated state management library (e.g., Zustand, Redux, Jotai). Avoid prop drilling.
+
+### Styling
+
+- **Consistent Approach:** use Tailwind CSS v4 ou later.
+- **Scoped Styles:** Ensure styles are scoped to avoid global conflicts.
+
+### Performance
+
+- **Keys:** Always provide a unique and stable `key` prop when mapping over lists. Do not use array `index` as a key if the list can change.
+- **Lazy Loading:** Suggest `React.lazy` and `Suspense` for code splitting large components or routes.
