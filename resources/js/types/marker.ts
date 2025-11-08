@@ -14,5 +14,6 @@ export interface MarkerData {
     lng: number;
     name: string;
     type: MarkerType;
+    notes: string;
     marker: L.Marker;
 }

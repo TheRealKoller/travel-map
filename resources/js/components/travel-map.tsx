@@ -125,6 +125,7 @@ export default function TravelMap() {
                     lng: latlng.lng,
                     name: placeName,
                     type: defaultType,
+                    notes: '',
                     marker: marker,
                 };
                 
@@ -165,6 +166,7 @@ export default function TravelMap() {
                 lng: e.latlng.lng,
                 name: '',
                 type: defaultType,
+                notes: '',
                 marker: marker,
             };
             
@@ -242,6 +244,7 @@ export default function TravelMap() {
                             lng: dbMarker.longitude,
                             name: dbMarker.name,
                             type: dbMarker.type,
+                            notes: dbMarker.notes || '',
                             marker: marker,
                         };
                     });
@@ -292,12 +295,28 @@ export default function TravelMap() {
         );
     };
 
+    const handleUpdateMarkerNotes = async (id: string, notes: string) => {
+        const marker = markers.find(m => m.id === id);
+        if (marker) {
+            try {
+                await axios.put(`/markers/${marker.id}`, { notes });
+            } catch (error) {
+                console.error('Failed to update marker notes:', error);
+            }
+        }
+        
+        setMarkers((prev) =>
+            prev.map((m) => (m.id === id ? { ...m, notes } : m))
+        );
+    };
+
     const saveMarkerToDatabase = async (markerData: Omit<MarkerData, 'marker'>) => {
         try {
             const response = await axios.post('/markers', {
                 id: markerData.id,
                 name: markerData.name,
                 type: markerData.type,
+                notes: markerData.notes,
                 latitude: markerData.lat,
                 longitude: markerData.lng,
             });
@@ -323,6 +342,7 @@ export default function TravelMap() {
                     marker={selectedMarker} 
                     onUpdateName={handleUpdateMarkerName}
                     onUpdateType={handleUpdateMarkerType}
+                    onUpdateNotes={handleUpdateMarkerNotes}
                 />
                 <MarkerList 
                     markers={markers} 

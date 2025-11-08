@@ -22,6 +22,7 @@ class MarkerController extends Controller
             'id' => 'required|uuid',
             'name' => 'nullable|string|max:255',
             'type' => 'required|string',
+            'notes' => 'nullable|string',
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
         ]);
@@ -38,6 +39,7 @@ class MarkerController extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
             'type' => 'sometimes|string',
+            'notes' => 'sometimes|string',
             'latitude' => 'sometimes|numeric|between:-90,90',
             'longitude' => 'sometimes|numeric|between:-180,180',
         ]);

@@ -14,6 +14,7 @@ class Marker extends Model
         'id',
         'name',
         'type',
+        'notes',
         'latitude',
         'longitude',
         'user_id',

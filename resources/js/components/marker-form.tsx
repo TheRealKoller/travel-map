@@ -4,9 +4,10 @@ interface MarkerFormProps {
     marker: MarkerData | null;
     onUpdateName: (id: string, name: string) => void;
     onUpdateType: (id: string, type: MarkerType) => void;
+    onUpdateNotes: (id: string, notes: string) => void;
 }
 
-export default function MarkerForm({ marker, onUpdateName, onUpdateType }: MarkerFormProps) {
+export default function MarkerForm({ marker, onUpdateName, onUpdateType, onUpdateNotes }: MarkerFormProps) {
     if (!marker) {
         return (
             <div className="bg-white rounded-lg shadow p-4">
@@ -22,6 +23,10 @@ export default function MarkerForm({ marker, onUpdateName, onUpdateType }: Marke
 
     const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         onUpdateType(marker.id, e.target.value as MarkerType);
+    };
+
+    const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        onUpdateNotes(marker.id, e.target.value);
     };
 
     return (
@@ -57,6 +62,19 @@ export default function MarkerForm({ marker, onUpdateName, onUpdateType }: Marke
                         <option value={MarkerType.Tip}>Tip</option>
                         <option value={MarkerType.Hotel}>Hotel</option>
                     </select>
+                </div>
+                <div>
+                    <label htmlFor="marker-notes" className="block text-sm font-medium text-gray-700 mb-2">
+                        Notes
+                    </label>
+                    <textarea
+                        id="marker-notes"
+                        value={marker.notes}
+                        onChange={handleNotesChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Add notes about this location..."
+                        rows={4}
+                    />
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
