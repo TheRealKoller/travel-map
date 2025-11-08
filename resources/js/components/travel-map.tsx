@@ -56,6 +56,9 @@ export default function TravelMap() {
                 marker: marker,
             };
             
+            // Add tooltip to marker
+            marker.bindTooltip('Unnamed Location', { permanent: false, direction: 'top' });
+            
             // Add click handler to marker
             marker.on('click', () => {
                 setSelectedMarkerId(markerId);
@@ -74,7 +77,7 @@ export default function TravelMap() {
         };
     }, []);
 
-    // Update marker icons when selection changes
+    // Update marker icons and tooltips when selection changes or names update
     useEffect(() => {
         markers.forEach((markerData) => {
             const isSelected = markerData.id === selectedMarkerId;
@@ -86,6 +89,10 @@ export default function TravelMap() {
                 spin: isSelected,
             });
             markerData.marker.setIcon(icon);
+            
+            // Update tooltip with current name
+            const tooltipContent = markerData.name || 'Unnamed Location';
+            markerData.marker.setTooltipContent(tooltipContent);
         });
     }, [selectedMarkerId, markers]);
 
