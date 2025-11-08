@@ -1,10 +1,18 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+
+interface MarkerData {
+    id: string;
+    lat: number;
+    lng: number;
+    marker: L.Marker;
+}
 
 export default function TravelMap() {
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<L.Map | null>(null);
+    const [markers, setMarkers] = useState<MarkerData[]>([]);
 
     useEffect(() => {
         if (!mapRef.current || mapInstanceRef.current) return;
@@ -21,7 +29,14 @@ export default function TravelMap() {
 
         // Add click event to create markers
         map.on('click', (e: L.LeafletMouseEvent) => {
-            L.marker(e.latlng).addTo(map);
+            const marker = L.marker(e.latlng).addTo(map);
+            const markerData: MarkerData = {
+                id: `marker-${Date.now()}`,
+                lat: e.latlng.lat,
+                lng: e.latlng.lng,
+                marker: marker,
+            };
+            setMarkers((prev) => [...prev, markerData]);
         });
 
         // Cleanup on unmount
