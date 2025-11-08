@@ -9,8 +9,7 @@ export enum MarkerType {
 }
 
 export interface MarkerData {
-    id: string;
-    dbId?: number; // Database ID
+    id: string; // UUID - same as database ID
     lat: number;
     lng: number;
     name: string;

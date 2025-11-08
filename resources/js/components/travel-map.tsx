@@ -9,6 +9,7 @@ import MarkerList from '@/components/marker-list';
 import MarkerForm from '@/components/marker-form';
 import { MarkerData, MarkerType } from '@/types/marker';
 import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
 
 // Helper function to get icon name based on marker type
 const getIconForType = (type: MarkerType): string => {
@@ -117,7 +118,7 @@ export default function TravelMap() {
                 });
                 
                 const marker = L.marker(latlng, { icon: awesomeMarker }).addTo(map);
-                const markerId = `marker-${Date.now()}`;
+                const markerId = uuidv4();
                 const markerData: MarkerData = {
                     id: markerId,
                     lat: latlng.lat,
@@ -138,14 +139,8 @@ export default function TravelMap() {
                 setMarkers((prev) => [...prev, markerData]);
                 setSelectedMarkerId(markerId);
                 
-                // Save to database and update marker with dbId
-                saveMarkerToDatabase(markerData).then((dbId) => {
-                    if (dbId) {
-                        setMarkers((prev) =>
-                            prev.map((m) => (m.id === markerId ? { ...m, dbId } : m))
-                        );
-                    }
-                });
+                // Save to database
+                saveMarkerToDatabase(markerData);
             });
             
             searchMarkerRef.current = searchMarker;
@@ -163,7 +158,7 @@ export default function TravelMap() {
             });
             
             const marker = L.marker(e.latlng, { icon: awesomeMarker }).addTo(map);
-            const markerId = `marker-${Date.now()}`;
+            const markerId = uuidv4();
             const markerData: MarkerData = {
                 id: markerId,
                 lat: e.latlng.lat,
@@ -184,14 +179,8 @@ export default function TravelMap() {
             setMarkers((prev) => [...prev, markerData]);
             setSelectedMarkerId(markerId);
             
-            // Save to database and update marker with dbId
-            saveMarkerToDatabase(markerData).then((dbId) => {
-                if (dbId) {
-                    setMarkers((prev) =>
-                        prev.map((m) => (m.id === markerId ? { ...m, dbId } : m))
-                    );
-                }
-            });
+            // Save to database
+            saveMarkerToDatabase(markerData);
         });
 
         // Cleanup on unmount
@@ -241,16 +230,14 @@ export default function TravelMap() {
                         });
                         
                         const marker = L.marker([dbMarker.latitude, dbMarker.longitude], { icon }).addTo(map);
-                        const markerId = `marker-${dbMarker.id}`;
                         
                         marker.bindTooltip(dbMarker.name || 'Unnamed Location', { permanent: false, direction: 'top' });
                         marker.on('click', () => {
-                            setSelectedMarkerId(markerId);
+                            setSelectedMarkerId(dbMarker.id);
                         });
                         
                         return {
-                            id: markerId,
-                            dbId: dbMarker.id,
+                            id: dbMarker.id,
                             lat: dbMarker.latitude,
                             lng: dbMarker.longitude,
                             name: dbMarker.name,
@@ -277,9 +264,9 @@ export default function TravelMap() {
 
     const handleUpdateMarkerName = async (id: string, name: string) => {
         const marker = markers.find(m => m.id === id);
-        if (marker?.dbId) {
+        if (marker) {
             try {
-                await axios.put(`/markers/${marker.dbId}`, { name });
+                await axios.put(`/markers/${marker.id}`, { name });
             } catch (error) {
                 console.error('Failed to update marker name:', error);
             }
@@ -292,9 +279,9 @@ export default function TravelMap() {
 
     const handleUpdateMarkerType = async (id: string, type: MarkerType) => {
         const marker = markers.find(m => m.id === id);
-        if (marker?.dbId) {
+        if (marker) {
             try {
-                await axios.put(`/markers/${marker.dbId}`, { type });
+                await axios.put(`/markers/${marker.id}`, { type });
             } catch (error) {
                 console.error('Failed to update marker type:', error);
             }
@@ -308,6 +295,7 @@ export default function TravelMap() {
     const saveMarkerToDatabase = async (markerData: Omit<MarkerData, 'marker'>) => {
         try {
             const response = await axios.post('/markers', {
+                id: markerData.id,
                 name: markerData.name,
                 type: markerData.type,
                 latitude: markerData.lat,

@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Marker extends Model
 {
+    use HasUuids;
+
     protected $fillable = [
+        'id',
         'name',
         'type',
         'latitude',
@@ -19,6 +23,9 @@ class Marker extends Model
         'latitude' => 'float',
         'longitude' => 'float',
     ];
+
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     public function user(): BelongsTo
     {

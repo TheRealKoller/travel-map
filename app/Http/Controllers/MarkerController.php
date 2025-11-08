@@ -19,6 +19,7 @@ class MarkerController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'id' => 'required|uuid',
             'name' => 'nullable|string|max:255',
             'type' => 'required|string',
             'latitude' => 'required|numeric|between:-90,90',
