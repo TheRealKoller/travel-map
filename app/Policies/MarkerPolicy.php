@@ -10,6 +10,7 @@ class MarkerPolicy
 {
     /**
      * Determine whether the user can view any models.
+     * Disabled as markers are fetched directly through user relationship.
      */
     public function viewAny(User $user): bool
     {
@@ -18,6 +19,7 @@ class MarkerPolicy
 
     /**
      * Determine whether the user can view the model.
+     * Disabled as markers are fetched directly through user relationship.
      */
     public function view(User $user, Marker $marker): bool
     {
@@ -26,6 +28,7 @@ class MarkerPolicy
 
     /**
      * Determine whether the user can create models.
+     * Disabled as markers are created directly through user relationship.
      */
     public function create(User $user): bool
     {
@@ -50,6 +53,7 @@ class MarkerPolicy
 
     /**
      * Determine whether the user can restore the model.
+     * Disabled as soft deletes are not used for markers.
      */
     public function restore(User $user, Marker $marker): bool
     {
@@ -58,6 +62,7 @@ class MarkerPolicy
 
     /**
      * Determine whether the user can permanently delete the model.
+     * Disabled as soft deletes are not used for markers.
      */
     public function forceDelete(User $user, Marker $marker): bool
     {

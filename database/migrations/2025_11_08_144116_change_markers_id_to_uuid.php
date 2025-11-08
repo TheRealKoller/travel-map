@@ -31,6 +31,8 @@ return new class extends Migration
             });
         } else {
             // MySQL/MariaDB: Alter the table
+            // WARNING: This truncates all existing marker data as UUID conversion
+            // requires dropping and recreating the primary key column
             DB::table('markers')->truncate();
 
             Schema::table('markers', function (Blueprint $table) {
