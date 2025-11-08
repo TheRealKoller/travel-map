@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\MarkerController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -14,10 +15,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 
     // Marker routes
-    Route::get('/markers', [App\Http\Controllers\MarkerController::class, 'index'])->name('markers.index');
-    Route::post('/markers', [App\Http\Controllers\MarkerController::class, 'store'])->name('markers.store');
-    Route::put('/markers/{marker}', [App\Http\Controllers\MarkerController::class, 'update'])->name('markers.update');
-    Route::delete('/markers/{marker}', [App\Http\Controllers\MarkerController::class, 'destroy'])->name('markers.destroy');
+    Route::get('/markers', [MarkerController::class, 'index'])->name('markers.index');
+    Route::post('/markers', [MarkerController::class, 'store'])->name('markers.store');
+    Route::put('/markers/{marker}', [MarkerController::class, 'update'])->name('markers.update');
+    Route::delete('/markers/{marker}', [MarkerController::class, 'destroy'])->name('markers.destroy');
 });
 
 require __DIR__.'/settings.php';

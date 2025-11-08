@@ -3,7 +3,6 @@ import { Link } from '@inertiajs/react';
 interface NavItem {
     name: string;
     href: string;
-    icon?: string;
 }
 
 export default function Navigation() {
