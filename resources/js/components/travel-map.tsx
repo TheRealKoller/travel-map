@@ -11,17 +11,18 @@ import 'leaflet/dist/leaflet.css';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
-// Debounce utility function
-const debounce = <T extends (...args: any[]) => any>(
-    func: T,
-    delay: number,
-): ((...args: Parameters<T>) => void) => {
-    let timeoutId: ReturnType<typeof setTimeout>;
-    return (...args: Parameters<T>) => {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => func(...args), delay);
-    };
-};
+// Type definitions for Leaflet plugins
+interface GeocodeResult {
+    center: L.LatLng;
+    name: string;
+}
+
+interface GeocodeEvent {
+    geocode: GeocodeResult;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type LeafletExtensions = any;
 
 // Helper function to get icon name based on marker type
 const getIconForType = (type: MarkerType): string => {
@@ -68,6 +69,27 @@ export default function TravelMap() {
     );
     const searchMarkerRef = useRef<L.Marker | null>(null);
 
+    // Define saveMarkerToDatabase before it's used in useEffect
+    const saveMarkerToDatabase = useCallback(
+        async (markerData: Omit<MarkerData, 'marker'>) => {
+            try {
+                const response = await axios.post('/markers', {
+                    id: markerData.id,
+                    name: markerData.name,
+                    type: markerData.type,
+                    notes: markerData.notes,
+                    latitude: markerData.lat,
+                    longitude: markerData.lng,
+                });
+                return response.data.id;
+            } catch (error) {
+                console.error('Failed to save marker:', error);
+                return null;
+            }
+        },
+        [],
+    );
+
     useEffect(() => {
         if (!mapRef.current || mapInstanceRef.current) return;
 
@@ -86,14 +108,14 @@ export default function TravelMap() {
         }).addTo(map);
 
         // Add geocoder search control
-        const geocoder = (L.Control as any)
+        (L.Control as LeafletExtensions)
             .geocoder({
                 defaultMarkGeocode: false,
                 placeholder: 'Search for places...',
                 errorMessage: 'Nothing found.',
                 collapsed: false,
             })
-            .on('markgeocode', (e: any) => {
+            .on('markgeocode', (e: GeocodeEvent) => {
                 const latlng = e.geocode.center;
                 const placeName = e.geocode.name || 'Searched Location';
 
@@ -106,7 +128,7 @@ export default function TravelMap() {
                 map.setView(latlng, 16);
 
                 // Create a temporary highlight marker with yellow color
-                const highlightIcon = (L as any).AwesomeMarkers.icon({
+                const highlightIcon = (L as LeafletExtensions).AwesomeMarkers.icon({
                     icon: 'search',
                     markerColor: 'yellow',
                     iconColor: 'black',
@@ -132,7 +154,7 @@ export default function TravelMap() {
 
                     // Create permanent marker
                     const defaultType = MarkerType.PointOfInterest;
-                    const awesomeMarker = (L as any).AwesomeMarkers.icon({
+                    const awesomeMarker = (L as LeafletExtensions).AwesomeMarkers.icon({
                         icon: getIconForType(defaultType),
                         markerColor: getColorForType(defaultType),
                         iconColor: 'white',
@@ -179,7 +201,7 @@ export default function TravelMap() {
         // Add click event to create markers with awesome-markers
         map.on('click', (e: L.LeafletMouseEvent) => {
             const defaultType = MarkerType.PointOfInterest;
-            const awesomeMarker = (L as any).AwesomeMarkers.icon({
+            const awesomeMarker = (L as LeafletExtensions).AwesomeMarkers.icon({
                 icon: getIconForType(defaultType),
                 markerColor: getColorForType(defaultType),
                 iconColor: 'white',
@@ -226,13 +248,13 @@ export default function TravelMap() {
                 mapInstanceRef.current = null;
             }
         };
-    }, []);
+    }, [saveMarkerToDatabase]);
 
     // Update marker icons and tooltips when selection changes or names update
     useEffect(() => {
         markers.forEach((markerData) => {
             const isSelected = markerData.id === selectedMarkerId;
-            const icon = (L as any).AwesomeMarkers.icon({
+            const icon = (L as LeafletExtensions).AwesomeMarkers.icon({
                 icon: getIconForType(markerData.type),
                 markerColor: isSelected
                     ? 'red'
@@ -259,8 +281,15 @@ export default function TravelMap() {
                 if (mapInstanceRef.current) {
                     const map = mapInstanceRef.current;
                     const loadedMarkers: MarkerData[] = dbMarkers.map(
-                        (dbMarker: any) => {
-                            const icon = (L as any).AwesomeMarkers.icon({
+                        (dbMarker: {
+                            id: string;
+                            latitude: number;
+                            longitude: number;
+                            name: string;
+                            type: MarkerType;
+                            notes: string;
+                        }) => {
+                            const icon = (L as LeafletExtensions).AwesomeMarkers.icon({
                                 icon: getIconForType(dbMarker.type),
                                 markerColor: getColorForType(dbMarker.type),
                                 iconColor: 'white',
@@ -303,23 +332,24 @@ export default function TravelMap() {
         if (mapInstanceRef.current) {
             loadMarkers();
         }
-    }, [mapInstanceRef.current]);
+         
+    }, []);
 
     const handleSelectMarker = (id: string) => {
         setSelectedMarkerId(id);
     };
 
     // Debounced API call for updating marker name
-    const debouncedUpdateMarkerName = useCallback(
-        debounce(async (id: string, name: string) => {
+    const debouncedUpdateMarkerName = useCallback((id: string, name: string) => {
+        const timeoutId = setTimeout(async () => {
             try {
                 await axios.put(`/markers/${id}`, { name });
             } catch (error) {
                 console.error('Failed to update marker name:', error);
             }
-        }, 500),
-        [],
-    );
+        }, 500);
+        return timeoutId;
+    }, []);
 
     const handleUpdateMarkerName = (id: string, name: string) => {
         // Update local state immediately
@@ -328,10 +358,7 @@ export default function TravelMap() {
         );
 
         // Debounce the API call
-        const marker = markers.find((m) => m.id === id);
-        if (marker) {
-            debouncedUpdateMarkerName(id, name);
-        }
+        debouncedUpdateMarkerName(id, name);
     };
 
     const handleUpdateMarkerType = async (id: string, type: MarkerType) => {
@@ -352,16 +379,16 @@ export default function TravelMap() {
     };
 
     // Debounced API call for updating marker notes
-    const debouncedUpdateMarkerNotes = useCallback(
-        debounce(async (id: string, notes: string) => {
+    const debouncedUpdateMarkerNotes = useCallback((id: string, notes: string) => {
+        const timeoutId = setTimeout(async () => {
             try {
                 await axios.put(`/markers/${id}`, { notes });
             } catch (error) {
                 console.error('Failed to update marker notes:', error);
             }
-        }, 500),
-        [],
-    );
+        }, 500);
+        return timeoutId;
+    }, []);
 
     const handleUpdateMarkerNotes = (id: string, notes: string) => {
         // Update local state immediately
@@ -370,10 +397,7 @@ export default function TravelMap() {
         );
 
         // Debounce the API call
-        const marker = markers.find((m) => m.id === id);
-        if (marker) {
-            debouncedUpdateMarkerNotes(id, notes);
-        }
+        debouncedUpdateMarkerNotes(id, notes);
     };
 
     const handleDeleteMarker = async (id: string) => {
@@ -396,25 +420,6 @@ export default function TravelMap() {
         } catch (error) {
             console.error('Failed to delete marker:', error);
             alert('Failed to delete marker. Please try again.');
-        }
-    };
-
-    const saveMarkerToDatabase = async (
-        markerData: Omit<MarkerData, 'marker'>,
-    ) => {
-        try {
-            const response = await axios.post('/markers', {
-                id: markerData.id,
-                name: markerData.name,
-                type: markerData.type,
-                notes: markerData.notes,
-                latitude: markerData.lat,
-                longitude: markerData.lng,
-            });
-            return response.data.id;
-        } catch (error) {
-            console.error('Failed to save marker:', error);
-            return null;
         }
     };
 

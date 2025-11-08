@@ -20,6 +20,54 @@ export default function MarkerForm({
     onUpdateNotes,
     onDeleteMarker,
 }: MarkerFormProps) {
+    // Define mdeOptions before any early returns to ensure hooks are called in consistent order
+    const mdeOptions = useMemo(() => {
+        // Configure marked to preserve line breaks
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+        });
+
+        type ToolbarButton =
+            | 'bold'
+            | 'italic'
+            | 'heading'
+            | '|'
+            | 'quote'
+            | 'unordered-list'
+            | 'ordered-list'
+            | 'link'
+            | 'image'
+            | 'preview'
+            | 'guide';
+
+        return {
+            spellChecker: false,
+            placeholder:
+                'Add notes about this location (Markdown supported)...',
+            status: false,
+            previewRender: (text: string) => {
+                return marked.parse(text) as string;
+            },
+            toolbar: [
+                'bold',
+                'italic',
+                'heading',
+                '|',
+                'quote',
+                'unordered-list',
+                'ordered-list',
+                '|',
+                'link',
+                'image',
+                '|',
+                'preview',
+                '|',
+                'guide',
+            ] as ToolbarButton[],
+        };
+    }, []);
+
     if (!marker) {
         return (
             <div className="rounded-lg bg-white p-4 shadow">
@@ -52,40 +100,6 @@ export default function MarkerForm({
             onDeleteMarker(marker.id);
         }
     };
-
-    const mdeOptions = useMemo(() => {
-        // Configure marked to preserve line breaks
-        marked.setOptions({
-            breaks: true,
-            gfm: true,
-        });
-
-        return {
-            spellChecker: false,
-            placeholder:
-                'Add notes about this location (Markdown supported)...',
-            status: false,
-            previewRender: (text: string) => {
-                return marked.parse(text) as string;
-            },
-            toolbar: [
-                'bold',
-                'italic',
-                'heading',
-                '|',
-                'quote',
-                'unordered-list',
-                'ordered-list',
-                '|',
-                'link',
-                'image',
-                '|',
-                'preview',
-                '|',
-                'guide',
-            ] as any,
-        };
-    }, []);
 
     return (
         <div className="rounded-lg bg-white p-4 shadow">
