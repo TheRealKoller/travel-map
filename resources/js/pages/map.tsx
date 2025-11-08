@@ -1,26 +1,22 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import TravelMap from '@/components/travel-map';
+import AppLayout from '@/layouts/app-layout';
+import { type BreadcrumbItem } from '@/types';
+
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: 'Map',
+        href: '/',
+    },
+];
 
 export default function MapPage() {
     return (
-        <>
-            <Head title="Travelmap" />
-            <div className="min-h-screen bg-gray-50 p-5">
-                <div className="max-w-7xl mx-auto">
-                    <div className="flex justify-between items-center mb-5">
-                        <h1 className="text-3xl font-bold">Travelmap</h1>
-                        <Link
-                            href="/logout"
-                            method="post"
-                            as="button"
-                            className="px-5 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                        >
-                            Logout
-                        </Link>
-                    </div>
-                    <TravelMap />
-                </div>
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title="Map" />
+            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+                <TravelMap />
             </div>
-        </>
+        </AppLayout>
     );
 }
