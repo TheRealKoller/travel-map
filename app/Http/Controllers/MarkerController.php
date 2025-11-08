@@ -5,16 +5,17 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreMarkerRequest;
 use App\Http\Requests\UpdateMarkerRequest;
 use App\Models\Marker;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\JsonResponse;
 
 class MarkerController extends Controller
 {
     use AuthorizesRequests;
+
     public function index(): JsonResponse
     {
         $markers = auth()->user()->markers;
-        
+
         return response()->json($markers);
     }
 
