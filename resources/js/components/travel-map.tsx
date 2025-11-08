@@ -68,6 +68,9 @@ export default function TravelMap() {
         null,
     );
     const searchMarkerRef = useRef<L.Marker | null>(null);
+    // Refs to store timeout IDs for debouncing
+    const updateNameTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const updateNotesTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Define saveMarkerToDatabase before it's used in useEffect
     const saveMarkerToDatabase = useCallback(
@@ -340,14 +343,16 @@ export default function TravelMap() {
 
     // Debounced API call for updating marker name
     const debouncedUpdateMarkerName = useCallback((id: string, name: string) => {
-        const timeoutId = setTimeout(async () => {
+        if (updateNameTimeoutRef.current) {
+            clearTimeout(updateNameTimeoutRef.current);
+        }
+        updateNameTimeoutRef.current = setTimeout(async () => {
             try {
                 await axios.put(`/markers/${id}`, { name });
             } catch (error) {
                 console.error('Failed to update marker name:', error);
             }
         }, 500);
-        return timeoutId;
     }, []);
 
     const handleUpdateMarkerName = (id: string, name: string) => {
@@ -379,14 +384,17 @@ export default function TravelMap() {
 
     // Debounced API call for updating marker notes
     const debouncedUpdateMarkerNotes = useCallback((id: string, notes: string) => {
-        const timeoutId = setTimeout(async () => {
+        // Clear previous timeout if it exists
+        if (updateNotesTimeoutRef.current) {
+            clearTimeout(updateNotesTimeoutRef.current);
+        }
+        updateNotesTimeoutRef.current = setTimeout(async () => {
             try {
                 await axios.put(`/markers/${id}`, { notes });
             } catch (error) {
                 console.error('Failed to update marker notes:', error);
             }
         }, 500);
-        return timeoutId;
     }, []);
 
     const handleUpdateMarkerNotes = (id: string, notes: string) => {
