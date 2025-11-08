@@ -7,6 +7,42 @@ import MarkerList from '@/components/marker-list';
 import MarkerForm from '@/components/marker-form';
 import { MarkerData, MarkerType } from '@/types/marker';
 
+// Helper function to get icon name based on marker type
+const getIconForType = (type: MarkerType): string => {
+    switch (type) {
+        case MarkerType.Restaurant:
+            return 'utensils';
+        case MarkerType.Hotel:
+            return 'bed';
+        case MarkerType.Question:
+            return 'question';
+        case MarkerType.Tip:
+            return 'lightbulb';
+        case MarkerType.PointOfInterest:
+            return 'map-pin';
+        default:
+            return 'map-pin';
+    }
+};
+
+// Helper function to get color based on marker type
+const getColorForType = (type: MarkerType): string => {
+    switch (type) {
+        case MarkerType.Restaurant:
+            return 'orange';
+        case MarkerType.Hotel:
+            return 'blue';
+        case MarkerType.Question:
+            return 'purple';
+        case MarkerType.Tip:
+            return 'green';
+        case MarkerType.PointOfInterest:
+            return 'cadetblue';
+        default:
+            return 'gray';
+    }
+};
+
 export default function TravelMap() {
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<L.Map | null>(null);
@@ -31,9 +67,10 @@ export default function TravelMap() {
 
         // Add click event to create markers with awesome-markers
         map.on('click', (e: L.LeafletMouseEvent) => {
+            const defaultType = MarkerType.PointOfInterest;
             const awesomeMarker = (L as any).AwesomeMarkers.icon({
-                icon: 'map-pin',
-                markerColor: 'gray',
+                icon: getIconForType(defaultType),
+                markerColor: getColorForType(defaultType),
                 iconColor: 'white',
                 prefix: 'fa',
                 spin: false,
@@ -46,7 +83,7 @@ export default function TravelMap() {
                 lat: e.latlng.lat,
                 lng: e.latlng.lng,
                 name: '',
-                type: MarkerType.PointOfInterest,
+                type: defaultType,
                 marker: marker,
             };
             
@@ -76,8 +113,8 @@ export default function TravelMap() {
         markers.forEach((markerData) => {
             const isSelected = markerData.id === selectedMarkerId;
             const icon = (L as any).AwesomeMarkers.icon({
-                icon: 'map-pin',
-                markerColor: isSelected ? 'red' : 'gray',
+                icon: getIconForType(markerData.type),
+                markerColor: isSelected ? 'red' : getColorForType(markerData.type),
                 iconColor: 'white',
                 prefix: 'fa',
                 spin: isSelected,
