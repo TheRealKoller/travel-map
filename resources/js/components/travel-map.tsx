@@ -106,7 +106,10 @@ export default function TravelMap() {
         if (!mapRef.current || mapInstanceRef.current) return;
 
         // Initialize the map
-        const map = L.map(mapRef.current).setView(DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM);
+        const map = L.map(mapRef.current).setView(
+            DEFAULT_MAP_CENTER,
+            DEFAULT_MAP_ZOOM,
+        );
         mapInstanceRef.current = map;
 
         // Set crosshair cursor
@@ -140,7 +143,9 @@ export default function TravelMap() {
                 map.setView(latlng, 16);
 
                 // Create a temporary highlight marker with yellow color
-                const highlightIcon = (L as LeafletExtensions).AwesomeMarkers.icon({
+                const highlightIcon = (
+                    L as LeafletExtensions
+                ).AwesomeMarkers.icon({
                     icon: 'search',
                     markerColor: 'yellow',
                     iconColor: 'black',
@@ -166,7 +171,9 @@ export default function TravelMap() {
 
                     // Create permanent marker
                     const defaultType = MarkerType.PointOfInterest;
-                    const awesomeMarker = (L as LeafletExtensions).AwesomeMarkers.icon({
+                    const awesomeMarker = (
+                        L as LeafletExtensions
+                    ).AwesomeMarkers.icon({
                         icon: getIconForType(defaultType),
                         markerColor: getColorForType(defaultType),
                         iconColor: 'white',
@@ -267,7 +274,9 @@ export default function TravelMap() {
         if (prevSelectedMarkerIdRef.current !== selectedMarkerId) {
             // Update previously selected marker icon
             if (prevSelectedMarkerIdRef.current) {
-                const prevMarker = markers.find(m => m.id === prevSelectedMarkerIdRef.current);
+                const prevMarker = markers.find(
+                    (m) => m.id === prevSelectedMarkerIdRef.current,
+                );
                 if (prevMarker) {
                     const icon = (L as LeafletExtensions).AwesomeMarkers.icon({
                         icon: getIconForType(prevMarker.type),
@@ -281,7 +290,9 @@ export default function TravelMap() {
             }
             // Update newly selected marker icon
             if (selectedMarkerId) {
-                const selectedMarker = markers.find(m => m.id === selectedMarkerId);
+                const selectedMarker = markers.find(
+                    (m) => m.id === selectedMarkerId,
+                );
                 if (selectedMarker) {
                     const icon = (L as LeafletExtensions).AwesomeMarkers.icon({
                         icon: getIconForType(selectedMarker.type),
@@ -327,7 +338,9 @@ export default function TravelMap() {
                             type: MarkerType;
                             notes: string;
                         }) => {
-                            const icon = (L as LeafletExtensions).AwesomeMarkers.icon({
+                            const icon = (
+                                L as LeafletExtensions
+                            ).AwesomeMarkers.icon({
                                 icon: getIconForType(dbMarker.type),
                                 markerColor: getColorForType(dbMarker.type),
                                 iconColor: 'white',
@@ -378,19 +391,22 @@ export default function TravelMap() {
     };
 
     // Debounced API call for updating marker name
-    const debouncedUpdateMarkerName = useCallback((id: string, name: string) => {
-        if (updateNameTimeoutRef.current) {
-            clearTimeout(updateNameTimeoutRef.current);
-        }
-        updateNameTimeoutRef.current = setTimeout(async () => {
-            try {
-                await axios.put(`/markers/${id}`, { name });
-            } catch (error) {
-                console.error('Failed to update marker name:', error);
-                alert('Failed to update marker name. Please try again.');
+    const debouncedUpdateMarkerName = useCallback(
+        (id: string, name: string) => {
+            if (updateNameTimeoutRef.current) {
+                clearTimeout(updateNameTimeoutRef.current);
             }
-        }, DEBOUNCE_DELAY_MS);
-    }, []);
+            updateNameTimeoutRef.current = setTimeout(async () => {
+                try {
+                    await axios.put(`/markers/${id}`, { name });
+                } catch (error) {
+                    console.error('Failed to update marker name:', error);
+                    alert('Failed to update marker name. Please try again.');
+                }
+            }, DEBOUNCE_DELAY_MS);
+        },
+        [],
+    );
 
     const handleUpdateMarkerName = (id: string, name: string) => {
         // Update local state immediately
@@ -421,20 +437,23 @@ export default function TravelMap() {
     };
 
     // Debounced API call for updating marker notes
-    const debouncedUpdateMarkerNotes = useCallback((id: string, notes: string) => {
-        // Clear previous timeout if it exists
-        if (updateNotesTimeoutRef.current) {
-            clearTimeout(updateNotesTimeoutRef.current);
-        }
-        updateNotesTimeoutRef.current = setTimeout(async () => {
-            try {
-                await axios.put(`/markers/${id}`, { notes });
-            } catch (error) {
-                console.error('Failed to update marker notes:', error);
-                alert('Failed to update marker notes. Please try again.');
+    const debouncedUpdateMarkerNotes = useCallback(
+        (id: string, notes: string) => {
+            // Clear previous timeout if it exists
+            if (updateNotesTimeoutRef.current) {
+                clearTimeout(updateNotesTimeoutRef.current);
             }
-        }, DEBOUNCE_DELAY_MS);
-    }, []);
+            updateNotesTimeoutRef.current = setTimeout(async () => {
+                try {
+                    await axios.put(`/markers/${id}`, { notes });
+                } catch (error) {
+                    console.error('Failed to update marker notes:', error);
+                    alert('Failed to update marker notes. Please try again.');
+                }
+            }, DEBOUNCE_DELAY_MS);
+        },
+        [],
+    );
 
     const handleUpdateMarkerNotes = (id: string, notes: string) => {
         // Update local state immediately
