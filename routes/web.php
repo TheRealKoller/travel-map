@@ -5,7 +5,18 @@ use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
 Route::get('/', function () {
-    return '<h1>Hello World</h1>';
+    return '
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Japanleisegluppe</title>
+        </head>
+        <body>
+            <h1>Japanleisegluppe</h1>
+            <div id="map"></div>
+        </body>
+        </html>
+    ';
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
