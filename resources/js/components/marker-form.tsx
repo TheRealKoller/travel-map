@@ -1,9 +1,9 @@
+import '@/../../resources/css/markdown-preview.css';
 import { MarkerData, MarkerType } from '@/types/marker';
+import 'easymde/dist/easymde.min.css';
+import { marked } from 'marked';
 import { useMemo } from 'react';
 import SimpleMDE from 'react-simplemde-editor';
-import { marked } from 'marked';
-import 'easymde/dist/easymde.min.css';
-import '@/../../resources/css/markdown-preview.css';
 
 interface MarkerFormProps {
     marker: MarkerData | null;
@@ -13,12 +13,20 @@ interface MarkerFormProps {
     onDeleteMarker: (id: string) => void;
 }
 
-export default function MarkerForm({ marker, onUpdateName, onUpdateType, onUpdateNotes, onDeleteMarker }: MarkerFormProps) {
+export default function MarkerForm({
+    marker,
+    onUpdateName,
+    onUpdateType,
+    onUpdateNotes,
+    onDeleteMarker,
+}: MarkerFormProps) {
     if (!marker) {
         return (
-            <div className="bg-white rounded-lg shadow p-4">
-                <h2 className="text-xl font-semibold mb-4">Marker Details</h2>
-                <p className="text-gray-500">Select a marker to edit its details</p>
+            <div className="rounded-lg bg-white p-4 shadow">
+                <h2 className="mb-4 text-xl font-semibold">Marker Details</h2>
+                <p className="text-gray-500">
+                    Select a marker to edit its details
+                </p>
             </div>
         );
     }
@@ -36,7 +44,11 @@ export default function MarkerForm({ marker, onUpdateName, onUpdateType, onUpdat
     };
 
     const handleDelete = () => {
-        if (window.confirm(`Are you sure you want to delete "${marker.name || 'this marker'}"? This action cannot be undone.`)) {
+        if (
+            window.confirm(
+                `Are you sure you want to delete "${marker.name || 'this marker'}"? This action cannot be undone.`,
+            )
+        ) {
             onDeleteMarker(marker.id);
         }
     };
@@ -50,7 +62,8 @@ export default function MarkerForm({ marker, onUpdateName, onUpdateType, onUpdat
 
         return {
             spellChecker: false,
-            placeholder: 'Add notes about this location (Markdown supported)...',
+            placeholder:
+                'Add notes about this location (Markdown supported)...',
             status: false,
             previewRender: (text: string) => {
                 return marked.parse(text) as string;
@@ -75,11 +88,14 @@ export default function MarkerForm({ marker, onUpdateName, onUpdateType, onUpdat
     }, []);
 
     return (
-        <div className="bg-white rounded-lg shadow p-4">
-            <h2 className="text-xl font-semibold mb-4">Marker Details</h2>
+        <div className="rounded-lg bg-white p-4 shadow">
+            <h2 className="mb-4 text-xl font-semibold">Marker Details</h2>
             <div className="space-y-4">
                 <div>
-                    <label htmlFor="marker-name" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label
+                        htmlFor="marker-name"
+                        className="mb-2 block text-sm font-medium text-gray-700"
+                    >
                         Name
                     </label>
                     <input
@@ -87,29 +103,36 @@ export default function MarkerForm({ marker, onUpdateName, onUpdateType, onUpdat
                         type="text"
                         value={marker.name}
                         onChange={handleNameChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                         placeholder="Enter marker name"
                     />
                 </div>
                 <div>
-                    <label htmlFor="marker-type" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label
+                        htmlFor="marker-type"
+                        className="mb-2 block text-sm font-medium text-gray-700"
+                    >
                         Type
                     </label>
                     <select
                         id="marker-type"
                         value={marker.type}
                         onChange={handleTypeChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     >
-                        <option value={MarkerType.Restaurant}>Restaurant</option>
-                        <option value={MarkerType.PointOfInterest}>Point of Interest</option>
+                        <option value={MarkerType.Restaurant}>
+                            Restaurant
+                        </option>
+                        <option value={MarkerType.PointOfInterest}>
+                            Point of Interest
+                        </option>
                         <option value={MarkerType.Question}>Question</option>
                         <option value={MarkerType.Tip}>Tip</option>
                         <option value={MarkerType.Hotel}>Hotel</option>
                     </select>
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
                         Notes
                     </label>
                     <SimpleMDE
@@ -119,20 +142,22 @@ export default function MarkerForm({ marker, onUpdateName, onUpdateType, onUpdat
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
                         Coordinates
                     </label>
                     <p className="text-sm text-gray-600">
-                        <span className="font-medium">Latitude:</span> {marker.lat.toFixed(6)}
+                        <span className="font-medium">Latitude:</span>{' '}
+                        {marker.lat.toFixed(6)}
                     </p>
                     <p className="text-sm text-gray-600">
-                        <span className="font-medium">Longitude:</span> {marker.lng.toFixed(6)}
+                        <span className="font-medium">Longitude:</span>{' '}
+                        {marker.lng.toFixed(6)}
                     </p>
                 </div>
-                <div className="pt-4 border-t border-gray-200">
+                <div className="border-t border-gray-200 pt-4">
                     <button
                         onClick={handleDelete}
-                        className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
+                        className="w-full rounded-md bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none"
                     >
                         Delete Marker
                     </button>

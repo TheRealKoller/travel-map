@@ -1,7 +1,7 @@
-import { MarkerData, MarkerType } from '@/types/marker';
-import { marked } from 'marked';
-import { useEffect, useState } from 'react';
 import '@/../../resources/css/markdown-preview.css';
+import { MarkerData } from '@/types/marker';
+import { marked } from 'marked';
+import { useEffect } from 'react';
 
 interface MarkerListProps {
     markers: MarkerData[];
@@ -9,7 +9,11 @@ interface MarkerListProps {
     onSelectMarker: (id: string) => void;
 }
 
-export default function MarkerList({ markers, selectedMarkerId, onSelectMarker }: MarkerListProps) {
+export default function MarkerList({
+    markers,
+    selectedMarkerId,
+    onSelectMarker,
+}: MarkerListProps) {
     // Configure marked
     useEffect(() => {
         marked.setOptions({
@@ -19,40 +23,49 @@ export default function MarkerList({ markers, selectedMarkerId, onSelectMarker }
     }, []);
     if (markers.length === 0) {
         return (
-            <div className="bg-white rounded-lg shadow p-4">
-                <h2 className="text-xl font-semibold mb-4">Markers (0)</h2>
+            <div className="rounded-lg bg-white p-4 shadow">
+                <h2 className="mb-4 text-xl font-semibold">Markers (0)</h2>
                 <p className="text-gray-500">Click on the map to add markers</p>
             </div>
         );
     }
 
     return (
-        <div className="bg-white rounded-lg shadow p-4">
-            <h2 className="text-xl font-semibold mb-4">Markers ({markers.length})</h2>
+        <div className="rounded-lg bg-white p-4 shadow">
+            <h2 className="mb-4 text-xl font-semibold">
+                Markers ({markers.length})
+            </h2>
             <ul className="space-y-2">
                 {markers.map((markerData) => (
-                    <li 
+                    <li
                         key={markerData.id}
                         onClick={() => onSelectMarker(markerData.id)}
-                        className={`p-3 rounded cursor-pointer transition ${
-                            selectedMarkerId === markerData.id 
-                                ? 'bg-blue-100 border-2 border-blue-500' 
+                        className={`cursor-pointer rounded p-3 transition ${
+                            selectedMarkerId === markerData.id
+                                ? 'border-2 border-blue-500 bg-blue-100'
                                 : 'bg-gray-50 hover:bg-gray-100'
                         }`}
                     >
-                        <div className="font-medium text-gray-900 mb-1">
+                        <div className="mb-1 font-medium text-gray-900">
                             {markerData.name || 'Unnamed Location'}
                         </div>
-                        <div className="text-sm text-gray-600 mb-2">
-                            <span className="font-medium">Lat:</span> {markerData.lat.toFixed(6)}, 
-                            <span className="font-medium ml-2">Lng:</span> {markerData.lng.toFixed(6)}
+                        <div className="mb-2 text-sm text-gray-600">
+                            <span className="font-medium">Lat:</span>{' '}
+                            {markerData.lat.toFixed(6)},
+                            <span className="ml-2 font-medium">Lng:</span>{' '}
+                            {markerData.lng.toFixed(6)}
                         </div>
-                        {selectedMarkerId === markerData.id && markerData.notes && (
-                            <div 
-                                className="markdown-preview text-sm text-gray-700 mt-2 pt-2 border-t border-blue-300"
-                                dangerouslySetInnerHTML={{ __html: marked.parse(markerData.notes) as string }}
-                            />
-                        )}
+                        {selectedMarkerId === markerData.id &&
+                            markerData.notes && (
+                                <div
+                                    className="markdown-preview mt-2 border-t border-blue-300 pt-2 text-sm text-gray-700"
+                                    dangerouslySetInnerHTML={{
+                                        __html: marked.parse(
+                                            markerData.notes,
+                                        ) as string,
+                                    }}
+                                />
+                            )}
                     </li>
                 ))}
             </ul>

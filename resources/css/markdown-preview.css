@@ -2,7 +2,9 @@
 .editor-preview,
 .editor-preview-side {
     padding: 1rem;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family:
+        -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+        Arial, sans-serif;
     line-height: 1.2;
     color: #333;
 }
@@ -182,13 +184,15 @@
 .editor-preview br,
 .editor-preview-side br {
     display: block;
-    content: "";
+    content: '';
     margin: 0.5em 0;
 }
 
 /* Markdown preview in marker list */
 .markdown-preview {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family:
+        -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+        Arial, sans-serif;
     line-height: 1.6;
 }
 
@@ -340,4 +344,3 @@
 .markdown-preview em {
     font-style: italic;
 }
-
