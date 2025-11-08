@@ -74,6 +74,21 @@ export default function TravelMap() {
         };
     }, []);
 
+    // Update marker icons when selection changes
+    useEffect(() => {
+        markers.forEach((markerData) => {
+            const isSelected = markerData.id === selectedMarkerId;
+            const icon = (L as any).AwesomeMarkers.icon({
+                icon: 'map-pin',
+                markerColor: isSelected ? 'red' : 'gray',
+                iconColor: 'white',
+                prefix: 'fa',
+                spin: isSelected,
+            });
+            markerData.marker.setIcon(icon);
+        });
+    }, [selectedMarkerId, markers]);
+
     const handleSelectMarker = (id: string) => {
         setSelectedMarkerId(id);
     };
