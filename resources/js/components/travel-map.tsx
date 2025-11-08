@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.awesome-markers';
+import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.css';
 import MarkerList from '@/components/marker-list';
 
 interface MarkerData {
@@ -31,9 +33,15 @@ export default function TravelMap() {
             maxZoom: 19,
         }).addTo(map);
 
-        // Add click event to create markers
+        // Add click event to create markers with awesome-markers
         map.on('click', (e: L.LeafletMouseEvent) => {
-            const marker = L.marker(e.latlng).addTo(map);
+            const awesomeMarker = (L as any).AwesomeMarkers.icon({
+                icon: 'map-pin',
+                markerColor: 'gray',
+                prefix: 'fa'
+            });
+            
+            const marker = L.marker(e.latlng, { icon: awesomeMarker }).addTo(map);
             const markerData: MarkerData = {
                 id: `marker-${Date.now()}`,
                 lat: e.latlng.lat,
