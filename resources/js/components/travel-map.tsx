@@ -3,6 +3,8 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.awesome-markers';
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.css';
+import 'leaflet-control-geocoder';
+import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
 import MarkerList from '@/components/marker-list';
 import MarkerForm from '@/components/marker-form';
 import { MarkerData, MarkerType } from '@/types/marker';
@@ -63,6 +65,16 @@ export default function TravelMap() {
         L.tileLayer('https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             maxZoom: 19,
+        }).addTo(map);
+
+        // Add geocoder search control
+        const geocoder = (L.Control as any).geocoder({
+            defaultMarkGeocode: false,
+            placeholder: 'Search for places...',
+            errorMessage: 'Nothing found.',
+        }).on('markgeocode', (e: any) => {
+            const latlng = e.geocode.center;
+            map.setView(latlng, 16);
         }).addTo(map);
 
         // Add click event to create markers with awesome-markers
