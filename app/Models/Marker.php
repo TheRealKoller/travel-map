@@ -10,15 +10,7 @@ class Marker extends Model
 {
     use HasUuids;
 
-    protected $fillable = [
-        'id',
-        'name',
-        'type',
-        'notes',
-        'latitude',
-        'longitude',
-        'user_id',
-    ];
+    protected $guarded = [];
 
     protected $casts = [
         'latitude' => 'float',
