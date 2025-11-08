@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.awesome-markers';
@@ -10,6 +10,18 @@ import MarkerForm from '@/components/marker-form';
 import { MarkerData, MarkerType } from '@/types/marker';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
+
+// Debounce utility function
+const debounce = <T extends (...args: any[]) => any>(
+    func: T,
+    delay: number
+): ((...args: Parameters<T>) => void) => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    return (...args: Parameters<T>) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => func(...args), delay);
+    };
+};
 
 // Helper function to get icon name based on marker type
 const getIconForType = (type: MarkerType): string => {
@@ -265,22 +277,38 @@ export default function TravelMap() {
         setSelectedMarkerId(id);
     };
 
-    const handleUpdateMarkerName = async (id: string, name: string) => {
-        const marker = markers.find(m => m.id === id);
-        if (marker) {
+    // Debounced API call for updating marker name
+    const debouncedUpdateMarkerName = useCallback(
+        debounce(async (id: string, name: string) => {
             try {
-                await axios.put(`/markers/${marker.id}`, { name });
+                await axios.put(`/markers/${id}`, { name });
             } catch (error) {
                 console.error('Failed to update marker name:', error);
             }
-        }
-        
+        }, 500),
+        []
+    );
+
+    const handleUpdateMarkerName = (id: string, name: string) => {
+        // Update local state immediately
         setMarkers((prev) =>
             prev.map((m) => (m.id === id ? { ...m, name } : m))
         );
+        
+        // Debounce the API call
+        const marker = markers.find(m => m.id === id);
+        if (marker) {
+            debouncedUpdateMarkerName(id, name);
+        }
     };
 
     const handleUpdateMarkerType = async (id: string, type: MarkerType) => {
+        // Update local state immediately
+        setMarkers((prev) =>
+            prev.map((m) => (m.id === id ? { ...m, type } : m))
+        );
+        
+        // Update in database (not debounced as dropdown changes are infrequent)
         const marker = markers.find(m => m.id === id);
         if (marker) {
             try {
@@ -289,25 +317,31 @@ export default function TravelMap() {
                 console.error('Failed to update marker type:', error);
             }
         }
-        
-        setMarkers((prev) =>
-            prev.map((m) => (m.id === id ? { ...m, type } : m))
-        );
     };
 
-    const handleUpdateMarkerNotes = async (id: string, notes: string) => {
-        const marker = markers.find(m => m.id === id);
-        if (marker) {
+    // Debounced API call for updating marker notes
+    const debouncedUpdateMarkerNotes = useCallback(
+        debounce(async (id: string, notes: string) => {
             try {
-                await axios.put(`/markers/${marker.id}`, { notes });
+                await axios.put(`/markers/${id}`, { notes });
             } catch (error) {
                 console.error('Failed to update marker notes:', error);
             }
-        }
-        
+        }, 500),
+        []
+    );
+
+    const handleUpdateMarkerNotes = (id: string, notes: string) => {
+        // Update local state immediately
         setMarkers((prev) =>
             prev.map((m) => (m.id === id ? { ...m, notes } : m))
         );
+        
+        // Debounce the API call
+        const marker = markers.find(m => m.id === id);
+        if (marker) {
+            debouncedUpdateMarkerNotes(id, notes);
+        }
     };
 
     const saveMarkerToDatabase = async (markerData: Omit<MarkerData, 'marker'>) => {
