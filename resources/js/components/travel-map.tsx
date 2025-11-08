@@ -76,6 +76,9 @@ export default function TravelMap() {
     // Refs to store timeout IDs for debouncing
     const updateNameTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const updateNotesTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    // Refs to track previous values for optimization
+    const prevSelectedMarkerIdRef = useRef<string | null>(null);
+    const prevMarkerNamesRef = useRef<{ [id: string]: string }>({});
 
     // Define saveMarkerToDatabase before it's used in useEffect
     const saveMarkerToDatabase = useCallback(
@@ -92,6 +95,7 @@ export default function TravelMap() {
                 return response.data.id;
             } catch (error) {
                 console.error('Failed to save marker:', error);
+                alert('Failed to save marker. Please try again.');
                 return null;
             }
         },
@@ -258,26 +262,52 @@ export default function TravelMap() {
         };
     }, [saveMarkerToDatabase]);
 
-    // Update marker icons and tooltips when selection changes or names update
+    // Only update marker icon when selection changes
+    useEffect(() => {
+        if (prevSelectedMarkerIdRef.current !== selectedMarkerId) {
+            // Update previously selected marker icon
+            if (prevSelectedMarkerIdRef.current) {
+                const prevMarker = markers.find(m => m.id === prevSelectedMarkerIdRef.current);
+                if (prevMarker) {
+                    const icon = (L as LeafletExtensions).AwesomeMarkers.icon({
+                        icon: getIconForType(prevMarker.type),
+                        markerColor: getColorForType(prevMarker.type),
+                        iconColor: 'white',
+                        prefix: 'fa',
+                        spin: false,
+                    });
+                    prevMarker.marker.setIcon(icon);
+                }
+            }
+            // Update newly selected marker icon
+            if (selectedMarkerId) {
+                const selectedMarker = markers.find(m => m.id === selectedMarkerId);
+                if (selectedMarker) {
+                    const icon = (L as LeafletExtensions).AwesomeMarkers.icon({
+                        icon: getIconForType(selectedMarker.type),
+                        markerColor: 'red',
+                        iconColor: 'white',
+                        prefix: 'fa',
+                        spin: true,
+                    });
+                    selectedMarker.marker.setIcon(icon);
+                }
+            }
+            prevSelectedMarkerIdRef.current = selectedMarkerId;
+        }
+    }, [selectedMarkerId, markers]);
+
+    // Only update marker tooltip when name changes
     useEffect(() => {
         markers.forEach((markerData) => {
-            const isSelected = markerData.id === selectedMarkerId;
-            const icon = (L as LeafletExtensions).AwesomeMarkers.icon({
-                icon: getIconForType(markerData.type),
-                markerColor: isSelected
-                    ? 'red'
-                    : getColorForType(markerData.type),
-                iconColor: 'white',
-                prefix: 'fa',
-                spin: isSelected,
-            });
-            markerData.marker.setIcon(icon);
-
-            // Update tooltip with current name
-            const tooltipContent = markerData.name || 'Unnamed Location';
-            markerData.marker.setTooltipContent(tooltipContent);
+            const prevName = prevMarkerNamesRef.current[markerData.id];
+            if (markerData.name !== prevName) {
+                const tooltipContent = markerData.name || 'Unnamed Location';
+                markerData.marker.setTooltipContent(tooltipContent);
+                prevMarkerNamesRef.current[markerData.id] = markerData.name;
+            }
         });
-    }, [selectedMarkerId, markers]);
+    }, [markers]);
 
     // Load markers from database on component mount
     useEffect(() => {
@@ -334,6 +364,7 @@ export default function TravelMap() {
                 }
             } catch (error) {
                 console.error('Failed to load markers:', error);
+                alert('Failed to load markers. Please refresh the page.');
             }
         };
 
@@ -356,6 +387,7 @@ export default function TravelMap() {
                 await axios.put(`/markers/${id}`, { name });
             } catch (error) {
                 console.error('Failed to update marker name:', error);
+                alert('Failed to update marker name. Please try again.');
             }
         }, DEBOUNCE_DELAY_MS);
     }, []);
@@ -383,6 +415,7 @@ export default function TravelMap() {
                 await axios.put(`/markers/${marker.id}`, { type });
             } catch (error) {
                 console.error('Failed to update marker type:', error);
+                alert('Failed to update marker type. Please try again.');
             }
         }
     };
@@ -398,6 +431,7 @@ export default function TravelMap() {
                 await axios.put(`/markers/${id}`, { notes });
             } catch (error) {
                 console.error('Failed to update marker notes:', error);
+                alert('Failed to update marker notes. Please try again.');
             }
         }, DEBOUNCE_DELAY_MS);
     }, []);
