@@ -1,31 +1,25 @@
-name: Deploy
+name: Deploy to Production
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Deployment environment'
-        required: true
-        default: 'production'
-        type: choice
-        options:
-          - production
-          - staging
+  workflow_dispatch: # Manuelles Deployment erlauben
 
 permissions:
   contents: read
 
 jobs:
+  # Zuerst Tests ausführen
+  tests:
+    uses: ./.github/workflows/tests.yml
+
+  # Deployment (nur wenn Tests erfolgreich)
   deploy:
-    name: Deploy to ${{ github.event.inputs.environment || 'production' }}
+    name: Deploy to all-inkl.com
     runs-on: ubuntu-latest
-    # Only run on successful CI completion
-    needs: []
-    environment:
-      name: ${{ github.event.inputs.environment || 'production' }}
+    needs: tests
+    environment: production
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -50,43 +44,102 @@ jobs:
       - name: Build production assets
         run: npm run build
 
-      - name: Prepare deployment package
+      - name: Create deployment package
         run: |
-          echo "Deployment package prepared for ${{ github.event.inputs.environment || 'production' }}"
-          echo "Deployment would include:"
-          echo "  - PHP files"
-          echo "  - Built assets in public/build/"
-          echo "  - Vendor dependencies"
+          mkdir -p deploy
+          
+          # Kopiere alle benötigten Dateien (exclude dev files)
+          rsync -av --progress \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='tests' \
+            --exclude='.env' \
+            --exclude='.env.example' \
+            --exclude='.env.testing' \
+            --exclude='.env.e2e' \
+            --exclude='storage/logs/*' \
+            --exclude='storage/framework/cache/*' \
+            --exclude='storage/framework/sessions/*' \
+            --exclude='storage/framework/views/*' \
+            --exclude='database/*.sqlite*' \
+            --exclude='.github' \
+            --exclude='.vscode' \
+            --exclude='.idea' \
+            --exclude='.fleet' \
+            --exclude='.nova' \
+            --exclude='playwright-report' \
+            --exclude='test-results' \
+            --exclude='README.md' \
+            --exclude='DEPLOYMENT*.md' \
+            --exclude='SETUP*.md' \
+            --exclude='docker-compose.yml' \
+            --exclude='phpunit.xml' \
+            --exclude='playwright.config.ts' \
+            --exclude='scripts' \
+            ./ deploy/
+          
+          # Erstelle .gitkeep Dateien für storage-Verzeichnisse
+          touch deploy/storage/logs/.gitkeep
+          touch deploy/storage/framework/cache/.gitkeep
+          touch deploy/storage/framework/sessions/.gitkeep
+          touch deploy/storage/framework/views/.gitkeep
 
-      # This is a placeholder for actual deployment steps
-      # In a real scenario, you would:
-      # 1. Deploy to your hosting service (e.g., Laravel Forge, Vapor, custom server)
-      # 2. Run database migrations
-      # 3. Clear caches
-      # 4. Restart queue workers
-      # 5. Run post-deployment tests
-      
-      - name: Deploy notification
+      - name: Deploy to all-inkl.com via SFTP
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+        with:
+          username: ${{ secrets.SFTP_USERNAME }}
+          server: ${{ secrets.SFTP_HOST }}
+          port: 22
+          password: ${{ secrets.SFTP_PASSWORD }}
+          local_path: './deploy/*'
+          remote_path: ${{ secrets.SFTP_REMOTE_PATH }}
+          sftp_only: true
+          delete_remote_files: false
+
+      - name: Run post-deployment commands via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SFTP_HOST }}
+          username: ${{ secrets.SFTP_USERNAME }}
+          password: ${{ secrets.SFTP_PASSWORD }}
+          port: 22
+          script: |
+            cd ${{ secrets.SFTP_REMOTE_PATH }}
+            
+            # Setze korrekte Berechtigungen
+            chmod -R 755 bootstrap/cache 2>/dev/null || true
+            chmod -R 755 storage 2>/dev/null || true
+            
+            # Laravel Cache-Optimierung
+            php artisan optimize:clear 2>/dev/null || true
+            php artisan config:cache 2>/dev/null || true
+            php artisan route:cache 2>/dev/null || true
+            php artisan view:cache 2>/dev/null || true
+            
+            # Optional: Migrationen (auskommentiert zur Sicherheit)
+            # php artisan migrate --force
+            
+            echo "✅ Post-deployment commands completed!"
+
+      - name: Create deployment summary
+        if: success()
         run: |
-          echo "✅ Deployment to ${{ github.event.inputs.environment || 'production' }} completed"
-          echo "📦 Commit: ${{ github.sha }}"
-          echo "👤 Author: ${{ github.actor }}"
-          echo "📝 Message: ${{ github.event.head_commit.message }}"
+          echo "### ✅ Deployment erfolgreich!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Author:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Message:** ${{ github.event.head_commit.message }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Zeit:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🚀 Die Anwendung wurde erfolgreich zu all-inkl.com deployed." >> $GITHUB_STEP_SUMMARY
 
-      # Example: Deploy to Laravel Forge
-      # - name: Deploy to Laravel Forge
-      #   env:
-      #     FORGE_TOKEN: ${{ secrets.FORGE_TOKEN }}
-      #     FORGE_SERVER_ID: ${{ secrets.FORGE_SERVER_ID }}
-      #     FORGE_SITE_ID: ${{ secrets.FORGE_SITE_ID }}
-      #   run: |
-      #     curl -X POST "https://forge.laravel.com/api/v1/servers/${FORGE_SERVER_ID}/sites/${FORGE_SITE_ID}/deploy" \
-      #       -H "Authorization: Bearer ${FORGE_TOKEN}" \
-      #       -H "Accept: application/json"
-
-      # Example: Deploy to Laravel Vapor
-      # - name: Deploy to Laravel Vapor
-      #   env:
-      #     VAPOR_API_TOKEN: ${{ secrets.VAPOR_API_TOKEN }}
-      #   run: |
-      #     npx vapor deploy production
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "### ❌ Deployment fehlgeschlagen!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Bitte prüfe die Logs für weitere Details." >> $GITHUB_STEP_SUMMARY
