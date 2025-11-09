@@ -107,7 +107,9 @@ npm run build
 
 ## Testing
 
-Run the test suite:
+### Unit and Feature Tests
+
+Run the PHP test suite:
 
 ```bash
 php artisan test
@@ -118,6 +120,52 @@ Or using Pest directly:
 ```bash
 ./vendor/bin/pest
 ```
+
+### End-to-End (E2E) Tests
+
+The application includes E2E tests using Playwright to test the complete user workflows.
+
+#### First Time Setup
+
+1. Install Playwright browsers:
+   ```bash
+   npx playwright install chromium
+   ```
+
+2. Create and setup the E2E database:
+   ```bash
+   # Create the E2E SQLite database
+   New-Item -Path "database\e2e.sqlite" -ItemType File -Force
+   
+   # Run migrations for E2E database
+   php artisan migrate:fresh --env=e2e --force
+   ```
+
+#### Running E2E Tests
+
+**Important:** The assets must be built before running E2E tests (this is done automatically by the test commands).
+
+```bash
+# Run all E2E tests
+npm run test:e2e
+
+# Run with interactive UI (recommended for development)
+npm run test:e2e:ui
+
+# Run in headed mode (see the browser)
+npm run test:e2e:headed
+
+# Run in debug mode
+npm run test:e2e:debug
+```
+
+**Note:** Currently 19 out of 20 E2E tests pass consistently (1 test is skipped, 1 occasionally flaky due to parallel execution timing).
+
+**Known Issues:**
+- One test (user can navigate from dashboard to map) may occasionally fail when run in parallel due to database timing
+- One test (registered user can login and logout) is temporarily skipped pending fixes to the user menu dropdown interaction
+
+For more details on E2E testing, see [tests/e2e/README.md](tests/e2e/README.md)
 
 ## Additional Commands
 
