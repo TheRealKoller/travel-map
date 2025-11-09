@@ -159,7 +159,11 @@ npm run test:e2e:headed
 npm run test:e2e:debug
 ```
 
-**Note:** Currently 12 out of 21 E2E tests are passing. Some tests that require authentication may fail due to session persistence issues that are being resolved.
+**Note:** Currently 19 out of 20 E2E tests pass consistently (1 test is skipped, 1 occasionally flaky due to parallel execution timing).
+
+**Known Issues:**
+- One test (user can navigate from dashboard to map) may occasionally fail when run in parallel due to database timing
+- One test (registered user can login and logout) is temporarily skipped pending fixes to the user menu dropdown interaction
 
 For more details on E2E testing, see [tests/e2e/README.md](tests/e2e/README.md)
 

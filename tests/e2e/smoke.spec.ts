@@ -6,7 +6,7 @@ test.describe('Smoke Tests', () => {
 
         // Should redirect to login for unauthenticated users
         await expect(page).toHaveURL(/\/login/);
-        await expect(page).toHaveTitle(/Login/);
+        await expect(page).toHaveTitle(/Log in/);
     });
 
     test('login page renders all required elements', async ({ page }) => {
