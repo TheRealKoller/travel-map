@@ -127,13 +127,23 @@ The application includes E2E tests using Playwright to test the complete user wo
 
 #### First Time Setup
 
-Install Playwright browsers:
+1. Install Playwright browsers:
+   ```bash
+   npx playwright install chromium
+   ```
 
-```bash
-npx playwright install chromium
-```
+2. Create and setup the E2E database:
+   ```bash
+   # Create the E2E SQLite database
+   New-Item -Path "database\e2e.sqlite" -ItemType File -Force
+   
+   # Run migrations for E2E database
+   php artisan migrate:fresh --env=e2e --force
+   ```
 
 #### Running E2E Tests
+
+**Important:** The assets must be built before running E2E tests (this is done automatically by the test commands).
 
 ```bash
 # Run all E2E tests
@@ -148,6 +158,8 @@ npm run test:e2e:headed
 # Run in debug mode
 npm run test:e2e:debug
 ```
+
+**Note:** Currently 12 out of 21 E2E tests are passing. Some tests that require authentication may fail due to session persistence issues that are being resolved.
 
 For more details on E2E testing, see [tests/e2e/README.md](tests/e2e/README.md)
 
