@@ -36,10 +36,11 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - name: Install dependencies
-        run: |
-          composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
-          npm ci
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+
+      - name: Install Node dependencies
+        run: npm ci
 
       - name: Build production assets
         run: npm run build
