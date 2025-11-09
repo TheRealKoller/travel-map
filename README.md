@@ -1,6 +1,20 @@
 # Travel Map Application
 
+[![CI](https://github.com/TheRealKoller/travel-map/actions/workflows/ci.yml/badge.svg)](https://github.com/TheRealKoller/travel-map/actions/workflows/ci.yml)
+[![Tests](https://github.com/TheRealKoller/travel-map/actions/workflows/tests.yml/badge.svg)](https://github.com/TheRealKoller/travel-map/actions/workflows/tests.yml)
+[![Lint](https://github.com/TheRealKoller/travel-map/actions/workflows/lint.yml/badge.svg)](https://github.com/TheRealKoller/travel-map/actions/workflows/lint.yml)
+
 A Laravel application with React/Inertia.js frontend for managing travel maps.
+
+## Development Workflow
+
+This project follows the **GitHub Flow** branching strategy for a streamlined development and deployment process. Please read the [Branching Strategy Guide](./BRANCHING_STRATEGY.md) for detailed information on:
+
+- How to create and manage feature branches
+- Pull request workflow
+- CI/CD pipeline
+- Deployment process
+- Best practices
 
 ## Some infos and links
 * icons https://fontawesome.com/search?o=r&ic=free&s=regular&ip=classic
@@ -166,6 +180,14 @@ npm run test:e2e:debug
 - One test (registered user can login and logout) is temporarily skipped pending fixes to the user menu dropdown interaction
 
 For more details on E2E testing, see [tests/e2e/README.md](tests/e2e/README.md)
+
+## Contributing
+
+We welcome contributions! Please read our [Contributing Guide](./CONTRIBUTING.md) for details on:
+- Setting up your development environment
+- Our code of conduct
+- The pull request process
+- Coding standards
 
 ## Additional Commands
 
