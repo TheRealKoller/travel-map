@@ -1,11 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { register } from './helpers/auth';
+import { generateUniqueEmail, register } from './helpers/auth';
 
 test.describe('Dashboard', () => {
     test.beforeEach(async ({ page }) => {
         // Register and login a test user
-        const timestamp = Date.now();
-        const email = `test${timestamp}@example.com`;
+        const email = generateUniqueEmail();
         await register(page, 'Test User', email, 'password123');
 
         // If on verify-email page, navigate to dashboard directly

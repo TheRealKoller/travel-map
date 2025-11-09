@@ -1,4 +1,14 @@
 import { Page } from '@playwright/test';
+import { randomUUID } from 'crypto';
+
+/**
+ * Generate a unique email address for testing
+ * Uses UUID to ensure uniqueness even when tests run in parallel
+ */
+export function generateUniqueEmail(): string {
+    const uuid = randomUUID().split('-')[0]; // Use first segment of UUID (8 chars)
+    return `test-${uuid}@example.com`;
+}
 
 export async function login(
     page: Page,

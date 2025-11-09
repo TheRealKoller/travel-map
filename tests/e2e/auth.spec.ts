@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { login, logout, register } from './helpers/auth';
+import { generateUniqueEmail, login, logout, register } from './helpers/auth';
 
 test.describe('Authentication', () => {
     test.beforeEach(async () => {
@@ -30,8 +30,7 @@ test.describe('Authentication', () => {
     });
 
     test('user can register with valid credentials', async ({ page }) => {
-        const timestamp = Date.now();
-        const email = `test${timestamp}@example.com`;
+        const email = generateUniqueEmail();
 
         await register(page, 'Test User', email, 'password123');
 
@@ -54,8 +53,7 @@ test.describe('Authentication', () => {
     test('user cannot register with mismatched passwords', async ({
         page,
     }) => {
-        const timestamp = Date.now();
-        const email = `test${timestamp}@example.com`;
+        const email = generateUniqueEmail();
 
         await page.goto('/register');
         await page.fill('input[name="name"]', 'Test User');
@@ -85,8 +83,7 @@ test.describe('Login and Logout', () => {
 
     // TODO: Fix logout flow - the user menu dropdown structure makes this test complex
     test.skip('registered user can login and logout', async ({ page }) => {
-        const timestamp = Date.now();
-        const email = `test${timestamp}@example.com`;
+        const email = generateUniqueEmail();
         const password = 'password123';
 
         // First register a user
