@@ -3,7 +3,6 @@
 use App\Http\Controllers\MarkerController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use Laravel\Fortify\Features;
 
 Route::get('/', function () {
     return Inertia::render('map');
