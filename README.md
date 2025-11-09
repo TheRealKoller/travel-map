@@ -107,7 +107,9 @@ npm run build
 
 ## Testing
 
-Run the test suite:
+### Unit and Feature Tests
+
+Run the PHP test suite:
 
 ```bash
 php artisan test
@@ -118,6 +120,36 @@ Or using Pest directly:
 ```bash
 ./vendor/bin/pest
 ```
+
+### End-to-End (E2E) Tests
+
+The application includes E2E tests using Playwright to test the complete user workflows.
+
+#### First Time Setup
+
+Install Playwright browsers:
+
+```bash
+npx playwright install chromium
+```
+
+#### Running E2E Tests
+
+```bash
+# Run all E2E tests
+npm run test:e2e
+
+# Run with interactive UI (recommended for development)
+npm run test:e2e:ui
+
+# Run in headed mode (see the browser)
+npm run test:e2e:headed
+
+# Run in debug mode
+npm run test:e2e:debug
+```
+
+For more details on E2E testing, see [tests/e2e/README.md](tests/e2e/README.md)
 
 ## Additional Commands
 
