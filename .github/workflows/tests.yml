@@ -3,10 +3,8 @@ name: tests
 on:
   push:
     branches:
-      - main
-  pull_request:
-    branches:
-      - main
+      - feature/*
+      - copilot/*
   workflow_call:
 
 jobs:
