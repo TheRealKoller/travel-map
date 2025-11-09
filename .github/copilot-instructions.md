@@ -51,6 +51,8 @@ This is a **Travel Map** application built with Laravel 12 (PHP 8.2+) backend an
    ```
    - The `.env.example` defaults to SQLite (no additional DB setup needed)
    - Database file is auto-created at `database/database.sqlite`
+   - **Security:** APP_KEY is generated dynamically and never committed to git
+   - For E2E tests, the key is auto-generated when running `npm run test:e2e`
 
 4. **Run migrations:**
    ```bash
