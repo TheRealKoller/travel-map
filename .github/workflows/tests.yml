@@ -55,6 +55,11 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
 
+      - name: Setup E2E Database
+        run: |
+          mkdir -p database
+          touch database/e2e.sqlite
+
       - name: Run E2E Tests
         run: npm run test:e2e
         env:
