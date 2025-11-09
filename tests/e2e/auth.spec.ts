@@ -81,8 +81,7 @@ test.describe('Login and Logout', () => {
         await expect(page).toHaveURL(/\/login/);
     });
 
-    // TODO: Fix logout flow - the user menu dropdown structure makes this test complex
-    test.skip('registered user can login and logout', async ({ page }) => {
+    test('registered user can login and logout', async ({ page }) => {
         const email = generateUniqueEmail();
         const password = 'password123';
 

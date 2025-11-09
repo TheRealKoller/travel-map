@@ -58,18 +58,23 @@ export async function logout(page: Page) {
     // Navigate to home page where logout exists
     await page.goto('/');
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
     
-    // The application uses a dropdown menu for user actions
-    // First, open the user menu (look for user avatar/button)
-    const userMenuTrigger = page.locator('button[data-sidebar="menu-button"], button:has([data-avatar]), [data-state]').first();
+    // Try to find the user menu trigger (sidebar version or header version)
+    const sidebarTrigger = page.locator('[data-test="sidebar-menu-button"]');
+    const headerTrigger = page.locator('button:has([data-avatar])').first();
     
-    try {
-        await userMenuTrigger.click({ timeout: 3000 });
-        await page.waitForTimeout(500);
-    } catch (e) {
-        // Menu might already be open or use different structure
+    // Check which trigger is visible and click it
+    const sidebarVisible = await sidebarTrigger.isVisible().catch(() => false);
+    
+    if (sidebarVisible) {
+        await sidebarTrigger.click();
+    } else {
+        // Try header trigger
+        await headerTrigger.click();
     }
+    
+    // Wait for dropdown to open
+    await page.waitForTimeout(500);
     
     // Now click the logout button using data-test attribute
     const logoutButton = page.locator('[data-test="logout-button"]');
