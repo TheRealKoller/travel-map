@@ -12,6 +12,7 @@ This is a **Travel Map** application built with Laravel 12 (PHP 8.2+) backend an
 
 ## Workflow
 
+- when you begin working on a new feature or bugfix, please create a new branch from `main` named `feature/your-feature-name` or `bugfix/your-bugfix-name`.
 - After finishing the current task, please run all tests to ensure nothing is broken.
 - If any tests fail, please fix the issues before proceeding.
 - When all tests pass, please execute prettier and PHP CS Fixer to ensure code style consistency.
