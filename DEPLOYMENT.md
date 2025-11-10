@@ -22,10 +22,10 @@ Gehe zu: **Settings** → **Secrets and variables** → **Actions** → **New re
 
 | Secret Name | Beispielwert | Wo zu finden |
 |-------------|--------------|--------------|
-| `SFTP_HOST` | `ssh.kasserver.com` | KAS → SSH-Zugang |
-| `SFTP_USERNAME` | `kas123456` | KAS → SSH-Zugang |
-| `SFTP_PASSWORD` | `dein-passwort` | KAS → SSH-Zugang |
-| `SFTP_REMOTE_PATH` | `/www/htdocs/kas123456/public_html` | Dein Zielverzeichnis |
+| `SSH_HOST` | `ssh.kasserver.com` | KAS → SSH-Zugang |
+| `SSH_USERNAME` | `kas123456` | KAS → SSH-Zugang |
+| `SSH_PASSWORD` | `dein-passwort` | KAS → SSH-Zugang |
+| `SSH_REMOTE_PATH` | `/www/htdocs/kas123456/public_html` | Dein Zielverzeichnis |
 
 ### Optional: Environment erstellen
 
