@@ -52,6 +52,7 @@ jobs:
           # Kopiere alle benötigten Dateien (exclude dev files)
           rsync -av --progress \
             --exclude='.git' \
+            --exclude='docs' \
             --exclude='node_modules' \
             --exclude='tests' \
             --exclude='.env' \
@@ -72,7 +73,6 @@ jobs:
             --exclude='test-results' \
             --exclude='README.md' \
             --exclude='DEPLOYMENT*.md' \
-            --exclude='SETUP*.md' \
             --exclude='docker-compose.yml' \
             --exclude='phpunit.xml' \
             --exclude='playwright.config.ts' \
