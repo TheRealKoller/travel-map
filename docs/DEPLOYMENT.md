@@ -36,13 +36,15 @@ Das Deployment verwendet ein **ZIP-basiertes Verfahren** für maximale Upload-Ge
 
 Die Anwendung verwendet GitHub Secrets zur sicheren Verwaltung aller Umgebungsvariablen. Die `.env` Datei wird automatisch während des Deployments aus den GitHub Secrets generiert.
 
-**📖 Ausführliche Anleitung:** Siehe [GITHUB-SECRETS.md](GITHUB-SECRETS.md) für eine vollständige Liste aller benötigten Secrets und deren Konfiguration.
+**📖 Dokumentation:**
+- **[Schnellstart](SECRETS-SETUP-QUICK-START.md)** - Kurzanleitung für Setup (empfohlen für Ersteinrichtung)
+- **[Vollständige Dokumentation](GITHUB-SECRETS.md)** - Detaillierte Beschreibung aller Secrets
 
 **Wichtigste Secrets:**
 - `APP_KEY` - Laravel Verschlüsselungsschlüssel (mit `php artisan key:generate --show` generieren)
 - `DB_*` - Datenbank-Credentials (Connection, Host, Database, Username, Password)
 - `MAIL_*` - E-Mail-Server Konfiguration
-- Weitere siehe [GITHUB-SECRETS.md](GITHUB-SECRETS.md)
+- **Insgesamt ca. 44 Secrets** müssen konfiguriert werden (siehe Schnellstart-Guide)
 
 ### Deployment Secrets (SFTP/SSH)
 
