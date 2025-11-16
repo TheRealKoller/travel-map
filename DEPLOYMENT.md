@@ -14,6 +14,22 @@ Dieses Projekt verwendet **GitHub Flow** als Branching-Strategie:
 Feature Branch → Pull Request → Code Review → Tests → Merge → Deployment
 ```
 
+## ⚡ Deployment-Optimierung
+
+Das Deployment verwendet ein **ZIP-basiertes Verfahren** für maximale Upload-Geschwindigkeit:
+
+- **Kompression**: ~80MB Deployment-Dateien werden auf ~21MB komprimiert (74% Reduzierung)
+- **Single-File Transfer**: 1 ZIP-Datei statt 16.000+ Einzeldateien
+- **Geschwindigkeit**: 5-10x schneller als File-by-File SFTP Upload
+- **Zuverlässigkeit**: Weniger anfällig für Netzwerkunterbrechungen
+- **Prozess**:
+  1. Deployment-Paket wird lokal erstellt (vendor + assets + app code)
+  2. In ZIP-Archiv komprimiert
+  3. Einzelne ZIP-Datei via SFTP hochgeladen
+  4. Auf dem Server automatisch entpackt
+  5. .env-Datei wird automatisch wiederhergestellt
+  6. Berechtigungen gesetzt und Caches optimiert
+
 ## 1️⃣ GitHub Secrets einrichten
 
 ### Secrets in Repository Settings hinzufügen
@@ -262,9 +278,10 @@ git push
 ### Deploy Workflow (nur bei Push auf main)
 - Führt zuerst Tests aus
 - Baut Production Assets
-- Erstellt Deployment-Paket
-- Upload via SFTP
-- Post-Deployment Commands
+- Erstellt Deployment-Paket (ZIP-Archiv für schnellen Upload)
+- Upload via SFTP (einzelne ZIP-Datei statt tausender Einzeldateien)
+- Entpackt und richtet Deployment auf dem Server ein
+- Post-Deployment Commands (Berechtigungen, Cache-Optimierung)
 
 ## 🔒 Sicherheit
 
