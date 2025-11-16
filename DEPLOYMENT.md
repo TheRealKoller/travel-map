@@ -14,6 +14,22 @@ Dieses Projekt verwendet **GitHub Flow** als Branching-Strategie:
 Feature Branch → Pull Request → Code Review → Tests → Merge → Deployment
 ```
 
+## ⚡ Deployment-Optimierung
+
+Das Deployment verwendet ein **ZIP-basiertes Verfahren** für maximale Upload-Geschwindigkeit:
+
+- **Kompression**: ~80MB Deployment-Dateien werden auf ~21MB komprimiert (74% Reduzierung)
+- **Single-File Transfer**: 1 ZIP-Datei statt 16.000+ Einzeldateien
+- **Geschwindigkeit**: 5-10x schneller als File-by-File SFTP Upload
+- **Zuverlässigkeit**: Weniger anfällig für Netzwerkunterbrechungen
+- **Prozess**:
+  1. Deployment-Paket wird lokal erstellt (vendor + assets + app code)
+  2. In ZIP-Archiv komprimiert
+  3. Einzelne ZIP-Datei via SFTP hochgeladen
+  4. Auf dem Server automatisch entpackt
+  5. .env-Datei wird automatisch wiederhergestellt
+  6. Berechtigungen gesetzt und Caches optimiert
+
 ## 1️⃣ GitHub Secrets einrichten
 
 ### Secrets in Repository Settings hinzufügen
@@ -262,9 +278,10 @@ git push
 ### Deploy Workflow (nur bei Push auf main)
 - Führt zuerst Tests aus
 - Baut Production Assets
-- Erstellt Deployment-Paket
-- Upload via SFTP
-- Post-Deployment Commands
+- Erstellt Deployment-Paket (ZIP-Archiv für schnellen Upload)
+- Upload via SFTP (einzelne ZIP-Datei statt tausender Einzeldateien)
+- Entpackt und richtet Deployment auf dem Server ein
+- Post-Deployment Commands (Berechtigungen, Cache-Optimierung)
 
 ## 🔒 Sicherheit
 
@@ -299,6 +316,70 @@ php artisan view:cache
 php artisan down --secret="geheimer-token"
 php artisan up
 ```
+
+## 🔀 Alternative Deployment-Methoden (Evaluiert)
+
+### ZIP-basiertes Deployment ✅ (AKTUELL IN VERWENDUNG)
+
+**Vorteile:**
+- 5-10x schneller als File-by-File Upload
+- 74% Größenreduktion durch Kompression
+- Einzelne Datei-Übertragung (weniger fehleranfällig)
+- Funktioniert auf Shared Hosting
+- Einfache Implementierung
+
+**Nachteile:**
+- Benötigt unzip auf dem Server (auf all-inkl.com vorhanden)
+
+### Git-basiertes Deployment (Nicht empfohlen für Shared Hosting)
+
+**Konzept:** Git Repository auf Server klonen und bei jedem Deployment `git pull` ausführen.
+
+**Vorteile:**
+- Nur geänderte Dateien werden übertragen
+- Versionskontrolle auf dem Server
+- Einfaches Rollback möglich
+
+**Nachteile:**
+- Erfordert Git auf dem Server
+- Benötigt Composer und npm/Node.js auf dem Server
+- Build-Prozess müsste auf dem Server laufen (PHP 8.4, Node.js 22)
+- Shared Hosting Umgebungen unterstützen dies meist nicht
+- Komplexere Wartung
+
+**Fazit:** Nicht geeignet für all-inkl.com Shared Hosting
+
+### Rsync Incremental Sync (Alternative)
+
+**Konzept:** Nur geänderte Dateien via rsync übertragen.
+
+**Vorteile:**
+- Nur Deltas werden übertragen
+- Integrierte Kompression
+
+**Nachteile:**
+- Erstes Deployment genauso langsam wie File-by-File
+- Benötigt rsync auf Server und Client
+- Nicht wesentlich besser als ZIP für Shared Hosting
+
+**Fazit:** ZIP-Methode bietet bessere Gesamt-Performance
+
+### CI/CD mit Deployment-Tools (z.B. Deployer, Envoyer)
+
+**Konzept:** Spezialisierte PHP Deployment-Tools verwenden.
+
+**Vorteile:**
+- Professionelle Deployment-Features (Zero-Downtime, Rollback)
+- Atomic Deployments mit Symlinks
+- Health Checks
+
+**Nachteile:**
+- Erfordert Shell-Zugriff und spezielle Server-Konfiguration
+- Atomic Deployments benötigen Symlink-Unterstützung
+- Komplexer Setup
+- Shared Hosting oft zu eingeschränkt
+
+**Fazit:** Overkill für aktuellen Use-Case und Shared Hosting
 
 ## 📞 Support
 
