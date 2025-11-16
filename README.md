@@ -12,14 +12,14 @@ This project follows the **GitHub Flow** branching strategy for a streamlined de
 
 ### 📖 Documentation
 
-- **[Branching Strategy Guide](./BRANCHING_STRATEGY.md)** - Complete guide to GitHub Flow workflow
-- **[Contributing Guide](./CONTRIBUTING.md)** - How to contribute to this project
-- **[Pipeline Overview](./.github/PIPELINE.md)** - Detailed CI/CD pipeline documentation
-- **[Deployment Setup](./DEPLOYMENT.md)** - Complete deployment guide for all-inkl.com
-- **[Workflow Checklist](./WORKFLOW-CHECKLIST.md)** - Step-by-step checklist for development workflow
-- **[GitHub Actions](./.github/WORKFLOWS.md)** - Detailed CI/CD pipeline documentation
-- **[Workflow Diagrams](./.github/WORKFLOW_DIAGRAM.md)** - Visual workflow diagrams
-- **[Quick Reference](./.github/QUICK_REFERENCE.md)** - Common commands and troubleshooting
+- **[Branching Strategy Guide](./docs/BRANCHING_STRATEGY.md)** - Complete guide to GitHub Flow workflow
+- **[Contributing Guide](./docs/CONTRIBUTING.md)** - How to contribute to this project
+- **[Pipeline Overview](./docs/PIPELINE.md)** - Detailed CI/CD pipeline documentation
+- **[Deployment Setup](./docs/DEPLOYMENT.md)** - Complete deployment guide for all-inkl.com
+- **[Workflow Checklist](./docs/WORKFLOW-CHECKLIST.md)** - Step-by-step checklist for development workflow
+- **[GitHub Actions](./docs/WORKFLOWS.md)** - Detailed CI/CD pipeline documentation
+- **[Workflow Diagrams](./docs/WORKFLOW_DIAGRAM.md)** - Visual workflow diagrams
+- **[Quick Reference](./docs/QUICK_REFERENCE.md)** - Common commands and troubleshooting
 
 
 ### 🚀 Quick Start
