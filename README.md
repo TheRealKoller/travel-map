@@ -16,6 +16,9 @@ This project follows the **GitHub Flow** branching strategy for a streamlined de
 - **[Contributing Guide](./docs/CONTRIBUTING.md)** - How to contribute to this project
 - **[Pipeline Overview](./docs/PIPELINE.md)** - Detailed CI/CD pipeline documentation
 - **[Deployment Setup](./docs/DEPLOYMENT.md)** - Complete deployment guide for all-inkl.com
+- **[GitHub Secrets Configuration](./docs/GITHUB-SECRETS.md)** - Configure environment variables via GitHub Secrets
+- **[Secrets Quick Start](./docs/SECRETS-SETUP-QUICK-START.md)** - Quick reference for setting up GitHub Secrets
+- **[Secrets Workflow Diagram](./docs/GITHUB-SECRETS-WORKFLOW.md)** - Visual guide to how secrets are deployed
 - **[Workflow Checklist](./docs/WORKFLOW-CHECKLIST.md)** - Step-by-step checklist for development workflow
 - **[GitHub Actions](./docs/WORKFLOWS.md)** - Detailed CI/CD pipeline documentation
 - **[Workflow Diagrams](./docs/WORKFLOW_DIAGRAM.md)** - Visual workflow diagrams

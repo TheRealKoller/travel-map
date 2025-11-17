@@ -45,6 +45,75 @@ jobs:
       - name: Build production assets
         run: npm run build
 
+      - name: Generate production .env file
+        run: |
+          # Create .env from GitHub Variables (non-sensitive) and Secrets (sensitive)
+          cat > .env << 'EOF'
+          APP_NAME="${{ vars.APP_NAME }}"
+          APP_ENV="${{ vars.APP_ENV }}"
+          APP_KEY="${{ secrets.APP_KEY }}"
+          APP_DEBUG="${{ vars.APP_DEBUG }}"
+          APP_URL="${{ vars.APP_URL }}"
+          
+          APP_LOCALE="de"
+          APP_FALLBACK_LOCALE="de"
+          APP_FAKER_LOCALE="de_DE"
+          
+          APP_MAINTENANCE_DRIVER="file"
+          
+          BCRYPT_ROUNDS="12"
+          
+          LOG_CHANNEL="stack"
+          LOG_STACK="single"
+          LOG_DEPRECATIONS_CHANNEL="null"
+          LOG_LEVEL="error"
+          
+          DB_CONNECTION="${{ vars.DB_CONNECTION }}"
+          DB_HOST="${{ vars.DB_HOST }}"
+          DB_PORT="${{ vars.DB_PORT }}"
+          DB_DATABASE="${{ vars.DB_DATABASE }}"
+          DB_USERNAME="${{ vars.DB_USERNAME }}"
+          DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
+          
+          SESSION_DRIVER="${{ vars.SESSION_DRIVER }}"
+          SESSION_LIFETIME="${{ vars.SESSION_LIFETIME }}"
+          SESSION_ENCRYPT="${{ vars.SESSION_ENCRYPT }}"
+          SESSION_PATH="${{ vars.SESSION_PATH }}"
+          SESSION_DOMAIN="${{ vars.SESSION_DOMAIN }}"
+          
+          BROADCAST_CONNECTION="log"
+          FILESYSTEM_DISK="local"
+          QUEUE_CONNECTION="database"
+          
+          CACHE_STORE="database"
+          
+          MEMCACHED_HOST="127.0.0.1"
+
+          REDIS_CLIENT=phpredis
+          REDIS_HOST=127.0.0.1
+          REDIS_PASSWORD=null
+          REDIS_PORT=6379
+          
+          MAIL_MAILER="${{ vars.MAIL_MAILER }}"
+          MAIL_SCHEME="${{ vars.MAIL_SCHEME }}"
+          MAIL_HOST="${{ vars.MAIL_HOST }}"
+          MAIL_PORT="${{ vars.MAIL_PORT }}"
+          MAIL_USERNAME="${{ vars.MAIL_USERNAME }}"
+          MAIL_PASSWORD="${{ secrets.MAIL_PASSWORD }}"
+          MAIL_FROM_ADDRESS="${{ vars.MAIL_FROM_ADDRESS }}"
+          MAIL_FROM_NAME="${{ vars.MAIL_FROM_NAME }}"
+          
+          AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          AWS_DEFAULT_REGION="${{ vars.AWS_DEFAULT_REGION }}"
+          AWS_BUCKET="${{ vars.AWS_BUCKET }}"
+          AWS_USE_PATH_STYLE_ENDPOINT="${{ vars.AWS_USE_PATH_STYLE_ENDPOINT }}"
+          
+          VITE_APP_NAME="${{ vars.VITE_APP_NAME }}"
+          EOF
+          
+          echo "✅ .env file generated from GitHub Variables and Secrets"
+
       - name: Create deployment package
         run: |
           mkdir -p deploy
@@ -55,10 +124,10 @@ jobs:
             --exclude='docs' \
             --exclude='node_modules' \
             --exclude='tests' \
-            --exclude='.env' \
             --exclude='.env.example' \
             --exclude='.env.testing' \
             --exclude='.env.e2e' \
+            --exclude='.env.production.template' \
             --exclude='storage/logs/*' \
             --exclude='storage/framework/cache/*' \
             --exclude='storage/framework/sessions/*' \
@@ -120,21 +189,23 @@ jobs:
           script: |
             cd ${{ secrets.SSH_REMOTE_PATH }}
             
-            # Backup .env falls vorhanden
+            # Backup old .env for reference (optional)
             if [ -f .env ]; then
-              echo "💾 Backing up .env file"
-              cp .env .env.backup
+              echo "💾 Creating backup of old .env file"
+              cp .env .env.backup.$(date +%Y%m%d_%H%M%S)
             fi
             
             # Entpacke das Deployment
             echo "📦 Extracting deployment package..."
             unzip -q -o deployment.zip
             
-            # Stelle .env wieder her
-            if [ -f .env.backup ]; then
-              echo "🔄 Restoring .env file"
-              mv .env.backup .env
+            # Verifiziere dass .env existiert
+            if [ ! -f .env ]; then
+              echo "❌ ERROR: .env file not found in deployment package!"
+              exit 1
             fi
+            
+            echo "✅ New .env file deployed from GitHub Secrets"
             
             # Lösche das ZIP-Archiv
             rm -f deployment.zip

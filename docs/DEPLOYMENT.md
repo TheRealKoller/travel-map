@@ -32,7 +32,21 @@ Das Deployment verwendet ein **ZIP-basiertes Verfahren** für maximale Upload-Ge
 
 ## 1️⃣ GitHub Secrets einrichten
 
-### Secrets in Repository Settings hinzufügen
+### Application Secrets (Environment Variables)
+
+Die Anwendung verwendet GitHub Secrets zur sicheren Verwaltung aller Umgebungsvariablen. Die `.env` Datei wird automatisch während des Deployments aus den GitHub Secrets generiert.
+
+**📖 Dokumentation:**
+- **[Schnellstart](SECRETS-SETUP-QUICK-START.md)** - Kurzanleitung für Setup (empfohlen für Ersteinrichtung)
+- **[Vollständige Dokumentation](GITHUB-SECRETS.md)** - Detaillierte Beschreibung aller Secrets
+
+**Wichtigste Secrets:**
+- `APP_KEY` - Laravel Verschlüsselungsschlüssel (mit `php artisan key:generate --show` generieren)
+- `DB_*` - Datenbank-Credentials (Connection, Host, Database, Username, Password)
+- `MAIL_*` - E-Mail-Server Konfiguration
+- **Insgesamt ca. 44 Secrets** müssen konfiguriert werden (siehe Schnellstart-Guide)
+
+### Deployment Secrets (SFTP/SSH)
 
 Gehe zu: **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
 
@@ -75,7 +89,19 @@ chmod -R 755 storage
 chmod -R 755 bootstrap/cache
 ```
 
-### .env Datei erstellen
+### .env Datei konfigurieren
+
+**Wichtig:** Die `.env` Datei wird jetzt automatisch aus GitHub Secrets generiert!
+
+Du musst **keine manuelle `.env` Datei mehr auf dem Server erstellen**. Bei jedem Deployment wird die `.env` Datei automatisch aus den in GitHub hinterlegten Secrets erstellt und mit deployed.
+
+**Was du stattdessen tun musst:**
+
+1. Alle Umgebungsvariablen als GitHub Secrets hinzufügen (siehe [GITHUB-SECRETS.md](GITHUB-SECRETS.md))
+2. Bei jedem Deployment wird automatisch eine `.env` Datei aus diesen Secrets generiert
+3. Die alte `.env` Datei wird als Backup gesichert (falls vorhanden)
+
+**Falls du trotzdem manuell eine `.env` Datei erstellen möchtest** (z.B. für das erste Setup vor dem ersten Deployment):
 
 ```bash
 nano .env
@@ -86,7 +112,7 @@ nano .env
 ```env
 APP_NAME="Travel Map"
 APP_ENV=production
-APP_KEY=
+APP_KEY=base64:xxx  # Mit php artisan key:generate generiert
 APP_DEBUG=false
 APP_URL=https://deine-domain.de
 
@@ -96,9 +122,9 @@ DB_DATABASE=dein_db_name
 DB_USERNAME=dein_db_user
 DB_PASSWORD=dein_db_passwort
 
-CACHE_STORE=file
-SESSION_DRIVER=file
-QUEUE_CONNECTION=sync
+CACHE_STORE=database
+SESSION_DRIVER=database
+QUEUE_CONNECTION=database
 
 MAIL_MAILER=smtp
 MAIL_HOST=smtp.kasserver.com
@@ -111,6 +137,8 @@ MAIL_FROM_NAME="${APP_NAME}"
 ```
 
 Speichern: `CTRL+O`, `ENTER`, `CTRL+X`
+
+**Hinweis:** Diese manuelle `.env` wird beim ersten automatisierten Deployment durch die aus GitHub Secrets generierte Version ersetzt.
 
 ### Datenbank erstellen
 
