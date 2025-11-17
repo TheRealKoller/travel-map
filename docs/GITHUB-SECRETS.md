@@ -57,11 +57,6 @@ Navigate to **Settings → Environments → production → Environment secrets**
 |-------------|-------------|---------------|----------|
 | `MAIL_PASSWORD` | SMTP password | `your_mail_password` | Yes |
 
-### Redis Credentials (Optional)
-
-| Secret Name | Description | Example Value | Required |
-|-------------|-------------|---------------|----------|
-| `REDIS_PASSWORD` | Redis password | `your_redis_password` | No |
 
 ### AWS Credentials (Optional)
 
@@ -83,24 +78,6 @@ Navigate to **Settings → Environments → production → Environment variables
 | `APP_DEBUG` | Enable debug mode (should be `false` in production) | `false` | Yes |
 | `APP_URL` | Application URL | `https://your-domain.com` | Yes |
 
-### Localization
-
-| Variable Name | Description | Example Value | Required |
-|---------------|-------------|---------------|----------|
-| `APP_LOCALE` | Default locale | `en` | Yes |
-| `APP_FALLBACK_LOCALE` | Fallback locale | `en` | Yes |
-| `APP_FAKER_LOCALE` | Faker locale for testing | `en_US` | Yes |
-
-### Maintenance & Logging
-
-| Variable Name | Description | Example Value | Required |
-|---------------|-------------|---------------|----------|
-| `APP_MAINTENANCE_DRIVER` | Maintenance mode driver | `file` | Yes |
-| `BCRYPT_ROUNDS` | Password hashing rounds | `12` | Yes |
-| `LOG_CHANNEL` | Logging channel | `stack` | Yes |
-| `LOG_STACK` | Log stack configuration | `single` | Yes |
-| `LOG_DEPRECATIONS_CHANNEL` | Deprecations log channel | `null` | Yes |
-| `LOG_LEVEL` | Minimum log level | `error` | Yes |
 
 ### Database Configuration
 
@@ -112,38 +89,6 @@ Navigate to **Settings → Environments → production → Environment variables
 | `DB_DATABASE` | Database name | `your_database` | Yes |
 | `DB_USERNAME` | Database username | `your_db_user` | Yes |
 
-### Session Configuration
-
-| Variable Name | Description | Example Value | Required |
-|---------------|-------------|---------------|----------|
-| `SESSION_DRIVER` | Session storage driver | `database` | Yes |
-| `SESSION_LIFETIME` | Session lifetime in minutes | `120` | Yes |
-| `SESSION_ENCRYPT` | Encrypt session data | `false` | Yes |
-| `SESSION_PATH` | Session cookie path | `/` | Yes |
-| `SESSION_DOMAIN` | Session cookie domain | `null` | Yes |
-
-### Cache, Queue & Storage
-
-| Variable Name | Description | Example Value | Required |
-|---------------|-------------|---------------|----------|
-| `BROADCAST_CONNECTION` | Broadcast driver | `log` | Yes |
-| `FILESYSTEM_DISK` | Default filesystem disk | `local` | Yes |
-| `QUEUE_CONNECTION` | Queue driver | `database` | Yes |
-| `CACHE_STORE` | Cache driver | `database` | Yes |
-
-### Redis Configuration (Optional)
-
-| Variable Name | Description | Example Value | Required |
-|---------------|-------------|---------------|----------|
-| `REDIS_CLIENT` | Redis client | `phpredis` | No |
-| `REDIS_HOST` | Redis host | `127.0.0.1` | No |
-| `REDIS_PORT` | Redis port | `6379` | No |
-
-### Memcached Configuration (Optional)
-
-| Variable Name | Description | Example Value | Required |
-|---------------|-------------|---------------|----------|
-| `MEMCACHED_HOST` | Memcached host | `127.0.0.1` | No |
 
 ### Mail Configuration
 
@@ -156,20 +101,6 @@ Navigate to **Settings → Environments → production → Environment variables
 | `MAIL_USERNAME` | SMTP username | `mail@your-domain.com` | Yes |
 | `MAIL_FROM_ADDRESS` | From email address | `noreply@your-domain.com` | Yes |
 | `MAIL_FROM_NAME` | From name | `${APP_NAME}` | Yes |
-
-### AWS Configuration (Optional)
-
-| Variable Name | Description | Example Value | Required |
-|---------------|-------------|---------------|----------|
-| `AWS_DEFAULT_REGION` | AWS region | `us-east-1` | No |
-| `AWS_BUCKET` | S3 bucket name | `my-bucket` | No |
-| `AWS_USE_PATH_STYLE_ENDPOINT` | Use path-style endpoint | `false` | No |
-
-### Frontend Configuration
-
-| Variable Name | Description | Example Value | Required |
-|---------------|-------------|---------------|----------|
-| `VITE_APP_NAME` | App name for Vite | `${APP_NAME}` | Yes |
 
 ## Deployment Secrets (Repository-Level)
 
