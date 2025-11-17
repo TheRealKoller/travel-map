@@ -1,45 +1,100 @@
-# GitHub Secrets Configuration
+# GitHub Secrets and Variables Configuration
 
-This document describes how to configure GitHub Secrets for the Travel Map application deployment.
+This document describes how to configure GitHub Secrets and Variables for the Travel Map application deployment.
 
 ## Overview
 
-The application uses GitHub Secrets to securely manage environment variables during deployment. Instead of maintaining a `.env` file on the server, all sensitive configuration is stored in GitHub's encrypted secrets storage and injected during the deployment process.
+The application uses **GitHub Secrets** (for sensitive data) and **GitHub Variables** (for non-sensitive configuration) to manage environment variables during deployment. Instead of maintaining a `.env` file on the server, all configuration is stored in GitHub and injected during the deployment process.
+
+### Secrets vs Variables
+
+- **Secrets** (`secrets.*`): Encrypted storage for sensitive data like passwords, API keys, and encryption keys
+  - Encrypted at rest with AES-256-GCM
+  - Never exposed in logs (automatically redacted)
+  - Cannot be read via API
+  
+- **Variables** (`vars.*`): Plain text storage for non-sensitive configuration
+  - Visible in workflow logs
+  - Can be read via API
+  - Suitable for hostnames, ports, feature flags, etc.
 
 ## Benefits
 
-- **Security**: Secrets are encrypted and never exposed in repository or logs
+- **Security**: Sensitive data encrypted and never exposed in repository or logs
+- **Separation**: Clear distinction between sensitive and non-sensitive configuration
 - **Version Control**: Environment configuration is managed alongside code changes
-- **Automation**: Deployment process automatically uses the latest secret values
-- **Audit Trail**: GitHub tracks who changed what secrets and when
+- **Automation**: Deployment process automatically uses the latest values
+- **Audit Trail**: GitHub tracks who changed what and when
 - **No Manual Server Configuration**: No need to SSH and manually edit `.env` files
 
-## Required Secrets
+## Configuration Location
 
-Navigate to your repository's **Settings → Secrets and variables → Actions → Repository secrets** to add the following secrets:
+All secrets and variables are configured in the **production** environment:
 
-### Application Configuration
+**Settings → Environments → production → Environment secrets/variables**
+
+This ensures proper isolation and access control for production deployments.
+
+## Required Secrets (Sensitive Data)
+
+Navigate to **Settings → Environments → production → Environment secrets**:
+
+### Encryption & Authentication
 
 | Secret Name | Description | Example Value | Required |
 |-------------|-------------|---------------|----------|
+| `APP_KEY` | Laravel encryption key (generate with `php artisan key:generate --show`) | `base64:random_base64_string` | Yes |
+
+### Database Credentials
+
+| Secret Name | Description | Example Value | Required |
+|-------------|-------------|---------------|----------|
+| `DB_PASSWORD` | Database password | `your_secure_db_password` | Yes |
+
+### Mail Credentials
+
+| Secret Name | Description | Example Value | Required |
+|-------------|-------------|---------------|----------|
+| `MAIL_PASSWORD` | SMTP password | `your_mail_password` | Yes |
+
+### Redis Credentials (Optional)
+
+| Secret Name | Description | Example Value | Required |
+|-------------|-------------|---------------|----------|
+| `REDIS_PASSWORD` | Redis password | `your_redis_password` | No |
+
+### AWS Credentials (Optional)
+
+| Secret Name | Description | Example Value | Required |
+|-------------|-------------|---------------|----------|
+| `AWS_ACCESS_KEY_ID` | AWS access key | `AKIAIOSFODNN7EXAMPLE` | No |
+| `AWS_SECRET_ACCESS_KEY` | AWS secret key | `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY` | No |
+
+## Required Variables (Non-Sensitive Configuration)
+
+Navigate to **Settings → Environments → production → Environment variables**:
+
+### Application Configuration
+
+| Variable Name | Description | Example Value | Required |
+|---------------|-------------|---------------|----------|
 | `APP_NAME` | Application name | `Travel Map` | Yes |
 | `APP_ENV` | Environment (production/staging) | `production` | Yes |
-| `APP_KEY` | Laravel encryption key (generate with `php artisan key:generate --show`) | `base64:...` | Yes |
 | `APP_DEBUG` | Enable debug mode (should be `false` in production) | `false` | Yes |
 | `APP_URL` | Application URL | `https://your-domain.com` | Yes |
 
 ### Localization
 
-| Secret Name | Description | Example Value | Required |
-|-------------|-------------|---------------|----------|
+| Variable Name | Description | Example Value | Required |
+|---------------|-------------|---------------|----------|
 | `APP_LOCALE` | Default locale | `en` | Yes |
 | `APP_FALLBACK_LOCALE` | Fallback locale | `en` | Yes |
 | `APP_FAKER_LOCALE` | Faker locale for testing | `en_US` | Yes |
 
 ### Maintenance & Logging
 
-| Secret Name | Description | Example Value | Required |
-|-------------|-------------|---------------|----------|
+| Variable Name | Description | Example Value | Required |
+|---------------|-------------|---------------|----------|
 | `APP_MAINTENANCE_DRIVER` | Maintenance mode driver | `file` | Yes |
 | `BCRYPT_ROUNDS` | Password hashing rounds | `12` | Yes |
 | `LOG_CHANNEL` | Logging channel | `stack` | Yes |
@@ -49,19 +104,18 @@ Navigate to your repository's **Settings → Secrets and variables → Actions �
 
 ### Database Configuration
 
-| Secret Name | Description | Example Value | Required |
-|-------------|-------------|---------------|----------|
+| Variable Name | Description | Example Value | Required |
+|---------------|-------------|---------------|----------|
 | `DB_CONNECTION` | Database driver | `mysql` | Yes |
 | `DB_HOST` | Database host | `localhost` | Yes |
 | `DB_PORT` | Database port | `3306` | Yes |
 | `DB_DATABASE` | Database name | `your_database` | Yes |
 | `DB_USERNAME` | Database username | `your_db_user` | Yes |
-| `DB_PASSWORD` | Database password | `your_secure_password` | Yes |
 
 ### Session Configuration
 
-| Secret Name | Description | Example Value | Required |
-|-------------|-------------|---------------|----------|
+| Variable Name | Description | Example Value | Required |
+|---------------|-------------|---------------|----------|
 | `SESSION_DRIVER` | Session storage driver | `database` | Yes |
 | `SESSION_LIFETIME` | Session lifetime in minutes | `120` | Yes |
 | `SESSION_ENCRYPT` | Encrypt session data | `false` | Yes |
@@ -70,67 +124,65 @@ Navigate to your repository's **Settings → Secrets and variables → Actions �
 
 ### Cache, Queue & Storage
 
-| Secret Name | Description | Example Value | Required |
-|-------------|-------------|---------------|----------|
+| Variable Name | Description | Example Value | Required |
+|---------------|-------------|---------------|----------|
 | `BROADCAST_CONNECTION` | Broadcast driver | `log` | Yes |
 | `FILESYSTEM_DISK` | Default filesystem disk | `local` | Yes |
 | `QUEUE_CONNECTION` | Queue driver | `database` | Yes |
 | `CACHE_STORE` | Cache driver | `database` | Yes |
 
-### Redis Configuration
+### Redis Configuration (Optional)
 
-| Secret Name | Description | Example Value | Required |
-|-------------|-------------|---------------|----------|
+| Variable Name | Description | Example Value | Required |
+|---------------|-------------|---------------|----------|
 | `REDIS_CLIENT` | Redis client | `phpredis` | No |
 | `REDIS_HOST` | Redis host | `127.0.0.1` | No |
-| `REDIS_PASSWORD` | Redis password | `null` | No |
 | `REDIS_PORT` | Redis port | `6379` | No |
 
-### Memcached Configuration
+### Memcached Configuration (Optional)
 
-| Secret Name | Description | Example Value | Required |
-|-------------|-------------|---------------|----------|
+| Variable Name | Description | Example Value | Required |
+|---------------|-------------|---------------|----------|
 | `MEMCACHED_HOST` | Memcached host | `127.0.0.1` | No |
 
 ### Mail Configuration
 
-| Secret Name | Description | Example Value | Required |
-|-------------|-------------|---------------|----------|
+| Variable Name | Description | Example Value | Required |
+|---------------|-------------|---------------|----------|
 | `MAIL_MAILER` | Mail driver | `smtp` | Yes |
 | `MAIL_SCHEME` | Mail scheme | `null` | No |
 | `MAIL_HOST` | SMTP host | `smtp.kasserver.com` | Yes |
 | `MAIL_PORT` | SMTP port | `587` | Yes |
 | `MAIL_USERNAME` | SMTP username | `mail@your-domain.com` | Yes |
-| `MAIL_PASSWORD` | SMTP password | `your_mail_password` | Yes |
 | `MAIL_FROM_ADDRESS` | From email address | `noreply@your-domain.com` | Yes |
 | `MAIL_FROM_NAME` | From name | `${APP_NAME}` | Yes |
 
 ### AWS Configuration (Optional)
 
-| Secret Name | Description | Example Value | Required |
-|-------------|-------------|---------------|----------|
-| `AWS_ACCESS_KEY_ID` | AWS access key | `AKIAIOSFODNN7EXAMPLE` | No |
-| `AWS_SECRET_ACCESS_KEY` | AWS secret key | `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY` | No |
+| Variable Name | Description | Example Value | Required |
+|---------------|-------------|---------------|----------|
 | `AWS_DEFAULT_REGION` | AWS region | `us-east-1` | No |
 | `AWS_BUCKET` | S3 bucket name | `my-bucket` | No |
 | `AWS_USE_PATH_STYLE_ENDPOINT` | Use path-style endpoint | `false` | No |
 
 ### Frontend Configuration
 
-| Secret Name | Description | Example Value | Required |
-|-------------|-------------|---------------|----------|
+| Variable Name | Description | Example Value | Required |
+|---------------|-------------|---------------|----------|
 | `VITE_APP_NAME` | App name for Vite | `${APP_NAME}` | Yes |
 
-### Deployment Secrets (Already Configured)
+## Deployment Secrets (Repository-Level)
 
-These secrets are used for SFTP deployment and should already be set:
+These secrets are used for SFTP deployment and should be configured at the **repository level** (not environment level):
 
-| Secret Name | Description | Example Value |
-|-------------|-------------|---------------|
-| `SSH_HOST` | SSH server hostname | `ssh.kasserver.com` |
-| `SSH_USERNAME` | SSH username | `kas123456` |
-| `SSH_PASSWORD` | SSH password | `your_ssh_password` |
-| `SSH_REMOTE_PATH` | Remote deployment path | `/www/htdocs/kas123456/public_html` |
+Navigate to **Settings → Secrets and variables → Actions → Repository secrets**:
+
+| Secret Name | Description | Example Value | Required |
+|-------------|-------------|---------------|----------|
+| `SSH_HOST` | SSH server hostname | `ssh.kasserver.com` | Yes |
+| `SSH_USERNAME` | SSH username | `kas123456` | Yes |
+| `SSH_PASSWORD` | SSH password | `your_ssh_password` | Yes |
+| `SSH_REMOTE_PATH` | Remote deployment path | `/www/htdocs/kas123456/public_html` | Yes |
 
 ## Setup Instructions
 
@@ -144,15 +196,45 @@ php artisan key:generate --show
 
 Copy the output (e.g., `base64:xxxxxxxxxxxxxxxxxxxxx`)
 
-### 2. Add Secrets to GitHub
+### 2. Create Production Environment
 
 1. Go to your repository on GitHub
-2. Navigate to **Settings** → **Secrets and variables** → **Actions**
-3. Click **New repository secret**
-4. Add each secret from the tables above
-5. Use your production values (database credentials, mail settings, etc.)
+2. Navigate to **Settings** → **Environments**
+3. Click **New environment**
+4. Name it `production`
+5. Click **Configure environment**
 
-### 3. Production Values Example
+### 3. Add Secrets to Production Environment
+
+1. In the production environment configuration
+2. Scroll to **Environment secrets**
+3. Click **Add secret**
+4. Add each **secret** from the secrets table above:
+   - `APP_KEY`
+   - `DB_PASSWORD`
+   - `MAIL_PASSWORD`
+   - `REDIS_PASSWORD` (if using Redis)
+   - `AWS_ACCESS_KEY_ID` (if using AWS)
+   - `AWS_SECRET_ACCESS_KEY` (if using AWS)
+
+### 4. Add Variables to Production Environment
+
+1. In the production environment configuration
+2. Scroll to **Environment variables**
+3. Click **Add variable**
+4. Add each **variable** from the variables tables above (all non-password configuration)
+
+### 5. Configure Deployment Secrets (Repository Level)
+
+1. Navigate to **Settings** → **Secrets and variables** → **Actions** → **Repository secrets**
+2. Click **New repository secret**
+3. Add the SSH/SFTP deployment secrets:
+   - `SSH_HOST`
+   - `SSH_USERNAME`
+   - `SSH_PASSWORD`
+   - `SSH_REMOTE_PATH`
+
+### 6. Production Values Example
 
 Here's an example of production values for all-inkl.com hosting:
 
