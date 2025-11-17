@@ -75,11 +75,11 @@ jobs:
           DB_USERNAME="${{ vars.DB_USERNAME }}"
           DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
           
-          SESSION_DRIVER="${{ vars.SESSION_DRIVER }}"
-          SESSION_LIFETIME="${{ vars.SESSION_LIFETIME }}"
-          SESSION_ENCRYPT="${{ vars.SESSION_ENCRYPT }}"
-          SESSION_PATH="${{ vars.SESSION_PATH }}"
-          SESSION_DOMAIN="${{ vars.SESSION_DOMAIN }}"
+          SESSION_DRIVER="database"
+          SESSION_LIFETIME="120"
+          SESSION_ENCRYPT="false"
+          SESSION_PATH="/"
+          SESSION_DOMAIN=""
           
           BROADCAST_CONNECTION="log"
           FILESYSTEM_DISK="local"
