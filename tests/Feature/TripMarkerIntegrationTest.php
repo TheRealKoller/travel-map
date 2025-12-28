@@ -98,4 +98,3 @@ test('default trip is created when no trip_id is provided and user has no trips'
         'trip_id' => $defaultTrip->id,
     ]);
 });
-

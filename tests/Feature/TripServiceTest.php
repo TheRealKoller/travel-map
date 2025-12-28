@@ -58,4 +58,3 @@ test('getActiveTrip creates default trip if no trips exist and no trip specified
     expect($activeTrip->name)->toBe('Default');
     expect($this->user->trips()->count())->toBe(1);
 });
-

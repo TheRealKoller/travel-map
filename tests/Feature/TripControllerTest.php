@@ -106,4 +106,3 @@ test('unauthenticated user cannot access trip endpoints', function () {
     $this->putJson('/trips/1', ['name' => 'Test'])->assertStatus(401);
     $this->deleteJson('/trips/1')->assertStatus(401);
 });
-
