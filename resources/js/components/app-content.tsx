@@ -45,7 +45,7 @@ function SidebarContentWithOverlay({
             {/* Overlay when sidebar is open on desktop */}
             {open && !isMobile && (
                 <div
-                    className="fixed inset-0 z-40 bg-black/50 transition-opacity md:block"
+                    className="fixed inset-0 z-[9] bg-black/50 transition-opacity md:block"
                     onClick={handleOverlayClick}
                     aria-hidden="true"
                 />
