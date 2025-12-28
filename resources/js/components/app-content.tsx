@@ -1,4 +1,4 @@
-import { SidebarInset } from '@/components/ui/sidebar';
+import { SidebarInset, useSidebar } from '@/components/ui/sidebar';
 import * as React from 'react';
 
 interface AppContentProps extends React.ComponentProps<'main'> {
@@ -11,7 +11,11 @@ export function AppContent({
     ...props
 }: AppContentProps) {
     if (variant === 'sidebar') {
-        return <SidebarInset {...props}>{children}</SidebarInset>;
+        return (
+            <SidebarContentWithOverlay {...props}>
+                {children}
+            </SidebarContentWithOverlay>
+        );
     }
 
     return (
@@ -21,5 +25,32 @@ export function AppContent({
         >
             {children}
         </main>
+    );
+}
+
+function SidebarContentWithOverlay({
+    children,
+    ...props
+}: React.ComponentProps<'main'>) {
+    const { open, setOpen, isMobile } = useSidebar();
+
+    const handleOverlayClick = () => {
+        if (open && !isMobile) {
+            setOpen(false);
+        }
+    };
+
+    return (
+        <>
+            {/* Overlay when sidebar is open on desktop */}
+            {open && !isMobile && (
+                <div
+                    className="fixed inset-0 z-[5] bg-black/50 transition-opacity md:block"
+                    onClick={handleOverlayClick}
+                    aria-hidden="true"
+                />
+            )}
+            <SidebarInset {...props}>{children}</SidebarInset>
+        </>
     );
 }
