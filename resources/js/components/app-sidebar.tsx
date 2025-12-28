@@ -1,6 +1,7 @@
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
+import TripSelector from '@/components/trip-selector';
 import {
     Sidebar,
     SidebarContent,
@@ -12,6 +13,7 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
+import { Trip } from '@/types/trip';
 import { Link } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid, Map } from 'lucide-react';
 import AppLogo from './app-logo';
@@ -42,7 +44,19 @@ const footerNavItems: NavItem[] = [
     },
 ];
 
-export function AppSidebar() {
+interface AppSidebarProps {
+    trips?: Trip[];
+    selectedTripId?: number | null;
+    onSelectTrip?: (tripId: number) => void;
+    onCreateTrip?: () => void;
+}
+
+export function AppSidebar({
+    trips = [],
+    selectedTripId = null,
+    onSelectTrip = () => {},
+    onCreateTrip = () => {},
+}: AppSidebarProps) {
     return (
         <Sidebar collapsible="offcanvas" variant="inset">
             <SidebarHeader>
@@ -59,6 +73,14 @@ export function AppSidebar() {
 
             <SidebarContent>
                 <NavMain items={mainNavItems} />
+                {trips.length > 0 && (
+                    <TripSelector
+                        trips={trips}
+                        selectedTripId={selectedTripId}
+                        onSelectTrip={onSelectTrip}
+                        onCreateTrip={onCreateTrip}
+                    />
+                )}
             </SidebarContent>
 
             <SidebarFooter>
