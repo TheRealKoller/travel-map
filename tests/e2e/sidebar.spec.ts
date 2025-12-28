@@ -20,7 +20,6 @@ test.describe('Sidebar Navigation', () => {
         await page.waitForLoadState('networkidle');
 
         // Check that sidebar is not visible (collapsed/offcanvas mode)
-        const sidebar = page.locator('[data-sidebar="sidebar"]');
         const sidebarState = await page.evaluate(() => {
             const sidebarElement = document.querySelector(
                 '[data-slot="sidebar"]',
