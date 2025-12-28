@@ -493,7 +493,7 @@ export default function TravelMap() {
 
     return (
         <div>
-            <div ref={mapRef} id="map" className="mt-5 h-[600px] w-full" />
+            <div ref={mapRef} id="map" className="z-10 mt-5 h-[600px] w-full" />
 
             <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
                 <MarkerForm
