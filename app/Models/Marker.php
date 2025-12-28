@@ -25,4 +25,9 @@ class Marker extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function trip(): BelongsTo
+    {
+        return $this->belongsTo(Trip::class);
+    }
 }

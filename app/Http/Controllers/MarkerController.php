@@ -5,16 +5,25 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreMarkerRequest;
 use App\Http\Requests\UpdateMarkerRequest;
 use App\Models\Marker;
+use App\Services\TripService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class MarkerController extends Controller
 {
     use AuthorizesRequests;
 
-    public function index(): JsonResponse
+    public function __construct(
+        private readonly TripService $tripService
+    ) {}
+
+    public function index(Request $request): JsonResponse
     {
-        $markers = auth()->user()->markers;
+        $tripId = $request->query('trip_id');
+        $trip = $this->tripService->getActiveTrip(auth()->user(), $tripId);
+
+        $markers = $trip->markers;
 
         return response()->json($markers);
     }
@@ -23,7 +32,13 @@ class MarkerController extends Controller
     {
         $validated = $request->validated();
 
-        $marker = auth()->user()->markers()->create($validated);
+        $tripId = $request->input('trip_id');
+        $trip = $this->tripService->getActiveTrip(auth()->user(), $tripId);
+
+        $marker = $trip->markers()->create([
+            ...$validated,
+            'user_id' => auth()->id(),
+        ]);
 
         return response()->json($marker, 201);
     }
