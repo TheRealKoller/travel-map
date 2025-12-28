@@ -59,24 +59,20 @@ export async function logout(page: Page) {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
     
-    // Try to find the user menu trigger (sidebar version or header version)
-    const sidebarTrigger = page.locator('[data-test="sidebar-menu-button"]');
-    const headerTrigger = page.locator('button:has([data-avatar])').first();
+    // First open the sidebar using the trigger button
+    const sidebarTrigger = page.locator('[data-sidebar="trigger"]');
+    await sidebarTrigger.waitFor({ state: 'visible', timeout: 5000 });
+    await sidebarTrigger.click();
     
-    // Check which trigger is visible and click it
-    const sidebarVisible = await sidebarTrigger.isVisible().catch(() => false);
+    // Wait a bit for sidebar animation
+    await page.waitForTimeout(300);
     
-    if (sidebarVisible) {
-        await sidebarTrigger.click();
-    } else {
-        // Try header trigger
-        await headerTrigger.click();
-    }
+    // Now click the menu button in the opened sidebar
+    const menuButton = page.locator('[data-test="sidebar-menu-button"]');
+    await menuButton.waitFor({ state: 'visible', timeout: 5000 });
+    await menuButton.click();
     
-    // Wait for dropdown to open
-    await page.waitForTimeout(500);
-    
-    // Now click the logout button using data-test attribute
+    // Wait for dropdown to open and click logout
     const logoutButton = page.locator('[data-test="logout-button"]');
     await logoutButton.waitFor({ state: 'visible', timeout: 5000 });
     await logoutButton.click();
