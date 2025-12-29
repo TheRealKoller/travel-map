@@ -65,7 +65,11 @@ const DEFAULT_MAP_CENTER: [number, number] = [36.2048, 138.2529]; // Japan
 const DEFAULT_MAP_ZOOM = 6;
 const DEBOUNCE_DELAY_MS = 500;
 
-export default function TravelMap() {
+interface TravelMapProps {
+    selectedTripId: number | null;
+}
+
+export default function TravelMap({ selectedTripId }: TravelMapProps) {
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<L.Map | null>(null);
     const [markers, setMarkers] = useState<MarkerData[]>([]);
@@ -91,6 +95,7 @@ export default function TravelMap() {
                     notes: markerData.notes,
                     latitude: markerData.lat,
                     longitude: markerData.lng,
+                    trip_id: selectedTripId,
                 });
                 return response.data.id;
             } catch (error) {
@@ -99,7 +104,7 @@ export default function TravelMap() {
                 return null;
             }
         },
-        [],
+        [selectedTripId],
     );
 
     useEffect(() => {
@@ -320,71 +325,81 @@ export default function TravelMap() {
         });
     }, [markers]);
 
-    // Load markers from database on component mount
+    // Load markers from database when trip changes
     useEffect(() => {
         const loadMarkers = async () => {
+            if (!selectedTripId || !mapInstanceRef.current) return;
+
             try {
-                const response = await axios.get('/markers');
+                const response = await axios.get('/markers', {
+                    params: { trip_id: selectedTripId },
+                });
                 const dbMarkers = response.data;
 
-                if (mapInstanceRef.current) {
-                    const map = mapInstanceRef.current;
-                    const loadedMarkers: MarkerData[] = dbMarkers.map(
-                        (dbMarker: {
-                            id: string;
-                            latitude: number;
-                            longitude: number;
-                            name: string;
-                            type: MarkerType;
-                            notes: string;
-                        }) => {
-                            const icon = (
-                                L as LeafletExtensions
-                            ).AwesomeMarkers.icon({
-                                icon: getIconForType(dbMarker.type),
-                                markerColor: getColorForType(dbMarker.type),
-                                iconColor: 'white',
-                                prefix: 'fa',
-                                spin: false,
-                            });
+                const map = mapInstanceRef.current;
 
-                            const marker = L.marker(
-                                [dbMarker.latitude, dbMarker.longitude],
-                                { icon },
-                            ).addTo(map);
+                // Clear existing markers from map
+                markers.forEach((m) => {
+                    if (m.marker && map.hasLayer(m.marker)) {
+                        map.removeLayer(m.marker);
+                    }
+                });
 
-                            marker.bindTooltip(
-                                dbMarker.name || 'Unnamed Location',
-                                { permanent: false, direction: 'top' },
-                            );
-                            marker.on('click', () => {
-                                setSelectedMarkerId(dbMarker.id);
-                            });
+                const loadedMarkers: MarkerData[] = dbMarkers.map(
+                    (dbMarker: {
+                        id: string;
+                        latitude: number;
+                        longitude: number;
+                        name: string;
+                        type: MarkerType;
+                        notes: string;
+                    }) => {
+                        const icon = (
+                            L as LeafletExtensions
+                        ).AwesomeMarkers.icon({
+                            icon: getIconForType(dbMarker.type),
+                            markerColor: getColorForType(dbMarker.type),
+                            iconColor: 'white',
+                            prefix: 'fa',
+                            spin: false,
+                        });
 
-                            return {
-                                id: dbMarker.id,
-                                lat: dbMarker.latitude,
-                                lng: dbMarker.longitude,
-                                name: dbMarker.name,
-                                type: dbMarker.type,
-                                notes: dbMarker.notes || '',
-                                marker: marker,
-                            };
-                        },
-                    );
+                        const marker = L.marker(
+                            [dbMarker.latitude, dbMarker.longitude],
+                            { icon },
+                        ).addTo(map);
 
-                    setMarkers(loadedMarkers);
-                }
+                        marker.bindTooltip(
+                            dbMarker.name || 'Unnamed Location',
+                            { permanent: false, direction: 'top' },
+                        );
+                        marker.on('click', () => {
+                            setSelectedMarkerId(dbMarker.id);
+                        });
+
+                        return {
+                            id: dbMarker.id,
+                            lat: dbMarker.latitude,
+                            lng: dbMarker.longitude,
+                            name: dbMarker.name,
+                            type: dbMarker.type,
+                            notes: dbMarker.notes || '',
+                            marker: marker,
+                        };
+                    },
+                );
+
+                setMarkers(loadedMarkers);
+                setSelectedMarkerId(null);
             } catch (error) {
                 console.error('Failed to load markers:', error);
                 alert('Failed to load markers. Please refresh the page.');
             }
         };
 
-        if (mapInstanceRef.current) {
-            loadMarkers();
-        }
-    }, []);
+        loadMarkers();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedTripId]);
 
     const handleSelectMarker = (id: string) => {
         setSelectedMarkerId(id);

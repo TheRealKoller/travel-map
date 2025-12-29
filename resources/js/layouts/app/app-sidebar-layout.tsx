@@ -4,13 +4,26 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
 import { useSidebar } from '@/components/ui/sidebar';
 import { type BreadcrumbItem } from '@/types';
+import { Trip } from '@/types/trip';
 import { router } from '@inertiajs/react';
 import { type PropsWithChildren, useEffect } from 'react';
+
+interface AppSidebarLayoutContentProps extends PropsWithChildren {
+    breadcrumbs?: BreadcrumbItem[];
+    trips?: Trip[];
+    selectedTripId?: number | null;
+    onSelectTrip?: (tripId: number) => void;
+    onCreateTrip?: () => void;
+}
 
 function AppSidebarLayoutContent({
     children,
     breadcrumbs = [],
-}: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[] }>) {
+    trips,
+    selectedTripId,
+    onSelectTrip,
+    onCreateTrip,
+}: AppSidebarLayoutContentProps) {
     const { setOpen, isMobile } = useSidebar();
 
     // Close sidebar on navigation (only on desktop)
@@ -27,7 +40,12 @@ function AppSidebarLayoutContent({
 
     return (
         <>
-            <AppSidebar />
+            <AppSidebar
+                trips={trips}
+                selectedTripId={selectedTripId}
+                onSelectTrip={onSelectTrip}
+                onCreateTrip={onCreateTrip}
+            />
             <AppContent variant="sidebar" className="overflow-x-hidden">
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
                 {children}
@@ -39,10 +57,20 @@ function AppSidebarLayoutContent({
 export default function AppSidebarLayout({
     children,
     breadcrumbs = [],
-}: PropsWithChildren<{ breadcrumbs?: BreadcrumbItem[] }>) {
+    trips,
+    selectedTripId,
+    onSelectTrip,
+    onCreateTrip,
+}: AppSidebarLayoutContentProps) {
     return (
         <AppShell variant="sidebar">
-            <AppSidebarLayoutContent breadcrumbs={breadcrumbs}>
+            <AppSidebarLayoutContent
+                breadcrumbs={breadcrumbs}
+                trips={trips}
+                selectedTripId={selectedTripId}
+                onSelectTrip={onSelectTrip}
+                onCreateTrip={onCreateTrip}
+            >
                 {children}
             </AppSidebarLayoutContent>
         </AppShell>

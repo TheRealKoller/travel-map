@@ -55,4 +55,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Marker::class);
     }
+
+    public function trips(): HasMany
+    {
+        return $this->hasMany(Trip::class);
+    }
 }
