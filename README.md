@@ -38,6 +38,25 @@ vendor/bin/pint && npm run format && composer test
 git push origin feature/your-feature-name
 ```
 
+### 🤖 GitHub Copilot Integration
+
+This repository is configured with a custom environment for GitHub Copilot to automatically set up the development environment when working on issues. The configuration is defined in `.github/copilot-environment.yml` and includes:
+
+- PHP 8.4 with Composer
+- Node.js 22 with npm
+- Automatic installation of dependencies
+- Laravel environment setup (`.env` file, application key)
+- Database migrations
+- Frontend asset building
+
+When GitHub Copilot starts working on an issue, it will automatically:
+1. Install PHP and Node.js dependencies
+2. Configure the Laravel environment
+3. Run database migrations
+4. Build frontend assets
+
+For detailed instructions and project conventions, see [`.github/copilot-instructions.md`](.github/copilot-instructions.md).
+
 ## Some infos and links
 * icons https://fontawesome.com/search?o=r&ic=free&s=regular&ip=classic
 * marker icons: https://github.com/lennardv2/Leaflet.awesome-markers

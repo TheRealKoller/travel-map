@@ -1,0 +1,65 @@
+# GitHub Copilot Environment Configuration
+# This file sets up the development environment for GitHub Copilot
+# when working on issues in this repository.
+# 
+# Documentation: https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/customize-the-agent-environment
+
+name: Travel Map Development Environment
+
+# Define the tools and versions needed
+tools:
+  # PHP 8.4 with Composer for Laravel backend
+  - name: php
+    version: "8.4"
+    
+  - name: composer
+    version: "2"
+    
+  # Node.js 22 with npm for React frontend
+  - name: node
+    version: "22"
+    
+  - name: npm
+    version: "10"
+
+# Environment setup commands to run when the environment is created
+# These commands follow the exact sequence from .github/copilot-instructions.md
+setup:
+  - name: Install PHP Dependencies
+    run: composer install --no-interaction --prefer-dist --optimize-autoloader
+    
+  - name: Install Node Dependencies
+    run: npm ci
+    
+  - name: Setup Environment File
+    run: cp .env.example .env
+    
+  - name: Generate Application Key
+    run: php artisan key:generate
+    
+  - name: Run Database Migrations
+    run: php artisan migrate --force
+    
+  - name: Build Frontend Assets
+    run: npm run build
+
+# Helpful hints for Copilot about the project
+context: |
+  This is a Laravel 12 + React 19 + TypeScript travel mapping application.
+  
+  Key technologies:
+  - Backend: Laravel 12 (PHP 8.2+) with Inertia.js v2
+  - Frontend: React 19, TypeScript, TailwindCSS v4, Vite 7
+  - Database: SQLite (default), supports MySQL/PostgreSQL
+  - Testing: Pest (PHP), Playwright (E2E)
+  - Maps: Leaflet.js
+  
+  Important commands:
+  - Run tests: composer test OR ./vendor/bin/pest
+  - Lint PHP: ./vendor/bin/pint
+  - Lint JS/TS: npm run lint
+  - Format code: npm run format
+  - Type check: npm run types
+  - Dev server: composer dev (runs Laravel + Vite concurrently)
+  
+  See .github/copilot-instructions.md for comprehensive setup and workflow guidelines.
