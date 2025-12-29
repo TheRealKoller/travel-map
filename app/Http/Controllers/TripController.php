@@ -23,7 +23,9 @@ class TripController extends Controller
     {
         $validated = $request->validated();
 
-        $trip = auth()->user()->trips()->create($validated);
+        $trip = auth()->user()->trips()->create([
+            'name' => $validated['name'],
+        ]);
 
         return response()->json($trip, 201);
     }

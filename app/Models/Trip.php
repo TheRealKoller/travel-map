@@ -13,7 +13,6 @@ class Trip extends Model
 
     protected $fillable = [
         'name',
-        'user_id',
     ];
 
     public function user(): BelongsTo
