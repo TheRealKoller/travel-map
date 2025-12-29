@@ -228,7 +228,7 @@ Wenn DB-Änderungen vorhanden sind:
 
 ```bash
 ssh kas123456@ssh.kasserver.com
-cd /www/htdocs/kas123456/public_html
+cd /www/htdocs/w00b3df6/dev.travelmap.koller.dk
 php artisan migrate --force
 ```
 
