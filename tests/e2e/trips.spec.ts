@@ -118,9 +118,9 @@ test.describe('Trip Management', () => {
 
         await page.waitForTimeout(1000);
 
-        // Close sidebar to access map
-        await sidebarTrigger.click();
-        await page.waitForTimeout(300);
+        // Close sidebar to access map - force close to avoid overlay issues
+        await sidebarTrigger.click({ force: true });
+        await page.waitForTimeout(500);
 
         // Create a marker on the second trip
         await mapContainer.click({ position: { x: 300, y: 300 } });

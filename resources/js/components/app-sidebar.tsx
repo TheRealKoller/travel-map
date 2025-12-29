@@ -73,14 +73,12 @@ export function AppSidebar({
 
             <SidebarContent>
                 <NavMain items={mainNavItems} />
-                {trips.length > 0 && (
-                    <TripSelector
-                        trips={trips}
-                        selectedTripId={selectedTripId}
-                        onSelectTrip={onSelectTrip}
-                        onCreateTrip={onCreateTrip}
-                    />
-                )}
+                <TripSelector
+                    trips={trips}
+                    selectedTripId={selectedTripId}
+                    onSelectTrip={onSelectTrip}
+                    onCreateTrip={onCreateTrip}
+                />
             </SidebarContent>
 
             <SidebarFooter>

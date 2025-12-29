@@ -28,9 +28,16 @@ export default function TripSelector({
                 <Select
                     value={selectedTripId?.toString()}
                     onValueChange={(value) => onSelectTrip(Number(value))}
+                    disabled={trips.length === 0}
                 >
                     <SelectTrigger className="flex-1">
-                        <SelectValue placeholder="Select a trip" />
+                        <SelectValue
+                            placeholder={
+                                trips.length === 0
+                                    ? 'No trips yet'
+                                    : 'Select a trip'
+                            }
+                        />
                     </SelectTrigger>
                     <SelectContent>
                         {trips.map((trip) => (
