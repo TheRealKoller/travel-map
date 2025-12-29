@@ -6,6 +6,12 @@ export enum MarkerType {
     Question = 'question',
     Tip = 'tip',
     Hotel = 'hotel',
+    Museum = 'museum',
+    Ruin = 'ruin',
+    UnescoWorldHeritage = 'unesco world heritage',
+    TempleChurch = 'temple/church',
+    FestivalParty = 'festival/party',
+    Leisure = 'leisure',
 }
 
 export interface MarkerData {

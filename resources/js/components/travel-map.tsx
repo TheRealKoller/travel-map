@@ -37,6 +37,18 @@ const getIconForType = (type: MarkerType): string => {
             return 'lightbulb';
         case MarkerType.PointOfInterest:
             return 'map-pin';
+        case MarkerType.Museum:
+            return 'landmark';
+        case MarkerType.Ruin:
+            return 'monument';
+        case MarkerType.UnescoWorldHeritage:
+            return 'globe';
+        case MarkerType.TempleChurch:
+            return 'church';
+        case MarkerType.FestivalParty:
+            return 'champagne-glasses';
+        case MarkerType.Leisure:
+            return 'bicycle';
         default:
             return 'map-pin';
     }
@@ -55,6 +67,18 @@ const getColorForType = (type: MarkerType): string => {
             return 'green';
         case MarkerType.PointOfInterest:
             return 'cadetblue';
+        case MarkerType.Museum:
+            return 'darkblue';
+        case MarkerType.Ruin:
+            return 'brown';
+        case MarkerType.UnescoWorldHeritage:
+            return 'gold';
+        case MarkerType.TempleChurch:
+            return 'darkviolet';
+        case MarkerType.FestivalParty:
+            return 'pink';
+        case MarkerType.Leisure:
+            return 'lightgreen';
         default:
             return 'gray';
     }
