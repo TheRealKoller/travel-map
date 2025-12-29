@@ -26,6 +26,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/markers', [MarkerController::class, 'store'])->name('markers.store');
     Route::put('/markers/{marker}', [MarkerController::class, 'update'])->name('markers.update');
     Route::delete('/markers/{marker}', [MarkerController::class, 'destroy'])->name('markers.destroy');
+
+    // Log Viewer - only accessible to authenticated and verified users
+    Route::get('logs', '\Rap2hpoutre\LaravelLogViewer\LaravelLogViewerController@index')->name('logs');
 });
 
 require __DIR__.'/settings.php';

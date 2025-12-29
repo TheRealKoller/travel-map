@@ -4,6 +4,24 @@
 
 Die Anwendung verfügt über ein verbessertes Error-Handling-System, das detaillierte Informationen über alle auftretenden Fehler sammelt.
 
+## Log Viewer (Web Interface)
+
+**URL:** `/logs` (nach Login verfügbar)
+
+Mit Laravel Log Viewer können Sie Logs direkt im Browser ansehen:
+- Übersichtliche Darstellung aller Log-Dateien
+- Filterung nach Log-Level (error, warning, info, etc.)
+- Syntax-Highlighting
+- Stack-Traces leicht lesbar
+- Keine SSH/FTP-Zugriff nötig
+
+**Zugriff:**
+1. Einloggen in die Anwendung
+2. Navigieren zu `https://ihre-domain.de/logs`
+3. Logs durchsuchen und filtern
+
+**Sicherheit:** Nur für authentifizierte und verifizierte Benutzer zugänglich (via `auth` und `verified` Middleware).
+
 ## Log-Konfiguration
 
 ### Daily Logs
@@ -111,6 +129,17 @@ grep "500" storage/logs/laravel-*.log
 
 ## Erweiterte Features (Optional)
 
+### ✅ Laravel Log Viewer (Installiert)
+
+**Bereits installiert und verfügbar unter `/logs`**
+
+Features:
+- Web-basierter Log-Browser
+- Keine Terminal-Kenntnisse erforderlich
+- Filterung nach Level und Datum
+- Syntax-Highlighting
+- Geschützt durch Authentication
+
 ### Sentry-Integration (Empfohlen für Production)
 
 Für Echtzeit-Benachrichtigungen und Web-Dashboard:
@@ -122,17 +151,16 @@ php artisan sentry:publish --dsn=your-dsn-here
 
 Das aktuelle Exception Handling ist bereits Sentry-kompatibel und wird automatisch Exceptions an Sentry senden, sobald es konfiguriert ist.
 
-### Laravel Log Viewer
+## Schnellstart
 
-Für einen Web-basierten Log-Browser:
+1. **Log Viewer öffnen:** Nach dem Login → `/logs`
+2. **Test-Fehler erzeugen:** `/test-error` besuchen (nur im Debug-Modus)
+3. **Im Log Viewer aktualisieren** und den neuen Fehler-Eintrag sehen
+4. **Details analysieren:** Stack-Trace, Request-Info, User-Kontext
 
-```bash
-composer require rap2hpoutre/laravel-log-viewer
-```
+### Via Terminal/Kommandozeile
 
-Dann Logs unter `/logs` einsehen (mit entsprechender Middleware absichern!).
-
-## Troubleshooting
+## Logs analysieren
 
 ### Keine Logs werden geschrieben
 
