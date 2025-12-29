@@ -4,6 +4,7 @@ use App\Http\Controllers\MarkerController;
 use App\Http\Controllers\TripController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Rap2hpoutre\LaravelLogViewer\LogViewerController;
 
 Route::get('/', function () {
     return Inertia::render('map');
@@ -28,7 +29,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/markers/{marker}', [MarkerController::class, 'destroy'])->name('markers.destroy');
 
     // Log Viewer - only accessible to authenticated and verified users
-    Route::get('logs', '\Rap2hpoutre\LaravelLogViewer\LaravelLogViewerController@index')->name('logs');
+    Route::get('logs', [LogViewerController::class, 'index'])->name('logs');
 });
 
 require __DIR__.'/settings.php';
