@@ -31,6 +31,8 @@ export default function RenameTripModal({
     useEffect(() => {
         if (trip) {
             setTripName(trip.name);
+        } else {
+            setTripName('');
         }
     }, [trip]);
 

@@ -76,15 +76,17 @@ export default function MapPage() {
 
         try {
             await axios.delete(`/trips/${tripId}`);
-            setTrips((prev) => prev.filter((trip) => trip.id !== tripId));
-            if (selectedTripId === tripId) {
-                const remainingTrips = trips.filter(
+            setTrips((prevTrips) => {
+                const remainingTrips = prevTrips.filter(
                     (trip) => trip.id !== tripId,
                 );
-                setSelectedTripId(
-                    remainingTrips.length > 0 ? remainingTrips[0].id : null,
-                );
-            }
+                if (selectedTripId === tripId) {
+                    setSelectedTripId(
+                        remainingTrips.length > 0 ? remainingTrips[0].id : null,
+                    );
+                }
+                return remainingTrips;
+            });
         } catch (error) {
             console.error('Failed to delete trip:', error);
         }
