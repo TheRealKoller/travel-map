@@ -542,8 +542,8 @@ export default function TravelMap({ selectedTripId }: TravelMapProps) {
 
     return (
         <div className="flex h-full flex-col gap-4 lg:flex-row">
-            {/* Left side: Marker list or form (desktop) / Top (mobile) */}
-            <div className="w-full lg:order-1 lg:w-1/3">
+            {/* Left side: Marker list or form (desktop) / Bottom (mobile) */}
+            <div className="order-2 w-full lg:order-1 lg:w-1/3">
                 {selectedMarkerId ? (
                     <MarkerForm
                         marker={selectedMarker}
@@ -563,8 +563,8 @@ export default function TravelMap({ selectedTripId }: TravelMapProps) {
                 )}
             </div>
 
-            {/* Right side: Map (desktop) / Bottom (mobile) */}
-            <div className="w-full lg:order-2 lg:w-2/3">
+            {/* Right side: Map (desktop) / Top (mobile) */}
+            <div className="order-1 w-full lg:order-2 lg:w-2/3">
                 <div
                     ref={mapRef}
                     id="map"
