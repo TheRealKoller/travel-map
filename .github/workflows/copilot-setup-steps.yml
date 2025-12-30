@@ -51,6 +51,9 @@ jobs:
       - name: Build Frontend Assets
         run: npm run build
 
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
       - name: Verify Setup
         run: |
           echo "✅ Environment setup completed successfully"
