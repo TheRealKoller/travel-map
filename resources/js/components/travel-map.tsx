@@ -87,7 +87,6 @@ const getColorForType = (type: MarkerType): string => {
 // Constants
 const DEFAULT_MAP_CENTER: [number, number] = [36.2048, 138.2529]; // Japan
 const DEFAULT_MAP_ZOOM = 6;
-const DEBOUNCE_DELAY_MS = 500;
 
 interface TravelMapProps {
     selectedTripId: number | null;
@@ -101,12 +100,6 @@ export default function TravelMap({ selectedTripId }: TravelMapProps) {
         null,
     );
     const searchMarkerRef = useRef<L.Marker | null>(null);
-    // Refs to store timeout IDs for debouncing
-    const updateNameTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const updateNotesTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    // Refs to track previous values for optimization
-    const prevSelectedMarkerIdRef = useRef<string | null>(null);
-    const prevMarkerNamesRef = useRef<{ [id: string]: string }>({});
 
     // Define saveMarkerToDatabase before it's used in useEffect
     const saveMarkerToDatabase = useCallback(
@@ -298,57 +291,6 @@ export default function TravelMap({ selectedTripId }: TravelMapProps) {
         };
     }, [saveMarkerToDatabase]);
 
-    // Only update marker icon when selection changes
-    useEffect(() => {
-        if (prevSelectedMarkerIdRef.current !== selectedMarkerId) {
-            // Update previously selected marker icon
-            if (prevSelectedMarkerIdRef.current) {
-                const prevMarker = markers.find(
-                    (m) => m.id === prevSelectedMarkerIdRef.current,
-                );
-                if (prevMarker) {
-                    const icon = (L as LeafletExtensions).AwesomeMarkers.icon({
-                        icon: getIconForType(prevMarker.type),
-                        markerColor: getColorForType(prevMarker.type),
-                        iconColor: 'white',
-                        prefix: 'fa',
-                        spin: false,
-                    });
-                    prevMarker.marker.setIcon(icon);
-                }
-            }
-            // Update newly selected marker icon
-            if (selectedMarkerId) {
-                const selectedMarker = markers.find(
-                    (m) => m.id === selectedMarkerId,
-                );
-                if (selectedMarker) {
-                    const icon = (L as LeafletExtensions).AwesomeMarkers.icon({
-                        icon: getIconForType(selectedMarker.type),
-                        markerColor: 'red',
-                        iconColor: 'white',
-                        prefix: 'fa',
-                        spin: true,
-                    });
-                    selectedMarker.marker.setIcon(icon);
-                }
-            }
-            prevSelectedMarkerIdRef.current = selectedMarkerId;
-        }
-    }, [selectedMarkerId, markers]);
-
-    // Only update marker tooltip when name changes
-    useEffect(() => {
-        markers.forEach((markerData) => {
-            const prevName = prevMarkerNamesRef.current[markerData.id];
-            if (markerData.name !== prevName) {
-                const tooltipContent = markerData.name || 'Unnamed Location';
-                markerData.marker.setTooltipContent(tooltipContent);
-                prevMarkerNamesRef.current[markerData.id] = markerData.name;
-            }
-        });
-    }, [markers]);
-
     // Load markers from database when trip changes
     useEffect(() => {
         const loadMarkers = async () => {
@@ -429,79 +371,49 @@ export default function TravelMap({ selectedTripId }: TravelMapProps) {
         setSelectedMarkerId(id);
     };
 
-    // Debounced API call for updating marker name
-    const debouncedUpdateMarkerName = useCallback(
-        (id: string, name: string) => {
-            if (updateNameTimeoutRef.current) {
-                clearTimeout(updateNameTimeoutRef.current);
+    const handleSaveMarker = async (
+        id: string,
+        name: string,
+        type: MarkerType,
+        notes: string,
+    ) => {
+        try {
+            // Update in database
+            await axios.put(`/markers/${id}`, { name, type, notes });
+
+            // Update local state
+            setMarkers((prev) =>
+                prev.map((m) =>
+                    m.id === id ? { ...m, name, type, notes } : m,
+                ),
+            );
+
+            // Update marker tooltip
+            const marker = markers.find((m) => m.id === id);
+            if (marker) {
+                marker.marker.setTooltipContent(name || 'Unnamed Location');
+                
+                // Update marker icon if type changed
+                const icon = (L as LeafletExtensions).AwesomeMarkers.icon({
+                    icon: getIconForType(type),
+                    markerColor: getColorForType(type),
+                    iconColor: 'white',
+                    prefix: 'fa',
+                    spin: false,
+                });
+                marker.marker.setIcon(icon);
             }
-            updateNameTimeoutRef.current = setTimeout(async () => {
-                try {
-                    await axios.put(`/markers/${id}`, { name });
-                } catch (error) {
-                    console.error('Failed to update marker name:', error);
-                    alert('Failed to update marker name. Please try again.');
-                }
-            }, DEBOUNCE_DELAY_MS);
-        },
-        [],
-    );
 
-    const handleUpdateMarkerName = (id: string, name: string) => {
-        // Update local state immediately
-        setMarkers((prev) =>
-            prev.map((m) => (m.id === id ? { ...m, name } : m)),
-        );
-
-        // Debounce the API call
-        debouncedUpdateMarkerName(id, name);
-    };
-
-    const handleUpdateMarkerType = async (id: string, type: MarkerType) => {
-        // Update local state immediately
-        setMarkers((prev) =>
-            prev.map((m) => (m.id === id ? { ...m, type } : m)),
-        );
-
-        // Update in database (not debounced as dropdown changes are infrequent)
-        const marker = markers.find((m) => m.id === id);
-        if (marker) {
-            try {
-                await axios.put(`/markers/${marker.id}`, { type });
-            } catch (error) {
-                console.error('Failed to update marker type:', error);
-                alert('Failed to update marker type. Please try again.');
-            }
+            // Close the form
+            setSelectedMarkerId(null);
+        } catch (error) {
+            console.error('Failed to save marker:', error);
+            alert('Failed to save marker. Please try again.');
         }
     };
 
-    // Debounced API call for updating marker notes
-    const debouncedUpdateMarkerNotes = useCallback(
-        (id: string, notes: string) => {
-            // Clear previous timeout if it exists
-            if (updateNotesTimeoutRef.current) {
-                clearTimeout(updateNotesTimeoutRef.current);
-            }
-            updateNotesTimeoutRef.current = setTimeout(async () => {
-                try {
-                    await axios.put(`/markers/${id}`, { notes });
-                } catch (error) {
-                    console.error('Failed to update marker notes:', error);
-                    alert('Failed to update marker notes. Please try again.');
-                }
-            }, DEBOUNCE_DELAY_MS);
-        },
-        [],
-    );
-
-    const handleUpdateMarkerNotes = (id: string, notes: string) => {
-        // Update local state immediately
-        setMarkers((prev) =>
-            prev.map((m) => (m.id === id ? { ...m, notes } : m)),
-        );
-
-        // Debounce the API call
-        debouncedUpdateMarkerNotes(id, notes);
+    const handleCloseForm = () => {
+        setSelectedMarkerId(null);
     };
 
     const handleDeleteMarker = async (id: string) => {
@@ -530,28 +442,16 @@ export default function TravelMap({ selectedTripId }: TravelMapProps) {
     const selectedMarker =
         markers.find((m) => m.id === selectedMarkerId) || null;
 
-    const handleCloseForm = () => {
-        setSelectedMarkerId(null);
-    };
-
-    const handleSaveMarker = () => {
-        // All changes are already saved via debounced updates
-        // Just close the form
-        setSelectedMarkerId(null);
-    };
-
     return (
         <div className="flex h-full flex-col gap-4 lg:flex-row">
             {/* Left side: Marker list or form (desktop) / Bottom (mobile) */}
             <div className="order-2 w-full lg:order-1 lg:w-1/3">
                 {selectedMarkerId ? (
                     <MarkerForm
+                        key={selectedMarkerId}
                         marker={selectedMarker}
-                        onUpdateName={handleUpdateMarkerName}
-                        onUpdateType={handleUpdateMarkerType}
-                        onUpdateNotes={handleUpdateMarkerNotes}
-                        onDeleteMarker={handleDeleteMarker}
                         onSave={handleSaveMarker}
+                        onDeleteMarker={handleDeleteMarker}
                         onClose={handleCloseForm}
                     />
                 ) : (
