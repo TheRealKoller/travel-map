@@ -12,7 +12,7 @@ on:
       - .github/workflows/copilot-setup-steps.yml
 
 jobs:
-  copilot-setup-step:
+  copilot-setup-steps:
     name: Copilot Setup Environment
     runs-on: ubuntu-latest
     permissions:
