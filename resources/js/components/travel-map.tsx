@@ -70,11 +70,11 @@ const getColorForType = (type: MarkerType): string => {
         case MarkerType.Museum:
             return 'darkblue';
         case MarkerType.Ruin:
-            return 'brown';
+            return 'darkred';
         case MarkerType.UnescoWorldHeritage:
-            return 'gold';
+            return 'darkgreen';
         case MarkerType.TempleChurch:
-            return 'darkviolet';
+            return 'darkpurple';
         case MarkerType.FestivalParty:
             return 'pink';
         case MarkerType.Leisure:
