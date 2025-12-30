@@ -73,10 +73,12 @@ export default function MapPage() {
 
     const handleOpenRenameModal = (tripId: number) => {
         const trip = trips.find((t) => t.id === tripId);
-        if (trip) {
-            setTripToRename(trip);
-            setIsRenameModalOpen(true);
+        if (!trip) {
+            console.warn(`Trip with id ${tripId} not found`);
+            return;
         }
+        setTripToRename(trip);
+        setIsRenameModalOpen(true);
     };
 
     return (

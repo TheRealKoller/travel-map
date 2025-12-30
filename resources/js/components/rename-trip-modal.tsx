@@ -24,7 +24,7 @@ export default function RenameTripModal({
     onRenameTrip,
     currentName,
 }: RenameTripModalProps) {
-    const [tripName, setTripName] = useState(currentName);
+    const [tripName, setTripName] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
@@ -33,13 +33,16 @@ export default function RenameTripModal({
         }
     }, [open, currentName]);
 
+    const trimmedName = tripName.trim();
+    const isNameChanged = trimmedName && trimmedName !== currentName;
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!tripName.trim() || tripName.trim() === currentName) return;
+        if (!isNameChanged) return;
 
         setIsSubmitting(true);
         try {
-            await onRenameTrip(tripName.trim());
+            await onRenameTrip(trimmedName);
             onOpenChange(false);
         } catch (error) {
             console.error('Failed to rename trip:', error);
@@ -82,11 +85,7 @@ export default function RenameTripModal({
                         </Button>
                         <Button
                             type="submit"
-                            disabled={
-                                isSubmitting ||
-                                !tripName.trim() ||
-                                tripName.trim() === currentName
-                            }
+                            disabled={isSubmitting || !isNameChanged}
                         >
                             {isSubmitting ? 'Renaming...' : 'Rename trip'}
                         </Button>
