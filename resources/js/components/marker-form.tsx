@@ -143,6 +143,18 @@ export default function MarkerForm({
                         <option value={MarkerType.Question}>Question</option>
                         <option value={MarkerType.Tip}>Tip</option>
                         <option value={MarkerType.Hotel}>Hotel</option>
+                        <option value={MarkerType.Museum}>Museum</option>
+                        <option value={MarkerType.Ruin}>Ruin</option>
+                        <option value={MarkerType.UnescoWorldHeritage}>
+                            UNESCO World Heritage
+                        </option>
+                        <option value={MarkerType.TempleChurch}>
+                            Temple/Church
+                        </option>
+                        <option value={MarkerType.FestivalParty}>
+                            Festival/Party
+                        </option>
+                        <option value={MarkerType.Leisure}>Leisure</option>
                     </select>
                 </div>
                 <div>
