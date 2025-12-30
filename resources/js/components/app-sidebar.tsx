@@ -49,6 +49,8 @@ interface AppSidebarProps {
     selectedTripId?: number | null;
     onSelectTrip?: (tripId: number) => void;
     onCreateTrip?: () => void;
+    onRenameTrip?: (trip: Trip) => void;
+    onDeleteTrip?: (tripId: number) => void;
 }
 
 export function AppSidebar({
@@ -56,6 +58,8 @@ export function AppSidebar({
     selectedTripId = null,
     onSelectTrip = () => {},
     onCreateTrip = () => {},
+    onRenameTrip = () => {},
+    onDeleteTrip = () => {},
 }: AppSidebarProps) {
     return (
         <Sidebar collapsible="offcanvas" variant="inset">
@@ -78,6 +82,8 @@ export function AppSidebar({
                     selectedTripId={selectedTripId}
                     onSelectTrip={onSelectTrip}
                     onCreateTrip={onCreateTrip}
+                    onRenameTrip={onRenameTrip}
+                    onDeleteTrip={onDeleteTrip}
                 />
             </SidebarContent>
 

@@ -14,6 +14,8 @@ interface AppSidebarLayoutContentProps extends PropsWithChildren {
     selectedTripId?: number | null;
     onSelectTrip?: (tripId: number) => void;
     onCreateTrip?: () => void;
+    onRenameTrip?: (trip: Trip) => void;
+    onDeleteTrip?: (tripId: number) => void;
 }
 
 function AppSidebarLayoutContent({
@@ -23,6 +25,8 @@ function AppSidebarLayoutContent({
     selectedTripId,
     onSelectTrip,
     onCreateTrip,
+    onRenameTrip,
+    onDeleteTrip,
 }: AppSidebarLayoutContentProps) {
     const { setOpen, isMobile } = useSidebar();
 
@@ -45,6 +49,8 @@ function AppSidebarLayoutContent({
                 selectedTripId={selectedTripId}
                 onSelectTrip={onSelectTrip}
                 onCreateTrip={onCreateTrip}
+                onRenameTrip={onRenameTrip}
+                onDeleteTrip={onDeleteTrip}
             />
             <AppContent variant="sidebar" className="overflow-x-hidden">
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
@@ -61,6 +67,8 @@ export default function AppSidebarLayout({
     selectedTripId,
     onSelectTrip,
     onCreateTrip,
+    onRenameTrip,
+    onDeleteTrip,
 }: AppSidebarLayoutContentProps) {
     return (
         <AppShell variant="sidebar">
@@ -70,6 +78,8 @@ export default function AppSidebarLayout({
                 selectedTripId={selectedTripId}
                 onSelectTrip={onSelectTrip}
                 onCreateTrip={onCreateTrip}
+                onRenameTrip={onRenameTrip}
+                onDeleteTrip={onDeleteTrip}
             >
                 {children}
             </AppSidebarLayoutContent>
