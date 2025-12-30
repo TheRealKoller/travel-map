@@ -10,6 +10,7 @@ interface AppLayoutProps {
     selectedTripId?: number | null;
     onSelectTrip?: (tripId: number) => void;
     onCreateTrip?: () => void;
+    onRenameTrip?: (trip: Trip) => void;
 }
 
 export default ({
@@ -19,6 +20,7 @@ export default ({
     selectedTripId,
     onSelectTrip,
     onCreateTrip,
+    onRenameTrip,
     ...props
 }: AppLayoutProps) => (
     <AppLayoutTemplate
@@ -27,6 +29,7 @@ export default ({
         selectedTripId={selectedTripId}
         onSelectTrip={onSelectTrip}
         onCreateTrip={onCreateTrip}
+        onRenameTrip={onRenameTrip}
         {...props}
     >
         {children}

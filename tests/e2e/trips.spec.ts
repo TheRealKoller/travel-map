@@ -170,4 +170,69 @@ test.describe('Trip Management', () => {
         // Button should be disabled when input is empty
         await expect(submitButton).toBeDisabled();
     });
+
+    test('user can rename an existing trip', async ({ page }) => {
+        // Open sidebar
+        const sidebarTrigger = page.locator('[data-sidebar="trigger"]');
+        await sidebarTrigger.click();
+        await page.waitForTimeout(500);
+
+        // Create a new trip first
+        const createTripButton = page
+            .locator('button[title="Create new trip"]')
+            .first();
+        await createTripButton.click();
+
+        await page.waitForSelector('[role="dialog"]', { timeout: 5000 });
+        const tripNameInput = page.locator('input#tripName');
+        await tripNameInput.fill('Original Trip Name');
+
+        const submitButton = page.locator('button:has-text("Create trip")');
+        await submitButton.click();
+
+        await expect(page.locator('[role="dialog"]')).not.toBeVisible({
+            timeout: 5000,
+        });
+
+        await page.waitForTimeout(500);
+
+        // Now rename the trip
+        const tripActionsButton = page
+            .locator('button[title="Trip actions"]')
+            .first();
+        await expect(tripActionsButton).toBeVisible();
+        await tripActionsButton.click();
+
+        // Click rename option in dropdown
+        const renameOption = page.locator('[role="menuitem"]:has-text("Rename trip")');
+        await expect(renameOption).toBeVisible({ timeout: 3000 });
+        await renameOption.click();
+
+        // Wait for rename modal to appear
+        await page.waitForSelector('[role="dialog"]', { timeout: 5000 });
+
+        // Verify the input has the current trip name
+        const renameInput = page.locator('input#tripName');
+        await expect(renameInput).toHaveValue('Original Trip Name');
+
+        // Change the trip name
+        await renameInput.fill('Renamed Trip');
+
+        // Submit the rename
+        const renameSubmitButton = page.locator('button:has-text("Rename trip")');
+        await renameSubmitButton.click();
+
+        // Wait for modal to close
+        await expect(page.locator('[role="dialog"]')).not.toBeVisible({
+            timeout: 5000,
+        });
+
+        await page.waitForTimeout(500);
+
+        // Verify the trip selector shows the new name
+        const tripSelector = page.locator('select, [role="combobox"]').first();
+        if (await tripSelector.isVisible()) {
+            await expect(tripSelector).toContainText('Renamed Trip');
+        }
+    });
 });

@@ -1,4 +1,5 @@
 import CreateTripModal from '@/components/create-trip-modal';
+import RenameTripModal from '@/components/rename-trip-modal';
 import TravelMap from '@/components/travel-map';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
@@ -18,6 +19,8 @@ export default function MapPage() {
     const [trips, setTrips] = useState<Trip[]>([]);
     const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
+    const [tripToRename, setTripToRename] = useState<Trip | null>(null);
 
     useEffect(() => {
         const loadTrips = async () => {
@@ -49,6 +52,24 @@ export default function MapPage() {
         }
     };
 
+    const handleRenameTrip = async (tripId: number, name: string) => {
+        try {
+            const response = await axios.put(`/trips/${tripId}`, { name });
+            const updatedTrip = response.data;
+            setTrips((prev) =>
+                prev.map((trip) => (trip.id === tripId ? updatedTrip : trip)),
+            );
+        } catch (error) {
+            console.error('Failed to rename trip:', error);
+            throw error;
+        }
+    };
+
+    const openRenameModal = (trip: Trip) => {
+        setTripToRename(trip);
+        setIsRenameModalOpen(true);
+    };
+
     return (
         <AppLayout
             breadcrumbs={breadcrumbs}
@@ -56,6 +77,7 @@ export default function MapPage() {
             selectedTripId={selectedTripId}
             onSelectTrip={setSelectedTripId}
             onCreateTrip={() => setIsCreateModalOpen(true)}
+            onRenameTrip={openRenameModal}
         >
             <Head title="Map" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
@@ -65,6 +87,12 @@ export default function MapPage() {
                 open={isCreateModalOpen}
                 onOpenChange={setIsCreateModalOpen}
                 onCreateTrip={handleCreateTrip}
+            />
+            <RenameTripModal
+                open={isRenameModalOpen}
+                onOpenChange={setIsRenameModalOpen}
+                onRenameTrip={handleRenameTrip}
+                trip={tripToRename}
             />
         </AppLayout>
     );
