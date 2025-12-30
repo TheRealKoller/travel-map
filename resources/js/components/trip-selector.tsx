@@ -1,5 +1,11 @@
 import { Button } from '@/components/ui/button';
 import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
     Select,
     SelectContent,
     SelectItem,
@@ -7,13 +13,14 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Trip } from '@/types/trip';
-import { Plus } from 'lucide-react';
+import { MoreHorizontal, Pencil, Plus } from 'lucide-react';
 
 interface TripSelectorProps {
     trips: Trip[];
     selectedTripId: number | null;
     onSelectTrip: (tripId: number) => void;
     onCreateTrip: () => void;
+    onRenameTrip?: (tripId: number) => void;
 }
 
 export default function TripSelector({
@@ -21,6 +28,7 @@ export default function TripSelector({
     selectedTripId,
     onSelectTrip,
     onCreateTrip,
+    onRenameTrip,
 }: TripSelectorProps) {
     return (
         <div className="flex flex-col gap-2 px-2 py-2">
@@ -50,6 +58,27 @@ export default function TripSelector({
                         ))}
                     </SelectContent>
                 </Select>
+                {selectedTripId !== null && onRenameTrip && (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                size="icon"
+                                variant="outline"
+                                title="Trip options"
+                            >
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                                onClick={() => onRenameTrip(selectedTripId)}
+                            >
+                                <Pencil className="h-4 w-4" />
+                                Rename
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                )}
                 <Button
                     onClick={onCreateTrip}
                     size="icon"
