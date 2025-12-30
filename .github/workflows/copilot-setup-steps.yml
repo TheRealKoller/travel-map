@@ -60,5 +60,5 @@ jobs:
           echo "PHP version: $(php -v | head -n 1)"
           echo "Node version: $(node -v)"
           echo "npm version: $(npm -v)"
-          echo "Composer version: $(composer -V | head -n 1)"
+          echo "Composer version: $(composer -V --no-ansi | head -n 1)"
           echo "Playwright version: $(npx playwright --version)"
