@@ -95,16 +95,7 @@ export default function MarkerForm({
             )
         ) {
             onDeleteMarker(marker.id);
-            onClose(); // Close form after deletion
         }
-    };
-
-    const handleSave = () => {
-        onSave();
-    };
-
-    const handleClose = () => {
-        onClose();
     };
 
     return (
@@ -188,13 +179,13 @@ export default function MarkerForm({
                 </div>
                 <div className="flex flex-col gap-3 border-t border-gray-200 pt-4">
                     <button
-                        onClick={handleSave}
+                        onClick={onSave}
                         className="w-full rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
                     >
                         Save
                     </button>
                     <button
-                        onClick={handleClose}
+                        onClick={onClose}
                         className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none"
                     >
                         Close
