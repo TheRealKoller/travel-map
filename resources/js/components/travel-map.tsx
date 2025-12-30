@@ -530,22 +530,45 @@ export default function TravelMap({ selectedTripId }: TravelMapProps) {
     const selectedMarker =
         markers.find((m) => m.id === selectedMarkerId) || null;
 
-    return (
-        <div>
-            <div ref={mapRef} id="map" className="z-10 mt-5 h-[600px] w-full" />
+    const handleCloseForm = () => {
+        setSelectedMarkerId(null);
+    };
 
-            <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-                <MarkerForm
-                    marker={selectedMarker}
-                    onUpdateName={handleUpdateMarkerName}
-                    onUpdateType={handleUpdateMarkerType}
-                    onUpdateNotes={handleUpdateMarkerNotes}
-                    onDeleteMarker={handleDeleteMarker}
-                />
-                <MarkerList
-                    markers={markers}
-                    selectedMarkerId={selectedMarkerId}
-                    onSelectMarker={handleSelectMarker}
+    const handleSaveMarker = () => {
+        // All changes are already saved via debounced updates
+        // Just close the form
+        setSelectedMarkerId(null);
+    };
+
+    return (
+        <div className="flex h-full flex-col gap-4 lg:flex-row">
+            {/* Left side: Marker list or form (desktop) / Top (mobile) */}
+            <div className="w-full lg:order-1 lg:w-1/3">
+                {selectedMarkerId ? (
+                    <MarkerForm
+                        marker={selectedMarker}
+                        onUpdateName={handleUpdateMarkerName}
+                        onUpdateType={handleUpdateMarkerType}
+                        onUpdateNotes={handleUpdateMarkerNotes}
+                        onDeleteMarker={handleDeleteMarker}
+                        onSave={handleSaveMarker}
+                        onClose={handleCloseForm}
+                    />
+                ) : (
+                    <MarkerList
+                        markers={markers}
+                        selectedMarkerId={selectedMarkerId}
+                        onSelectMarker={handleSelectMarker}
+                    />
+                )}
+            </div>
+
+            {/* Right side: Map (desktop) / Bottom (mobile) */}
+            <div className="w-full lg:order-2 lg:w-2/3">
+                <div
+                    ref={mapRef}
+                    id="map"
+                    className="z-10 h-[400px] w-full lg:h-[600px]"
                 />
             </div>
         </div>

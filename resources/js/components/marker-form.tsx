@@ -11,6 +11,8 @@ interface MarkerFormProps {
     onUpdateType: (id: string, type: MarkerType) => void;
     onUpdateNotes: (id: string, notes: string) => void;
     onDeleteMarker: (id: string) => void;
+    onSave: () => void;
+    onClose: () => void;
 }
 
 export default function MarkerForm({
@@ -19,6 +21,8 @@ export default function MarkerForm({
     onUpdateType,
     onUpdateNotes,
     onDeleteMarker,
+    onSave,
+    onClose,
 }: MarkerFormProps) {
     // Define mdeOptions before any early returns to ensure hooks are called in consistent order
     const mdeOptions = useMemo(() => {
@@ -69,14 +73,7 @@ export default function MarkerForm({
     }, []);
 
     if (!marker) {
-        return (
-            <div className="rounded-lg bg-white p-4 shadow">
-                <h2 className="mb-4 text-xl font-semibold">Marker Details</h2>
-                <p className="text-gray-500">
-                    Select a marker to edit its details
-                </p>
-            </div>
-        );
+        return null;
     }
 
     const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,7 +95,16 @@ export default function MarkerForm({
             )
         ) {
             onDeleteMarker(marker.id);
+            onClose(); // Close form after deletion
         }
+    };
+
+    const handleSave = () => {
+        onSave();
+    };
+
+    const handleClose = () => {
+        onClose();
     };
 
     return (
@@ -180,12 +186,24 @@ export default function MarkerForm({
                         {marker.lng.toFixed(6)}
                     </p>
                 </div>
-                <div className="border-t border-gray-200 pt-4">
+                <div className="flex flex-col gap-3 border-t border-gray-200 pt-4">
+                    <button
+                        onClick={handleSave}
+                        className="w-full rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                    >
+                        Save
+                    </button>
+                    <button
+                        onClick={handleClose}
+                        className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none"
+                    >
+                        Close
+                    </button>
                     <button
                         onClick={handleDelete}
                         className="w-full rounded-md bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none"
                     >
-                        Delete Marker
+                        Delete
                     </button>
                 </div>
             </div>
