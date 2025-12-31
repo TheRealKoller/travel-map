@@ -49,6 +49,8 @@ const getIconForType = (type: MarkerType): string => {
             return 'champagne-glasses';
         case MarkerType.Leisure:
             return 'bicycle';
+        case MarkerType.Sightseeing:
+            return 'camera';
         default:
             return 'map-pin';
     }
@@ -79,6 +81,8 @@ const getColorForType = (type: MarkerType): string => {
             return 'pink';
         case MarkerType.Leisure:
             return 'lightgreen';
+        case MarkerType.Sightseeing:
+            return 'lightblue';
         default:
             return 'gray';
     }

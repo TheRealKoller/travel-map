@@ -19,7 +19,7 @@ class MarkerFactory extends Factory
         return [
             'id' => fake()->uuid(),
             'name' => fake()->words(3, true),
-            'type' => fake()->randomElement(['restaurant', 'hotel', 'point of interest', 'tip', 'question', 'museum', 'ruin', 'unesco world heritage', 'temple/church', 'festival/party', 'leisure']),
+            'type' => fake()->randomElement(['restaurant', 'hotel', 'point of interest', 'tip', 'question', 'museum', 'ruin', 'unesco world heritage', 'temple/church', 'festival/party', 'leisure', 'sightseeing']),
             'notes' => fake()->optional()->paragraph(),
             'latitude' => fake()->latitude(),
             'longitude' => fake()->longitude(),
