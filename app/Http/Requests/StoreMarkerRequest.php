@@ -23,7 +23,7 @@ class StoreMarkerRequest extends FormRequest
     {
         return [
             'id' => 'required|uuid',
-            'name' => 'nullable|string|max:255',
+            'name' => 'required|string|max:255',
             'type' => 'required|string',
             'notes' => 'nullable|string',
             'latitude' => 'required|numeric|between:-90,90',

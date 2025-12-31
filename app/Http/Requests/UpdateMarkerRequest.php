@@ -22,9 +22,9 @@ class UpdateMarkerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'sometimes|string|max:255',
+            'name' => 'sometimes|required|string|max:255',
             'type' => 'sometimes|string',
-            'notes' => 'sometimes|string',
+            'notes' => 'sometimes|nullable|string',
             'latitude' => 'sometimes|numeric|between:-90,90',
             'longitude' => 'sometimes|numeric|between:-180,180',
         ];
