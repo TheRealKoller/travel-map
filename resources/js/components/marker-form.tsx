@@ -2,24 +2,29 @@ import '@/../../resources/css/markdown-preview.css';
 import { MarkerData, MarkerType } from '@/types/marker';
 import 'easymde/dist/easymde.min.css';
 import { marked } from 'marked';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import SimpleMDE from 'react-simplemde-editor';
 
 interface MarkerFormProps {
     marker: MarkerData | null;
-    onUpdateName: (id: string, name: string) => void;
-    onUpdateType: (id: string, type: MarkerType) => void;
-    onUpdateNotes: (id: string, notes: string) => void;
+    onSave: (id: string, name: string, type: MarkerType, notes: string) => void;
     onDeleteMarker: (id: string) => void;
+    onClose: () => void;
 }
 
 export default function MarkerForm({
     marker,
-    onUpdateName,
-    onUpdateType,
-    onUpdateNotes,
+    onSave,
     onDeleteMarker,
+    onClose,
 }: MarkerFormProps) {
+    // Initialize local state from marker prop
+    // Using marker?.id as key in parent will cause re-mount when marker changes
+    const [name, setName] = useState(marker?.name || '');
+    const [type, setType] = useState<MarkerType>(
+        marker?.type || MarkerType.PointOfInterest,
+    );
+    const [notes, setNotes] = useState(marker?.notes || '');
     // Define mdeOptions before any early returns to ensure hooks are called in consistent order
     const mdeOptions = useMemo(() => {
         // Configure marked to preserve line breaks
@@ -69,32 +74,31 @@ export default function MarkerForm({
     }, []);
 
     if (!marker) {
-        return (
-            <div className="rounded-lg bg-white p-4 shadow">
-                <h2 className="mb-4 text-xl font-semibold">Marker Details</h2>
-                <p className="text-gray-500">
-                    Select a marker to edit its details
-                </p>
-            </div>
-        );
+        return null;
     }
 
     const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        onUpdateName(marker.id, e.target.value);
+        setName(e.target.value);
     };
 
     const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        onUpdateType(marker.id, e.target.value as MarkerType);
+        setType(e.target.value as MarkerType);
     };
 
     const handleNotesChange = (value: string) => {
-        onUpdateNotes(marker.id, value);
+        setNotes(value);
+    };
+
+    const handleSave = () => {
+        if (marker) {
+            onSave(marker.id, name, type, notes);
+        }
     };
 
     const handleDelete = () => {
         if (
             window.confirm(
-                `Are you sure you want to delete "${marker.name || 'this marker'}"? This action cannot be undone.`,
+                `Are you sure you want to delete "${name || 'this marker'}"? This action cannot be undone.`,
             )
         ) {
             onDeleteMarker(marker.id);
@@ -102,8 +106,26 @@ export default function MarkerForm({
     };
 
     return (
-        <div className="rounded-lg bg-white p-4 shadow">
-            <h2 className="mb-4 text-xl font-semibold">Marker Details</h2>
+        <div className="relative rounded-lg bg-white p-4 shadow">
+            <button
+                onClick={onClose}
+                className="absolute top-2 right-2 rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                aria-label="Close"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                >
+                    <path
+                        fillRule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clipRule="evenodd"
+                    />
+                </svg>
+            </button>
+            <h2 className="mb-4 pr-8 text-xl font-semibold">Marker Details</h2>
             <div className="space-y-4">
                 <div>
                     <label
@@ -115,7 +137,7 @@ export default function MarkerForm({
                     <input
                         id="marker-name"
                         type="text"
-                        value={marker.name}
+                        value={name}
                         onChange={handleNameChange}
                         className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                         placeholder="Enter marker name"
@@ -130,7 +152,7 @@ export default function MarkerForm({
                     </label>
                     <select
                         id="marker-type"
-                        value={marker.type}
+                        value={type}
                         onChange={handleTypeChange}
                         className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     >
@@ -162,7 +184,7 @@ export default function MarkerForm({
                         Notes
                     </label>
                     <SimpleMDE
-                        value={marker.notes}
+                        value={notes}
                         onChange={handleNotesChange}
                         options={mdeOptions}
                     />
@@ -180,12 +202,18 @@ export default function MarkerForm({
                         {marker.lng.toFixed(6)}
                     </p>
                 </div>
-                <div className="border-t border-gray-200 pt-4">
+                <div className="flex flex-col gap-2 border-t border-gray-200 pt-4 lg:flex-row lg:gap-2">
+                    <button
+                        onClick={handleSave}
+                        className="w-full rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                    >
+                        Save
+                    </button>
                     <button
                         onClick={handleDelete}
-                        className="w-full rounded-md bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none"
+                        className="w-full rounded-md bg-red-600 px-3 py-1.5 text-sm text-white transition-colors hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none"
                     >
-                        Delete Marker
+                        Delete
                     </button>
                 </div>
             </div>
