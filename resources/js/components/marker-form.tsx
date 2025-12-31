@@ -177,6 +177,9 @@ export default function MarkerForm({
                             Festival/Party
                         </option>
                         <option value={MarkerType.Leisure}>Leisure</option>
+                        <option value={MarkerType.Sightseeing}>
+                            Sightseeing
+                        </option>
                     </select>
                 </div>
                 <div>

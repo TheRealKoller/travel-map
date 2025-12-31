@@ -12,6 +12,7 @@ export enum MarkerType {
     TempleChurch = 'temple/church',
     FestivalParty = 'festival/party',
     Leisure = 'leisure',
+    Sightseeing = 'sightseeing',
 }
 
 export interface MarkerData {
