@@ -392,7 +392,7 @@ export default function TravelMap({ selectedTripId }: TravelMapProps) {
             const marker = markers.find((m) => m.id === id);
             if (marker) {
                 marker.marker.setTooltipContent(name || 'Unnamed Location');
-                
+
                 // Update marker icon if type changed
                 const icon = (L as LeafletExtensions).AwesomeMarkers.icon({
                     icon: getIconForType(type),

@@ -109,7 +109,7 @@ export default function MarkerForm({
         <div className="relative rounded-lg bg-white p-4 shadow">
             <button
                 onClick={onClose}
-                className="absolute right-2 top-2 rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                className="absolute top-2 right-2 rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
                 aria-label="Close"
             >
                 <svg
