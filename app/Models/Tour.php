@@ -24,6 +24,8 @@ class Tour extends Model
     public function markers(): BelongsToMany
     {
         return $this->belongsToMany(Marker::class, 'marker_tour')
+            ->withPivot('position')
+            ->orderByPivot('position', 'asc')
             ->withTimestamps();
     }
 }

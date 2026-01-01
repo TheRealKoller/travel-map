@@ -3,7 +3,13 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MarkerData } from '@/types/marker';
 import { Tour } from '@/types/tour';
 import { useDroppable } from '@dnd-kit/core';
-import { Plus } from 'lucide-react';
+import {
+    SortableContext,
+    useSortable,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { GripVertical, Plus } from 'lucide-react';
 
 interface TourPanelProps {
     tours: Tour[];
@@ -47,6 +53,57 @@ function DroppableTourTab({ tour, markerCount }: DroppableTourTabProps) {
     );
 }
 
+interface SortableMarkerItemProps {
+    marker: MarkerData;
+    index: number;
+}
+
+function SortableMarkerItem({ marker, index }: SortableMarkerItemProps) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: marker.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+    };
+
+    return (
+        <li
+            ref={setNodeRef}
+            style={style}
+            className={`rounded bg-gray-50 p-2 text-sm ${
+                isDragging ? 'opacity-50' : ''
+            }`}
+        >
+            <div className="flex items-start gap-2">
+                <button
+                    {...listeners}
+                    {...attributes}
+                    className="mt-0.5 cursor-grab active:cursor-grabbing"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <GripVertical className="h-4 w-4 text-gray-400" />
+                </button>
+                <span className="font-medium text-gray-500">{index + 1}.</span>
+                <div className="flex-1">
+                    <div className="font-medium text-gray-900">
+                        {marker.name || 'Unnamed Location'}
+                    </div>
+                    <div className="text-xs text-gray-600">
+                        {marker.lat.toFixed(6)}, {marker.lng.toFixed(6)}
+                    </div>
+                </div>
+            </div>
+        </li>
+    );
+}
+
 interface DroppableTourCardProps {
     tour: Tour;
     markers: MarkerData[];
@@ -73,29 +130,20 @@ function DroppableTourCard({ tour, markers }: DroppableTourCardProps) {
                     Drag markers here to add them to this tour
                 </p>
             ) : (
-                <ul className="space-y-2">
-                    {markers.map((marker, index) => (
-                        <li
-                            key={marker.id}
-                            className="rounded bg-gray-50 p-2 text-sm"
-                        >
-                            <div className="flex items-start gap-2">
-                                <span className="font-medium text-gray-500">
-                                    {index + 1}.
-                                </span>
-                                <div className="flex-1">
-                                    <div className="font-medium text-gray-900">
-                                        {marker.name || 'Unnamed Location'}
-                                    </div>
-                                    <div className="text-xs text-gray-600">
-                                        {marker.lat.toFixed(6)},{' '}
-                                        {marker.lng.toFixed(6)}
-                                    </div>
-                                </div>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
+                <SortableContext
+                    items={markers.map((m) => m.id)}
+                    strategy={verticalListSortingStrategy}
+                >
+                    <ul className="space-y-2">
+                        {markers.map((marker, index) => (
+                            <SortableMarkerItem
+                                key={marker.id}
+                                marker={marker}
+                                index={index}
+                            />
+                        ))}
+                    </ul>
+                </SortableContext>
             )}
         </Card>
     );

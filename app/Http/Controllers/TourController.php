@@ -90,7 +90,9 @@ class TourController extends Controller
 
         // Attach marker to tour if not already attached
         if (! $tour->markers()->where('marker_id', $marker->id)->exists()) {
-            $tour->markers()->attach($marker->id);
+            // Get the highest position and add 1
+            $maxPosition = $tour->markers()->max('position') ?? -1;
+            $tour->markers()->attach($marker->id, ['position' => $maxPosition + 1]);
         }
 
         return response()->json($tour->load('markers'));
@@ -105,6 +107,25 @@ class TourController extends Controller
         ]);
 
         $tour->markers()->detach($validated['marker_id']);
+
+        return response()->json($tour->load('markers'));
+    }
+
+    public function reorderMarkers(Request $request, Tour $tour): JsonResponse
+    {
+        $this->authorize('update', $tour);
+
+        $validated = $request->validate([
+            'marker_ids' => 'required|array',
+            'marker_ids.*' => 'required|uuid|exists:markers,id',
+        ]);
+
+        $markerIds = $validated['marker_ids'];
+
+        // Update positions for each marker
+        foreach ($markerIds as $index => $markerId) {
+            $tour->markers()->updateExistingPivot($markerId, ['position' => $index]);
+        }
 
         return response()->json($tour->load('markers'));
     }

@@ -4,6 +4,7 @@ import TourPanel from '@/components/tour-panel';
 import { MarkerData, MarkerType } from '@/types/marker';
 import { Tour } from '@/types/tour';
 import { DndContext, DragEndEvent } from '@dnd-kit/core';
+import { arrayMove } from '@dnd-kit/sortable';
 import axios from 'axios';
 import L from 'leaflet';
 import 'leaflet-control-geocoder';
@@ -494,11 +495,61 @@ export default function TravelMap({
 
         if (!over) return;
 
-        // Check if dropped on a tour tab
+        const activeId = active.id as string;
         const overId = over.id as string;
+
+        // Check if this is reordering within a tour (both IDs are marker UUIDs)
+        if (activeId !== overId && selectedTourId !== null) {
+            const tour = tours.find((t) => t.id === selectedTourId);
+            if (tour && tour.markers) {
+                const oldIndex = tour.markers.findIndex(
+                    (m) => m.id === activeId,
+                );
+                const newIndex = tour.markers.findIndex((m) => m.id === overId);
+
+                if (oldIndex !== -1 && newIndex !== -1) {
+                    // Reorder markers in the tour
+                    const reorderedMarkers = arrayMove(
+                        tour.markers,
+                        oldIndex,
+                        newIndex,
+                    );
+
+                    // Update tours state optimistically
+                    const updatedTours = tours.map((t) =>
+                        t.id === selectedTourId
+                            ? { ...t, markers: reorderedMarkers }
+                            : t,
+                    );
+                    onToursUpdate(updatedTours);
+
+                    // Send reorder request to server
+                    try {
+                        await axios.put(
+                            `/tours/${selectedTourId}/markers/reorder`,
+                            {
+                                marker_ids: reorderedMarkers.map((m) => m.id),
+                            },
+                        );
+                    } catch (error) {
+                        console.error('Failed to reorder markers:', error);
+                        // Revert on error
+                        if (selectedTripId) {
+                            const response = await axios.get('/tours', {
+                                params: { trip_id: selectedTripId },
+                            });
+                            onToursUpdate(response.data);
+                        }
+                    }
+                    return;
+                }
+            }
+        }
+
+        // Check if dropped on a tour tab (adding marker to tour)
         if (overId.startsWith('tour-')) {
             const tourId = parseInt(overId.replace('tour-', ''));
-            const markerId = active.id as string;
+            const markerId = activeId;
 
             // Check if marker is already in the tour
             const tour = tours.find((t) => t.id === tourId);
