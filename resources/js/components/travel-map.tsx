@@ -1,6 +1,6 @@
 import MarkerForm from '@/components/marker-form';
 import MarkerList from '@/components/marker-list';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MarkerData, MarkerType } from '@/types/marker';
 import { Tour } from '@/types/tour';
 import axios from 'axios';
@@ -492,17 +492,6 @@ export default function TravelMap({
     const selectedMarker =
         markers.find((m) => m.id === selectedMarkerId) || null;
 
-    // Filter markers based on selected tour
-    const filteredMarkers =
-        selectedTourId === null
-            ? markers
-            : markers.filter((marker) => {
-                  const tour = tours.find((t) => t.id === selectedTourId);
-                  return (
-                      tour?.markers?.some((m) => m.id === marker.id) || false
-                  );
-              });
-
     const handleTabChange = (value: string) => {
         if (value === 'all') {
             onSelectTour(null);
@@ -514,9 +503,9 @@ export default function TravelMap({
     };
 
     return (
-        <div className="flex h-full flex-col gap-4 lg:flex-row">
-            {/* Left side: Marker list or form (desktop) / Bottom (mobile) */}
-            <div className="order-2 w-full lg:order-1 lg:w-1/3">
+        <div className="flex h-full flex-col gap-4">
+            {/* Part 1: Marker list or form */}
+            <div className="w-full">
                 {selectedMarkerId ? (
                     <MarkerForm
                         key={selectedMarkerId}
@@ -529,15 +518,15 @@ export default function TravelMap({
                     />
                 ) : (
                     <MarkerList
-                        markers={filteredMarkers}
+                        markers={markers}
                         selectedMarkerId={selectedMarkerId}
                         onSelectMarker={handleSelectMarker}
                     />
                 )}
             </div>
 
-            {/* Right side: Tour tabs and Map (desktop) / Top (mobile) */}
-            <div className="order-1 w-full lg:order-2 lg:w-2/3">
+            {/* Part 2: Tour tabs */}
+            <div className="w-full">
                 <Tabs
                     value={
                         selectedTourId === null
@@ -547,7 +536,7 @@ export default function TravelMap({
                     onValueChange={handleTabChange}
                     className="w-full"
                 >
-                    <TabsList className="mb-4 flex w-full justify-start overflow-x-auto">
+                    <TabsList className="flex w-full justify-start overflow-x-auto">
                         <TabsTrigger value="all">All markers</TabsTrigger>
                         {tours.map((tour) => (
                             <TabsTrigger
@@ -570,23 +559,16 @@ export default function TravelMap({
                             <Plus className="h-4 w-4" />
                         </TabsTrigger>
                     </TabsList>
-                    <TabsContent value="all">
-                        <div
-                            ref={mapRef}
-                            id="map"
-                            className="z-10 h-[400px] w-full lg:h-[600px]"
-                        />
-                    </TabsContent>
-                    {tours.map((tour) => (
-                        <TabsContent key={tour.id} value={tour.id.toString()}>
-                            <div
-                                ref={mapRef}
-                                id="map"
-                                className="z-10 h-[400px] w-full lg:h-[600px]"
-                            />
-                        </TabsContent>
-                    ))}
                 </Tabs>
+            </div>
+
+            {/* Part 3: Map */}
+            <div className="w-full flex-1">
+                <div
+                    ref={mapRef}
+                    id="map"
+                    className="z-10 h-[400px] w-full lg:h-[600px]"
+                />
             </div>
         </div>
     );
