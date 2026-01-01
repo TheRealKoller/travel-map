@@ -15,16 +15,11 @@ interface TourPanelProps {
 
 interface DroppableTourTabProps {
     tour: Tour;
-    isOver: boolean;
     markerCount: number;
 }
 
-function DroppableTourTab({
-    tour,
-    isOver,
-    markerCount,
-}: DroppableTourTabProps) {
-    const { setNodeRef } = useDroppable({
+function DroppableTourTab({ tour, markerCount }: DroppableTourTabProps) {
+    const { setNodeRef, isOver } = useDroppable({
         id: `tour-${tour.id}`,
         data: {
             tourId: tour.id,
@@ -99,7 +94,6 @@ export default function TourPanel({
                         <DroppableTourTab
                             key={tour.id}
                             tour={tour}
-                            isOver={false}
                             markerCount={getMarkerCountForTour(tour)}
                         />
                     ))}
