@@ -16,14 +16,9 @@ interface TourPanelProps {
 interface DroppableTourTabProps {
     tour: Tour;
     markerCount: number;
-    isSelected: boolean;
 }
 
-function DroppableTourTab({
-    tour,
-    markerCount,
-    isSelected,
-}: DroppableTourTabProps) {
+function DroppableTourTab({ tour, markerCount }: DroppableTourTabProps) {
     const { setNodeRef, isOver } = useDroppable({
         id: `tour-${tour.id}`,
         data: {
@@ -69,9 +64,7 @@ function DroppableTourCard({ tour, markers }: DroppableTourCardProps) {
         <Card
             ref={setNodeRef}
             className={`flex-1 overflow-auto p-4 ${
-                isOver
-                    ? 'ring-2 ring-blue-500 ring-offset-2 bg-blue-50'
-                    : ''
+                isOver ? 'bg-blue-50 ring-2 ring-blue-500 ring-offset-2' : ''
             }`}
         >
             <h3 className="mb-3 text-sm font-semibold">{tour.name}</h3>
@@ -161,7 +154,6 @@ export default function TourPanel({
                             key={tour.id}
                             tour={tour}
                             markerCount={getMarkerCountForTour(tour)}
-                            isSelected={selectedTourId === tour.id}
                         />
                     ))}
                     <TabsTrigger
