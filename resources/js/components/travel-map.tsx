@@ -503,9 +503,9 @@ export default function TravelMap({
     };
 
     return (
-        <div className="flex h-full flex-col gap-4">
+        <div className="flex h-full flex-col gap-4 lg:flex-row">
             {/* Part 1: Marker list or form */}
-            <div className="w-full">
+            <div className="w-full lg:w-1/3">
                 {selectedMarkerId ? (
                     <MarkerForm
                         key={selectedMarkerId}
@@ -526,7 +526,7 @@ export default function TravelMap({
             </div>
 
             {/* Part 2: Tour tabs */}
-            <div className="w-full">
+            <div className="w-full lg:w-1/3">
                 <Tabs
                     value={
                         selectedTourId === null
@@ -563,7 +563,7 @@ export default function TravelMap({
             </div>
 
             {/* Part 3: Map */}
-            <div className="w-full flex-1">
+            <div className="w-full flex-1 lg:w-1/3">
                 <div
                     ref={mapRef}
                     id="map"
