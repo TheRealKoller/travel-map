@@ -533,6 +533,9 @@ export default function TravelMap({
                         );
                     } catch (error) {
                         console.error('Failed to reorder markers:', error);
+                        alert(
+                            'Failed to reorder markers. The order has been reverted.',
+                        );
                         // Revert on error
                         if (selectedTripId) {
                             const response = await axios.get('/tours', {
