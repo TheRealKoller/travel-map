@@ -1,8 +1,9 @@
 import MarkerForm from '@/components/marker-form';
 import MarkerList from '@/components/marker-list';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import TourPanel from '@/components/tour-panel';
 import { MarkerData, MarkerType } from '@/types/marker';
 import { Tour } from '@/types/tour';
+import { DndContext, DragEndEvent } from '@dnd-kit/core';
 import axios from 'axios';
 import L from 'leaflet';
 import 'leaflet-control-geocoder';
@@ -10,7 +11,6 @@ import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
 import 'leaflet.awesome-markers';
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.css';
 import 'leaflet/dist/leaflet.css';
-import { Plus } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -489,87 +489,79 @@ export default function TravelMap({
         }
     };
 
-    const selectedMarker =
-        markers.find((m) => m.id === selectedMarkerId) || null;
+    const handleDragEnd = async (event: DragEndEvent) => {
+        const { active, over } = event;
 
-    const handleTabChange = (value: string) => {
-        if (value === 'all') {
-            onSelectTour(null);
-        } else if (value === 'create') {
-            onCreateTour();
-        } else {
-            onSelectTour(parseInt(value));
+        if (!over) return;
+
+        // Check if dropped on a tour tab
+        const overId = over.id as string;
+        if (overId.startsWith('tour-')) {
+            const tourId = parseInt(overId.replace('tour-', ''));
+            const markerId = active.id as string;
+
+            // Check if marker is already in the tour
+            const tour = tours.find((t) => t.id === tourId);
+            if (tour) {
+                const isAlreadyInTour = tour.markers?.some(
+                    (m) => m.id === markerId,
+                );
+
+                if (!isAlreadyInTour) {
+                    // Attach marker to tour
+                    await handleToggleMarkerInTour(markerId, tourId, false);
+                }
+            }
         }
     };
 
+    const selectedMarker =
+        markers.find((m) => m.id === selectedMarkerId) || null;
+
     return (
-        <div className="flex h-full flex-col gap-4 lg:flex-row">
-            {/* Part 1: Marker list or form */}
-            <div className="w-full lg:w-1/4">
-                {selectedMarkerId ? (
-                    <MarkerForm
-                        key={selectedMarkerId}
-                        marker={selectedMarker}
-                        onSave={handleSaveMarker}
-                        onDeleteMarker={handleDeleteMarker}
-                        onClose={handleCloseForm}
+        <DndContext onDragEnd={handleDragEnd}>
+            <div className="flex h-full flex-col gap-4 lg:flex-row">
+                {/* Part 1: Marker list or form */}
+                <div className="w-full lg:w-1/4">
+                    {selectedMarkerId ? (
+                        <MarkerForm
+                            key={selectedMarkerId}
+                            marker={selectedMarker}
+                            onSave={handleSaveMarker}
+                            onDeleteMarker={handleDeleteMarker}
+                            onClose={handleCloseForm}
+                            tours={tours}
+                            onToggleMarkerInTour={handleToggleMarkerInTour}
+                        />
+                    ) : (
+                        <MarkerList
+                            markers={markers}
+                            selectedMarkerId={selectedMarkerId}
+                            onSelectMarker={handleSelectMarker}
+                        />
+                    )}
+                </div>
+
+                {/* Part 2: Tour panel */}
+                <div className="w-full lg:w-1/4">
+                    <TourPanel
                         tours={tours}
-                        onToggleMarkerInTour={handleToggleMarkerInTour}
-                    />
-                ) : (
-                    <MarkerList
+                        selectedTourId={selectedTourId}
+                        onSelectTour={onSelectTour}
+                        onCreateTour={onCreateTour}
                         markers={markers}
-                        selectedMarkerId={selectedMarkerId}
-                        onSelectMarker={handleSelectMarker}
                     />
-                )}
-            </div>
+                </div>
 
-            {/* Part 2: Tour tabs */}
-            <div className="w-full lg:w-1/4">
-                <Tabs
-                    value={
-                        selectedTourId === null
-                            ? 'all'
-                            : selectedTourId.toString()
-                    }
-                    onValueChange={handleTabChange}
-                    className="w-full"
-                >
-                    <TabsList className="flex w-full justify-start overflow-x-auto">
-                        <TabsTrigger value="all">All markers</TabsTrigger>
-                        {tours.map((tour) => (
-                            <TabsTrigger
-                                key={tour.id}
-                                value={tour.id.toString()}
-                            >
-                                {tour.name}
-                            </TabsTrigger>
-                        ))}
-                        <TabsTrigger
-                            value="create"
-                            className="ml-2"
-                            onClick={(
-                                e: React.MouseEvent<HTMLButtonElement>,
-                            ) => {
-                                e.preventDefault();
-                                onCreateTour();
-                            }}
-                        >
-                            <Plus className="h-4 w-4" />
-                        </TabsTrigger>
-                    </TabsList>
-                </Tabs>
+                {/* Part 3: Map */}
+                <div className="w-full flex-1 lg:w-1/2">
+                    <div
+                        ref={mapRef}
+                        id="map"
+                        className="z-10 h-[400px] w-full lg:h-[600px]"
+                    />
+                </div>
             </div>
-
-            {/* Part 3: Map */}
-            <div className="w-full flex-1 lg:w-1/2">
-                <div
-                    ref={mapRef}
-                    id="map"
-                    className="z-10 h-[400px] w-full lg:h-[600px]"
-                />
-            </div>
-        </div>
+        </DndContext>
     );
 }
