@@ -220,7 +220,7 @@ test.describe('Marker Editing', () => {
     test('user can view updated marker in marker list', async ({ page }) => {
         // Create a marker
         const mapContainer = page.locator('.leaflet-container').first();
-        await mapContainer.click({ position: { x: 400, y: 300 } });
+        await mapContainer.click({ position: { x: 300, y: 250 }, force: true });
 
         await page.waitForTimeout(1500);
 
