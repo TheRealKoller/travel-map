@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\MarkerController;
+use App\Http\Controllers\TourController;
 use App\Http\Controllers\TripController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -21,6 +22,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/trips/{trip}', [TripController::class, 'show'])->name('trips.show');
     Route::put('/trips/{trip}', [TripController::class, 'update'])->name('trips.update');
     Route::delete('/trips/{trip}', [TripController::class, 'destroy'])->name('trips.destroy');
+
+    // Tour routes
+    Route::get('/tours', [TourController::class, 'index'])->name('tours.index');
+    Route::post('/tours', [TourController::class, 'store'])->name('tours.store');
+    Route::get('/tours/{tour}', [TourController::class, 'show'])->name('tours.show');
+    Route::put('/tours/{tour}', [TourController::class, 'update'])->name('tours.update');
+    Route::delete('/tours/{tour}', [TourController::class, 'destroy'])->name('tours.destroy');
+    Route::post('/tours/{tour}/markers', [TourController::class, 'attachMarker'])->name('tours.markers.attach');
+    Route::delete('/tours/{tour}/markers', [TourController::class, 'detachMarker'])->name('tours.markers.detach');
 
     // Marker routes
     Route::get('/markers', [MarkerController::class, 'index'])->name('markers.index');

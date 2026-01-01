@@ -1,5 +1,6 @@
 import '@/../../resources/css/markdown-preview.css';
 import { MarkerData, MarkerType } from '@/types/marker';
+import { Tour } from '@/types/tour';
 import 'easymde/dist/easymde.min.css';
 import { marked } from 'marked';
 import { useMemo, useState } from 'react';
@@ -10,6 +11,12 @@ interface MarkerFormProps {
     onSave: (id: string, name: string, type: MarkerType, notes: string) => void;
     onDeleteMarker: (id: string) => void;
     onClose: () => void;
+    tours?: Tour[];
+    onToggleMarkerInTour?: (
+        markerId: string,
+        tourId: number,
+        isInTour: boolean,
+    ) => void;
 }
 
 export default function MarkerForm({
@@ -17,6 +24,8 @@ export default function MarkerForm({
     onSave,
     onDeleteMarker,
     onClose,
+    tours = [],
+    onToggleMarkerInTour,
 }: MarkerFormProps) {
     // Initialize local state from marker prop
     // Using marker?.id as key in parent will cause re-mount when marker changes
@@ -205,6 +214,45 @@ export default function MarkerForm({
                         {marker.lng.toFixed(6)}
                     </p>
                 </div>
+                {tours.length > 0 && onToggleMarkerInTour && (
+                    <div>
+                        <label className="mb-2 block text-sm font-medium text-gray-700">
+                            Tours
+                        </label>
+                        <div className="space-y-2">
+                            {tours.map((tour) => {
+                                const isInTour =
+                                    tour.markers?.some(
+                                        (m) => m.id === marker?.id,
+                                    ) || false;
+                                return (
+                                    <label
+                                        key={tour.id}
+                                        className="flex items-center space-x-2"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={isInTour}
+                                            onChange={() => {
+                                                if (marker) {
+                                                    onToggleMarkerInTour(
+                                                        marker.id,
+                                                        tour.id,
+                                                        isInTour,
+                                                    );
+                                                }
+                                            }}
+                                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                                        />
+                                        <span className="text-sm text-gray-700">
+                                            {tour.name}
+                                        </span>
+                                    </label>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
                 <div className="flex flex-col gap-2 border-t border-gray-200 pt-4 lg:flex-row lg:gap-2">
                     <button
                         onClick={handleSave}

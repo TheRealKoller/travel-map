@@ -1,6 +1,8 @@
 import MarkerForm from '@/components/marker-form';
 import MarkerList from '@/components/marker-list';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MarkerData, MarkerType } from '@/types/marker';
+import { Tour } from '@/types/tour';
 import axios from 'axios';
 import L from 'leaflet';
 import 'leaflet-control-geocoder';
@@ -8,6 +10,7 @@ import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
 import 'leaflet.awesome-markers';
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.css';
 import 'leaflet/dist/leaflet.css';
+import { Plus } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -94,9 +97,21 @@ const DEFAULT_MAP_ZOOM = 6;
 
 interface TravelMapProps {
     selectedTripId: number | null;
+    selectedTourId: number | null;
+    tours: Tour[];
+    onToursUpdate: (tours: Tour[]) => void;
+    onSelectTour: (tourId: number | null) => void;
+    onCreateTour: () => void;
 }
 
-export default function TravelMap({ selectedTripId }: TravelMapProps) {
+export default function TravelMap({
+    selectedTripId,
+    selectedTourId,
+    tours,
+    onToursUpdate,
+    onSelectTour,
+    onCreateTour,
+}: TravelMapProps) {
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<L.Map | null>(null);
     const [markers, setMarkers] = useState<MarkerData[]>([]);
@@ -443,13 +458,54 @@ export default function TravelMap({ selectedTripId }: TravelMapProps) {
         }
     };
 
+    const handleToggleMarkerInTour = async (
+        markerId: string,
+        tourId: number,
+        isInTour: boolean,
+    ) => {
+        try {
+            if (isInTour) {
+                // Detach marker from tour
+                await axios.delete(`/tours/${tourId}/markers`, {
+                    data: { marker_id: markerId },
+                });
+            } else {
+                // Attach marker to tour
+                await axios.post(`/tours/${tourId}/markers`, {
+                    marker_id: markerId,
+                });
+            }
+
+            // Reload tours to get updated marker associations
+            if (selectedTripId) {
+                const response = await axios.get('/tours', {
+                    params: { trip_id: selectedTripId },
+                });
+                onToursUpdate(response.data);
+            }
+        } catch (error) {
+            console.error('Failed to update marker tour assignment:', error);
+            alert('Failed to update marker tour assignment. Please try again.');
+        }
+    };
+
     const selectedMarker =
         markers.find((m) => m.id === selectedMarkerId) || null;
 
+    const handleTabChange = (value: string) => {
+        if (value === 'all') {
+            onSelectTour(null);
+        } else if (value === 'create') {
+            onCreateTour();
+        } else {
+            onSelectTour(parseInt(value));
+        }
+    };
+
     return (
         <div className="flex h-full flex-col gap-4 lg:flex-row">
-            {/* Left side: Marker list or form (desktop) / Bottom (mobile) */}
-            <div className="order-2 w-full lg:order-1 lg:w-1/3">
+            {/* Part 1: Marker list or form */}
+            <div className="w-full lg:w-1/3">
                 {selectedMarkerId ? (
                     <MarkerForm
                         key={selectedMarkerId}
@@ -457,6 +513,8 @@ export default function TravelMap({ selectedTripId }: TravelMapProps) {
                         onSave={handleSaveMarker}
                         onDeleteMarker={handleDeleteMarker}
                         onClose={handleCloseForm}
+                        tours={tours}
+                        onToggleMarkerInTour={handleToggleMarkerInTour}
                     />
                 ) : (
                     <MarkerList
@@ -467,8 +525,45 @@ export default function TravelMap({ selectedTripId }: TravelMapProps) {
                 )}
             </div>
 
-            {/* Right side: Map (desktop) / Top (mobile) */}
-            <div className="order-1 w-full lg:order-2 lg:w-2/3">
+            {/* Part 2: Tour tabs */}
+            <div className="w-full lg:w-1/3">
+                <Tabs
+                    value={
+                        selectedTourId === null
+                            ? 'all'
+                            : selectedTourId.toString()
+                    }
+                    onValueChange={handleTabChange}
+                    className="w-full"
+                >
+                    <TabsList className="flex w-full justify-start overflow-x-auto">
+                        <TabsTrigger value="all">All markers</TabsTrigger>
+                        {tours.map((tour) => (
+                            <TabsTrigger
+                                key={tour.id}
+                                value={tour.id.toString()}
+                            >
+                                {tour.name}
+                            </TabsTrigger>
+                        ))}
+                        <TabsTrigger
+                            value="create"
+                            className="ml-2"
+                            onClick={(
+                                e: React.MouseEvent<HTMLButtonElement>,
+                            ) => {
+                                e.preventDefault();
+                                onCreateTour();
+                            }}
+                        >
+                            <Plus className="h-4 w-4" />
+                        </TabsTrigger>
+                    </TabsList>
+                </Tabs>
+            </div>
+
+            {/* Part 3: Map */}
+            <div className="w-full flex-1 lg:w-1/3">
                 <div
                     ref={mapRef}
                     id="map"
