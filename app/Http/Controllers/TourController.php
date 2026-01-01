@@ -124,10 +124,10 @@ class TourController extends Controller
 
         // Verify all markers belong to this tour
         $tourMarkerIds = $tour->markers->pluck('id')->toArray();
-        foreach ($markerIds as $markerId) {
-            if (! in_array($markerId, $tourMarkerIds)) {
-                return response()->json(['error' => 'One or more markers do not belong to this tour'], 422);
-            }
+        $invalidMarkerIds = array_diff($markerIds, $tourMarkerIds);
+
+        if (! empty($invalidMarkerIds)) {
+            return response()->json(['error' => 'One or more markers do not belong to this tour'], 422);
         }
 
         // Update positions for each marker
