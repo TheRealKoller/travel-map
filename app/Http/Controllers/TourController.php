@@ -19,7 +19,7 @@ class TourController extends Controller
     {
         $tripId = $request->query('trip_id');
 
-        if (!$tripId) {
+        if (! $tripId) {
             return response()->json(['error' => 'trip_id is required'], 400);
         }
 
@@ -89,7 +89,7 @@ class TourController extends Controller
         }
 
         // Attach marker to tour if not already attached
-        if (!$tour->markers()->where('marker_id', $marker->id)->exists()) {
+        if (! $tour->markers()->where('marker_id', $marker->id)->exists()) {
             $tour->markers()->attach($marker->id);
         }
 

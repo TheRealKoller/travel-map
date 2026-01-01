@@ -1,6 +1,7 @@
 import MarkerForm from '@/components/marker-form';
 import MarkerList from '@/components/marker-list';
 import { MarkerData, MarkerType } from '@/types/marker';
+import { Tour } from '@/types/tour';
 import axios from 'axios';
 import L from 'leaflet';
 import 'leaflet-control-geocoder';
@@ -94,9 +95,17 @@ const DEFAULT_MAP_ZOOM = 6;
 
 interface TravelMapProps {
     selectedTripId: number | null;
+    selectedTourId: number | null;
+    tours: Tour[];
+    onToursUpdate: (tours: Tour[]) => void;
 }
 
-export default function TravelMap({ selectedTripId }: TravelMapProps) {
+export default function TravelMap({
+    selectedTripId,
+    selectedTourId,
+    tours,
+    onToursUpdate,
+}: TravelMapProps) {
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<L.Map | null>(null);
     const [markers, setMarkers] = useState<MarkerData[]>([]);
@@ -443,8 +452,50 @@ export default function TravelMap({ selectedTripId }: TravelMapProps) {
         }
     };
 
+    const handleToggleMarkerInTour = async (
+        markerId: string,
+        tourId: number,
+        isInTour: boolean,
+    ) => {
+        try {
+            if (isInTour) {
+                // Detach marker from tour
+                await axios.delete(`/tours/${tourId}/markers`, {
+                    data: { marker_id: markerId },
+                });
+            } else {
+                // Attach marker to tour
+                await axios.post(`/tours/${tourId}/markers`, {
+                    marker_id: markerId,
+                });
+            }
+
+            // Reload tours to get updated marker associations
+            if (selectedTripId) {
+                const response = await axios.get('/tours', {
+                    params: { trip_id: selectedTripId },
+                });
+                onToursUpdate(response.data);
+            }
+        } catch (error) {
+            console.error('Failed to update marker tour assignment:', error);
+            alert('Failed to update marker tour assignment. Please try again.');
+        }
+    };
+
     const selectedMarker =
         markers.find((m) => m.id === selectedMarkerId) || null;
+
+    // Filter markers based on selected tour
+    const filteredMarkers =
+        selectedTourId === null
+            ? markers
+            : markers.filter((marker) => {
+                  const tour = tours.find((t) => t.id === selectedTourId);
+                  return (
+                      tour?.markers?.some((m) => m.id === marker.id) || false
+                  );
+              });
 
     return (
         <div className="flex h-full flex-col gap-4 lg:flex-row">
@@ -457,10 +508,12 @@ export default function TravelMap({ selectedTripId }: TravelMapProps) {
                         onSave={handleSaveMarker}
                         onDeleteMarker={handleDeleteMarker}
                         onClose={handleCloseForm}
+                        tours={tours}
+                        onToggleMarkerInTour={handleToggleMarkerInTour}
                     />
                 ) : (
                     <MarkerList
-                        markers={markers}
+                        markers={filteredMarkers}
                         selectedMarkerId={selectedMarkerId}
                         onSelectMarker={handleSelectMarker}
                     />
