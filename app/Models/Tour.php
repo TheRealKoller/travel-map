@@ -13,6 +13,7 @@ class Tour extends Model
 
     protected $fillable = [
         'name',
+        'trip_id',
     ];
 
     public function trip(): BelongsTo
