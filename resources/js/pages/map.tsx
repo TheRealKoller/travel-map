@@ -1,7 +1,6 @@
 import CreateTourModal from '@/components/create-tour-modal';
 import CreateTripModal from '@/components/create-trip-modal';
 import RenameTripModal from '@/components/rename-trip-modal';
-import TourTabs from '@/components/tour-tabs';
 import TravelMap from '@/components/travel-map';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
@@ -133,19 +132,14 @@ export default function MapPage() {
         >
             <Head title="Map" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <TourTabs
-                    tours={tours}
+                <TravelMap
+                    selectedTripId={selectedTripId}
                     selectedTourId={selectedTourId}
+                    tours={tours}
+                    onToursUpdate={setTours}
                     onSelectTour={setSelectedTourId}
                     onCreateTour={() => setIsCreateTourModalOpen(true)}
-                >
-                    <TravelMap
-                        selectedTripId={selectedTripId}
-                        selectedTourId={selectedTourId}
-                        tours={tours}
-                        onToursUpdate={setTours}
-                    />
-                </TourTabs>
+                />
             </div>
             <CreateTripModal
                 open={isCreateModalOpen}

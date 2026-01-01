@@ -1,5 +1,6 @@
 import MarkerForm from '@/components/marker-form';
 import MarkerList from '@/components/marker-list';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MarkerData, MarkerType } from '@/types/marker';
 import { Tour } from '@/types/tour';
 import axios from 'axios';
@@ -9,6 +10,7 @@ import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
 import 'leaflet.awesome-markers';
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.css';
 import 'leaflet/dist/leaflet.css';
+import { Plus } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -98,6 +100,8 @@ interface TravelMapProps {
     selectedTourId: number | null;
     tours: Tour[];
     onToursUpdate: (tours: Tour[]) => void;
+    onSelectTour: (tourId: number | null) => void;
+    onCreateTour: () => void;
 }
 
 export default function TravelMap({
@@ -105,6 +109,8 @@ export default function TravelMap({
     selectedTourId,
     tours,
     onToursUpdate,
+    onSelectTour,
+    onCreateTour,
 }: TravelMapProps) {
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<L.Map | null>(null);
@@ -497,6 +503,16 @@ export default function TravelMap({
                   );
               });
 
+    const handleTabChange = (value: string) => {
+        if (value === 'all') {
+            onSelectTour(null);
+        } else if (value === 'create') {
+            onCreateTour();
+        } else {
+            onSelectTour(parseInt(value));
+        }
+    };
+
     return (
         <div className="flex h-full flex-col gap-4 lg:flex-row">
             {/* Left side: Marker list or form (desktop) / Bottom (mobile) */}
@@ -520,13 +536,57 @@ export default function TravelMap({
                 )}
             </div>
 
-            {/* Right side: Map (desktop) / Top (mobile) */}
+            {/* Right side: Tour tabs and Map (desktop) / Top (mobile) */}
             <div className="order-1 w-full lg:order-2 lg:w-2/3">
-                <div
-                    ref={mapRef}
-                    id="map"
-                    className="z-10 h-[400px] w-full lg:h-[600px]"
-                />
+                <Tabs
+                    value={
+                        selectedTourId === null
+                            ? 'all'
+                            : selectedTourId.toString()
+                    }
+                    onValueChange={handleTabChange}
+                    className="w-full"
+                >
+                    <TabsList className="mb-4 flex w-full justify-start overflow-x-auto">
+                        <TabsTrigger value="all">All markers</TabsTrigger>
+                        {tours.map((tour) => (
+                            <TabsTrigger
+                                key={tour.id}
+                                value={tour.id.toString()}
+                            >
+                                {tour.name}
+                            </TabsTrigger>
+                        ))}
+                        <TabsTrigger
+                            value="create"
+                            className="ml-2"
+                            onClick={(
+                                e: React.MouseEvent<HTMLButtonElement>,
+                            ) => {
+                                e.preventDefault();
+                                onCreateTour();
+                            }}
+                        >
+                            <Plus className="h-4 w-4" />
+                        </TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="all">
+                        <div
+                            ref={mapRef}
+                            id="map"
+                            className="z-10 h-[400px] w-full lg:h-[600px]"
+                        />
+                    </TabsContent>
+                    {tours.map((tour) => (
+                        <TabsContent key={tour.id} value={tour.id.toString()}>
+                            <div
+                                ref={mapRef}
+                                id="map"
+                                className="z-10 h-[400px] w-full lg:h-[600px]"
+                            />
+                        </TabsContent>
+                    ))}
+                </Tabs>
             </div>
         </div>
     );
