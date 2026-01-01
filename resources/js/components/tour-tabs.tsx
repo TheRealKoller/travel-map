@@ -33,7 +33,7 @@ export default function TourTabs({
             onValueChange={handleTabChange}
             className="w-full"
         >
-            <TabsList className="mb-4 flex w-full justify-start overflow-x-auto">
+            <TabsList className="mb-3 flex w-full justify-start overflow-x-auto">
                 <TabsTrigger value="all">All markers</TabsTrigger>
                 {tours.map((tour) => (
                     <TabsTrigger key={tour.id} value={tour.id.toString()}>
