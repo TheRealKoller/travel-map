@@ -16,9 +16,14 @@ interface TourPanelProps {
 interface DroppableTourTabProps {
     tour: Tour;
     markerCount: number;
+    isSelected: boolean;
 }
 
-function DroppableTourTab({ tour, markerCount }: DroppableTourTabProps) {
+function DroppableTourTab({
+    tour,
+    markerCount,
+    isSelected,
+}: DroppableTourTabProps) {
     const { setNodeRef, isOver } = useDroppable({
         id: `tour-${tour.id}`,
         data: {
@@ -27,18 +32,79 @@ function DroppableTourTab({ tour, markerCount }: DroppableTourTabProps) {
     });
 
     return (
-        <TabsTrigger
+        <div
             ref={setNodeRef}
-            value={tour.id.toString()}
-            className={`relative ${isOver ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
+            className="inline-flex"
+            style={{ minHeight: '40px' }}
         >
-            {tour.name}
-            {markerCount > 0 && (
-                <span className="ml-1 text-xs text-gray-500">
-                    ({markerCount})
-                </span>
+            <TabsTrigger
+                value={tour.id.toString()}
+                className={`${isOver ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
+            >
+                {tour.name}
+                {markerCount > 0 && (
+                    <span className="ml-1 text-xs text-gray-500">
+                        ({markerCount})
+                    </span>
+                )}
+            </TabsTrigger>
+        </div>
+    );
+}
+
+interface DroppableTourCardProps {
+    tour: Tour;
+    markers: MarkerData[];
+}
+
+function DroppableTourCard({ tour, markers }: DroppableTourCardProps) {
+    const { setNodeRef, isOver } = useDroppable({
+        id: `tour-${tour.id}`,
+        data: {
+            tourId: tour.id,
+        },
+    });
+
+    return (
+        <Card
+            ref={setNodeRef}
+            className={`flex-1 overflow-auto p-4 ${
+                isOver
+                    ? 'ring-2 ring-blue-500 ring-offset-2 bg-blue-50'
+                    : ''
+            }`}
+        >
+            <h3 className="mb-3 text-sm font-semibold">{tour.name}</h3>
+            {markers.length === 0 ? (
+                <p className="text-sm text-gray-500">
+                    Drag markers here to add them to this tour
+                </p>
+            ) : (
+                <ul className="space-y-2">
+                    {markers.map((marker, index) => (
+                        <li
+                            key={marker.id}
+                            className="rounded bg-gray-50 p-2 text-sm"
+                        >
+                            <div className="flex items-start gap-2">
+                                <span className="font-medium text-gray-500">
+                                    {index + 1}.
+                                </span>
+                                <div className="flex-1">
+                                    <div className="font-medium text-gray-900">
+                                        {marker.name || 'Unnamed Location'}
+                                    </div>
+                                    <div className="text-xs text-gray-600">
+                                        {marker.lat.toFixed(6)},{' '}
+                                        {marker.lng.toFixed(6)}
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
             )}
-        </TabsTrigger>
+        </Card>
     );
 }
 
@@ -95,6 +161,7 @@ export default function TourPanel({
                             key={tour.id}
                             tour={tour}
                             markerCount={getMarkerCountForTour(tour)}
+                            isSelected={selectedTourId === tour.id}
                         />
                     ))}
                     <TabsTrigger
@@ -111,41 +178,10 @@ export default function TourPanel({
             </Tabs>
 
             {selectedTourId !== null && selectedTour && (
-                <Card className="flex-1 overflow-auto p-4">
-                    <h3 className="mb-3 text-sm font-semibold">
-                        {selectedTour.name}
-                    </h3>
-                    {selectedTourMarkers.length === 0 ? (
-                        <p className="text-sm text-gray-500">
-                            Drag markers here to add them to this tour
-                        </p>
-                    ) : (
-                        <ul className="space-y-2">
-                            {selectedTourMarkers.map((marker, index) => (
-                                <li
-                                    key={marker.id}
-                                    className="rounded bg-gray-50 p-2 text-sm"
-                                >
-                                    <div className="flex items-start gap-2">
-                                        <span className="font-medium text-gray-500">
-                                            {index + 1}.
-                                        </span>
-                                        <div className="flex-1">
-                                            <div className="font-medium text-gray-900">
-                                                {marker.name ||
-                                                    'Unnamed Location'}
-                                            </div>
-                                            <div className="text-xs text-gray-600">
-                                                {marker.lat.toFixed(6)},{' '}
-                                                {marker.lng.toFixed(6)}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </Card>
+                <DroppableTourCard
+                    tour={selectedTour}
+                    markers={selectedTourMarkers}
+                />
             )}
         </div>
     );
