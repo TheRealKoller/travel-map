@@ -24,4 +24,9 @@ class Trip extends Model
     {
         return $this->hasMany(Marker::class);
     }
+
+    public function tours(): HasMany
+    {
+        return $this->hasMany(Tour::class);
+    }
 }
