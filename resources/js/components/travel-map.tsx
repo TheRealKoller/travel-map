@@ -124,6 +124,53 @@ export default function TravelMap({
 
     // Note: saveMarkerToDatabase is no longer needed as we save when user clicks Save button
 
+    // Filter markers visibility based on selected tour
+    useEffect(() => {
+        if (!mapInstanceRef.current) return;
+
+        const map = mapInstanceRef.current;
+
+        if (selectedTourId === null) {
+            // Show all markers when no tour is selected
+            markers.forEach((marker) => {
+                if (!map.hasLayer(marker.marker)) {
+                    marker.marker.addTo(map);
+                }
+            });
+        } else {
+            // Find the selected tour
+            const selectedTour = tours.find((t) => t.id === selectedTourId);
+            if (selectedTour) {
+                // Get marker IDs that belong to the selected tour
+                const tourMarkerIds = new Set(
+                    selectedTour.markers?.map((m) => m.id) || [],
+                );
+
+                // Show/hide markers based on whether they belong to the tour
+                markers.forEach((marker) => {
+                    if (tourMarkerIds.has(marker.id)) {
+                        // Show marker if it belongs to the tour
+                        if (!map.hasLayer(marker.marker)) {
+                            marker.marker.addTo(map);
+                        }
+                    } else {
+                        // Hide marker if it doesn't belong to the tour
+                        if (map.hasLayer(marker.marker)) {
+                            map.removeLayer(marker.marker);
+                        }
+                    }
+                });
+            } else {
+                // Tour not found, hide all markers
+                markers.forEach((marker) => {
+                    if (map.hasLayer(marker.marker)) {
+                        map.removeLayer(marker.marker);
+                    }
+                });
+            }
+        }
+    }, [selectedTourId, markers, tours]);
+
     // Highlight selected marker effect
     useEffect(() => {
         if (!mapInstanceRef.current) return;
