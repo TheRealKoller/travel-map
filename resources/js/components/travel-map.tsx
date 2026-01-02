@@ -126,6 +126,8 @@ export default function TravelMap({
 
     // Highlight selected marker effect
     useEffect(() => {
+        if (!mapInstanceRef.current) return;
+
         // Restore previous marker to its original appearance
         if (previousSelectedMarkerRef.current) {
             const prevMarker = markers.find(
