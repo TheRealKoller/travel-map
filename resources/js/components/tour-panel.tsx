@@ -174,11 +174,13 @@ export default function TourPanel({
         return tour.markers?.length || 0;
     };
 
-    // Get markers for the selected tour
-    const selectedTourMarkers = selectedTour
-        ? markers.filter((marker) =>
-              selectedTour.markers?.some((m) => m.id === marker.id),
-          )
+    // Get markers for the selected tour in the correct order from the tour
+    const selectedTourMarkers = selectedTour?.markers
+        ? selectedTour.markers
+              .map((tourMarker) =>
+                  markers.find((marker) => marker.id === tourMarker.id),
+              )
+              .filter((marker): marker is MarkerData => marker !== undefined)
         : [];
 
     return (
