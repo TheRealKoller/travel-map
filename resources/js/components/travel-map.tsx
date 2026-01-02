@@ -160,6 +160,13 @@ export default function TravelMap({
                         }
                     }
                 });
+            } else {
+                // Tour not found, hide all markers
+                markers.forEach((marker) => {
+                    if (map.hasLayer(marker.marker)) {
+                        map.removeLayer(marker.marker);
+                    }
+                });
             }
         }
     }, [selectedTourId, markers, tours]);
