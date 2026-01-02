@@ -120,8 +120,51 @@ export default function TravelMap({
         null,
     );
     const searchMarkerRef = useRef<L.Marker | null>(null);
+    const previousSelectedMarkerRef = useRef<string | null>(null);
 
     // Note: saveMarkerToDatabase is no longer needed as we save when user clicks Save button
+
+    // Highlight selected marker effect
+    useEffect(() => {
+        // Restore previous marker to its original appearance
+        if (previousSelectedMarkerRef.current) {
+            const prevMarker = markers.find(
+                (m) => m.id === previousSelectedMarkerRef.current,
+            );
+            if (prevMarker) {
+                const icon = (L as LeafletExtensions).AwesomeMarkers.icon({
+                    icon: getIconForType(prevMarker.type),
+                    markerColor: getColorForType(prevMarker.type),
+                    iconColor: 'white',
+                    prefix: 'fa',
+                    spin: false,
+                });
+                prevMarker.marker.setIcon(icon);
+            }
+        }
+
+        // Highlight the currently selected marker
+        if (selectedMarkerId) {
+            const selectedMarker = markers.find(
+                (m) => m.id === selectedMarkerId,
+            );
+            if (selectedMarker) {
+                const highlightIcon = (
+                    L as LeafletExtensions
+                ).AwesomeMarkers.icon({
+                    icon: getIconForType(selectedMarker.type),
+                    markerColor: 'red',
+                    iconColor: 'white',
+                    prefix: 'fa',
+                    spin: false,
+                });
+                selectedMarker.marker.setIcon(highlightIcon);
+            }
+        }
+
+        // Update the ref for the next iteration
+        previousSelectedMarkerRef.current = selectedMarkerId;
+    }, [selectedMarkerId, markers]);
 
     useEffect(() => {
         if (!mapRef.current || mapInstanceRef.current) return;
