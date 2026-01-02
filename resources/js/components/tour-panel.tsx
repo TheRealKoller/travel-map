@@ -66,7 +66,7 @@ function SortableMarkerItem({ marker, index }: SortableMarkerItemProps) {
         transform,
         transition,
         isDragging,
-    } = useSortable({ id: marker.id });
+    } = useSortable({ id: `tour-marker-${marker.id}` });
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -131,7 +131,7 @@ function DroppableTourCard({ tour, markers }: DroppableTourCardProps) {
                 </p>
             ) : (
                 <SortableContext
-                    items={markers.map((m) => m.id)}
+                    items={markers.map((m) => `tour-marker-${m.id}`)}
                     strategy={verticalListSortingStrategy}
                 >
                     <ul className="space-y-2">

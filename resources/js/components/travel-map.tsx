@@ -498,14 +498,24 @@ export default function TravelMap({
         const activeId = active.id as string;
         const overId = over.id as string;
 
-        // Check if this is reordering within a tour (both IDs are marker UUIDs)
-        if (activeId !== overId && selectedTourId !== null) {
+        // Check if this is reordering within a tour (IDs have 'tour-marker-' prefix)
+        if (
+            activeId !== overId &&
+            activeId.startsWith('tour-marker-') &&
+            selectedTourId !== null
+        ) {
+            // Extract actual marker IDs by removing the prefix
+            const activeMarkerId = activeId.replace('tour-marker-', '');
+            const overMarkerId = overId.replace('tour-marker-', '');
+
             const tour = tours.find((t) => t.id === selectedTourId);
             if (tour && tour.markers) {
                 const oldIndex = tour.markers.findIndex(
-                    (m) => m.id === activeId,
+                    (m) => m.id === activeMarkerId,
                 );
-                const newIndex = tour.markers.findIndex((m) => m.id === overId);
+                const newIndex = tour.markers.findIndex(
+                    (m) => m.id === overMarkerId,
+                );
 
                 if (oldIndex !== -1 && newIndex !== -1) {
                     // Reorder markers in the tour
