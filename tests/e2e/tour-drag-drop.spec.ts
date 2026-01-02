@@ -32,12 +32,15 @@ test.describe('Drag and Drop Markers to Tours', () => {
             await saveButton.click();
             await page.waitForTimeout(1500);
 
-            // Close the form
+            // Form should close automatically after save
+            // If it's still visible, close it manually
             const closeButton = page
                 .locator('button[aria-label="Close"]')
                 .first();
-            await closeButton.click();
-            await page.waitForTimeout(500);
+            if (await closeButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+                await closeButton.click();
+                await page.waitForTimeout(500);
+            }
 
             // Check for drag instruction text
             const dragInstructionText = page.locator(
@@ -67,12 +70,15 @@ test.describe('Drag and Drop Markers to Tours', () => {
             await saveButton.click();
             await page.waitForTimeout(1500);
 
-            // Close the form
+            // Form should close automatically after save
+            // If it's still visible, close it manually
             const closeButton = page
                 .locator('button[aria-label="Close"]')
                 .first();
-            await closeButton.click();
-            await page.waitForTimeout(500);
+            if (await closeButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+                await closeButton.click();
+                await page.waitForTimeout(500);
+            }
         }
 
         // Click the "+" button to create a tour
@@ -121,11 +127,15 @@ test.describe('Drag and Drop Markers to Tours', () => {
             await saveButton.click();
             await page.waitForTimeout(1500);
 
+            // Form should close automatically after save
+            // If it's still visible, close it manually
             const closeButton = page
                 .locator('button[aria-label="Close"]')
                 .first();
-            await closeButton.click();
-            await page.waitForTimeout(500);
+            if (await closeButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+                await closeButton.click();
+                await page.waitForTimeout(500);
+            }
         }
 
         // Create a tour
@@ -172,11 +182,15 @@ test.describe('Drag and Drop Markers to Tours', () => {
             await saveButton.click();
             await page.waitForTimeout(1500);
 
+            // Form should close automatically after save
+            // If it's still visible, close it manually
             const closeButton = page
                 .locator('button[aria-label="Close"]')
                 .first();
-            await closeButton.click();
-            await page.waitForTimeout(500);
+            if (await closeButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+                await closeButton.click();
+                await page.waitForTimeout(500);
+            }
         }
 
         // Create a tour

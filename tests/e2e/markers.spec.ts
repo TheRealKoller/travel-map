@@ -239,11 +239,14 @@ test.describe('Marker Editing', () => {
 
             await page.waitForTimeout(1000);
 
-            // Close the form
+            // Form should close automatically after save
+            // If it's still visible, close it manually
             const closeButton = page
                 .locator('button[aria-label="Close"]')
                 .first();
-            await closeButton.click();
+            if (await closeButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+                await closeButton.click();
+            }
 
             // Check if marker appears in the marker list (if visible in sidebar)
             // The marker list should show the marker name

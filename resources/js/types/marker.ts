@@ -23,4 +23,5 @@ export interface MarkerData {
     type: MarkerType;
     notes: string;
     marker: L.Marker;
+    isSaved: boolean; // Track if marker is persisted in database
 }

@@ -12,7 +12,7 @@ import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
 import 'leaflet.awesome-markers';
 import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.css';
 import 'leaflet/dist/leaflet.css';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 // Type definitions for Leaflet plugins
@@ -121,28 +121,7 @@ export default function TravelMap({
     );
     const searchMarkerRef = useRef<L.Marker | null>(null);
 
-    // Define saveMarkerToDatabase before it's used in useEffect
-    const saveMarkerToDatabase = useCallback(
-        async (markerData: Omit<MarkerData, 'marker'>) => {
-            try {
-                const response = await axios.post('/markers', {
-                    id: markerData.id,
-                    name: markerData.name,
-                    type: markerData.type,
-                    notes: markerData.notes,
-                    latitude: markerData.lat,
-                    longitude: markerData.lng,
-                    trip_id: selectedTripId,
-                });
-                return response.data.id;
-            } catch (error) {
-                console.error('Failed to save marker:', error);
-                alert('Failed to save marker. Please try again.');
-                return null;
-            }
-        },
-        [selectedTripId],
-    );
+    // Note: saveMarkerToDatabase is no longer needed as we save when user clicks Save button
 
     useEffect(() => {
         if (!mapRef.current || mapInstanceRef.current) return;
@@ -235,6 +214,7 @@ export default function TravelMap({
                         type: defaultType,
                         notes: '',
                         marker: marker,
+                        isSaved: false, // Mark as unsaved
                     };
 
                     // Add tooltip to marker
@@ -251,8 +231,7 @@ export default function TravelMap({
                     setMarkers((prev) => [...prev, markerData]);
                     setSelectedMarkerId(markerId);
 
-                    // Save to database
-                    saveMarkerToDatabase(markerData);
+                    // Do NOT save to database yet - wait for user to click Save button
                 });
 
                 searchMarkerRef.current = searchMarker;
@@ -282,6 +261,7 @@ export default function TravelMap({
                 type: defaultType,
                 notes: '',
                 marker: marker,
+                isSaved: false, // Mark as unsaved
             };
 
             // Add tooltip to marker
@@ -298,8 +278,7 @@ export default function TravelMap({
             setMarkers((prev) => [...prev, markerData]);
             setSelectedMarkerId(markerId);
 
-            // Save to database
-            saveMarkerToDatabase(markerData);
+            // Do NOT save to database yet - wait for user to click Save button
         });
 
         // Cleanup on unmount
@@ -309,7 +288,7 @@ export default function TravelMap({
                 mapInstanceRef.current = null;
             }
         };
-    }, [saveMarkerToDatabase]);
+    }, []);
 
     // Load markers from database when trip changes
     useEffect(() => {
@@ -371,6 +350,7 @@ export default function TravelMap({
                             type: dbMarker.type,
                             notes: dbMarker.notes || '',
                             marker: marker,
+                            isSaved: true, // Markers from database are already saved
                         };
                     },
                 );
@@ -398,13 +378,34 @@ export default function TravelMap({
         notes: string,
     ) => {
         try {
-            // Update in database
-            await axios.put(`/markers/${id}`, { name, type, notes });
+            const markerToSave = markers.find((m) => m.id === id);
+            if (!markerToSave) {
+                console.error('Marker not found');
+                return;
+            }
 
-            // Update local state
+            if (markerToSave.isSaved) {
+                // Update existing marker in database
+                await axios.put(`/markers/${id}`, { name, type, notes });
+            } else {
+                // Create new marker in database
+                await axios.post('/markers', {
+                    id: id,
+                    name: name,
+                    type: type,
+                    notes: notes,
+                    latitude: markerToSave.lat,
+                    longitude: markerToSave.lng,
+                    trip_id: selectedTripId,
+                });
+            }
+
+            // Update local state - mark as saved
             setMarkers((prev) =>
                 prev.map((m) =>
-                    m.id === id ? { ...m, name, type, notes } : m,
+                    m.id === id
+                        ? { ...m, name, type, notes, isSaved: true }
+                        : m,
                 ),
             );
 
@@ -433,6 +434,20 @@ export default function TravelMap({
     };
 
     const handleCloseForm = () => {
+        // If closing an unsaved marker, remove it from the map and state
+        if (selectedMarkerId) {
+            const marker = markers.find((m) => m.id === selectedMarkerId);
+            if (marker && !marker.isSaved) {
+                // Remove marker from map
+                if (mapInstanceRef.current) {
+                    mapInstanceRef.current.removeLayer(marker.marker);
+                }
+                // Remove from state
+                setMarkers((prev) =>
+                    prev.filter((m) => m.id !== selectedMarkerId),
+                );
+            }
+        }
         setSelectedMarkerId(null);
     };
 
