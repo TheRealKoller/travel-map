@@ -301,6 +301,7 @@ export default function TravelMap({
                         name: placeName,
                         type: defaultType,
                         notes: '',
+                        isUnesco: false,
                         marker: marker,
                         isSaved: false, // Mark as unsaved
                     };
