@@ -31,6 +31,13 @@ interface PlaceType {
     label: string;
 }
 
+interface SearchResult {
+    lat: number;
+    lon: number;
+    name?: string;
+    type?: string;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type LeafletExtensions = any;
 
@@ -141,6 +148,8 @@ export default function TravelMap({
     const [placeTypes, setPlaceTypes] = useState<PlaceType[]>([]);
     const [selectedPlaceType, setSelectedPlaceType] = useState<string>('all');
     const selectedPlaceTypeRef = useRef<string>('all'); // Ref for use in event handlers
+    const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+    const searchResultCirclesRef = useRef<L.Circle[]>([]);
 
     // Note: saveMarkerToDatabase is no longer needed as we save when user clicks Save button
 
@@ -249,6 +258,11 @@ export default function TravelMap({
         } else {
             // Restore crosshair cursor for normal mode
             map.getContainer().style.cursor = 'crosshair';
+            // Clear search results when exiting search mode
+            setSearchResults([]);
+            setSearchResultCount(null);
+            setSearchError(null);
+            setSearchCoordinates(null);
         }
     }, [isSearchMode]);
 
@@ -261,6 +275,43 @@ export default function TravelMap({
     useEffect(() => {
         selectedPlaceTypeRef.current = selectedPlaceType;
     }, [selectedPlaceType]);
+
+    // Display blue circles for search results
+    useEffect(() => {
+        if (!mapInstanceRef.current) return;
+
+        const map = mapInstanceRef.current;
+
+        // Remove existing circles
+        searchResultCirclesRef.current.forEach((circle) => {
+            map.removeLayer(circle);
+        });
+        searchResultCirclesRef.current = [];
+
+        // Add new circles for search results
+        if (searchResults.length > 0) {
+            const circles = searchResults.map((result) => {
+                const circle = L.circle([result.lat, result.lon], {
+                    color: 'blue',
+                    fillColor: 'blue',
+                    fillOpacity: 0.3,
+                    radius: 150, // 150 meters radius for better visibility and clickability
+                }).addTo(map);
+
+                // Add tooltip if name is available
+                if (result.name) {
+                    circle.bindTooltip(result.name, {
+                        permanent: false,
+                        direction: 'top',
+                    });
+                }
+
+                return circle;
+            });
+
+            searchResultCirclesRef.current = circles;
+        }
+    }, [searchResults]);
 
     // Fetch available place types on component mount
     useEffect(() => {
@@ -424,6 +475,7 @@ export default function TravelMap({
                 setIsSearching(true);
                 setSearchError(null);
                 setSearchResultCount(null);
+                setSearchResults([]); // Clear previous results
 
                 try {
                     const response = await axios.post(
@@ -439,14 +491,24 @@ export default function TravelMap({
                     if (response.data.error) {
                         setSearchError(response.data.error);
                         setSearchResultCount(null);
+                        setSearchResults([]);
                     } else {
                         setSearchResultCount(response.data.count);
+                        setSearchResults(response.data.results || []);
                         setSearchError(null);
+
+                        // Log search results to console for debugging
+                        console.log(
+                            'Proximity search results:',
+                            response.data.results,
+                        );
+                        console.log(`Found ${response.data.count} results`);
                     }
                 } catch (error) {
                     console.error('Failed to search nearby:', error);
                     setSearchError('Failed to search nearby locations');
                     setSearchResultCount(null);
+                    setSearchResults([]);
                 } finally {
                     setIsSearching(false);
                 }

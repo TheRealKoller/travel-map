@@ -64,9 +64,9 @@ test('search nearby returns count on successful request', function () {
     Http::fake([
         'overpass.private.coffee/*' => Http::response([
             'elements' => [
-                ['type' => 'node', 'id' => 1, 'lat' => 35.6762, 'lon' => 139.6503],
-                ['type' => 'node', 'id' => 2, 'lat' => 35.6763, 'lon' => 139.6504],
-                ['type' => 'node', 'id' => 3, 'lat' => 35.6764, 'lon' => 139.6505],
+                ['type' => 'node', 'id' => 1, 'lat' => 35.6762, 'lon' => 139.6503, 'tags' => ['name' => 'Place 1', 'amenity' => 'restaurant']],
+                ['type' => 'node', 'id' => 2, 'lat' => 35.6763, 'lon' => 139.6504, 'tags' => ['name' => 'Place 2', 'tourism' => 'hotel']],
+                ['type' => 'node', 'id' => 3, 'lat' => 35.6764, 'lon' => 139.6505, 'tags' => ['shop' => 'bakery']],
             ],
         ], 200),
     ]);
@@ -81,7 +81,21 @@ test('search nearby returns count on successful request', function () {
         ->assertJson([
             'count' => 3,
             'error' => null,
+        ])
+        ->assertJsonStructure([
+            'count',
+            'results' => [
+                '*' => ['lat', 'lon'],
+            ],
+            'error',
         ]);
+
+    $results = $response->json('results');
+    expect($results)->toHaveCount(3);
+    expect($results[0])->toHaveKey('lat');
+    expect($results[0])->toHaveKey('lon');
+    expect($results[0]['lat'])->toBe(35.6762);
+    expect($results[0]['lon'])->toBe(139.6503);
 });
 
 test('search nearby handles empty results', function () {
@@ -101,6 +115,7 @@ test('search nearby handles empty results', function () {
     $response->assertStatus(200)
         ->assertJson([
             'count' => 0,
+            'results' => [],
             'error' => null,
         ]);
 });
@@ -120,9 +135,11 @@ test('search nearby handles API errors gracefully', function () {
     $response->assertStatus(200)
         ->assertJson([
             'count' => 0,
+            'results' => [],
         ])
         ->assertJsonStructure([
             'count',
+            'results',
             'error',
         ]);
 
@@ -134,7 +151,7 @@ test('search nearby accepts place type parameter', function () {
     Http::fake([
         'overpass.private.coffee/*' => Http::response([
             'elements' => [
-                ['type' => 'node', 'id' => 1, 'lat' => 35.6762, 'lon' => 139.6503],
+                ['type' => 'node', 'id' => 1, 'lat' => 35.6762, 'lon' => 139.6503, 'tags' => ['name' => 'Hotel 1', 'tourism' => 'hotel']],
             ],
         ], 200),
     ]);
@@ -150,6 +167,13 @@ test('search nearby accepts place type parameter', function () {
         ->assertJson([
             'count' => 1,
             'error' => null,
+        ])
+        ->assertJsonStructure([
+            'count',
+            'results' => [
+                '*' => ['lat', 'lon'],
+            ],
+            'error',
         ]);
 });
 
@@ -169,4 +193,86 @@ test('place types endpoint returns available types', function () {
     $allOption = collect($data)->firstWhere('value', 'all');
     expect($allOption)->not->toBeNull();
     expect($allOption['label'])->toBe('Alle Orte');
+});
+
+test('search results include optional name and type fields', function () {
+    // Mock the Overpass API response with various data combinations
+    Http::fake([
+        'overpass.private.coffee/*' => Http::response([
+            'elements' => [
+                // Element with name and amenity type
+                ['type' => 'node', 'id' => 1, 'lat' => 35.6762, 'lon' => 139.6503, 'tags' => ['name' => 'Restaurant A', 'amenity' => 'restaurant']],
+                // Element with name and tourism type
+                ['type' => 'node', 'id' => 2, 'lat' => 35.6763, 'lon' => 139.6504, 'tags' => ['name' => 'Hotel B', 'tourism' => 'hotel']],
+                // Element without name but with shop type
+                ['type' => 'node', 'id' => 3, 'lat' => 35.6764, 'lon' => 139.6505, 'tags' => ['shop' => 'bakery']],
+                // Element with only coordinates (no tags)
+                ['type' => 'node', 'id' => 4, 'lat' => 35.6765, 'lon' => 139.6506, 'tags' => []],
+            ],
+        ], 200),
+    ]);
+
+    $response = $this->actingAs($this->user)->postJson('/markers/search-nearby', [
+        'latitude' => 35.6762,
+        'longitude' => 139.6503,
+        'radius_km' => 10,
+    ]);
+
+    $response->assertStatus(200);
+    $results = $response->json('results');
+
+    expect($results)->toHaveCount(4);
+
+    // First result should have name and type
+    expect($results[0]['lat'])->toBe(35.6762);
+    expect($results[0]['lon'])->toBe(139.6503);
+    expect($results[0]['name'])->toBe('Restaurant A');
+    expect($results[0]['type'])->toBe('restaurant');
+
+    // Second result should have name and type
+    expect($results[1]['name'])->toBe('Hotel B');
+    expect($results[1]['type'])->toBe('hotel');
+
+    // Third result should have type but no name
+    expect($results[2])->not->toHaveKey('name');
+    expect($results[2]['type'])->toBe('bakery');
+
+    // Fourth result should have neither name nor type
+    expect($results[3])->not->toHaveKey('name');
+    expect($results[3])->not->toHaveKey('type');
+});
+
+test('search results skip elements without coordinates', function () {
+    // Mock the Overpass API response with some elements missing coordinates
+    Http::fake([
+        'overpass.private.coffee/*' => Http::response([
+            'elements' => [
+                // Valid element with coordinates
+                ['type' => 'node', 'id' => 1, 'lat' => 35.6762, 'lon' => 139.6503, 'tags' => ['name' => 'Valid Place']],
+                // Element without coordinates (should be filtered out)
+                ['type' => 'node', 'id' => 2, 'tags' => ['name' => 'No Coordinates']],
+                // Another valid element
+                ['type' => 'node', 'id' => 3, 'lat' => 35.6764, 'lon' => 139.6505, 'tags' => ['name' => 'Another Valid']],
+                // Element with only lat (should be filtered out)
+                ['type' => 'node', 'id' => 4, 'lat' => 35.6765, 'tags' => ['name' => 'Only Lat']],
+            ],
+        ], 200),
+    ]);
+
+    $response = $this->actingAs($this->user)->postJson('/markers/search-nearby', [
+        'latitude' => 35.6762,
+        'longitude' => 139.6503,
+        'radius_km' => 10,
+    ]);
+
+    $response->assertStatus(200);
+    $results = $response->json('results');
+
+    // Should only return the 2 valid elements
+    expect($results)->toHaveCount(2);
+    expect($results[0]['name'])->toBe('Valid Place');
+    expect($results[1]['name'])->toBe('Another Valid');
+
+    // Count should match the filtered results
+    expect($response->json('count'))->toBe(2);
 });
