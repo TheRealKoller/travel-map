@@ -364,11 +364,6 @@ export default function TravelMap({
         } else {
             // Restore crosshair cursor for normal mode
             map.getContainer().style.cursor = 'crosshair';
-            // Clear search results when exiting search mode
-            setSearchResults([]);
-            setSearchResultCount(null);
-            setSearchError(null);
-            setSearchCoordinates(null);
         }
     }, [isSearchMode]);
 
