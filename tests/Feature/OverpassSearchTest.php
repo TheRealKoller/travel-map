@@ -164,7 +164,7 @@ test('place types endpoint returns available types', function () {
     $data = $response->json();
     expect($data)->toBeArray();
     expect(count($data))->toBeGreaterThan(0);
-    
+
     // Check that 'all' option exists
     $allOption = collect($data)->firstWhere('value', 'all');
     expect($allOption)->not->toBeNull();
