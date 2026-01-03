@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,13 +12,14 @@ import {
     verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Plus } from 'lucide-react';
+import { GripVertical, Plus, Trash2 } from 'lucide-react';
 
 interface TourPanelProps {
     tours: Tour[];
     selectedTourId: number | null;
     onSelectTour: (tourId: number | null) => void;
     onCreateTour: () => void;
+    onDeleteTour: (tourId: number) => void;
     markers: MarkerData[];
 }
 
@@ -121,9 +123,14 @@ function SortableMarkerItem({ marker, index }: SortableMarkerItemProps) {
 interface DroppableTourCardProps {
     tour: Tour;
     markers: MarkerData[];
+    onDeleteTour: (tourId: number) => void;
 }
 
-function DroppableTourCard({ tour, markers }: DroppableTourCardProps) {
+function DroppableTourCard({
+    tour,
+    markers,
+    onDeleteTour,
+}: DroppableTourCardProps) {
     const { setNodeRef, isOver } = useDroppable({
         id: `tour-${tour.id}`,
         data: {
@@ -138,7 +145,18 @@ function DroppableTourCard({ tour, markers }: DroppableTourCardProps) {
                 isOver ? 'bg-blue-50 ring-2 ring-blue-500 ring-offset-2' : ''
             }`}
         >
-            <h3 className="mb-3 text-sm font-semibold">{tour.name}</h3>
+            <div className="mb-3 flex items-center justify-between">
+                <h3 className="text-sm font-semibold">{tour.name}</h3>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onDeleteTour(tour.id)}
+                    className="h-7 w-7 text-gray-500 hover:text-red-600"
+                    title="Delete tour"
+                >
+                    <Trash2 className="h-4 w-4" />
+                </Button>
+            </div>
             {markers.length === 0 ? (
                 <p className="text-sm text-gray-500">
                     Drag markers here to add them to this tour
@@ -168,6 +186,7 @@ export default function TourPanel({
     selectedTourId,
     onSelectTour,
     onCreateTour,
+    onDeleteTour,
     markers,
 }: TourPanelProps) {
     const handleTabChange = (value: string) => {
@@ -237,6 +256,7 @@ export default function TourPanel({
                 <DroppableTourCard
                     tour={selectedTour}
                     markers={selectedTourMarkers}
+                    onDeleteTour={onDeleteTour}
                 />
             )}
         </div>

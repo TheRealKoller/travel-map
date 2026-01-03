@@ -99,6 +99,7 @@ interface TravelMapProps {
     onToursUpdate: (tours: Tour[]) => void;
     onSelectTour: (tourId: number | null) => void;
     onCreateTour: () => void;
+    onDeleteTour: (tourId: number) => void;
 }
 
 export default function TravelMap({
@@ -108,6 +109,7 @@ export default function TravelMap({
     onToursUpdate,
     onSelectTour,
     onCreateTour,
+    onDeleteTour,
 }: TravelMapProps) {
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<L.Map | null>(null);
@@ -727,6 +729,7 @@ export default function TravelMap({
                         selectedTourId={selectedTourId}
                         onSelectTour={onSelectTour}
                         onCreateTour={onCreateTour}
+                        onDeleteTour={onDeleteTour}
                         markers={markers}
                     />
                 </div>
