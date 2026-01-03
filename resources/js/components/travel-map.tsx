@@ -415,7 +415,7 @@ export default function TravelMap({
                     }
                 } catch (error) {
                     console.error('Failed to search nearby:', error);
-                    setSearchError('Fehler beim Durchsuchen der Umgebung');
+                    setSearchError('Failed to search nearby locations');
                     setSearchResultCount(null);
                 } finally {
                     setIsSearching(false);

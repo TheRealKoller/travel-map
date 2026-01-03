@@ -24,6 +24,17 @@ class OverpassService
     public function searchNearby(float $latitude, float $longitude, int $radiusKm): array
     {
         try {
+            // Additional validation for defense in depth
+            if ($latitude < -90 || $latitude > 90) {
+                throw new \InvalidArgumentException('Latitude must be between -90 and 90');
+            }
+            if ($longitude < -180 || $longitude > 180) {
+                throw new \InvalidArgumentException('Longitude must be between -180 and 180');
+            }
+            if ($radiusKm < 1 || $radiusKm > 100) {
+                throw new \InvalidArgumentException('Radius must be between 1 and 100 km');
+            }
+
             // Convert radius from km to meters
             $radiusMeters = $radiusKm * 1000;
 
@@ -77,7 +88,7 @@ class OverpassService
 
             return [
                 'count' => 0,
-                'error' => 'An error occurred while searching: '.$e->getMessage(),
+                'error' => 'An error occurred while searching nearby locations. Please try again.',
             ];
         }
     }
