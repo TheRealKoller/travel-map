@@ -114,6 +114,98 @@ const getColorForType = (type: MarkerType): string => {
     }
 };
 
+// Helper function to map OSM place type to MarkerType
+const getMarkerTypeFromOSMType = (osmType?: string): MarkerType => {
+    if (!osmType) {
+        return MarkerType.PointOfInterest;
+    }
+
+    // Convert to lowercase for case-insensitive matching
+    const type = osmType.toLowerCase();
+
+    // Restaurant category
+    if (
+        type === 'restaurant' ||
+        type === 'cafe' ||
+        type === 'bar' ||
+        type === 'pub' ||
+        type === 'fast_food'
+    ) {
+        return MarkerType.Restaurant;
+    }
+
+    // Hotel category
+    if (
+        type === 'hotel' ||
+        type === 'guest_house' ||
+        type === 'hostel' ||
+        type === 'motel'
+    ) {
+        return MarkerType.Hotel;
+    }
+
+    // Museum category
+    if (type === 'museum' || type === 'gallery') {
+        return MarkerType.Museum;
+    }
+
+    // Ruin category
+    if (type === 'ruins' || type === 'archaeological_site') {
+        return MarkerType.Ruin;
+    }
+
+    // Temple/Church category
+    if (
+        type === 'place_of_worship' ||
+        type === 'church' ||
+        type === 'temple' ||
+        type === 'mosque' ||
+        type === 'shrine'
+    ) {
+        return MarkerType.TempleChurch;
+    }
+
+    // Festival/Party category
+    if (
+        type === 'nightclub' ||
+        type === 'theatre' ||
+        type === 'cinema' ||
+        type === 'arts_centre'
+    ) {
+        return MarkerType.FestivalParty;
+    }
+
+    // Leisure category
+    if (
+        type === 'park' ||
+        type === 'garden' ||
+        type === 'playground' ||
+        type === 'sports_centre' ||
+        type === 'swimming_pool' ||
+        type === 'beach' ||
+        type === 'marina'
+    ) {
+        return MarkerType.Leisure;
+    }
+
+    // Sightseeing category
+    if (
+        type === 'attraction' ||
+        type === 'viewpoint' ||
+        type === 'monument' ||
+        type === 'memorial' ||
+        type === 'castle' ||
+        type === 'artwork' ||
+        type === 'zoo' ||
+        type === 'theme_park'
+    ) {
+        return MarkerType.Sightseeing;
+    }
+
+    // Default to Point of Interest for anything else
+    return MarkerType.PointOfInterest;
+};
+
 // Constants
 const DEFAULT_MAP_CENTER: [number, number] = [36.2048, 138.2529]; // Japan
 const DEFAULT_MAP_ZOOM = 6;
@@ -321,6 +413,63 @@ export default function TravelMap({
                         direction: 'top',
                     });
                 }
+
+                // Add click handler to create a marker from search result
+                circle.on('click', () => {
+                    // Get the name with priority: English > International > Local
+                    const markerName =
+                        result.name_en || result.name_int || result.name || '';
+
+                    // Get the appropriate marker type based on OSM type
+                    const markerType = getMarkerTypeFromOSMType(result.type);
+
+                    // Create a marker icon
+                    const awesomeMarker = (
+                        L as LeafletExtensions
+                    ).AwesomeMarkers.icon({
+                        icon: getIconForType(markerType),
+                        markerColor: getColorForType(markerType),
+                        iconColor: 'white',
+                        prefix: 'fa',
+                        spin: false,
+                    });
+
+                    // Create the marker
+                    const marker = L.marker([result.lat, result.lon], {
+                        icon: awesomeMarker,
+                    }).addTo(map);
+
+                    const markerId = uuidv4();
+                    const markerData: MarkerData = {
+                        id: markerId,
+                        lat: result.lat,
+                        lng: result.lon,
+                        name: markerName,
+                        type: markerType,
+                        notes: '',
+                        isUnesco: false,
+                        marker: marker,
+                        isSaved: false, // Mark as unsaved
+                    };
+
+                    // Add tooltip to marker
+                    marker.bindTooltip(markerName || 'Unnamed Location', {
+                        permanent: false,
+                        direction: 'top',
+                    });
+
+                    // Add click handler to marker
+                    marker.on('click', () => {
+                        setSelectedMarkerId(markerId);
+                    });
+
+                    // Add marker to state
+                    setMarkers((prev) => [...prev, markerData]);
+                    setSelectedMarkerId(markerId);
+
+                    // Remove the blue circle since we've created a marker from it
+                    map.removeLayer(circle);
+                });
 
                 return circle;
             });
