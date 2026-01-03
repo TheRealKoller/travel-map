@@ -481,27 +481,30 @@ export default function TravelMap({
         map.on('click', async (e: L.LeafletMouseEvent) => {
             // Check if we're in search mode
             if (isSearchModeRef.current) {
-                // In search mode, zoom to the clicked location with the specified radius
+                // In search mode, draw the search radius circle first
                 setSearchCoordinates({
                     lat: e.latlng.lat,
                     lng: e.latlng.lng,
                 });
 
-                // Calculate zoom level based on radius + 10%
-                // The formula to calculate zoom level from radius:
-                // zoom = log2(Earth_circumference_meters * cos(lat) / (radius_meters * 256))
-                // where 40075000 is Earth's circumference in meters
-                // We add 10% to the radius to show a bit more context
-                const radiusWithMargin = searchRadiusRef.current * 1.1;
-                const latInRadians = (e.latlng.lat * Math.PI) / 180;
-                // Calculate the zoom level that would fit the radius
-                const targetZoom = Math.log2(
-                    (40075000 * Math.cos(latInRadians)) /
-                        (radiusWithMargin * 256),
-                );
+                // Remove previous search radius circle if it exists
+                if (searchRadiusCircleRef.current) {
+                    map.removeLayer(searchRadiusCircleRef.current);
+                }
 
-                // Zoom to the location with the calculated zoom level
-                map.setView(e.latlng, Math.max(1, Math.min(19, targetZoom)));
+                // Draw the search radius circle (radius in meters = km * 1000)
+                const circle = L.circle(e.latlng, {
+                    color: '#3b82f6',
+                    fillColor: '#3b82f6',
+                    fillOpacity: 0.1,
+                    radius: searchRadiusRef.current * 1000,
+                }).addTo(map);
+
+                searchRadiusCircleRef.current = circle;
+
+                // Zoom to fit the circle bounds with some padding
+                const bounds = circle.getBounds();
+                map.fitBounds(bounds, { padding: [50, 50] });
 
                 // Call the search API
                 setIsSearching(true);
