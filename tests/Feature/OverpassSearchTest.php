@@ -62,7 +62,7 @@ test('search nearby validates radius', function () {
 test('search nearby returns count on successful request', function () {
     // Mock the Overpass API response
     Http::fake([
-        'overpass-api.de/*' => Http::response([
+        'overpass.private.coffee/*' => Http::response([
             'elements' => [
                 ['type' => 'node', 'id' => 1, 'lat' => 35.6762, 'lon' => 139.6503],
                 ['type' => 'node', 'id' => 2, 'lat' => 35.6763, 'lon' => 139.6504],
@@ -87,7 +87,7 @@ test('search nearby returns count on successful request', function () {
 test('search nearby handles empty results', function () {
     // Mock the Overpass API response with no elements
     Http::fake([
-        'overpass-api.de/*' => Http::response([
+        'overpass.private.coffee/*' => Http::response([
             'elements' => [],
         ], 200),
     ]);
@@ -108,7 +108,7 @@ test('search nearby handles empty results', function () {
 test('search nearby handles API errors gracefully', function () {
     // Mock the Overpass API to return an error
     Http::fake([
-        'overpass-api.de/*' => Http::response([], 500),
+        'overpass.private.coffee/*' => Http::response([], 500),
     ]);
 
     $response = $this->actingAs($this->user)->postJson('/markers/search-nearby', [

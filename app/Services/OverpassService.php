@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Log;
 
 class OverpassService
 {
-    private const OVERPASS_API_URL = 'https://overpass-api.de/api/interpreter';
+    private const OVERPASS_API_URL = 'https://overpass.private.coffee/api/interpreter';
 
     private const TIMEOUT_SECONDS = 30;
 
