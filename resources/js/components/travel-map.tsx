@@ -128,6 +128,11 @@ export default function TravelMap({
     } | null>(null);
     const [searchRadius, setSearchRadius] = useState<number>(10); // Default 10 km
     const searchRadiusRef = useRef<number>(10); // Ref for use in event handlers
+    const [searchResultCount, setSearchResultCount] = useState<number | null>(
+        null,
+    );
+    const [isSearching, setIsSearching] = useState(false);
+    const [searchError, setSearchError] = useState<string | null>(null);
 
     // Note: saveMarkerToDatabase is no longer needed as we save when user clicks Save button
 
@@ -361,7 +366,7 @@ export default function TravelMap({
             .addTo(map);
 
         // Add click event to create markers with awesome-markers
-        map.on('click', (e: L.LeafletMouseEvent) => {
+        map.on('click', async (e: L.LeafletMouseEvent) => {
             // Check if we're in search mode
             if (isSearchModeRef.current) {
                 // In search mode, zoom to the clicked location with the specified radius
@@ -385,6 +390,36 @@ export default function TravelMap({
 
                 // Zoom to the location with the calculated zoom level
                 map.setView(e.latlng, Math.max(1, Math.min(19, targetZoom)));
+
+                // Call the search API
+                setIsSearching(true);
+                setSearchError(null);
+                setSearchResultCount(null);
+
+                try {
+                    const response = await axios.post(
+                        '/markers/search-nearby',
+                        {
+                            latitude: e.latlng.lat,
+                            longitude: e.latlng.lng,
+                            radius_km: searchRadiusRef.current,
+                        },
+                    );
+
+                    if (response.data.error) {
+                        setSearchError(response.data.error);
+                        setSearchResultCount(null);
+                    } else {
+                        setSearchResultCount(response.data.count);
+                        setSearchError(null);
+                    }
+                } catch (error) {
+                    console.error('Failed to search nearby:', error);
+                    setSearchError('Failed to search nearby locations');
+                    setSearchResultCount(null);
+                } finally {
+                    setIsSearching(false);
+                }
 
                 return;
             }
@@ -807,6 +842,9 @@ export default function TravelMap({
                             searchCoordinates={searchCoordinates}
                             searchRadius={searchRadius}
                             onSearchRadiusChange={setSearchRadius}
+                            searchResultCount={searchResultCount}
+                            isSearching={isSearching}
+                            searchError={searchError}
                         />
                     </div>
                 </div>
