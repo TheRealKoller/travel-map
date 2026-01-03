@@ -295,7 +295,7 @@ export default function TravelMap({
                     color: 'blue',
                     fillColor: 'blue',
                     fillOpacity: 0.3,
-                    radius: 50, // 50 meters radius for visibility
+                    radius: 150, // 150 meters radius for better visibility and clickability
                 }).addTo(map);
 
                 // Add tooltip if name is available
