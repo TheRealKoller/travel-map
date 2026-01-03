@@ -204,3 +204,112 @@ test('unauthenticated user cannot access tour endpoints', function () {
     $this->putJson('/tours/1', ['name' => 'Test'])->assertStatus(401);
     $this->deleteJson('/tours/1')->assertStatus(401);
 });
+
+test('tour name must be unique per trip (case-insensitive)', function () {
+    Tour::factory()->create([
+        'trip_id' => $this->trip->id,
+        'name' => 'Day 1 - Tokyo',
+    ]);
+
+    $response = $this->actingAs($this->user)->postJson('/tours', [
+        'name' => 'day 1 - tokyo',
+        'trip_id' => $this->trip->id,
+    ]);
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['name']);
+});
+
+test('tour name can be the same in different trips', function () {
+    $otherTrip = Trip::factory()->create(['user_id' => $this->user->id]);
+
+    Tour::factory()->create([
+        'trip_id' => $this->trip->id,
+        'name' => 'Day 1 - Tokyo',
+    ]);
+
+    $response = $this->actingAs($this->user)->postJson('/tours', [
+        'name' => 'Day 1 - Tokyo',
+        'trip_id' => $otherTrip->id,
+    ]);
+
+    $response->assertStatus(201)
+        ->assertJsonFragment(['name' => 'Day 1 - Tokyo']);
+});
+
+test('tour name uniqueness check handles uppercase', function () {
+    Tour::factory()->create([
+        'trip_id' => $this->trip->id,
+        'name' => 'Day 1 - Tokyo',
+    ]);
+
+    $response = $this->actingAs($this->user)->postJson('/tours', [
+        'name' => 'DAY 1 - TOKYO',
+        'trip_id' => $this->trip->id,
+    ]);
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['name']);
+});
+
+test('tour name uniqueness check handles mixed case', function () {
+    Tour::factory()->create([
+        'trip_id' => $this->trip->id,
+        'name' => 'Day 1 - Tokyo',
+    ]);
+
+    $response = $this->actingAs($this->user)->postJson('/tours', [
+        'name' => 'dAy 1 - tOkYo',
+        'trip_id' => $this->trip->id,
+    ]);
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['name']);
+});
+
+test('updating tour name must be unique per trip (case-insensitive)', function () {
+    $tour1 = Tour::factory()->create([
+        'trip_id' => $this->trip->id,
+        'name' => 'Day 1 - Tokyo',
+    ]);
+
+    $tour2 = Tour::factory()->create([
+        'trip_id' => $this->trip->id,
+        'name' => 'Day 2 - Osaka',
+    ]);
+
+    $response = $this->actingAs($this->user)->putJson("/tours/{$tour2->id}", [
+        'name' => 'day 1 - tokyo',
+    ]);
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['name']);
+});
+
+test('updating tour to same name is allowed', function () {
+    $tour = Tour::factory()->create([
+        'trip_id' => $this->trip->id,
+        'name' => 'Day 1 - Tokyo',
+    ]);
+
+    $response = $this->actingAs($this->user)->putJson("/tours/{$tour->id}", [
+        'name' => 'Day 1 - Tokyo',
+    ]);
+
+    $response->assertStatus(200)
+        ->assertJsonFragment(['name' => 'Day 1 - Tokyo']);
+});
+
+test('updating tour to same name with different case is allowed', function () {
+    $tour = Tour::factory()->create([
+        'trip_id' => $this->trip->id,
+        'name' => 'Day 1 - Tokyo',
+    ]);
+
+    $response = $this->actingAs($this->user)->putJson("/tours/{$tour->id}", [
+        'name' => 'DAY 1 - TOKYO',
+    ]);
+
+    $response->assertStatus(200)
+        ->assertJsonFragment(['name' => 'DAY 1 - TOKYO']);
+});
