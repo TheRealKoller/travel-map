@@ -150,6 +150,7 @@ export default function TravelMap({
     const selectedPlaceTypeRef = useRef<string>('all'); // Ref for use in event handlers
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const searchResultCirclesRef = useRef<L.Circle[]>([]);
+    const searchRadiusCircleRef = useRef<L.Circle | null>(null);
 
     // Note: saveMarkerToDatabase is no longer needed as we save when user clicks Save button
 
@@ -312,6 +313,37 @@ export default function TravelMap({
             searchResultCirclesRef.current = circles;
         }
     }, [searchResults]);
+
+    // Display gray dashed circle for search radius
+    useEffect(() => {
+        if (!mapInstanceRef.current) return;
+
+        const map = mapInstanceRef.current;
+
+        // Remove existing search radius circle
+        if (searchRadiusCircleRef.current) {
+            map.removeLayer(searchRadiusCircleRef.current);
+            searchRadiusCircleRef.current = null;
+        }
+
+        // Add new search radius circle when coordinates are available
+        if (searchCoordinates) {
+            const radiusInMeters = searchRadius * 1000; // Convert km to meters
+            const circle = L.circle(
+                [searchCoordinates.lat, searchCoordinates.lng],
+                {
+                    color: 'gray',
+                    fillColor: 'gray',
+                    fillOpacity: 0.1,
+                    weight: 2,
+                    dashArray: '10, 10', // Dashed line pattern
+                    radius: radiusInMeters,
+                },
+            ).addTo(map);
+
+            searchRadiusCircleRef.current = circle;
+        }
+    }, [searchCoordinates, searchRadius]);
 
     // Fetch available place types on component mount
     useEffect(() => {
