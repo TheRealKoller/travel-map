@@ -126,6 +126,8 @@ export default function TravelMap({
         lat: number;
         lng: number;
     } | null>(null);
+    const [searchRadius, setSearchRadius] = useState<number>(10); // Default 10 km
+    const searchRadiusRef = useRef<number>(10); // Ref for use in event handlers
 
     // Note: saveMarkerToDatabase is no longer needed as we save when user clicks Save button
 
@@ -236,6 +238,11 @@ export default function TravelMap({
             map.getContainer().style.cursor = 'crosshair';
         }
     }, [isSearchMode]);
+
+    // Update search radius ref when radius changes
+    useEffect(() => {
+        searchRadiusRef.current = searchRadius;
+    }, [searchRadius]);
 
     useEffect(() => {
         if (!mapRef.current || mapInstanceRef.current) return;
@@ -357,11 +364,28 @@ export default function TravelMap({
         map.on('click', (e: L.LeafletMouseEvent) => {
             // Check if we're in search mode
             if (isSearchModeRef.current) {
-                // In search mode, just display coordinates, don't create marker
+                // In search mode, zoom to the clicked location with the specified radius
                 setSearchCoordinates({
                     lat: e.latlng.lat,
                     lng: e.latlng.lng,
                 });
+
+                // Calculate zoom level based on radius + 10%
+                // The formula to calculate zoom level from radius (in km):
+                // zoom = log2(40075 * cos(lat) / (radius_km * 256)) - 1
+                // where 40075 is Earth's circumference in km
+                // We add 10% to the radius to show a bit more context
+                const radiusWithMargin = searchRadiusRef.current * 1.1;
+                const latInRadians = (e.latlng.lat * Math.PI) / 180;
+                // Calculate the zoom level that would fit the radius
+                const targetZoom = Math.log2(
+                    (40075000 * Math.cos(latInRadians)) /
+                        (radiusWithMargin * 1000 * 256),
+                );
+
+                // Zoom to the location with the calculated zoom level
+                map.setView(e.latlng, Math.max(1, Math.min(19, targetZoom)));
+
                 return;
             }
 
@@ -781,6 +805,8 @@ export default function TravelMap({
                             isSearchMode={isSearchMode}
                             onSearchModeChange={setIsSearchMode}
                             searchCoordinates={searchCoordinates}
+                            searchRadius={searchRadius}
+                            onSearchRadiusChange={setSearchRadius}
                         />
                     </div>
                 </div>
