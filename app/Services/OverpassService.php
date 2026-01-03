@@ -11,6 +11,8 @@ class OverpassService
 
     private const TIMEOUT_SECONDS = 30;
 
+    private const OVERPASS_QUERY_TIMEOUT = 25; // Timeout for Overpass query itself
+
     /**
      * Search for points of interest within a radius of given coordinates.
      *
@@ -94,8 +96,9 @@ class OverpassService
         //
         // Using the "around" filter for radius search
         // Output format: json, with count of results
+        $timeoutSeconds = self::OVERPASS_QUERY_TIMEOUT;
         $query = <<<OVERPASS
-[out:json][timeout:25];
+[out:json][timeout:{$timeoutSeconds}];
 (
   node["amenity"](around:{$radiusMeters},{$latitude},{$longitude});
   node["tourism"](around:{$radiusMeters},{$latitude},{$longitude});
