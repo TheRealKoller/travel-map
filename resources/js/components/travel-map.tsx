@@ -502,9 +502,14 @@ export default function TravelMap({
 
                 searchRadiusCircleRef.current = circle;
 
-                // Zoom to fit the circle bounds with some padding
+                // Zoom to fit the circle bounds with asymmetric padding
+                // More padding on the right to keep the circle center-left,
+                // so the options menu doesn't cover the circle
                 const bounds = circle.getBounds();
-                map.fitBounds(bounds, { padding: [50, 50] });
+                map.fitBounds(bounds, {
+                    paddingTopLeft: [50, 50],
+                    paddingBottomRight: [350, 50],
+                });
 
                 // Call the search API
                 setIsSearching(true);
