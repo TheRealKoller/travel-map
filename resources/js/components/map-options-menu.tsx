@@ -13,7 +13,6 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
@@ -89,20 +88,33 @@ export default function MapOptionsMenu({
                                 className="flex-1 overflow-y-auto px-4 pb-3"
                             >
                                 <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
+                                    <div className="flex flex-col gap-2">
                                         <Label
-                                            htmlFor="search-mode"
-                                            className="cursor-pointer"
+                                            id="search-mode-label"
+                                            className="text-sm font-medium"
                                         >
-                                            Suchmodus:{' '}
-                                            {isSearchMode ? 'On' : 'Off'}
+                                            Umkreissuche
                                         </Label>
-                                        <Switch
+                                        <Button
                                             id="search-mode"
-                                            checked={isSearchMode}
-                                            onCheckedChange={onSearchModeChange}
-                                            aria-label="Radius search mode toggle"
-                                        />
+                                            variant={
+                                                isSearchMode
+                                                    ? 'default'
+                                                    : 'outline'
+                                            }
+                                            onClick={() =>
+                                                onSearchModeChange(
+                                                    !isSearchMode,
+                                                )
+                                            }
+                                            aria-labelledby="search-mode-label"
+                                            aria-pressed={isSearchMode}
+                                            className="w-full"
+                                        >
+                                            {isSearchMode
+                                                ? 'Aktiv - Klicke auf die Karte'
+                                                : 'Umkreissuche aktivieren'}
+                                        </Button>
                                     </div>
                                     {isSearchMode && (
                                         <>
