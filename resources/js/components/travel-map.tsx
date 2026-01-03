@@ -150,6 +150,7 @@ export default function TravelMap({
     const selectedPlaceTypeRef = useRef<string>('all'); // Ref for use in event handlers
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const searchResultCirclesRef = useRef<L.Circle[]>([]);
+    const searchRadiusCircleRef = useRef<L.Circle | null>(null);
 
     // Note: saveMarkerToDatabase is no longer needed as we save when user clicks Save button
 
@@ -313,6 +314,37 @@ export default function TravelMap({
         }
     }, [searchResults]);
 
+    // Display gray dashed circle for search radius
+    useEffect(() => {
+        if (!mapInstanceRef.current) return;
+
+        const map = mapInstanceRef.current;
+
+        // Remove existing search radius circle
+        if (searchRadiusCircleRef.current) {
+            map.removeLayer(searchRadiusCircleRef.current);
+            searchRadiusCircleRef.current = null;
+        }
+
+        // Add new search radius circle when coordinates are available
+        if (searchCoordinates) {
+            const radiusInMeters = searchRadius * 1000; // Convert km to meters
+            const circle = L.circle(
+                [searchCoordinates.lat, searchCoordinates.lng],
+                {
+                    color: 'gray',
+                    fillColor: 'gray',
+                    fillOpacity: 0.1,
+                    weight: 2,
+                    dashArray: '10, 10', // Dashed line pattern
+                    radius: radiusInMeters,
+                },
+            ).addTo(map);
+
+            searchRadiusCircleRef.current = circle;
+        }
+    }, [searchCoordinates, searchRadius]);
+
     // Fetch available place types on component mount
     useEffect(() => {
         const fetchPlaceTypes = async () => {
@@ -333,10 +365,10 @@ export default function TravelMap({
         if (!mapRef.current || mapInstanceRef.current) return;
 
         // Initialize the map
-        const map = L.map(mapRef.current).setView(
-            DEFAULT_MAP_CENTER,
-            DEFAULT_MAP_ZOOM,
-        );
+        const map = L.map(mapRef.current, {
+            zoomSnap: 0,
+            zoomDelta: 0.25,
+        }).setView(DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM);
         mapInstanceRef.current = map;
 
         // Set crosshair cursor
@@ -449,27 +481,35 @@ export default function TravelMap({
         map.on('click', async (e: L.LeafletMouseEvent) => {
             // Check if we're in search mode
             if (isSearchModeRef.current) {
-                // In search mode, zoom to the clicked location with the specified radius
+                // In search mode, draw the search radius circle first
                 setSearchCoordinates({
                     lat: e.latlng.lat,
                     lng: e.latlng.lng,
                 });
 
-                // Calculate zoom level based on radius + 10%
-                // The formula to calculate zoom level from radius:
-                // zoom = log2(Earth_circumference_meters * cos(lat) / (radius_meters * 256))
-                // where 40075000 is Earth's circumference in meters
-                // We add 10% to the radius to show a bit more context
-                const radiusWithMargin = searchRadiusRef.current * 1.1;
-                const latInRadians = (e.latlng.lat * Math.PI) / 180;
-                // Calculate the zoom level that would fit the radius
-                const targetZoom = Math.log2(
-                    (40075000 * Math.cos(latInRadians)) /
-                        (radiusWithMargin * 256),
-                );
+                // Remove previous search radius circle if it exists
+                if (searchRadiusCircleRef.current) {
+                    map.removeLayer(searchRadiusCircleRef.current);
+                }
 
-                // Zoom to the location with the calculated zoom level
-                map.setView(e.latlng, Math.max(1, Math.min(19, targetZoom)));
+                // Draw the search radius circle (radius in meters = km * 1000)
+                const circle = L.circle(e.latlng, {
+                    color: '#3b82f6',
+                    fillColor: '#3b82f6',
+                    fillOpacity: 0.1,
+                    radius: searchRadiusRef.current * 1000,
+                }).addTo(map);
+
+                searchRadiusCircleRef.current = circle;
+
+                // Zoom to fit the circle bounds with asymmetric padding
+                // More padding on the right to keep the circle center-left,
+                // so the options menu doesn't cover the circle
+                const bounds = circle.getBounds();
+                map.fitBounds(bounds, {
+                    paddingTopLeft: [50, 50],
+                    paddingBottomRight: [350, 50],
+                });
 
                 // Call the search API
                 setIsSearching(true);
