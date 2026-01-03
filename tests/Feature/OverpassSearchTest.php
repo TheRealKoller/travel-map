@@ -241,3 +241,38 @@ test('search results include optional name and type fields', function () {
     expect($results[3])->not->toHaveKey('name');
     expect($results[3])->not->toHaveKey('type');
 });
+
+test('search results skip elements without coordinates', function () {
+    // Mock the Overpass API response with some elements missing coordinates
+    Http::fake([
+        'overpass.private.coffee/*' => Http::response([
+            'elements' => [
+                // Valid element with coordinates
+                ['type' => 'node', 'id' => 1, 'lat' => 35.6762, 'lon' => 139.6503, 'tags' => ['name' => 'Valid Place']],
+                // Element without coordinates (should be filtered out)
+                ['type' => 'node', 'id' => 2, 'tags' => ['name' => 'No Coordinates']],
+                // Another valid element
+                ['type' => 'node', 'id' => 3, 'lat' => 35.6764, 'lon' => 139.6505, 'tags' => ['name' => 'Another Valid']],
+                // Element with only lat (should be filtered out)
+                ['type' => 'node', 'id' => 4, 'lat' => 35.6765, 'tags' => ['name' => 'Only Lat']],
+            ],
+        ], 200),
+    ]);
+
+    $response = $this->actingAs($this->user)->postJson('/markers/search-nearby', [
+        'latitude' => 35.6762,
+        'longitude' => 139.6503,
+        'radius_km' => 10,
+    ]);
+
+    $response->assertStatus(200);
+    $results = $response->json('results');
+
+    // Should only return the 2 valid elements
+    expect($results)->toHaveCount(2);
+    expect($results[0]['name'])->toBe('Valid Place');
+    expect($results[1]['name'])->toBe('Another Valid');
+
+    // Count should match the filtered results
+    expect($response->json('count'))->toBe(2);
+});
