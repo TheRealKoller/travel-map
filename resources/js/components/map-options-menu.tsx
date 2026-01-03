@@ -89,7 +89,10 @@ export default function MapOptionsMenu({
                             >
                                 <div className="space-y-4">
                                     <div className="flex flex-col gap-2">
-                                        <Label className="text-sm font-medium">
+                                        <Label
+                                            id="search-mode-label"
+                                            className="text-sm font-medium"
+                                        >
                                             Umkreissuche
                                         </Label>
                                         <Button
@@ -104,7 +107,8 @@ export default function MapOptionsMenu({
                                                     !isSearchMode,
                                                 )
                                             }
-                                            aria-label="Radius search mode toggle"
+                                            aria-labelledby="search-mode-label"
+                                            aria-pressed={isSearchMode}
                                             className="w-full"
                                         >
                                             {isSearchMode
