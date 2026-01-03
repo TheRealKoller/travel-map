@@ -17,6 +17,9 @@ interface MapOptionsMenuProps {
     searchCoordinates: { lat: number; lng: number } | null;
     searchRadius: number;
     onSearchRadiusChange: (radius: number) => void;
+    searchResultCount: number | null;
+    isSearching: boolean;
+    searchError: string | null;
 }
 
 export default function MapOptionsMenu({
@@ -25,6 +28,9 @@ export default function MapOptionsMenu({
     searchCoordinates,
     searchRadius,
     onSearchRadiusChange,
+    searchResultCount,
+    isSearching,
+    searchError,
 }: MapOptionsMenuProps) {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -127,6 +133,35 @@ export default function MapOptionsMenu({
                                             </p>
                                         </div>
                                     )}
+                                    {isSearching && (
+                                        <div className="rounded-md bg-blue-50 p-3 text-center">
+                                            <p className="text-sm text-blue-600">
+                                                Suche läuft...
+                                            </p>
+                                        </div>
+                                    )}
+                                    {searchError && (
+                                        <div className="rounded-md bg-red-50 p-3">
+                                            <p className="text-sm font-medium text-red-600">
+                                                Fehler:
+                                            </p>
+                                            <p className="text-sm text-red-500">
+                                                {searchError}
+                                            </p>
+                                        </div>
+                                    )}
+                                    {!isSearching &&
+                                        !searchError &&
+                                        searchResultCount !== null && (
+                                            <div className="rounded-md bg-green-50 p-3">
+                                                <p className="text-sm font-medium text-green-800">
+                                                    Ergebnisse gefunden:
+                                                </p>
+                                                <p className="text-lg font-bold text-green-600">
+                                                    {searchResultCount}
+                                                </p>
+                                            </div>
+                                        )}
                                 </div>
                             </TabsContent>
                         </Tabs>
