@@ -715,6 +715,8 @@ export default function TravelMap({
                     setSearchResults([]);
                 } finally {
                     setIsSearching(false);
+                    // Deactivate search mode after search is executed
+                    setIsSearchMode(false);
                 }
 
                 return;
