@@ -21,7 +21,7 @@ class OverpassService
      * @param  float  $longitude  The longitude of the search center
      * @param  int  $radiusKm  The search radius in kilometers
      * @param  PlaceType|null  $placeType  Optional place type to filter by
-     * @return array{count: int, results: array<array{lat: float, lon: float, name?: string, type?: string}>, error: string|null}
+     * @return array{count: int, results: array<array{lat: float, lon: float, name?: string, name_en?: string, name_int?: string, type?: string, website?: string, description?: string, fee?: string, opening_hours?: string, address?: array}>, error: string|null}
      */
     public function searchNearby(float $latitude, float $longitude, int $radiusKm, ?PlaceType $placeType = null): array
     {
@@ -94,18 +94,71 @@ class OverpassService
                     'lon' => $lon,
                 ];
 
+                $tags = $element['tags'] ?? [];
+
                 // Include name if available
-                if (isset($element['tags']['name'])) {
-                    $result['name'] = $element['tags']['name'];
+                if (isset($tags['name'])) {
+                    $result['name'] = $tags['name'];
+                }
+
+                // Include English name if available
+                if (isset($tags['name:en'])) {
+                    $result['name_en'] = $tags['name:en'];
+                }
+
+                // Include international name if available
+                if (isset($tags['int_name'])) {
+                    $result['name_int'] = $tags['int_name'];
                 }
 
                 // Include type information if available
-                if (isset($element['tags']['amenity'])) {
-                    $result['type'] = $element['tags']['amenity'];
-                } elseif (isset($element['tags']['tourism'])) {
-                    $result['type'] = $element['tags']['tourism'];
-                } elseif (isset($element['tags']['shop'])) {
-                    $result['type'] = $element['tags']['shop'];
+                if (isset($tags['amenity'])) {
+                    $result['type'] = $tags['amenity'];
+                } elseif (isset($tags['tourism'])) {
+                    $result['type'] = $tags['tourism'];
+                } elseif (isset($tags['shop'])) {
+                    $result['type'] = $tags['shop'];
+                }
+
+                // Include website if available
+                if (isset($tags['website'])) {
+                    $result['website'] = $tags['website'];
+                }
+
+                // Include description if available
+                if (isset($tags['description'])) {
+                    $result['description'] = $tags['description'];
+                }
+
+                // Include entry fee if available
+                if (isset($tags['fee'])) {
+                    $result['fee'] = $tags['fee'];
+                }
+
+                // Include opening hours if available
+                if (isset($tags['opening_hours'])) {
+                    $result['opening_hours'] = $tags['opening_hours'];
+                }
+
+                // Build address if any address components are available
+                $address = [];
+                if (isset($tags['addr:street'])) {
+                    $address['street'] = $tags['addr:street'];
+                }
+                if (isset($tags['addr:housenumber'])) {
+                    $address['housenumber'] = $tags['addr:housenumber'];
+                }
+                if (isset($tags['addr:postcode'])) {
+                    $address['postcode'] = $tags['addr:postcode'];
+                }
+                if (isset($tags['addr:city'])) {
+                    $address['city'] = $tags['addr:city'];
+                }
+                if (isset($tags['addr:country'])) {
+                    $address['country'] = $tags['addr:country'];
+                }
+                if (!empty($address)) {
+                    $result['address'] = $address;
                 }
 
                 $results[] = $result;

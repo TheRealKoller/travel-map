@@ -35,7 +35,20 @@ interface SearchResult {
     lat: number;
     lon: number;
     name?: string;
+    name_en?: string;
+    name_int?: string;
     type?: string;
+    website?: string;
+    description?: string;
+    fee?: string;
+    opening_hours?: string;
+    address?: {
+        street?: string;
+        housenumber?: string;
+        postcode?: string;
+        city?: string;
+        country?: string;
+    };
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
