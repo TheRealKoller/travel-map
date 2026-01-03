@@ -312,9 +312,11 @@ export default function TravelMap({
                     radius: 150, // 150 meters radius for better visibility and clickability
                 }).addTo(map);
 
-                // Add tooltip if name is available
-                if (result.name) {
-                    circle.bindTooltip(result.name, {
+                // Add tooltip with priority: English name > International name > Local name
+                const displayName =
+                    result.name_en || result.name_int || result.name;
+                if (displayName) {
+                    circle.bindTooltip(displayName, {
                         permanent: false,
                         direction: 'top',
                     });
