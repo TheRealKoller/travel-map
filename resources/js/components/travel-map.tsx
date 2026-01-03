@@ -365,10 +365,10 @@ export default function TravelMap({
         if (!mapRef.current || mapInstanceRef.current) return;
 
         // Initialize the map
-        const map = L.map(mapRef.current).setView(
-            DEFAULT_MAP_CENTER,
-            DEFAULT_MAP_ZOOM,
-        );
+        const map = L.map(mapRef.current, {
+            zoomSnap: 0,
+            zoomDelta: 0.25,
+        }).setView(DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM);
         mapInstanceRef.current = map;
 
         // Set crosshair cursor
