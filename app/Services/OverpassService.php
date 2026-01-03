@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\PlaceType;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -19,9 +20,10 @@ class OverpassService
      * @param  float  $latitude  The latitude of the search center
      * @param  float  $longitude  The longitude of the search center
      * @param  int  $radiusKm  The search radius in kilometers
+     * @param  PlaceType|null  $placeType  Optional place type to filter by
      * @return array{count: int, error: string|null}
      */
-    public function searchNearby(float $latitude, float $longitude, int $radiusKm): array
+    public function searchNearby(float $latitude, float $longitude, int $radiusKm, ?PlaceType $placeType = null): array
     {
         try {
             // Additional validation for defense in depth
@@ -40,12 +42,13 @@ class OverpassService
 
             // Build Overpass QL query to find nodes with tags within radius
             // This searches for various common POI types (amenities, tourism, shops, etc.)
-            $query = $this->buildOverpassQuery($latitude, $longitude, $radiusMeters);
+            $query = $this->buildOverpassQuery($latitude, $longitude, $radiusMeters, $placeType);
 
             Log::info('Overpass API request', [
                 'latitude' => $latitude,
                 'longitude' => $longitude,
                 'radius_km' => $radiusKm,
+                'place_type' => $placeType?->value,
             ]);
 
             // Make request to Overpass API
@@ -96,26 +99,28 @@ class OverpassService
     /**
      * Build Overpass QL query for searching POIs.
      */
-    private function buildOverpassQuery(float $latitude, float $longitude, int $radiusMeters): string
+    private function buildOverpassQuery(float $latitude, float $longitude, int $radiusMeters, ?PlaceType $placeType = null): string
     {
-        // Search for various types of POIs:
-        // - amenity (restaurants, cafes, hotels, etc.)
-        // - tourism (museums, viewpoints, attractions, etc.)
-        // - shop (various shops)
-        // - historic (monuments, ruins, etc.)
-        // - leisure (parks, playgrounds, etc.)
-        //
-        // Using the "around" filter for radius search
-        // Output format: json, with count of results
         $timeoutSeconds = self::OVERPASS_QUERY_TIMEOUT;
+
+        // If no place type is specified, use default broad search
+        $placeType = $placeType ?? PlaceType::All;
+
+        // Get the conditions for the selected place type
+        $conditions = $placeType->getOverpassConditions();
+
+        // Build the query lines with around filter
+        $queryLines = array_map(
+            fn ($condition) => "  {$condition}(around:{$radiusMeters},{$latitude},{$longitude});",
+            $conditions
+        );
+
+        $queryBody = implode("\n", $queryLines);
+
         $query = <<<OVERPASS
 [out:json][timeout:{$timeoutSeconds}];
 (
-  node["amenity"](around:{$radiusMeters},{$latitude},{$longitude});
-  node["tourism"](around:{$radiusMeters},{$latitude},{$longitude});
-  node["shop"](around:{$radiusMeters},{$latitude},{$longitude});
-  node["historic"](around:{$radiusMeters},{$latitude},{$longitude});
-  node["leisure"](around:{$radiusMeters},{$latitude},{$longitude});
+{$queryBody}
 );
 out center;
 OVERPASS;

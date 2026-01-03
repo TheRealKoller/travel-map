@@ -26,6 +26,11 @@ interface GeocodeEvent {
     geocode: GeocodeResult;
 }
 
+interface PlaceType {
+    value: string;
+    label: string;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type LeafletExtensions = any;
 
@@ -133,6 +138,9 @@ export default function TravelMap({
     );
     const [isSearching, setIsSearching] = useState(false);
     const [searchError, setSearchError] = useState<string | null>(null);
+    const [placeTypes, setPlaceTypes] = useState<PlaceType[]>([]);
+    const [selectedPlaceType, setSelectedPlaceType] = useState<string>('all');
+    const selectedPlaceTypeRef = useRef<string>('all'); // Ref for use in event handlers
 
     // Note: saveMarkerToDatabase is no longer needed as we save when user clicks Save button
 
@@ -248,6 +256,27 @@ export default function TravelMap({
     useEffect(() => {
         searchRadiusRef.current = searchRadius;
     }, [searchRadius]);
+
+    // Update place type ref when it changes
+    useEffect(() => {
+        selectedPlaceTypeRef.current = selectedPlaceType;
+    }, [selectedPlaceType]);
+
+    // Fetch available place types on component mount
+    useEffect(() => {
+        const fetchPlaceTypes = async () => {
+            try {
+                const response = await axios.get('/markers/place-types');
+                setPlaceTypes(response.data);
+            } catch (error) {
+                console.error('Failed to load place types:', error);
+                // Set default place types if API call fails
+                setPlaceTypes([{ value: 'all', label: 'Alle Orte' }]);
+            }
+        };
+
+        fetchPlaceTypes();
+    }, []);
 
     useEffect(() => {
         if (!mapRef.current || mapInstanceRef.current) return;
@@ -403,6 +432,7 @@ export default function TravelMap({
                             latitude: e.latlng.lat,
                             longitude: e.latlng.lng,
                             radius_km: searchRadiusRef.current,
+                            place_type: selectedPlaceTypeRef.current,
                         },
                     );
 
@@ -845,6 +875,9 @@ export default function TravelMap({
                             searchResultCount={searchResultCount}
                             isSearching={isSearching}
                             searchError={searchError}
+                            placeTypes={placeTypes}
+                            selectedPlaceType={selectedPlaceType}
+                            onPlaceTypeChange={setSelectedPlaceType}
                         />
                     </div>
                 </div>
