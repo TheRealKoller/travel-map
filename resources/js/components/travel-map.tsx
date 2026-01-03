@@ -447,6 +447,7 @@ export default function TravelMap({
                         name: markerName,
                         type: markerType,
                         notes: '',
+                        url: '',
                         isUnesco: false,
                         marker: marker,
                         isSaved: false, // Mark as unsaved
@@ -615,6 +616,7 @@ export default function TravelMap({
                         name: placeName,
                         type: defaultType,
                         notes: '',
+                        url: '',
                         isUnesco: false,
                         marker: marker,
                         isSaved: false, // Mark as unsaved
@@ -741,6 +743,7 @@ export default function TravelMap({
                 name: '',
                 type: defaultType,
                 notes: '',
+                url: '',
                 isUnesco: false,
                 marker: marker,
                 isSaved: false, // Mark as unsaved
@@ -800,6 +803,7 @@ export default function TravelMap({
                         name: string;
                         type: MarkerType;
                         notes: string;
+                        url: string;
                         is_unesco: boolean;
                     }) => {
                         const icon = (
@@ -832,6 +836,7 @@ export default function TravelMap({
                             name: dbMarker.name,
                             type: dbMarker.type,
                             notes: dbMarker.notes || '',
+                            url: dbMarker.url || '',
                             isUnesco: dbMarker.is_unesco || false,
                             marker: marker,
                             isSaved: true, // Markers from database are already saved
@@ -860,6 +865,7 @@ export default function TravelMap({
         name: string,
         type: MarkerType,
         notes: string,
+        url: string,
         isUnesco: boolean,
     ) => {
         try {
@@ -875,6 +881,7 @@ export default function TravelMap({
                     name,
                     type,
                     notes,
+                    url,
                     is_unesco: isUnesco,
                 });
             } else {
@@ -884,6 +891,7 @@ export default function TravelMap({
                     name: name,
                     type: type,
                     notes: notes,
+                    url: url,
                     latitude: markerToSave.lat,
                     longitude: markerToSave.lng,
                     trip_id: selectedTripId,
@@ -895,7 +903,15 @@ export default function TravelMap({
             setMarkers((prev) =>
                 prev.map((m) =>
                     m.id === id
-                        ? { ...m, name, type, notes, isUnesco, isSaved: true }
+                        ? {
+                              ...m,
+                              name,
+                              type,
+                              notes,
+                              url,
+                              isUnesco,
+                              isSaved: true,
+                          }
                         : m,
                 ),
             );

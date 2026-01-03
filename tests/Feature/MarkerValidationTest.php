@@ -119,3 +119,127 @@ test('marker update allows null notes', function () {
         'notes' => null,
     ]);
 });
+
+test('marker creation allows valid url', function () {
+    $markerData = [
+        'id' => fake()->uuid(),
+        'name' => 'Test Location',
+        'type' => 'point of interest',
+        'url' => 'https://example.com',
+        'latitude' => 35.6762,
+        'longitude' => 139.6503,
+        'trip_id' => $this->trip->id,
+    ];
+
+    $response = $this->actingAs($this->user)->postJson('/markers', $markerData);
+
+    $response->assertStatus(201);
+
+    $this->assertDatabaseHas('markers', [
+        'name' => 'Test Location',
+        'url' => 'https://example.com',
+    ]);
+});
+
+test('marker creation allows empty url', function () {
+    $markerData = [
+        'id' => fake()->uuid(),
+        'name' => 'Test Location',
+        'type' => 'point of interest',
+        'url' => '',
+        'latitude' => 35.6762,
+        'longitude' => 139.6503,
+        'trip_id' => $this->trip->id,
+    ];
+
+    $response = $this->actingAs($this->user)->postJson('/markers', $markerData);
+
+    $response->assertStatus(201);
+});
+
+test('marker creation allows null url', function () {
+    $markerData = [
+        'id' => fake()->uuid(),
+        'name' => 'Test Location',
+        'type' => 'point of interest',
+        // url field omitted - should be allowed
+        'latitude' => 35.6762,
+        'longitude' => 139.6503,
+        'trip_id' => $this->trip->id,
+    ];
+
+    $response = $this->actingAs($this->user)->postJson('/markers', $markerData);
+
+    $response->assertStatus(201);
+});
+
+test('marker creation rejects invalid url', function () {
+    $markerData = [
+        'id' => fake()->uuid(),
+        'name' => 'Test Location',
+        'type' => 'point of interest',
+        'url' => 'not a valid url',
+        'latitude' => 35.6762,
+        'longitude' => 139.6503,
+        'trip_id' => $this->trip->id,
+    ];
+
+    $response = $this->actingAs($this->user)->postJson('/markers', $markerData);
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['url']);
+});
+
+test('marker update allows valid url', function () {
+    $marker = Marker::factory()->create([
+        'user_id' => $this->user->id,
+        'trip_id' => $this->trip->id,
+        'name' => 'Test Location',
+    ]);
+
+    $response = $this->actingAs($this->user)->putJson("/markers/{$marker->id}", [
+        'url' => 'https://example.com',
+    ]);
+
+    $response->assertStatus(200);
+
+    $this->assertDatabaseHas('markers', [
+        'id' => $marker->id,
+        'url' => 'https://example.com',
+    ]);
+});
+
+test('marker update rejects invalid url', function () {
+    $marker = Marker::factory()->create([
+        'user_id' => $this->user->id,
+        'trip_id' => $this->trip->id,
+        'name' => 'Test Location',
+    ]);
+
+    $response = $this->actingAs($this->user)->putJson("/markers/{$marker->id}", [
+        'url' => 'invalid url',
+    ]);
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['url']);
+});
+
+test('marker update allows null url', function () {
+    $marker = Marker::factory()->create([
+        'user_id' => $this->user->id,
+        'trip_id' => $this->trip->id,
+        'name' => 'Test Location',
+        'url' => 'https://example.com',
+    ]);
+
+    $response = $this->actingAs($this->user)->putJson("/markers/{$marker->id}", [
+        'url' => null,
+    ]);
+
+    $response->assertStatus(200);
+
+    $this->assertDatabaseHas('markers', [
+        'id' => $marker->id,
+        'url' => null,
+    ]);
+});

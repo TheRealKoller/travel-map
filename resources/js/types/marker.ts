@@ -21,6 +21,7 @@ export interface MarkerData {
     name: string;
     type: MarkerType;
     notes: string;
+    url: string;
     isUnesco: boolean;
     marker: L.Marker;
     isSaved: boolean; // Track if marker is persisted in database

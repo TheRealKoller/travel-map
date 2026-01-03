@@ -26,6 +26,7 @@ class StoreMarkerRequest extends FormRequest
             'name' => 'required|string|max:255',
             'type' => 'required|string',
             'notes' => 'nullable|string',
+            'url' => 'nullable|url|max:2048',
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
             'trip_id' => 'nullable|integer|exists:trips,id',

@@ -13,6 +13,7 @@ interface MarkerFormProps {
         name: string,
         type: MarkerType,
         notes: string,
+        url: string,
         isUnesco: boolean,
     ) => void;
     onDeleteMarker: (id: string) => void;
@@ -40,6 +41,7 @@ export default function MarkerForm({
         marker?.type || MarkerType.PointOfInterest,
     );
     const [notes, setNotes] = useState(marker?.notes || '');
+    const [url, setUrl] = useState(marker?.url || '');
     const [isUnesco, setIsUnesco] = useState(marker?.isUnesco || false);
     // Define mdeOptions before any early returns to ensure hooks are called in consistent order
     const mdeOptions = useMemo(() => {
@@ -93,6 +95,16 @@ export default function MarkerForm({
         return null;
     }
 
+    const isValidUrl = (urlString: string): boolean => {
+        if (!urlString.trim()) return false;
+        try {
+            new URL(urlString);
+            return true;
+        } catch {
+            return false;
+        }
+    };
+
     const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setName(e.target.value);
     };
@@ -105,9 +117,19 @@ export default function MarkerForm({
         setNotes(value);
     };
 
+    const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setUrl(e.target.value);
+    };
+
+    const handleOpenUrl = () => {
+        if (url.trim() && isValidUrl(url)) {
+            window.open(url, '_blank', 'noopener,noreferrer');
+        }
+    };
+
     const handleSave = () => {
         if (marker) {
-            onSave(marker.id, name, type, notes, isUnesco);
+            onSave(marker.id, name, type, notes, url, isUnesco);
         }
     };
 
@@ -207,6 +229,41 @@ export default function MarkerForm({
                             UNESCO World Heritage Site
                         </span>
                     </label>
+                </div>
+                <div>
+                    <label
+                        htmlFor="marker-url"
+                        className="mb-2 block text-sm font-medium text-gray-700"
+                    >
+                        URL
+                    </label>
+                    <div className="flex gap-2">
+                        <input
+                            id="marker-url"
+                            type="url"
+                            value={url}
+                            onChange={handleUrlChange}
+                            className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            placeholder="https://example.com"
+                        />
+                        <button
+                            type="button"
+                            onClick={handleOpenUrl}
+                            disabled={!url.trim() || !isValidUrl(url)}
+                            className="flex-shrink-0 rounded-md bg-blue-600 px-3 py-2 text-sm text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:bg-gray-400"
+                            aria-label="Open URL in new tab"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-5 w-5"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                            >
+                                <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                                <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 <div>
                     <label className="mb-2 block text-sm font-medium text-gray-700">

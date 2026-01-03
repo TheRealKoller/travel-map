@@ -21,6 +21,7 @@ class MarkerFactory extends Factory
             'name' => fake()->words(3, true),
             'type' => fake()->randomElement(['restaurant', 'hotel', 'point of interest', 'tip', 'question', 'museum', 'ruin', 'temple/church', 'festival/party', 'leisure', 'sightseeing']),
             'notes' => fake()->optional()->paragraph(),
+            'url' => fake()->optional()->url(),
             'latitude' => fake()->latitude(),
             'longitude' => fake()->longitude(),
             'is_unesco' => fake()->boolean(10), // 10% chance of being UNESCO
