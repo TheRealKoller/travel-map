@@ -157,7 +157,7 @@ class OverpassService
                 if (isset($tags['addr:country'])) {
                     $address['country'] = $tags['addr:country'];
                 }
-                if (!empty($address)) {
+                if (! empty($address)) {
                     $result['address'] = $address;
                 }
 
