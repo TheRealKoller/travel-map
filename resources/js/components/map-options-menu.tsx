@@ -4,6 +4,7 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 
@@ -13,7 +14,7 @@ export default function MapOptionsMenu() {
     return (
         <div className="absolute top-[60px] right-4 z-[1000]">
             <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-                <div className="rounded-lg border bg-white shadow-lg">
+                <div className="flex flex-col rounded-lg border bg-white shadow-lg">
                     <CollapsibleTrigger asChild>
                         <Button
                             variant="ghost"
@@ -27,8 +28,28 @@ export default function MapOptionsMenu() {
                             )}
                         </Button>
                     </CollapsibleTrigger>
-                    <CollapsibleContent className="border-t px-4 py-3">
-                        <p className="text-sm text-muted-foreground">TBD</p>
+                    <CollapsibleContent
+                        className="flex flex-col border-t"
+                        style={{
+                            maxHeight: isOpen ? 'calc(100vh - 220px)' : '0',
+                        }}
+                    >
+                        <Tabs
+                            defaultValue="tbd"
+                            className="flex h-full flex-col"
+                        >
+                            <TabsList className="m-2 justify-start">
+                                <TabsTrigger value="tbd">TBD</TabsTrigger>
+                            </TabsList>
+                            <TabsContent
+                                value="tbd"
+                                className="flex-1 overflow-y-auto px-4 pb-3"
+                            >
+                                <p className="text-sm text-muted-foreground">
+                                    TBD
+                                </p>
+                            </TabsContent>
+                        </Tabs>
                     </CollapsibleContent>
                 </div>
             </Collapsible>
