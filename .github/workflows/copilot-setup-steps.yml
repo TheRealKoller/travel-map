@@ -60,6 +60,9 @@ jobs:
       - name: Add ShadCN Switch Component
         run: npx shadcn@latest add switch --yes
 
+      - name: Add ShadCN Slider Component
+        run: npx shadcn@latest add slider --overwrite
+
       - name: Verify Setup
         run: |
           echo "✅ Environment setup completed successfully"
