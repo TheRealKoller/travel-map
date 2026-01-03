@@ -1,5 +1,7 @@
 import { Card } from '@/components/ui/card';
+import { Icon } from '@/components/ui/icon';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { getMarkerTypeIcon, UnescoIcon } from '@/lib/marker-icons';
 import { MarkerData } from '@/types/marker';
 import { Tour } from '@/types/tour';
 import { useDroppable } from '@dnd-kit/core';
@@ -98,6 +100,18 @@ function SortableMarkerItem({ marker, index }: SortableMarkerItemProps) {
                     <div className="text-xs text-gray-600">
                         {marker.lat.toFixed(6)}, {marker.lng.toFixed(6)}
                     </div>
+                </div>
+                <div className="flex items-center gap-1.5">
+                    <Icon
+                        iconNode={getMarkerTypeIcon(marker.type)}
+                        className="h-4 w-4 text-gray-600"
+                    />
+                    {marker.isUnesco && (
+                        <Icon
+                            iconNode={UnescoIcon}
+                            className="h-4 w-4 text-blue-600"
+                        />
+                    )}
                 </div>
             </div>
         </li>
