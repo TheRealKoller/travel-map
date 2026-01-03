@@ -1,4 +1,6 @@
 import '@/../../resources/css/markdown-preview.css';
+import { Icon } from '@/components/ui/icon';
+import { getMarkerTypeIcon, UnescoIcon } from '@/lib/marker-icons';
 import { MarkerData } from '@/types/marker';
 import { useDraggable } from '@dnd-kit/core';
 import { GripVertical } from 'lucide-react';
@@ -83,6 +85,18 @@ function DraggableMarkerItem({
                         dangerouslySetInnerHTML={{
                             __html: marked.parse(markerData.notes) as string,
                         }}
+                    />
+                )}
+            </div>
+            <div className="flex items-center gap-1.5">
+                <Icon
+                    iconNode={getMarkerTypeIcon(markerData.type)}
+                    className="h-4 w-4 text-gray-600"
+                />
+                {markerData.isUnesco && (
+                    <Icon
+                        iconNode={UnescoIcon}
+                        className="h-4 w-4 text-blue-600"
                     />
                 )}
             </div>
