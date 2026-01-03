@@ -11,7 +11,7 @@ export default function MapOptionsMenu() {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <div className="absolute top-4 right-4 z-[1000]">
+        <div className="absolute top-[60px] right-4 z-[1000]">
             <Collapsible open={isOpen} onOpenChange={setIsOpen}>
                 <div className="rounded-lg border bg-white shadow-lg">
                     <CollapsibleTrigger asChild>
