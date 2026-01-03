@@ -1,3 +1,4 @@
+import MapOptionsMenu from '@/components/map-options-menu';
 import MarkerForm from '@/components/marker-form';
 import MarkerList from '@/components/marker-list';
 import TourPanel from '@/components/tour-panel';
@@ -736,11 +737,14 @@ export default function TravelMap({
 
                 {/* Part 3: Map */}
                 <div className="w-full flex-1 lg:w-1/2">
-                    <div
-                        ref={mapRef}
-                        id="map"
-                        className="z-10 h-[400px] w-full lg:h-[600px]"
-                    />
+                    <div className="relative">
+                        <div
+                            ref={mapRef}
+                            id="map"
+                            className="z-10 h-[400px] w-full lg:h-[600px]"
+                        />
+                        <MapOptionsMenu />
+                    </div>
                 </div>
             </div>
         </DndContext>
