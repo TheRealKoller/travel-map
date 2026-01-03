@@ -5,11 +5,23 @@ import {
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
+
+interface PlaceType {
+    value: string;
+    label: string;
+}
 
 interface MapOptionsMenuProps {
     isSearchMode: boolean;
@@ -20,6 +32,9 @@ interface MapOptionsMenuProps {
     searchResultCount: number | null;
     isSearching: boolean;
     searchError: string | null;
+    placeTypes: PlaceType[];
+    selectedPlaceType: string;
+    onPlaceTypeChange: (placeType: string) => void;
 }
 
 export default function MapOptionsMenu({
@@ -31,6 +46,9 @@ export default function MapOptionsMenu({
     searchResultCount,
     isSearching,
     searchError,
+    placeTypes,
+    selectedPlaceType,
+    onPlaceTypeChange,
 }: MapOptionsMenuProps) {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -87,32 +105,72 @@ export default function MapOptionsMenu({
                                         />
                                     </div>
                                     {isSearchMode && (
-                                        <div className="space-y-2">
-                                            <Label
-                                                htmlFor="search-radius"
-                                                className="text-sm font-medium"
-                                            >
-                                                Suchradius: {searchRadius} km
-                                            </Label>
-                                            <Slider
-                                                id="search-radius"
-                                                min={1}
-                                                max={100}
-                                                step={1}
-                                                value={[searchRadius]}
-                                                onValueChange={(values) =>
-                                                    onSearchRadiusChange(
-                                                        values[0],
-                                                    )
-                                                }
-                                                className="w-full"
-                                                aria-label="Search radius in kilometers"
-                                            />
-                                            <div className="flex justify-between text-xs text-muted-foreground">
-                                                <span>1 km</span>
-                                                <span>100 km</span>
+                                        <>
+                                            <div className="space-y-2">
+                                                <Label
+                                                    htmlFor="place-type"
+                                                    className="text-sm font-medium"
+                                                >
+                                                    Typ des Ortes
+                                                </Label>
+                                                <Select
+                                                    value={selectedPlaceType}
+                                                    onValueChange={
+                                                        onPlaceTypeChange
+                                                    }
+                                                >
+                                                    <SelectTrigger
+                                                        id="place-type"
+                                                        className="w-full"
+                                                    >
+                                                        <SelectValue placeholder="Typ auswählen" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {placeTypes.map(
+                                                            (type) => (
+                                                                <SelectItem
+                                                                    key={
+                                                                        type.value
+                                                                    }
+                                                                    value={
+                                                                        type.value
+                                                                    }
+                                                                >
+                                                                    {type.label}
+                                                                </SelectItem>
+                                                            ),
+                                                        )}
+                                                    </SelectContent>
+                                                </Select>
                                             </div>
-                                        </div>
+                                            <div className="space-y-2">
+                                                <Label
+                                                    htmlFor="search-radius"
+                                                    className="text-sm font-medium"
+                                                >
+                                                    Suchradius: {searchRadius}{' '}
+                                                    km
+                                                </Label>
+                                                <Slider
+                                                    id="search-radius"
+                                                    min={1}
+                                                    max={100}
+                                                    step={1}
+                                                    value={[searchRadius]}
+                                                    onValueChange={(values) =>
+                                                        onSearchRadiusChange(
+                                                            values[0],
+                                                        )
+                                                    }
+                                                    className="w-full"
+                                                    aria-label="Search radius in kilometers"
+                                                />
+                                                <div className="flex justify-between text-xs text-muted-foreground">
+                                                    <span>1 km</span>
+                                                    <span>100 km</span>
+                                                </div>
+                                            </div>
+                                        </>
                                     )}
                                     {searchCoordinates && (
                                         <div className="rounded-md bg-muted p-3">
