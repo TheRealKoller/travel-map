@@ -57,6 +57,9 @@ jobs:
       - name: Add ShadCN Tabs Component
         run: npx shadcn@latest add tabs
 
+      - name: Add ShadCN Switch Component
+        run: npx shadcn@latest add switch --yes
+
       - name: Verify Setup
         run: |
           echo "✅ Environment setup completed successfully"
