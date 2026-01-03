@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Tour;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateTourRequest extends FormRequest
@@ -21,18 +22,17 @@ class UpdateTourRequest extends FormRequest
      */
     public function rules(): array
     {
-        $tourId = $this->route('tour')->id;
+        $tour = $this->route('tour');
+        $tourId = $tour->id;
+        $tripId = $tour->trip_id;
 
         return [
             'name' => [
                 'required',
                 'string',
                 'max:255',
-                function ($attribute, $value, $fail) use ($tourId) {
-                    $tour = $this->route('tour');
-                    $tripId = $tour->trip_id;
-
-                    $exists = \App\Models\Tour::where('trip_id', $tripId)
+                function ($attribute, $value, $fail) use ($tourId, $tripId) {
+                    $exists = Tour::where('trip_id', $tripId)
                         ->where('id', '!=', $tourId)
                         ->whereRaw('LOWER(name) = ?', [strtolower($value)])
                         ->exists();

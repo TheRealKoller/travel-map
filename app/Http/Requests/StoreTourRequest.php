@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Tour;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreTourRequest extends FormRequest
@@ -29,7 +30,7 @@ class StoreTourRequest extends FormRequest
                 function ($attribute, $value, $fail) {
                     $tripId = $this->input('trip_id');
                     if ($tripId) {
-                        $exists = \App\Models\Tour::where('trip_id', $tripId)
+                        $exists = Tour::where('trip_id', $tripId)
                             ->whereRaw('LOWER(name) = ?', [strtolower($value)])
                             ->exists();
 
