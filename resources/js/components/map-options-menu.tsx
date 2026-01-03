@@ -61,13 +61,18 @@ export default function MapOptionsMenu({
                             >
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between">
-                                        <Label htmlFor="search-mode">
+                                        <Label
+                                            htmlFor="search-mode"
+                                            className="cursor-pointer"
+                                        >
+                                            Suchmodus:{' '}
                                             {isSearchMode ? 'On' : 'Off'}
                                         </Label>
                                         <Switch
                                             id="search-mode"
                                             checked={isSearchMode}
                                             onCheckedChange={onSearchModeChange}
+                                            aria-label="Radius search mode toggle"
                                         />
                                     </div>
                                     {searchCoordinates && (
