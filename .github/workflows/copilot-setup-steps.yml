@@ -54,8 +54,14 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
-      - name: Add ShadCN Tabs, Switch, Slider Components
-        run: npx shadcn@latest add --overwrite --yes tabs switch slider#
+      - name: Add ShadCN Tabs Component
+        run: npx shadcn@latest add tabs
+
+      - name: Add ShadCN Switch Component
+        run: npx shadcn@latest add switch --yes
+
+      - name: Add ShadCN Slider Component
+        run: npx shadcn@latest add slider --overwrite
         
       - name: Verify Setup
         run: |
