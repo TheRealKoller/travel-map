@@ -8,7 +8,13 @@ import SimpleMDE from 'react-simplemde-editor';
 
 interface MarkerFormProps {
     marker: MarkerData | null;
-    onSave: (id: string, name: string, type: MarkerType, notes: string) => void;
+    onSave: (
+        id: string,
+        name: string,
+        type: MarkerType,
+        notes: string,
+        isUnesco: boolean,
+    ) => void;
     onDeleteMarker: (id: string) => void;
     onClose: () => void;
     tours?: Tour[];
@@ -34,6 +40,7 @@ export default function MarkerForm({
         marker?.type || MarkerType.PointOfInterest,
     );
     const [notes, setNotes] = useState(marker?.notes || '');
+    const [isUnesco, setIsUnesco] = useState(marker?.isUnesco || false);
     // Define mdeOptions before any early returns to ensure hooks are called in consistent order
     const mdeOptions = useMemo(() => {
         // Configure marked to preserve line breaks
@@ -100,7 +107,7 @@ export default function MarkerForm({
 
     const handleSave = () => {
         if (marker) {
-            onSave(marker.id, name, type, notes);
+            onSave(marker.id, name, type, notes, isUnesco);
         }
     };
 
@@ -176,9 +183,6 @@ export default function MarkerForm({
                         <option value={MarkerType.Hotel}>Hotel</option>
                         <option value={MarkerType.Museum}>Museum</option>
                         <option value={MarkerType.Ruin}>Ruin</option>
-                        <option value={MarkerType.UnescoWorldHeritage}>
-                            UNESCO World Heritage
-                        </option>
                         <option value={MarkerType.TempleChurch}>
                             Temple/Church
                         </option>
@@ -190,6 +194,19 @@ export default function MarkerForm({
                             Sightseeing
                         </option>
                     </select>
+                </div>
+                <div>
+                    <label className="flex items-center space-x-2">
+                        <input
+                            type="checkbox"
+                            checked={isUnesco}
+                            onChange={(e) => setIsUnesco(e.target.checked)}
+                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span className="text-sm font-medium text-gray-700">
+                            UNESCO World Heritage Site
+                        </span>
+                    </label>
                 </div>
                 <div>
                     <label className="mb-2 block text-sm font-medium text-gray-700">
