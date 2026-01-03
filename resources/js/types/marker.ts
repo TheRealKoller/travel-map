@@ -8,7 +8,6 @@ export enum MarkerType {
     Hotel = 'hotel',
     Museum = 'museum',
     Ruin = 'ruin',
-    UnescoWorldHeritage = 'unesco world heritage',
     TempleChurch = 'temple/church',
     FestivalParty = 'festival/party',
     Leisure = 'leisure',
@@ -22,6 +21,7 @@ export interface MarkerData {
     name: string;
     type: MarkerType;
     notes: string;
+    isUnesco: boolean;
     marker: L.Marker;
     isSaved: boolean; // Track if marker is persisted in database
 }

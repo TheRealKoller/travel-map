@@ -17,6 +17,7 @@ class Marker extends Model
     protected $casts = [
         'latitude' => 'float',
         'longitude' => 'float',
+        'is_unesco' => 'boolean',
     ];
 
     public $incrementing = false;

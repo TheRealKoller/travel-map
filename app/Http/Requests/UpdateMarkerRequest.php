@@ -27,6 +27,7 @@ class UpdateMarkerRequest extends FormRequest
             'notes' => 'sometimes|nullable|string',
             'latitude' => 'sometimes|numeric|between:-90,90',
             'longitude' => 'sometimes|numeric|between:-180,180',
+            'is_unesco' => 'sometimes|boolean',
         ];
     }
 }

@@ -45,8 +45,6 @@ const getIconForType = (type: MarkerType): string => {
             return 'landmark';
         case MarkerType.Ruin:
             return 'monument';
-        case MarkerType.UnescoWorldHeritage:
-            return 'globe';
         case MarkerType.TempleChurch:
             return 'church';
         case MarkerType.FestivalParty:
@@ -77,8 +75,6 @@ const getColorForType = (type: MarkerType): string => {
             return 'darkblue';
         case MarkerType.Ruin:
             return 'darkred';
-        case MarkerType.UnescoWorldHeritage:
-            return 'darkgreen';
         case MarkerType.TempleChurch:
             return 'darkpurple';
         case MarkerType.FestivalParty:
@@ -305,6 +301,7 @@ export default function TravelMap({
                         name: placeName,
                         type: defaultType,
                         notes: '',
+                        isUnesco: false,
                         marker: marker,
                         isSaved: false, // Mark as unsaved
                     };
@@ -352,6 +349,7 @@ export default function TravelMap({
                 name: '',
                 type: defaultType,
                 notes: '',
+                isUnesco: false,
                 marker: marker,
                 isSaved: false, // Mark as unsaved
             };
@@ -410,6 +408,7 @@ export default function TravelMap({
                         name: string;
                         type: MarkerType;
                         notes: string;
+                        is_unesco: boolean;
                     }) => {
                         const icon = (
                             L as LeafletExtensions
@@ -441,6 +440,7 @@ export default function TravelMap({
                             name: dbMarker.name,
                             type: dbMarker.type,
                             notes: dbMarker.notes || '',
+                            isUnesco: dbMarker.is_unesco || false,
                             marker: marker,
                             isSaved: true, // Markers from database are already saved
                         };
@@ -468,6 +468,7 @@ export default function TravelMap({
         name: string,
         type: MarkerType,
         notes: string,
+        isUnesco: boolean,
     ) => {
         try {
             const markerToSave = markers.find((m) => m.id === id);
@@ -478,7 +479,12 @@ export default function TravelMap({
 
             if (markerToSave.isSaved) {
                 // Update existing marker in database
-                await axios.put(`/markers/${id}`, { name, type, notes });
+                await axios.put(`/markers/${id}`, {
+                    name,
+                    type,
+                    notes,
+                    is_unesco: isUnesco,
+                });
             } else {
                 // Create new marker in database
                 await axios.post('/markers', {
@@ -489,6 +495,7 @@ export default function TravelMap({
                     latitude: markerToSave.lat,
                     longitude: markerToSave.lng,
                     trip_id: selectedTripId,
+                    is_unesco: isUnesco,
                 });
             }
 
@@ -496,7 +503,7 @@ export default function TravelMap({
             setMarkers((prev) =>
                 prev.map((m) =>
                     m.id === id
-                        ? { ...m, name, type, notes, isSaved: true }
+                        ? { ...m, name, type, notes, isUnesco, isSaved: true }
                         : m,
                 ),
             );
