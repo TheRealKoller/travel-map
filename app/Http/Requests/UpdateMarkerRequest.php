@@ -25,6 +25,7 @@ class UpdateMarkerRequest extends FormRequest
             'name' => 'sometimes|required|string|max:255',
             'type' => 'sometimes|string',
             'notes' => 'sometimes|nullable|string',
+            'url' => 'sometimes|nullable|url|max:2048',
             'latitude' => 'sometimes|numeric|between:-90,90',
             'longitude' => 'sometimes|numeric|between:-180,180',
             'is_unesco' => 'sometimes|boolean',
