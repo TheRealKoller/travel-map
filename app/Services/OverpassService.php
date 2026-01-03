@@ -73,9 +73,11 @@ class OverpassService
 
             $data = $response->json();
 
-            // Extract elements with their coordinates
+            // Extract elements with their coordinates, filtering out invalid ones
             $elements = $data['elements'] ?? [];
-            $results = array_map(function ($element) {
+            $results = [];
+
+            foreach ($elements as $element) {
                 // Prefer direct lat/lon, fallback to center coordinates
                 $lat = $element['lat'] ?? $element['center']['lat'] ?? null;
                 $lon = $element['lon'] ?? $element['center']['lon'] ?? null;
@@ -84,7 +86,7 @@ class OverpassService
                 if ($lat === null || $lon === null) {
                     Log::warning('Skipping element without coordinates', ['element_id' => $element['id'] ?? 'unknown']);
 
-                    return null;
+                    continue;
                 }
 
                 $result = [
@@ -106,11 +108,8 @@ class OverpassService
                     $result['type'] = $element['tags']['shop'];
                 }
 
-                return $result;
-            }, $elements);
-
-            // Filter out null values (elements without coordinates)
-            $results = array_values(array_filter($results, fn ($result) => $result !== null));
+                $results[] = $result;
+            }
 
             $count = count($results);
 
