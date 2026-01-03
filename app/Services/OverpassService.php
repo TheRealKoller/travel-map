@@ -21,7 +21,7 @@ class OverpassService
      * @param  float  $longitude  The longitude of the search center
      * @param  int  $radiusKm  The search radius in kilometers
      * @param  PlaceType|null  $placeType  Optional place type to filter by
-     * @return array{count: int, error: string|null}
+     * @return array{count: int, results: array<array{lat: float, lon: float, name?: string, type?: string}>, error: string|null}
      */
     public function searchNearby(float $latitude, float $longitude, int $radiusKm, ?PlaceType $placeType = null): array
     {
@@ -66,14 +66,39 @@ class OverpassService
 
                 return [
                     'count' => 0,
+                    'results' => [],
                     'error' => 'Failed to fetch data from Overpass API',
                 ];
             }
 
             $data = $response->json();
 
-            // Count the elements returned
-            $count = isset($data['elements']) ? count($data['elements']) : 0;
+            // Extract elements with their coordinates
+            $elements = $data['elements'] ?? [];
+            $results = array_map(function ($element) {
+                $result = [
+                    'lat' => $element['lat'] ?? $element['center']['lat'] ?? 0,
+                    'lon' => $element['lon'] ?? $element['center']['lon'] ?? 0,
+                ];
+
+                // Include name if available
+                if (isset($element['tags']['name'])) {
+                    $result['name'] = $element['tags']['name'];
+                }
+
+                // Include type information if available
+                if (isset($element['tags']['amenity'])) {
+                    $result['type'] = $element['tags']['amenity'];
+                } elseif (isset($element['tags']['tourism'])) {
+                    $result['type'] = $element['tags']['tourism'];
+                } elseif (isset($element['tags']['shop'])) {
+                    $result['type'] = $element['tags']['shop'];
+                }
+
+                return $result;
+            }, $elements);
+
+            $count = count($results);
 
             Log::info('Overpass API response', [
                 'count' => $count,
@@ -81,6 +106,7 @@ class OverpassService
 
             return [
                 'count' => $count,
+                'results' => $results,
                 'error' => null,
             ];
         } catch (\Exception $e) {
@@ -91,6 +117,7 @@ class OverpassService
 
             return [
                 'count' => 0,
+                'results' => [],
                 'error' => 'An error occurred while searching nearby locations. Please try again.',
             ];
         }

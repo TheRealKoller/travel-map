@@ -64,9 +64,9 @@ test('search nearby returns count on successful request', function () {
     Http::fake([
         'overpass.private.coffee/*' => Http::response([
             'elements' => [
-                ['type' => 'node', 'id' => 1, 'lat' => 35.6762, 'lon' => 139.6503],
-                ['type' => 'node', 'id' => 2, 'lat' => 35.6763, 'lon' => 139.6504],
-                ['type' => 'node', 'id' => 3, 'lat' => 35.6764, 'lon' => 139.6505],
+                ['type' => 'node', 'id' => 1, 'lat' => 35.6762, 'lon' => 139.6503, 'tags' => ['name' => 'Place 1', 'amenity' => 'restaurant']],
+                ['type' => 'node', 'id' => 2, 'lat' => 35.6763, 'lon' => 139.6504, 'tags' => ['name' => 'Place 2', 'tourism' => 'hotel']],
+                ['type' => 'node', 'id' => 3, 'lat' => 35.6764, 'lon' => 139.6505, 'tags' => ['shop' => 'bakery']],
             ],
         ], 200),
     ]);
@@ -81,7 +81,21 @@ test('search nearby returns count on successful request', function () {
         ->assertJson([
             'count' => 3,
             'error' => null,
+        ])
+        ->assertJsonStructure([
+            'count',
+            'results' => [
+                '*' => ['lat', 'lon'],
+            ],
+            'error',
         ]);
+
+    $results = $response->json('results');
+    expect($results)->toHaveCount(3);
+    expect($results[0])->toHaveKey('lat');
+    expect($results[0])->toHaveKey('lon');
+    expect($results[0]['lat'])->toBe(35.6762);
+    expect($results[0]['lon'])->toBe(139.6503);
 });
 
 test('search nearby handles empty results', function () {
@@ -101,6 +115,7 @@ test('search nearby handles empty results', function () {
     $response->assertStatus(200)
         ->assertJson([
             'count' => 0,
+            'results' => [],
             'error' => null,
         ]);
 });
@@ -120,9 +135,11 @@ test('search nearby handles API errors gracefully', function () {
     $response->assertStatus(200)
         ->assertJson([
             'count' => 0,
+            'results' => [],
         ])
         ->assertJsonStructure([
             'count',
+            'results',
             'error',
         ]);
 
@@ -134,7 +151,7 @@ test('search nearby accepts place type parameter', function () {
     Http::fake([
         'overpass.private.coffee/*' => Http::response([
             'elements' => [
-                ['type' => 'node', 'id' => 1, 'lat' => 35.6762, 'lon' => 139.6503],
+                ['type' => 'node', 'id' => 1, 'lat' => 35.6762, 'lon' => 139.6503, 'tags' => ['name' => 'Hotel 1', 'tourism' => 'hotel']],
             ],
         ], 200),
     ]);
@@ -150,6 +167,13 @@ test('search nearby accepts place type parameter', function () {
         ->assertJson([
             'count' => 1,
             'error' => null,
+        ])
+        ->assertJsonStructure([
+            'count',
+            'results' => [
+                '*' => ['lat', 'lon'],
+            ],
+            'error',
         ]);
 });
 
