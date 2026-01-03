@@ -120,6 +120,12 @@ export default function TravelMap({
     );
     const searchMarkerRef = useRef<L.Marker | null>(null);
     const previousSelectedMarkerRef = useRef<string | null>(null);
+    const [isSearchMode, setIsSearchMode] = useState(false);
+    const isSearchModeRef = useRef(false);
+    const [searchCoordinates, setSearchCoordinates] = useState<{
+        lat: number;
+        lng: number;
+    } | null>(null);
 
     // Note: saveMarkerToDatabase is no longer needed as we save when user clicks Save button
 
@@ -213,6 +219,23 @@ export default function TravelMap({
         // Update the ref for the next iteration
         previousSelectedMarkerRef.current = selectedMarkerId;
     }, [selectedMarkerId, markers]);
+
+    // Update cursor based on search mode
+    useEffect(() => {
+        if (!mapInstanceRef.current) return;
+
+        const map = mapInstanceRef.current;
+        // Update the ref for use in event handlers
+        isSearchModeRef.current = isSearchMode;
+
+        if (isSearchMode) {
+            // Change cursor to magnifying glass (zoom-in) for search mode
+            map.getContainer().style.cursor = 'zoom-in';
+        } else {
+            // Restore crosshair cursor for normal mode
+            map.getContainer().style.cursor = 'crosshair';
+        }
+    }, [isSearchMode]);
 
     useEffect(() => {
         if (!mapRef.current || mapInstanceRef.current) return;
@@ -332,6 +355,17 @@ export default function TravelMap({
 
         // Add click event to create markers with awesome-markers
         map.on('click', (e: L.LeafletMouseEvent) => {
+            // Check if we're in search mode
+            if (isSearchModeRef.current) {
+                // In search mode, just display coordinates, don't create marker
+                setSearchCoordinates({
+                    lat: e.latlng.lat,
+                    lng: e.latlng.lng,
+                });
+                return;
+            }
+
+            // Normal mode: create a marker
             const defaultType = MarkerType.PointOfInterest;
             const awesomeMarker = (L as LeafletExtensions).AwesomeMarkers.icon({
                 icon: getIconForType(defaultType),
@@ -743,7 +777,11 @@ export default function TravelMap({
                             id="map"
                             className="z-10 h-[400px] w-full lg:h-[600px]"
                         />
-                        <MapOptionsMenu />
+                        <MapOptionsMenu
+                            isSearchMode={isSearchMode}
+                            onSearchModeChange={setIsSearchMode}
+                            searchCoordinates={searchCoordinates}
+                        />
                     </div>
                 </div>
             </div>

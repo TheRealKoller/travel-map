@@ -4,11 +4,23 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 
-export default function MapOptionsMenu() {
+interface MapOptionsMenuProps {
+    isSearchMode: boolean;
+    onSearchModeChange: (enabled: boolean) => void;
+    searchCoordinates: { lat: number; lng: number } | null;
+}
+
+export default function MapOptionsMenu({
+    isSearchMode,
+    onSearchModeChange,
+    searchCoordinates,
+}: MapOptionsMenuProps) {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
@@ -35,19 +47,54 @@ export default function MapOptionsMenu() {
                         }}
                     >
                         <Tabs
-                            defaultValue="tbd"
+                            defaultValue="radius-search"
                             className="flex h-full flex-col"
                         >
                             <TabsList className="m-2 justify-start">
-                                <TabsTrigger value="tbd">TBD</TabsTrigger>
+                                <TabsTrigger value="radius-search">
+                                    Umkreissuche
+                                </TabsTrigger>
                             </TabsList>
                             <TabsContent
-                                value="tbd"
+                                value="radius-search"
                                 className="flex-1 overflow-y-auto px-4 pb-3"
                             >
-                                <p className="text-sm text-muted-foreground">
-                                    TBD
-                                </p>
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <Label
+                                            htmlFor="search-mode"
+                                            className="cursor-pointer"
+                                        >
+                                            Suchmodus:{' '}
+                                            {isSearchMode ? 'On' : 'Off'}
+                                        </Label>
+                                        <Switch
+                                            id="search-mode"
+                                            checked={isSearchMode}
+                                            onCheckedChange={onSearchModeChange}
+                                            aria-label="Radius search mode toggle"
+                                        />
+                                    </div>
+                                    {searchCoordinates && (
+                                        <div className="rounded-md bg-muted p-3">
+                                            <p className="text-sm font-medium">
+                                                Koordinaten:
+                                            </p>
+                                            <p className="text-sm text-muted-foreground">
+                                                Lat:{' '}
+                                                {searchCoordinates.lat.toFixed(
+                                                    6,
+                                                )}
+                                            </p>
+                                            <p className="text-sm text-muted-foreground">
+                                                Lng:{' '}
+                                                {searchCoordinates.lng.toFixed(
+                                                    6,
+                                                )}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
                             </TabsContent>
                         </Tabs>
                     </CollapsibleContent>
