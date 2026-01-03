@@ -371,9 +371,9 @@ export default function TravelMap({
                 });
 
                 // Calculate zoom level based on radius + 10%
-                // The formula to calculate zoom level from radius (in km):
-                // zoom = log2(40075 * cos(lat) / (radius_km * 256)) - 1
-                // where 40075 is Earth's circumference in km
+                // The formula to calculate zoom level from radius:
+                // zoom = log2(Earth_circumference_meters * cos(lat) / (radius_meters * 256))
+                // where 40075000 is Earth's circumference in meters
                 // We add 10% to the radius to show a bit more context
                 const radiusWithMargin = searchRadiusRef.current * 1.1;
                 const latInRadians = (e.latlng.lat * Math.PI) / 180;
