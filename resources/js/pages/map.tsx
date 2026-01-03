@@ -1,5 +1,6 @@
 import CreateTourModal from '@/components/create-tour-modal';
 import CreateTripModal from '@/components/create-trip-modal';
+import DeleteTourDialog from '@/components/delete-tour-dialog';
 import RenameTripModal from '@/components/rename-trip-modal';
 import TravelMap from '@/components/travel-map';
 import AppLayout from '@/layouts/app-layout';
@@ -25,7 +26,9 @@ export default function MapPage() {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
     const [isCreateTourModalOpen, setIsCreateTourModalOpen] = useState(false);
+    const [isDeleteTourDialogOpen, setIsDeleteTourDialogOpen] = useState(false);
     const [tripToRename, setTripToRename] = useState<Trip | null>(null);
+    const [tourToDelete, setTourToDelete] = useState<Tour | null>(null);
 
     useEffect(() => {
         const loadTrips = async () => {
@@ -121,6 +124,32 @@ export default function MapPage() {
         }
     };
 
+    const handleOpenDeleteTourDialog = (tourId: number) => {
+        const tour = tours.find((t) => t.id === tourId);
+        if (!tour) {
+            console.warn(`Tour with id ${tourId} not found`);
+            return;
+        }
+        setTourToDelete(tour);
+        setIsDeleteTourDialogOpen(true);
+    };
+
+    const handleDeleteTour = async () => {
+        if (!tourToDelete) return;
+
+        try {
+            await axios.delete(`/tours/${tourToDelete.id}`);
+            setTours((prev) => prev.filter((t) => t.id !== tourToDelete.id));
+            // Reset to "All markers" view if the deleted tour was selected
+            if (selectedTourId === tourToDelete.id) {
+                setSelectedTourId(null);
+            }
+        } catch (error) {
+            console.error('Failed to delete tour:', error);
+            throw error;
+        }
+    };
+
     return (
         <AppLayout
             breadcrumbs={breadcrumbs}
@@ -139,6 +168,7 @@ export default function MapPage() {
                     onToursUpdate={setTours}
                     onSelectTour={setSelectedTourId}
                     onCreateTour={() => setIsCreateTourModalOpen(true)}
+                    onDeleteTour={handleOpenDeleteTourDialog}
                 />
             </div>
             <CreateTripModal
@@ -156,6 +186,12 @@ export default function MapPage() {
                 open={isCreateTourModalOpen}
                 onOpenChange={setIsCreateTourModalOpen}
                 onCreateTour={handleCreateTour}
+            />
+            <DeleteTourDialog
+                open={isDeleteTourDialogOpen}
+                onOpenChange={setIsDeleteTourDialogOpen}
+                onConfirm={handleDeleteTour}
+                tourName={tourToDelete?.name ?? ''}
             />
         </AppLayout>
     );

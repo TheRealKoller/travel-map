@@ -109,6 +109,30 @@ test('authenticated user can delete their own tour', function () {
     $this->assertDatabaseMissing('tours', ['id' => $tour->id]);
 });
 
+test('deleting a tour keeps markers associated with trip', function () {
+    $tour = Tour::factory()->create(['trip_id' => $this->trip->id]);
+    $marker1 = Marker::factory()->create([
+        'trip_id' => $this->trip->id,
+        'user_id' => $this->user->id,
+    ]);
+    $marker2 = Marker::factory()->create([
+        'trip_id' => $this->trip->id,
+        'user_id' => $this->user->id,
+    ]);
+
+    $tour->markers()->attach($marker1->id, ['position' => 0]);
+    $tour->markers()->attach($marker2->id, ['position' => 1]);
+
+    $response = $this->actingAs($this->user)->deleteJson("/tours/{$tour->id}");
+
+    $response->assertStatus(204);
+
+    $this->assertDatabaseMissing('tours', ['id' => $tour->id]);
+    $this->assertDatabaseMissing('marker_tour', ['tour_id' => $tour->id]);
+    $this->assertDatabaseHas('markers', ['id' => $marker1->id, 'trip_id' => $this->trip->id]);
+    $this->assertDatabaseHas('markers', ['id' => $marker2->id, 'trip_id' => $this->trip->id]);
+});
+
 test('user cannot delete another users tour', function () {
     $otherTrip = Trip::factory()->create();
     $otherTour = Tour::factory()->create(['trip_id' => $otherTrip->id]);
