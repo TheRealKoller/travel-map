@@ -21,8 +21,27 @@ class UpdateTourRequest extends FormRequest
      */
     public function rules(): array
     {
+        $tourId = $this->route('tour')->id;
+
         return [
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) use ($tourId) {
+                    $tour = $this->route('tour');
+                    $tripId = $tour->trip_id;
+
+                    $exists = \App\Models\Tour::where('trip_id', $tripId)
+                        ->where('id', '!=', $tourId)
+                        ->whereRaw('LOWER(name) = ?', [strtolower($value)])
+                        ->exists();
+
+                    if ($exists) {
+                        $fail('A tour with this name already exists for this trip.');
+                    }
+                },
+            ],
         ];
     }
 }

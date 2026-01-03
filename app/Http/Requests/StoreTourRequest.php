@@ -22,7 +22,23 @@ class StoreTourRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) {
+                    $tripId = $this->input('trip_id');
+                    if ($tripId) {
+                        $exists = \App\Models\Tour::where('trip_id', $tripId)
+                            ->whereRaw('LOWER(name) = ?', [strtolower($value)])
+                            ->exists();
+
+                        if ($exists) {
+                            $fail('A tour with this name already exists for this trip.');
+                        }
+                    }
+                },
+            ],
             'trip_id' => 'required|integer|exists:trips,id',
         ];
     }
