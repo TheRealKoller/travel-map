@@ -380,7 +380,7 @@ export default function TravelMap({
                 // Calculate the zoom level that would fit the radius
                 const targetZoom = Math.log2(
                     (40075000 * Math.cos(latInRadians)) /
-                        (radiusWithMargin * 1000 * 256),
+                        (radiusWithMargin * 256),
                 );
 
                 // Zoom to the location with the calculated zoom level
