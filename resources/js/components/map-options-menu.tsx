@@ -5,6 +5,7 @@ import {
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -14,12 +15,16 @@ interface MapOptionsMenuProps {
     isSearchMode: boolean;
     onSearchModeChange: (enabled: boolean) => void;
     searchCoordinates: { lat: number; lng: number } | null;
+    searchRadius: number;
+    onSearchRadiusChange: (radius: number) => void;
 }
 
 export default function MapOptionsMenu({
     isSearchMode,
     onSearchModeChange,
     searchCoordinates,
+    searchRadius,
+    onSearchRadiusChange,
 }: MapOptionsMenuProps) {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -75,6 +80,34 @@ export default function MapOptionsMenu({
                                             aria-label="Radius search mode toggle"
                                         />
                                     </div>
+                                    {isSearchMode && (
+                                        <div className="space-y-2">
+                                            <Label
+                                                htmlFor="search-radius"
+                                                className="text-sm font-medium"
+                                            >
+                                                Suchradius: {searchRadius} km
+                                            </Label>
+                                            <Slider
+                                                id="search-radius"
+                                                min={1}
+                                                max={100}
+                                                step={1}
+                                                value={[searchRadius]}
+                                                onValueChange={(values) =>
+                                                    onSearchRadiusChange(
+                                                        values[0],
+                                                    )
+                                                }
+                                                className="w-full"
+                                                aria-label="Search radius in kilometers"
+                                            />
+                                            <div className="flex justify-between text-xs text-muted-foreground">
+                                                <span>1 km</span>
+                                                <span>100 km</span>
+                                            </div>
+                                        </div>
+                                    )}
                                     {searchCoordinates && (
                                         <div className="rounded-md bg-muted p-3">
                                             <p className="text-sm font-medium">
