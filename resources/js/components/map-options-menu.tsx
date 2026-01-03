@@ -125,7 +125,7 @@ export default function MapOptionsMenu({
                                                     >
                                                         <SelectValue placeholder="Typ auswählen" />
                                                     </SelectTrigger>
-                                                    <SelectContent>
+                                                    <SelectContent className="z-[1100]">
                                                         {placeTypes.map(
                                                             (type) => (
                                                                 <SelectItem
