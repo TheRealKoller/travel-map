@@ -194,3 +194,50 @@ test('place types endpoint returns available types', function () {
     expect($allOption)->not->toBeNull();
     expect($allOption['label'])->toBe('Alle Orte');
 });
+
+test('search results include optional name and type fields', function () {
+    // Mock the Overpass API response with various data combinations
+    Http::fake([
+        'overpass.private.coffee/*' => Http::response([
+            'elements' => [
+                // Element with name and amenity type
+                ['type' => 'node', 'id' => 1, 'lat' => 35.6762, 'lon' => 139.6503, 'tags' => ['name' => 'Restaurant A', 'amenity' => 'restaurant']],
+                // Element with name and tourism type
+                ['type' => 'node', 'id' => 2, 'lat' => 35.6763, 'lon' => 139.6504, 'tags' => ['name' => 'Hotel B', 'tourism' => 'hotel']],
+                // Element without name but with shop type
+                ['type' => 'node', 'id' => 3, 'lat' => 35.6764, 'lon' => 139.6505, 'tags' => ['shop' => 'bakery']],
+                // Element with only coordinates (no tags)
+                ['type' => 'node', 'id' => 4, 'lat' => 35.6765, 'lon' => 139.6506, 'tags' => []],
+            ],
+        ], 200),
+    ]);
+
+    $response = $this->actingAs($this->user)->postJson('/markers/search-nearby', [
+        'latitude' => 35.6762,
+        'longitude' => 139.6503,
+        'radius_km' => 10,
+    ]);
+
+    $response->assertStatus(200);
+    $results = $response->json('results');
+
+    expect($results)->toHaveCount(4);
+
+    // First result should have name and type
+    expect($results[0]['lat'])->toBe(35.6762);
+    expect($results[0]['lon'])->toBe(139.6503);
+    expect($results[0]['name'])->toBe('Restaurant A');
+    expect($results[0]['type'])->toBe('restaurant');
+
+    // Second result should have name and type
+    expect($results[1]['name'])->toBe('Hotel B');
+    expect($results[1]['type'])->toBe('hotel');
+
+    // Third result should have type but no name
+    expect($results[2])->not->toHaveKey('name');
+    expect($results[2]['type'])->toBe('bakery');
+
+    // Fourth result should have neither name nor type
+    expect($results[3])->not->toHaveKey('name');
+    expect($results[3])->not->toHaveKey('type');
+});
