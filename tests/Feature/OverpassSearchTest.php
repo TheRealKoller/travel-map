@@ -128,3 +128,45 @@ test('search nearby handles API errors gracefully', function () {
 
     expect($response->json('error'))->not->toBeNull();
 });
+
+test('search nearby accepts place type parameter', function () {
+    // Mock the Overpass API response
+    Http::fake([
+        'overpass.private.coffee/*' => Http::response([
+            'elements' => [
+                ['type' => 'node', 'id' => 1, 'lat' => 35.6762, 'lon' => 139.6503],
+            ],
+        ], 200),
+    ]);
+
+    $response = $this->actingAs($this->user)->postJson('/markers/search-nearby', [
+        'latitude' => 35.6762,
+        'longitude' => 139.6503,
+        'radius_km' => 10,
+        'place_type' => 'hotel',
+    ]);
+
+    $response->assertStatus(200)
+        ->assertJson([
+            'count' => 1,
+            'error' => null,
+        ]);
+});
+
+test('place types endpoint returns available types', function () {
+    $response = $this->actingAs($this->user)->getJson('/markers/place-types');
+
+    $response->assertStatus(200)
+        ->assertJsonStructure([
+            '*' => ['value', 'label'],
+        ]);
+
+    $data = $response->json();
+    expect($data)->toBeArray();
+    expect(count($data))->toBeGreaterThan(0);
+    
+    // Check that 'all' option exists
+    $allOption = collect($data)->firstWhere('value', 'all');
+    expect($allOption)->not->toBeNull();
+    expect($allOption['label'])->toBe('Alle Orte');
+});

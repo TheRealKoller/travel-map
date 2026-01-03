@@ -66,6 +66,22 @@ class MarkerController extends Controller
     }
 
     /**
+     * Get available place types for search filtering.
+     */
+    public function placeTypes(): JsonResponse
+    {
+        $placeTypes = array_map(
+            fn (\App\Enums\PlaceType $type) => [
+                'value' => $type->value,
+                'label' => $type->label(),
+            ],
+            \App\Enums\PlaceType::cases()
+        );
+
+        return response()->json($placeTypes);
+    }
+
+    /**
      * Search for points of interest near given coordinates using Overpass API.
      */
     public function searchNearby(Request $request): JsonResponse
@@ -74,12 +90,20 @@ class MarkerController extends Controller
             'latitude' => ['required', 'numeric', 'min:-90', 'max:90'],
             'longitude' => ['required', 'numeric', 'min:-180', 'max:180'],
             'radius_km' => ['required', 'integer', 'min:1', 'max:100'],
+            'place_type' => ['nullable', 'string'],
         ]);
+
+        // Convert place_type string to enum, default to All if not provided or invalid
+        $placeType = null;
+        if (isset($validated['place_type']) && $validated['place_type'] !== '') {
+            $placeType = \App\Enums\PlaceType::tryFrom($validated['place_type']);
+        }
 
         $result = $this->overpassService->searchNearby(
             latitude: $validated['latitude'],
             longitude: $validated['longitude'],
-            radiusKm: $validated['radius_km']
+            radiusKm: $validated['radius_km'],
+            placeType: $placeType
         );
 
         return response()->json($result);
