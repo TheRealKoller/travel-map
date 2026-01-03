@@ -93,11 +93,10 @@ class MarkerController extends Controller
             'place_type' => ['nullable', 'string'],
         ]);
 
-        // Convert place_type string to enum, default to All if not provided or invalid
-        $placeType = null;
-        if (isset($validated['place_type']) && $validated['place_type'] !== '') {
-            $placeType = \App\Enums\PlaceType::tryFrom($validated['place_type']);
-        }
+        // Convert place_type string to enum, default to null if not provided or invalid
+        $placeType = isset($validated['place_type']) && $validated['place_type'] !== ''
+            ? \App\Enums\PlaceType::tryFrom($validated['place_type'])
+            : null;
 
         $result = $this->overpassService->searchNearby(
             latitude: $validated['latitude'],

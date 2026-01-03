@@ -103,7 +103,7 @@ class OverpassService
     {
         $timeoutSeconds = self::OVERPASS_QUERY_TIMEOUT;
 
-        // If no place type is specified or 'all' is selected, use default broad search
+        // If no place type is specified, use default broad search
         $placeType = $placeType ?? PlaceType::All;
 
         // Get the conditions for the selected place type

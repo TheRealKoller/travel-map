@@ -38,8 +38,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/markers', [MarkerController::class, 'store'])->name('markers.store');
     Route::put('/markers/{marker}', [MarkerController::class, 'update'])->name('markers.update');
     Route::delete('/markers/{marker}', [MarkerController::class, 'destroy'])->name('markers.destroy');
-    Route::get('/markers/place-types', [MarkerController::class, 'placeTypes'])->name('markers.place-types');
     Route::post('/markers/search-nearby', [MarkerController::class, 'searchNearby'])->name('markers.search-nearby');
+    Route::get('/markers/place-types', [MarkerController::class, 'placeTypes'])->name('markers.place-types');
 
     // Log Viewer - only accessible to authenticated and verified users
     Route::get('logs', [LogViewerController::class, 'index'])->name('logs');
