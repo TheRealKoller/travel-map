@@ -116,74 +116,59 @@ export default function MapOptionsMenu({
                                                 : 'Umkreissuche aktivieren'}
                                         </Button>
                                     </div>
-                                    {isSearchMode && (
-                                        <>
-                                            <div className="space-y-2">
-                                                <Label
-                                                    htmlFor="place-type"
-                                                    className="text-sm font-medium"
-                                                >
-                                                    Typ des Ortes
-                                                </Label>
-                                                <Select
-                                                    value={selectedPlaceType}
-                                                    onValueChange={
-                                                        onPlaceTypeChange
-                                                    }
-                                                >
-                                                    <SelectTrigger
-                                                        id="place-type"
-                                                        className="w-full"
+                                    <div className="space-y-2">
+                                        <Label
+                                            htmlFor="place-type"
+                                            className="text-sm font-medium"
+                                        >
+                                            Typ des Ortes
+                                        </Label>
+                                        <Select
+                                            value={selectedPlaceType}
+                                            onValueChange={onPlaceTypeChange}
+                                        >
+                                            <SelectTrigger
+                                                id="place-type"
+                                                className="w-full"
+                                            >
+                                                <SelectValue placeholder="Typ auswählen" />
+                                            </SelectTrigger>
+                                            <SelectContent className="z-[1100]">
+                                                {placeTypes.map((type) => (
+                                                    <SelectItem
+                                                        key={type.value}
+                                                        value={type.value}
                                                     >
-                                                        <SelectValue placeholder="Typ auswählen" />
-                                                    </SelectTrigger>
-                                                    <SelectContent className="z-[1100]">
-                                                        {placeTypes.map(
-                                                            (type) => (
-                                                                <SelectItem
-                                                                    key={
-                                                                        type.value
-                                                                    }
-                                                                    value={
-                                                                        type.value
-                                                                    }
-                                                                >
-                                                                    {type.label}
-                                                                </SelectItem>
-                                                            ),
-                                                        )}
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label
-                                                    htmlFor="search-radius"
-                                                    className="text-sm font-medium"
-                                                >
-                                                    Suchradius: {searchRadius}{' '}
-                                                    km
-                                                </Label>
-                                                <Slider
-                                                    id="search-radius"
-                                                    min={1}
-                                                    max={100}
-                                                    step={1}
-                                                    value={[searchRadius]}
-                                                    onValueChange={(values) =>
-                                                        onSearchRadiusChange(
-                                                            values[0],
-                                                        )
-                                                    }
-                                                    className="w-full"
-                                                    aria-label="Search radius in kilometers"
-                                                />
-                                                <div className="flex justify-between text-xs text-muted-foreground">
-                                                    <span>1 km</span>
-                                                    <span>100 km</span>
-                                                </div>
-                                            </div>
-                                        </>
-                                    )}
+                                                        {type.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label
+                                            htmlFor="search-radius"
+                                            className="text-sm font-medium"
+                                        >
+                                            Suchradius: {searchRadius} km
+                                        </Label>
+                                        <Slider
+                                            id="search-radius"
+                                            min={1}
+                                            max={100}
+                                            step={1}
+                                            value={[searchRadius]}
+                                            onValueChange={(values) =>
+                                                onSearchRadiusChange(values[0])
+                                            }
+                                            className="w-full"
+                                            aria-label="Search radius in kilometers"
+                                        />
+                                        <div className="flex justify-between text-xs text-muted-foreground">
+                                            <span>1 km</span>
+                                            <span>100 km</span>
+                                        </div>
+                                    </div>
                                     {searchCoordinates && (
                                         <div className="rounded-md bg-muted p-3">
                                             <p className="text-sm font-medium">
