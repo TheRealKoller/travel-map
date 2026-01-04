@@ -1286,9 +1286,19 @@ export default function TravelMap({
             }
         }
 
-        // Check if dropped on a tour tab (adding marker to tour)
-        if (overId.startsWith('tour-')) {
-            const tourId = parseInt(overId.replace('tour-', ''));
+        // Check if dropped on a tour or sub-tour (adding marker to tour)
+        let tourId: number | null = null;
+        
+        // Check if dropped on a sub-tour item in mixed list
+        if (overId.startsWith('tour-item-subtour-')) {
+            tourId = parseInt(overId.replace('tour-item-subtour-', ''));
+        } 
+        // Check if dropped on a regular tour tab
+        else if (overId.startsWith('tour-') && !overId.startsWith('tour-item-')) {
+            tourId = parseInt(overId.replace('tour-', ''));
+        }
+
+        if (tourId !== null && !isNaN(tourId)) {
             const markerId = activeId;
 
             // Helper function to find a tour (including sub-tours)
