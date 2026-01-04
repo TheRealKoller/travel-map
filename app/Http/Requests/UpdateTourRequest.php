@@ -25,30 +25,19 @@ class UpdateTourRequest extends FormRequest
         $tour = $this->route('tour');
         $tourId = $tour->id;
         $tripId = $tour->trip_id;
-        $parentTourId = $tour->parent_tour_id;
 
         return [
             'name' => [
                 'required',
                 'string',
                 'max:255',
-                function ($attribute, $value, $fail) use ($tourId, $tripId, $parentTourId) {
+                function ($attribute, $value, $fail) use ($tourId, $tripId) {
                     $query = Tour::where('trip_id', $tripId)
                         ->where('id', '!=', $tourId)
                         ->whereRaw('LOWER(name) = ?', [strtolower($value)]);
 
-                    // If updating a sub-tour, check uniqueness within parent tour only
-                    if ($parentTourId) {
-                        $query->where('parent_tour_id', $parentTourId);
-                    } else {
-                        // For top-level tours, check among other top-level tours
-                        $query->whereNull('parent_tour_id');
-                    }
-
                     if ($query->exists()) {
-                        $fail($parentTourId
-                            ? 'A sub-tour with this name already exists in this tour.'
-                            : 'A tour with this name already exists for this trip.');
+                        $fail('A tour with this name already exists for this trip.');
                     }
                 },
             ],
