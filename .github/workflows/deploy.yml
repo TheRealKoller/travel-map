@@ -109,6 +109,8 @@ jobs:
           AWS_BUCKET="${{ vars.AWS_BUCKET }}"
           AWS_USE_PATH_STYLE_ENDPOINT="${{ vars.AWS_USE_PATH_STYLE_ENDPOINT }}"
           
+          MAPBOX_ACCESS_TOKEN="${{ secrets.MAPBOX_ACCESS_TOKEN }}"
+          
           VITE_APP_NAME="${{ vars.VITE_APP_NAME }}"
           EOF
           
