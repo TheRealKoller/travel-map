@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('tours', function (Blueprint $table) {
             $table->foreignId('parent_tour_id')->nullable()->after('trip_id')->constrained('tours')->onDelete('cascade');
             $table->integer('position')->default(0)->after('parent_tour_id');
-            
+
             // Add unique constraint: sub-tour name must be unique within parent tour
             $table->unique(['parent_tour_id', 'name'], 'tours_parent_tour_id_name_unique');
         });

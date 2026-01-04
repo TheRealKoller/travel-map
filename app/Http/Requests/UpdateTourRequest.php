@@ -36,7 +36,7 @@ class UpdateTourRequest extends FormRequest
                     $query = Tour::where('trip_id', $tripId)
                         ->where('id', '!=', $tourId)
                         ->whereRaw('LOWER(name) = ?', [strtolower($value)]);
-                    
+
                     // If updating a sub-tour, check uniqueness within parent tour only
                     if ($parentTourId) {
                         $query->where('parent_tour_id', $parentTourId);
@@ -46,8 +46,8 @@ class UpdateTourRequest extends FormRequest
                     }
 
                     if ($query->exists()) {
-                        $fail($parentTourId 
-                            ? 'A sub-tour with this name already exists in this tour.' 
+                        $fail($parentTourId
+                            ? 'A sub-tour with this name already exists in this tour.'
                             : 'A tour with this name already exists for this trip.');
                     }
                 },

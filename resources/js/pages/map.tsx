@@ -1,5 +1,5 @@
-import CreateTourModal from '@/components/create-tour-modal';
 import CreateSubTourModal from '@/components/create-sub-tour-modal';
+import CreateTourModal from '@/components/create-tour-modal';
 import CreateTripModal from '@/components/create-trip-modal';
 import DeleteTourDialog from '@/components/delete-tour-dialog';
 import RenameTripModal from '@/components/rename-trip-modal';
@@ -27,11 +27,13 @@ export default function MapPage() {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
     const [isCreateTourModalOpen, setIsCreateTourModalOpen] = useState(false);
-    const [isCreateSubTourModalOpen, setIsCreateSubTourModalOpen] = useState(false);
+    const [isCreateSubTourModalOpen, setIsCreateSubTourModalOpen] =
+        useState(false);
     const [isDeleteTourDialogOpen, setIsDeleteTourDialogOpen] = useState(false);
     const [tripToRename, setTripToRename] = useState<Trip | null>(null);
     const [tourToDelete, setTourToDelete] = useState<Tour | null>(null);
-    const [parentTourForSubTour, setParentTourForSubTour] = useState<Tour | null>(null);
+    const [parentTourForSubTour, setParentTourForSubTour] =
+        useState<Tour | null>(null);
 
     useEffect(() => {
         const loadTrips = async () => {
@@ -147,7 +149,7 @@ export default function MapPage() {
                 parent_tour_id: parentTourForSubTour.id,
             });
             const newSubTour = response.data;
-            
+
             // Update the tours array to add the sub-tour to its parent
             setTours((prev) =>
                 prev.map((tour) => {
@@ -181,7 +183,7 @@ export default function MapPage() {
 
         try {
             await axios.delete(`/tours/${tourToDelete.id}`);
-            
+
             // If it's a sub-tour, remove it from parent's sub_tours array
             if (tourToDelete.parent_tour_id) {
                 setTours((prev) =>
@@ -199,7 +201,9 @@ export default function MapPage() {
                 );
             } else {
                 // If it's a top-level tour, remove it from tours array
-                setTours((prev) => prev.filter((t) => t.id !== tourToDelete.id));
+                setTours((prev) =>
+                    prev.filter((t) => t.id !== tourToDelete.id),
+                );
                 // Reset to "All markers" view if the deleted tour was selected
                 if (selectedTourId === tourToDelete.id) {
                     setSelectedTourId(null);

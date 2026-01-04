@@ -239,7 +239,8 @@ function DroppableTourCard({
                     </Button>
                 </div>
             </div>
-            {markers.length === 0 && (!tour.sub_tours || tour.sub_tours.length === 0) ? (
+            {markers.length === 0 &&
+            (!tour.sub_tours || tour.sub_tours.length === 0) ? (
                 <p className="text-sm text-gray-500">
                     Drag markers here to add them to this tour
                 </p>
@@ -259,7 +260,7 @@ function DroppableTourCard({
                     </ul>
                 </SortableContext>
             )}
-            
+
             {/* Display sub-tours */}
             {tour.sub_tours && tour.sub_tours.length > 0 && (
                 <div className="mt-4 space-y-3">

@@ -51,10 +51,10 @@ class TourController extends Controller
             if ($parentTour->trip_id !== $tripId) {
                 return response()->json(['error' => 'Parent tour does not belong to this trip'], 422);
             }
-            
+
             // Get the highest position among sibling sub-tours and add 1
             $maxPosition = Tour::where('parent_tour_id', $parentTourId)->max('position') ?? -1;
-            
+
             $tour = Tour::create([
                 'name' => $validated['name'],
                 'trip_id' => $tripId,
