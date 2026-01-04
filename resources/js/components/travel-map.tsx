@@ -243,7 +243,7 @@ export default function TravelMap({
         lat: number;
         lng: number;
     } | null>(null);
-    const [searchRadius, setSearchRadius] = useState<number>(10); // Default 10 km
+    const [searchRadius, setSearchRadius] = useState<number>(5); // Default 5 km
     const searchRadiusRef = useRef<number>(10); // Ref for use in event handlers
     const [searchResultCount, setSearchResultCount] = useState<number | null>(
         null,
@@ -410,7 +410,10 @@ export default function TravelMap({
                 }
 
                 // Add click handler to create a marker from search result
-                circle.on('click', () => {
+                circle.on('click', (e: L.LeafletMouseEvent) => {
+                    // Prevent event from bubbling to the map's click handler
+                    L.DomEvent.stopPropagation(e);
+
                     // Get the name with priority: English > International > Local
                     const markerName =
                         result.name_en || result.name_int || result.name || '';
