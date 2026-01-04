@@ -218,6 +218,9 @@ export default function MarkerForm({
                         <option value={MarkerType.NaturalAttraction}>
                             Natural Attraction
                         </option>
+                        <option value={MarkerType.City}>City</option>
+                        <option value={MarkerType.Village}>Village</option>
+                        <option value={MarkerType.Region}>Region</option>
                     </select>
                 </div>
                 <div>

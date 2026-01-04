@@ -5,10 +5,12 @@ import {
     Church,
     Eye,
     HelpCircle,
+    Home,
     Hotel,
     Landmark,
     Lightbulb,
     type LucideIcon,
+    Map,
     MapPin,
     Mountain,
     Palmtree,
@@ -32,6 +34,9 @@ export const markerTypeIcons: Record<MarkerType, LucideIcon> = {
     [MarkerType.Leisure]: Palmtree,
     [MarkerType.Sightseeing]: Eye,
     [MarkerType.NaturalAttraction]: Mountain,
+    [MarkerType.City]: Building,
+    [MarkerType.Village]: Home,
+    [MarkerType.Region]: Map,
 };
 
 /**
