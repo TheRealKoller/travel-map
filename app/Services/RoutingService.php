@@ -26,10 +26,10 @@ class RoutingService
 
         $coordinates = sprintf(
             '%s,%s;%s,%s',
-            $startMarker->lng,
-            $startMarker->lat,
-            $endMarker->lng,
-            $endMarker->lat
+            $startMarker->longitude,
+            $startMarker->latitude,
+            $endMarker->longitude,
+            $endMarker->latitude
         );
 
         $url = sprintf(
