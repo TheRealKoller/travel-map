@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\MarkerController;
+use App\Http\Controllers\RouteController;
 use App\Http\Controllers\TourController;
 use App\Http\Controllers\TripController;
 use Illuminate\Support\Facades\Route;
@@ -40,6 +41,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/markers/{marker}', [MarkerController::class, 'destroy'])->name('markers.destroy');
     Route::post('/markers/search-nearby', [MarkerController::class, 'searchNearby'])->name('markers.search-nearby');
     Route::get('/markers/place-types', [MarkerController::class, 'placeTypes'])->name('markers.place-types');
+
+    // Route routes
+    Route::get('/routes', [RouteController::class, 'index'])->name('routes.index');
+    Route::post('/routes', [RouteController::class, 'store'])->name('routes.store');
+    Route::get('/routes/{route}', [RouteController::class, 'show'])->name('routes.show');
+    Route::delete('/routes/{route}', [RouteController::class, 'destroy'])->name('routes.destroy');
 
     // Log Viewer - only accessible to authenticated and verified users
     Route::get('logs', [LogViewerController::class, 'index'])->name('logs');

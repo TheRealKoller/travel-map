@@ -29,4 +29,9 @@ class Trip extends Model
     {
         return $this->hasMany(Tour::class);
     }
+
+    public function routes(): HasMany
+    {
+        return $this->hasMany(Route::class);
+    }
 }

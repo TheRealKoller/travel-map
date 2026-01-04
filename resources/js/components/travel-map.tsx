@@ -1,8 +1,10 @@
 import MapOptionsMenu from '@/components/map-options-menu';
 import MarkerForm from '@/components/marker-form';
 import MarkerList from '@/components/marker-list';
+import RoutePanel from '@/components/route-panel';
 import TourPanel from '@/components/tour-panel';
 import { MarkerData, MarkerType } from '@/types/marker';
+import { Route } from '@/types/route';
 import { Tour } from '@/types/tour';
 import {
     closestCenter,
@@ -263,6 +265,8 @@ export default function TravelMap({
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const searchResultCirclesRef = useRef<L.Circle[]>([]);
     const searchRadiusCircleRef = useRef<L.Circle | null>(null);
+    const [routes, setRoutes] = useState<Route[]>([]);
+    const routePolylinesRef = useRef<Map<number, L.Polyline>>(new Map());
 
     // Configure drag and drop sensors
     const sensors = useSensors(
@@ -872,6 +876,74 @@ export default function TravelMap({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedTripId]);
 
+    // Load routes from database when trip changes
+    useEffect(() => {
+        const loadRoutes = async () => {
+            if (!selectedTripId || !mapInstanceRef.current) return;
+
+            try {
+                const response = await axios.get('/routes', {
+                    params: { trip_id: selectedTripId },
+                });
+                const dbRoutes = response.data;
+                setRoutes(dbRoutes);
+            } catch (error) {
+                console.error('Failed to load routes:', error);
+            }
+        };
+
+        loadRoutes();
+    }, [selectedTripId]);
+
+    // Render routes on map
+    useEffect(() => {
+        if (!mapInstanceRef.current) return;
+
+        const map = mapInstanceRef.current;
+
+        // Clear existing route polylines
+        routePolylinesRef.current.forEach((polyline) => {
+            map.removeLayer(polyline);
+        });
+        routePolylinesRef.current.clear();
+
+        // Render each route as a polyline
+        routes.forEach((route) => {
+            // Convert geometry to LatLng array (swap lng/lat to lat/lng for Leaflet)
+            const latLngs: L.LatLngExpression[] = route.geometry.map(
+                ([lng, lat]) => [lat, lng],
+            );
+
+            // Determine color based on transport mode
+            let color = '#3388ff'; // Default blue
+            if (route.transport_mode.value === 'driving-car') {
+                color = '#e74c3c'; // Red for car
+            } else if (route.transport_mode.value === 'cycling-regular') {
+                color = '#f39c12'; // Orange for bike
+            } else if (route.transport_mode.value === 'foot-walking') {
+                color = '#27ae60'; // Green for walking
+            }
+
+            const polyline = L.polyline(latLngs, {
+                color,
+                weight: 4,
+                opacity: 0.7,
+            }).addTo(map);
+
+            // Add popup with route information
+            const distanceKm = route.distance.km.toFixed(2);
+            const durationMin = Math.round(route.duration.minutes);
+            polyline.bindPopup(
+                `<strong>${route.start_marker.name} → ${route.end_marker.name}</strong><br>` +
+                    `Mode: ${route.transport_mode.label}<br>` +
+                    `Distance: ${distanceKm} km<br>` +
+                    `Duration: ${durationMin} min`,
+            );
+
+            routePolylinesRef.current.set(route.id, polyline);
+        });
+    }, [routes]);
+
     const handleSelectMarker = (id: string) => {
         setSelectedMarkerId(id);
     };
@@ -1153,7 +1225,7 @@ export default function TravelMap({
         >
             <div className="flex h-full flex-col gap-4 lg:flex-row">
                 {/* Part 1: Marker list or form */}
-                <div className="w-full lg:w-1/4">
+                <div className="w-full lg:w-1/5">
                     {selectedMarkerId ? (
                         <MarkerForm
                             key={selectedMarkerId}
@@ -1174,7 +1246,7 @@ export default function TravelMap({
                 </div>
 
                 {/* Part 2: Tour panel */}
-                <div className="w-full lg:w-1/4">
+                <div className="w-full lg:w-1/5">
                     <TourPanel
                         tours={tours}
                         selectedTourId={selectedTourId}
@@ -1185,8 +1257,20 @@ export default function TravelMap({
                     />
                 </div>
 
-                {/* Part 3: Map */}
-                <div className="w-full flex-1 lg:w-1/2">
+                {/* Part 3: Route panel */}
+                {selectedTripId && (
+                    <div className="w-full lg:w-1/5">
+                        <RoutePanel
+                            tripId={selectedTripId}
+                            markers={markers}
+                            routes={routes}
+                            onRoutesUpdate={setRoutes}
+                        />
+                    </div>
+                )}
+
+                {/* Part 4: Map */}
+                <div className="w-full flex-1">
                     <div className="relative">
                         <div
                             ref={mapRef}
