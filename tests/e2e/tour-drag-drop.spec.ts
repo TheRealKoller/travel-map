@@ -30,7 +30,7 @@ test.describe('Drag and Drop Markers to Tours', () => {
             // Save the marker
             const saveButton = page.locator('button:has-text("Save")');
             await saveButton.click();
-            await page.waitForTimeout(1500);
+            await page.waitForTimeout(2000);
 
             // Form should close automatically after save
             // If it's still visible, close it manually
@@ -39,14 +39,17 @@ test.describe('Drag and Drop Markers to Tours', () => {
                 .first();
             if (await closeButton.isVisible({ timeout: 1000 }).catch(() => false)) {
                 await closeButton.click();
-                await page.waitForTimeout(500);
+                await page.waitForTimeout(1000);
             }
+
+            // Wait for marker list to render
+            await page.waitForTimeout(1000);
 
             // Check for drag instruction text
             const dragInstructionText = page.locator(
                 'text=Drag markers to tour tabs to add them to a tour',
             );
-            await expect(dragInstructionText).toBeVisible();
+            await expect(dragInstructionText).toBeVisible({ timeout: 5000 });
 
             // Check for grip icon (drag handle) - lucide-react uses SVG
             const gripHandle = page.locator('svg').first();

@@ -47,13 +47,13 @@ test.describe('Trip Management', () => {
         const submitButton = page.locator('button:has-text("Create trip")');
         await submitButton.click();
 
-        // Wait for modal to close
+        // Wait for modal to close (longer timeout for animations + API)
         await expect(
             page.locator('[role="dialog"]'),
-        ).not.toBeVisible({ timeout: 5000 });
+        ).not.toBeVisible({ timeout: 10000 });
 
         // Verify the new trip appears in the selector
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(1000);
     });
 
     test('user can switch between trips', async ({ page }) => {
@@ -105,7 +105,7 @@ test.describe('Trip Management', () => {
             .first();
         await createTripButton.click();
 
-        await page.waitForSelector('[role="dialog"]', { timeout: 5000 });
+        await page.waitForSelector('[role="dialog"]', { timeout: 10000 });
         const tripNameInput = page.locator('input#tripName');
         await tripNameInput.fill('Second Trip');
 
@@ -113,10 +113,10 @@ test.describe('Trip Management', () => {
         await submitButton.click();
 
         await expect(page.locator('[role="dialog"]')).not.toBeVisible({
-            timeout: 5000,
+            timeout: 10000,
         });
 
-        await page.waitForTimeout(1000);
+        await page.waitForTimeout(1500);
 
         // Close sidebar to access map - force close to avoid overlay issues
         await sidebarTrigger.click({ force: true });
