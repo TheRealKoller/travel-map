@@ -32,6 +32,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/tours/{tour}/markers', [TourController::class, 'attachMarker'])->name('tours.markers.attach');
     Route::delete('/tours/{tour}/markers', [TourController::class, 'detachMarker'])->name('tours.markers.detach');
     Route::put('/tours/{tour}/markers/reorder', [TourController::class, 'reorderMarkers'])->name('tours.markers.reorder');
+    Route::put('/tours/{tour}/sub-tours/reorder', [TourController::class, 'reorderSubTours'])->name('tours.subtours.reorder');
 
     // Marker routes
     Route::get('/markers', [MarkerController::class, 'index'])->name('markers.index');

@@ -26,7 +26,12 @@ class TourController extends Controller
         $trip = Trip::findOrFail($tripId);
         $this->authorize('view', $trip);
 
-        $tours = $trip->tours()->with('markers')->orderBy('created_at', 'asc')->get();
+        // Only return top-level tours (no parent_tour_id), with their markers and sub-tours
+        $tours = $trip->tours()
+            ->whereNull('parent_tour_id')
+            ->with(['markers', 'subTours.markers'])
+            ->orderBy('created_at', 'asc')
+            ->get();
 
         return response()->json($tours);
     }
@@ -35,22 +40,41 @@ class TourController extends Controller
     {
         $validated = $request->validated();
         $tripId = $validated['trip_id'];
+        $parentTourId = $validated['parent_tour_id'] ?? null;
 
         $trip = Trip::findOrFail($tripId);
         $this->authorize('update', $trip);
 
-        $tour = $trip->tours()->create([
-            'name' => $validated['name'],
-        ]);
+        // If creating a sub-tour, verify parent tour belongs to the same trip
+        if ($parentTourId) {
+            $parentTour = Tour::findOrFail($parentTourId);
+            if ($parentTour->trip_id !== $tripId) {
+                return response()->json(['error' => 'Parent tour does not belong to this trip'], 422);
+            }
+            
+            // Get the highest position among sibling sub-tours and add 1
+            $maxPosition = Tour::where('parent_tour_id', $parentTourId)->max('position') ?? -1;
+            
+            $tour = Tour::create([
+                'name' => $validated['name'],
+                'trip_id' => $tripId,
+                'parent_tour_id' => $parentTourId,
+                'position' => $maxPosition + 1,
+            ]);
+        } else {
+            $tour = $trip->tours()->create([
+                'name' => $validated['name'],
+            ]);
+        }
 
-        return response()->json($tour->load('markers'), 201);
+        return response()->json($tour->load(['markers', 'subTours']), 201);
     }
 
     public function show(Tour $tour): JsonResponse
     {
         $this->authorize('view', $tour);
 
-        return response()->json($tour->load('markers'));
+        return response()->json($tour->load(['markers', 'subTours.markers']));
     }
 
     public function update(UpdateTourRequest $request, Tour $tour): JsonResponse
@@ -61,7 +85,7 @@ class TourController extends Controller
 
         $tour->update(['name' => $validated['name']]);
 
-        return response()->json($tour->load('markers'));
+        return response()->json($tour->load(['markers', 'subTours']));
     }
 
     public function destroy(Tour $tour): JsonResponse
@@ -136,5 +160,32 @@ class TourController extends Controller
         }
 
         return response()->json($tour->load('markers'));
+    }
+
+    public function reorderSubTours(Request $request, Tour $tour): JsonResponse
+    {
+        $this->authorize('update', $tour);
+
+        $validated = $request->validate([
+            'sub_tour_ids' => 'required|array',
+            'sub_tour_ids.*' => 'required|integer|exists:tours,id',
+        ]);
+
+        $subTourIds = $validated['sub_tour_ids'];
+
+        // Verify all sub-tours belong to this tour
+        $tourSubTourIds = $tour->subTours->pluck('id')->toArray();
+        $invalidSubTourIds = array_diff($subTourIds, $tourSubTourIds);
+
+        if (! empty($invalidSubTourIds)) {
+            return response()->json(['error' => 'One or more sub-tours do not belong to this tour'], 422);
+        }
+
+        // Update positions for each sub-tour
+        foreach ($subTourIds as $index => $subTourId) {
+            Tour::where('id', $subTourId)->update(['position' => $index]);
+        }
+
+        return response()->json($tour->load(['markers', 'subTours.markers']));
     }
 }

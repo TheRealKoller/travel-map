@@ -1,4 +1,5 @@
 import CreateTourModal from '@/components/create-tour-modal';
+import CreateSubTourModal from '@/components/create-sub-tour-modal';
 import CreateTripModal from '@/components/create-trip-modal';
 import DeleteTourDialog from '@/components/delete-tour-dialog';
 import RenameTripModal from '@/components/rename-trip-modal';
@@ -26,9 +27,11 @@ export default function MapPage() {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
     const [isCreateTourModalOpen, setIsCreateTourModalOpen] = useState(false);
+    const [isCreateSubTourModalOpen, setIsCreateSubTourModalOpen] = useState(false);
     const [isDeleteTourDialogOpen, setIsDeleteTourDialogOpen] = useState(false);
     const [tripToRename, setTripToRename] = useState<Trip | null>(null);
     const [tourToDelete, setTourToDelete] = useState<Tour | null>(null);
+    const [parentTourForSubTour, setParentTourForSubTour] = useState<Tour | null>(null);
 
     useEffect(() => {
         const loadTrips = async () => {
@@ -124,6 +127,45 @@ export default function MapPage() {
         }
     };
 
+    const handleOpenCreateSubTourModal = (parentTourId: number) => {
+        const parentTour = tours.find((t) => t.id === parentTourId);
+        if (!parentTour) {
+            console.warn(`Tour with id ${parentTourId} not found`);
+            return;
+        }
+        setParentTourForSubTour(parentTour);
+        setIsCreateSubTourModalOpen(true);
+    };
+
+    const handleCreateSubTour = async (name: string) => {
+        if (!selectedTripId || !parentTourForSubTour) return;
+
+        try {
+            const response = await axios.post('/tours', {
+                name,
+                trip_id: selectedTripId,
+                parent_tour_id: parentTourForSubTour.id,
+            });
+            const newSubTour = response.data;
+            
+            // Update the tours array to add the sub-tour to its parent
+            setTours((prev) =>
+                prev.map((tour) => {
+                    if (tour.id === parentTourForSubTour.id) {
+                        return {
+                            ...tour,
+                            sub_tours: [...(tour.sub_tours || []), newSubTour],
+                        };
+                    }
+                    return tour;
+                }),
+            );
+        } catch (error) {
+            console.error('Failed to create sub-tour:', error);
+            throw error;
+        }
+    };
+
     const handleOpenDeleteTourDialog = (tourId: number) => {
         const tour = tours.find((t) => t.id === tourId);
         if (!tour) {
@@ -139,10 +181,29 @@ export default function MapPage() {
 
         try {
             await axios.delete(`/tours/${tourToDelete.id}`);
-            setTours((prev) => prev.filter((t) => t.id !== tourToDelete.id));
-            // Reset to "All markers" view if the deleted tour was selected
-            if (selectedTourId === tourToDelete.id) {
-                setSelectedTourId(null);
+            
+            // If it's a sub-tour, remove it from parent's sub_tours array
+            if (tourToDelete.parent_tour_id) {
+                setTours((prev) =>
+                    prev.map((tour) => {
+                        if (tour.id === tourToDelete.parent_tour_id) {
+                            return {
+                                ...tour,
+                                sub_tours: tour.sub_tours?.filter(
+                                    (st) => st.id !== tourToDelete.id,
+                                ),
+                            };
+                        }
+                        return tour;
+                    }),
+                );
+            } else {
+                // If it's a top-level tour, remove it from tours array
+                setTours((prev) => prev.filter((t) => t.id !== tourToDelete.id));
+                // Reset to "All markers" view if the deleted tour was selected
+                if (selectedTourId === tourToDelete.id) {
+                    setSelectedTourId(null);
+                }
             }
         } catch (error) {
             console.error('Failed to delete tour:', error);
@@ -168,6 +229,7 @@ export default function MapPage() {
                     onToursUpdate={setTours}
                     onSelectTour={setSelectedTourId}
                     onCreateTour={() => setIsCreateTourModalOpen(true)}
+                    onCreateSubTour={handleOpenCreateSubTourModal}
                     onDeleteTour={handleOpenDeleteTourDialog}
                 />
             </div>
@@ -186,6 +248,12 @@ export default function MapPage() {
                 open={isCreateTourModalOpen}
                 onOpenChange={setIsCreateTourModalOpen}
                 onCreateTour={handleCreateTour}
+            />
+            <CreateSubTourModal
+                open={isCreateSubTourModalOpen}
+                onOpenChange={setIsCreateSubTourModalOpen}
+                onCreateSubTour={handleCreateSubTour}
+                parentTourName={parentTourForSubTour?.name ?? ''}
             />
             <DeleteTourDialog
                 open={isDeleteTourDialogOpen}

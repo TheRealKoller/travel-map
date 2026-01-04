@@ -19,6 +19,7 @@ interface TourPanelProps {
     selectedTourId: number | null;
     onSelectTour: (tourId: number | null) => void;
     onCreateTour: () => void;
+    onCreateSubTour: (parentTourId: number) => void;
     onDeleteTour: (tourId: number) => void;
     markers: MarkerData[];
 }
@@ -120,16 +121,86 @@ function SortableMarkerItem({ marker, index }: SortableMarkerItemProps) {
     );
 }
 
+interface SubTourCardProps {
+    subTour: Tour;
+    markers: MarkerData[];
+    onDeleteTour: (tourId: number) => void;
+}
+
+function SubTourCard({ subTour, markers, onDeleteTour }: SubTourCardProps) {
+    const { setNodeRef, isOver } = useDroppable({
+        id: `tour-${subTour.id}`,
+        data: {
+            tourId: subTour.id,
+        },
+    });
+
+    // Get markers for this sub-tour
+    const subTourMarkers = subTour.markers
+        ? subTour.markers
+              .map((tourMarker) =>
+                  markers.find((marker) => marker.id === tourMarker.id),
+              )
+              .filter((marker): marker is MarkerData => marker !== undefined)
+        : [];
+
+    return (
+        <div
+            ref={setNodeRef}
+            className={`rounded-md border border-gray-200 bg-white p-3 ${
+                isOver ? 'bg-blue-50 ring-2 ring-blue-500 ring-offset-2' : ''
+            }`}
+        >
+            <div className="mb-2 flex items-center justify-between">
+                <h5 className="text-xs font-semibold text-gray-700">
+                    {subTour.name}
+                </h5>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onDeleteTour(subTour.id)}
+                    className="h-6 w-6 text-gray-400 hover:text-red-600"
+                    title="Delete sub-tour"
+                >
+                    <Trash2 className="h-3 w-3" />
+                </Button>
+            </div>
+            {subTourMarkers.length === 0 ? (
+                <p className="text-xs text-gray-400">
+                    Drag markers here to add them to this sub-tour
+                </p>
+            ) : (
+                <SortableContext
+                    items={subTourMarkers.map((m) => `tour-marker-${m.id}`)}
+                    strategy={verticalListSortingStrategy}
+                >
+                    <ul className="space-y-1.5">
+                        {subTourMarkers.map((marker, index) => (
+                            <SortableMarkerItem
+                                key={marker.id}
+                                marker={marker}
+                                index={index}
+                            />
+                        ))}
+                    </ul>
+                </SortableContext>
+            )}
+        </div>
+    );
+}
+
 interface DroppableTourCardProps {
     tour: Tour;
     markers: MarkerData[];
     onDeleteTour: (tourId: number) => void;
+    onCreateSubTour: (parentTourId: number) => void;
 }
 
 function DroppableTourCard({
     tour,
     markers,
     onDeleteTour,
+    onCreateSubTour,
 }: DroppableTourCardProps) {
     const { setNodeRef, isOver } = useDroppable({
         id: `tour-${tour.id}`,
@@ -147,17 +218,28 @@ function DroppableTourCard({
         >
             <div className="mb-3 flex items-center justify-between">
                 <h3 className="text-sm font-semibold">{tour.name}</h3>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onDeleteTour(tour.id)}
-                    className="h-7 w-7 text-gray-500 hover:text-red-600"
-                    title="Delete tour"
-                >
-                    <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="flex gap-1">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onCreateSubTour(tour.id)}
+                        className="h-7 w-7 text-gray-500 hover:text-blue-600"
+                        title="Create sub-tour"
+                    >
+                        <Plus className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onDeleteTour(tour.id)}
+                        className="h-7 w-7 text-gray-500 hover:text-red-600"
+                        title="Delete tour"
+                    >
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
+                </div>
             </div>
-            {markers.length === 0 ? (
+            {markers.length === 0 && (!tour.sub_tours || tour.sub_tours.length === 0) ? (
                 <p className="text-sm text-gray-500">
                     Drag markers here to add them to this tour
                 </p>
@@ -177,6 +259,23 @@ function DroppableTourCard({
                     </ul>
                 </SortableContext>
             )}
+            
+            {/* Display sub-tours */}
+            {tour.sub_tours && tour.sub_tours.length > 0 && (
+                <div className="mt-4 space-y-3">
+                    <h4 className="text-xs font-semibold text-gray-600 uppercase">
+                        Sub-tours
+                    </h4>
+                    {tour.sub_tours.map((subTour) => (
+                        <SubTourCard
+                            key={subTour.id}
+                            subTour={subTour}
+                            markers={markers}
+                            onDeleteTour={onDeleteTour}
+                        />
+                    ))}
+                </div>
+            )}
         </Card>
     );
 }
@@ -186,6 +285,7 @@ export default function TourPanel({
     selectedTourId,
     onSelectTour,
     onCreateTour,
+    onCreateSubTour,
     onDeleteTour,
     markers,
 }: TourPanelProps) {
@@ -257,6 +357,7 @@ export default function TourPanel({
                     tour={selectedTour}
                     markers={selectedTourMarkers}
                     onDeleteTour={onDeleteTour}
+                    onCreateSubTour={onCreateSubTour}
                 />
             )}
         </div>
