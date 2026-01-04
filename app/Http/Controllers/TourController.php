@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreTourRequest;
 use App\Http\Requests\UpdateTourRequest;
+use App\Http\Resources\TourResource;
 use App\Models\Marker;
 use App\Models\Tour;
 use App\Models\Trip;
@@ -33,7 +34,7 @@ class TourController extends Controller
             ->orderBy('created_at', 'asc')
             ->get();
 
-        return response()->json($tours);
+        return response()->json(TourResource::collection($tours));
     }
 
     public function store(StoreTourRequest $request): JsonResponse
@@ -71,14 +72,14 @@ class TourController extends Controller
             ]);
         }
 
-        return response()->json($tour->load(['markers', 'subTours']), 201);
+        return response()->json(new TourResource($tour->load(['markers', 'subTours'])), 201);
     }
 
     public function show(Tour $tour): JsonResponse
     {
         $this->authorize('view', $tour);
 
-        return response()->json($tour->load(['markers', 'subTours.markers']));
+        return response()->json(new TourResource($tour->load(['markers', 'subTours.markers'])));
     }
 
     public function update(UpdateTourRequest $request, Tour $tour): JsonResponse
@@ -89,7 +90,7 @@ class TourController extends Controller
 
         $tour->update(['name' => $validated['name']]);
 
-        return response()->json($tour->load(['markers', 'subTours']));
+        return response()->json(new TourResource($tour->load(['markers', 'subTours'])));
     }
 
     public function destroy(Tour $tour): JsonResponse
@@ -123,7 +124,7 @@ class TourController extends Controller
             $tour->markers()->attach($marker->id, ['position' => $maxPosition + 1]);
         }
 
-        return response()->json($tour->load('markers'));
+        return response()->json(new TourResource($tour->load(['markers', 'subTours'])));
     }
 
     public function detachMarker(Request $request, Tour $tour): JsonResponse
@@ -136,7 +137,7 @@ class TourController extends Controller
 
         $tour->markers()->detach($validated['marker_id']);
 
-        return response()->json($tour->load('markers'));
+        return response()->json(new TourResource($tour->load(['markers', 'subTours'])));
     }
 
     public function reorderMarkers(Request $request, Tour $tour): JsonResponse
@@ -163,7 +164,7 @@ class TourController extends Controller
             $tour->markers()->updateExistingPivot($markerId, ['position' => $index]);
         }
 
-        return response()->json($tour->load('markers'));
+        return response()->json(new TourResource($tour->load(['markers', 'subTours'])));
     }
 
     public function reorderSubTours(Request $request, Tour $tour): JsonResponse
@@ -190,6 +191,52 @@ class TourController extends Controller
             Tour::where('id', $subTourId)->update(['position' => $index]);
         }
 
-        return response()->json($tour->load(['markers', 'subTours.markers']));
+        return response()->json(new TourResource($tour->load(['markers', 'subTours.markers'])));
+    }
+
+    public function reorderItems(Request $request, Tour $tour): JsonResponse
+    {
+        $this->authorize('update', $tour);
+
+        $validated = $request->validate([
+            'items' => 'required|array',
+            'items.*.type' => 'required|in:marker,subtour',
+            'items.*.id' => 'required',
+        ]);
+
+        $items = $validated['items'];
+
+        // Separate markers and sub-tours
+        $markerItems = array_values(array_filter($items, fn ($item) => $item['type'] === 'marker'));
+        $subTourItems = array_values(array_filter($items, fn ($item) => $item['type'] === 'subtour'));
+
+        // Verify all markers belong to this tour
+        $tourMarkerIds = $tour->markers->pluck('id')->toArray();
+        $requestedMarkerIds = array_column($markerItems, 'id');
+        $invalidMarkerIds = array_diff($requestedMarkerIds, $tourMarkerIds);
+
+        if (! empty($invalidMarkerIds)) {
+            return response()->json(['error' => 'One or more markers do not belong to this tour'], 422);
+        }
+
+        // Verify all sub-tours belong to this tour
+        $tourSubTourIds = $tour->subTours->pluck('id')->toArray();
+        $requestedSubTourIds = array_map('intval', array_column($subTourItems, 'id'));
+        $invalidSubTourIds = array_diff($requestedSubTourIds, $tourSubTourIds);
+
+        if (! empty($invalidSubTourIds)) {
+            return response()->json(['error' => 'One or more sub-tours do not belong to this tour'], 422);
+        }
+
+        // Update positions for all items based on their order in the array
+        foreach ($items as $index => $item) {
+            if ($item['type'] === 'marker') {
+                $tour->markers()->updateExistingPivot($item['id'], ['position' => $index]);
+            } else {
+                Tour::where('id', $item['id'])->update(['position' => $index]);
+            }
+        }
+
+        return response()->json(new TourResource($tour->load(['markers', 'subTours.markers'])));
     }
 }

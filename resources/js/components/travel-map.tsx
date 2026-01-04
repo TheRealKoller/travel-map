@@ -1046,7 +1046,145 @@ export default function TravelMap({
         const activeId = active.id as string;
         const overId = over.id as string;
 
-        // Check if this is reordering within a tour (IDs have 'tour-marker-' prefix)
+        // Check if this is reordering within a tour (mixed items)
+        if (
+            activeId !== overId &&
+            activeId.startsWith('tour-item-') &&
+            overId.startsWith('tour-item-') &&
+            selectedTourId !== null
+        ) {
+            const selectedTour = tours.find((t) => t.id === selectedTourId);
+            if (!selectedTour) return;
+
+            // Build combined items list
+            type TourItem =
+                | { type: 'marker'; id: string; position: number }
+                | { type: 'subtour'; id: number; position: number };
+
+            const items: TourItem[] = [];
+
+            // Add markers
+            selectedTour.markers?.forEach((m) => {
+                items.push({
+                    type: 'marker',
+                    id: m.id,
+                    position: m.position || 0,
+                });
+            });
+
+            // Add sub-tours
+            selectedTour.sub_tours?.forEach((st) => {
+                items.push({
+                    type: 'subtour',
+                    id: st.id,
+                    position: st.position,
+                });
+            });
+
+            // Sort by position
+            items.sort((a, b) => a.position - b.position);
+
+            // Find indices
+            const activeIndex = items.findIndex((item) => {
+                const itemId =
+                    item.type === 'marker'
+                        ? `tour-item-marker-${item.id}`
+                        : `tour-item-subtour-${item.id}`;
+                return itemId === activeId;
+            });
+
+            const overIndex = items.findIndex((item) => {
+                const itemId =
+                    item.type === 'marker'
+                        ? `tour-item-marker-${item.id}`
+                        : `tour-item-subtour-${item.id}`;
+                return itemId === overId;
+            });
+
+            if (activeIndex !== -1 && overIndex !== -1) {
+                // Reorder items
+                const reorderedItems = arrayMove(items, activeIndex, overIndex);
+
+                // Prepare data for backend
+                const itemsForBackend = reorderedItems.map((item) => ({
+                    type: item.type,
+                    id: item.type === 'marker' ? item.id : item.id.toString(),
+                }));
+
+                // Optimistically update the UI with correct positions
+                const updatedMarkers = reorderedItems
+                    .map((item, index) => {
+                        if (item.type === 'marker') {
+                            const marker = selectedTour.markers?.find(
+                                (m) => m.id === item.id,
+                            );
+                            return marker
+                                ? { ...marker, position: index }
+                                : undefined;
+                        }
+                        return undefined;
+                    })
+                    .filter((m): m is NonNullable<typeof m> => m !== undefined);
+
+                const updatedSubTours = reorderedItems
+                    .map((item, index) => {
+                        if (item.type === 'subtour') {
+                            const subTour = selectedTour.sub_tours?.find(
+                                (st) => st.id === item.id,
+                            );
+                            return subTour
+                                ? { ...subTour, position: index }
+                                : undefined;
+                        }
+                        return undefined;
+                    })
+                    .filter(
+                        (st): st is NonNullable<typeof st> => st !== undefined,
+                    );
+
+                const updatedTours = tours.map((t) =>
+                    t.id === selectedTourId
+                        ? {
+                              ...t,
+                              markers: updatedMarkers,
+                              sub_tours: updatedSubTours,
+                          }
+                        : t,
+                );
+
+                onToursUpdate(updatedTours);
+
+                // Send reorder request to server
+                try {
+                    await axios.put(`/tours/${selectedTourId}/items/reorder`, {
+                        items: itemsForBackend,
+                    });
+
+                    // Reload tours from server to get the correct data
+                    if (selectedTripId) {
+                        const response = await axios.get('/tours', {
+                            params: { trip_id: selectedTripId },
+                        });
+                        onToursUpdate(response.data);
+                    }
+                } catch (error) {
+                    console.error('Failed to reorder items:', error);
+                    alert(
+                        'Failed to reorder items. The order has been reverted.',
+                    );
+                    // Revert on error
+                    if (selectedTripId) {
+                        const response = await axios.get('/tours', {
+                            params: { trip_id: selectedTripId },
+                        });
+                        onToursUpdate(response.data);
+                    }
+                }
+                return;
+            }
+        }
+
+        // Check if this is reordering within a sub-tour (markers only)
         if (
             activeId !== overId &&
             activeId.startsWith('tour-marker-') &&
@@ -1064,20 +1202,7 @@ export default function TravelMap({
             ): Tour | null => {
                 if (!tour) return null;
 
-                // Check if markers are in the parent tour
-                if (tour.markers) {
-                    const hasActive = tour.markers.some(
-                        (m) => m.id === activeMarkerId,
-                    );
-                    const hasOver = tour.markers.some(
-                        (m) => m.id === overMarkerId,
-                    );
-                    if (hasActive && hasOver) {
-                        return tour;
-                    }
-                }
-
-                // Check sub-tours
+                // Check sub-tours only (parent tour uses tour-item- prefix)
                 if (tour.sub_tours) {
                     for (const subTour of tour.sub_tours) {
                         if (subTour.markers) {
@@ -1108,7 +1233,7 @@ export default function TravelMap({
                 );
 
                 if (oldIndex !== -1 && newIndex !== -1) {
-                    // Reorder markers in the tour
+                    // Reorder markers in the sub-tour
                     const reorderedMarkers = arrayMove(
                         tourWithMarkers.markers,
                         oldIndex,
@@ -1118,11 +1243,6 @@ export default function TravelMap({
                     // Update tours state optimistically
                     const updatedTours = tours.map((t) => {
                         if (t.id === selectedTourId) {
-                            // If reordering in parent tour
-                            if (tourWithMarkers.id === selectedTourId) {
-                                return { ...t, markers: reorderedMarkers };
-                            }
-                            // If reordering in sub-tour
                             return {
                                 ...t,
                                 sub_tours: t.sub_tours?.map((st) =>
