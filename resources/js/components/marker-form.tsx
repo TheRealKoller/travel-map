@@ -215,6 +215,9 @@ export default function MarkerForm({
                         <option value={MarkerType.Sightseeing}>
                             Sightseeing
                         </option>
+                        <option value={MarkerType.NaturalAttraction}>
+                            Natural Attraction
+                        </option>
                     </select>
                 </div>
                 <div>
