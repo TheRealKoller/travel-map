@@ -1027,6 +1027,7 @@ export default function TravelMap({
         } catch (error) {
             console.error('Failed to update marker tour assignment:', error);
             if (axios.isAxiosError(error) && error.response) {
+                console.error('Error response:', error.response.data);
                 alert(
                     `Failed to update marker tour assignment: ${error.response.data.error || error.response.data.message || 'Unknown error'}`,
                 );
@@ -1045,6 +1046,59 @@ export default function TravelMap({
 
         const activeId = active.id as string;
         const overId = over.id as string;
+
+        // CASE 1: Dragging a marker from sidebar over a tour item (marker or subtour in a tour)
+        // This handles adding a marker to a tour by dropping it on an existing item in that tour
+        if (!activeId.startsWith('tour-item-') && overId.startsWith('tour-item-')) {
+            
+            // Extract the marker ID being dragged
+            const markerId = activeId;
+            
+            // Find which tour contains the item we dropped on
+            let targetTourId: number | null = null;
+            
+            // Check if dropped on a marker in a tour
+            if (overId.startsWith('tour-item-marker-')) {
+                const overMarkerId = overId.replace('tour-item-marker-', '');
+                
+                // Find which tour contains this marker
+                const findTourWithMarker = (markerId: string): Tour | null => {
+                    // Check sub-tours FIRST (they have priority over parent tours)
+                    for (const tour of tours) {
+                        if (tour.sub_tours) {
+                            for (const subTour of tour.sub_tours) {
+                                if (subTour.markers?.some(m => m.id === markerId)) {
+                                    return subTour;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Then check top-level tours
+                    for (const tour of tours) {
+                        if (tour.markers?.some(m => m.id === markerId)) {
+                            return tour;
+                        }
+                    }
+                    
+                    return null;
+                };
+                
+                const targetTour = findTourWithMarker(overMarkerId);
+                if (targetTour) {
+                    targetTourId = targetTour.id;
+                }
+            }
+            // Check if dropped on a subtour in a tour
+            else if (overId.startsWith('tour-item-subtour-')) {
+                targetTourId = parseInt(overId.replace('tour-item-subtour-', ''));
+            }
+            
+            if (targetTourId !== null && !isNaN(targetTourId)) {
+                await handleToggleMarkerInTour(markerId, targetTourId, false);
+                return;
+            }
+        }
 
         // Check if this is reordering within a tour (mixed items: markers and sub-tours)
         // This handles drag-and-drop reordering of items within the selected parent tour
@@ -1327,7 +1381,7 @@ export default function TravelMap({
                 const isAlreadyInTour = tour.markers?.some(
                     (m) => m.id === markerId,
                 );
-
+                
                 if (isAlreadyInTour) {
                     // Don't show alert, just skip silently as this is expected behavior
                     return;
@@ -1335,8 +1389,6 @@ export default function TravelMap({
 
                 // Attach marker to tour
                 await handleToggleMarkerInTour(markerId, tourId, false);
-            } else {
-                console.error('Tour not found with id:', tourId);
             }
         }
     };

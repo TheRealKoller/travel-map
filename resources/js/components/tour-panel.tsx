@@ -101,7 +101,8 @@ function SortableMarkerItem({ marker, index }: SortableMarkerItemProps) {
                         {marker.name || 'Unnamed Location'}
                     </div>
                     <div className="text-xs text-gray-600">
-                        {marker.lat.toFixed(6)}, {marker.lng.toFixed(6)}
+                        {(marker.lat ?? marker.latitude ?? 0).toFixed(6)},{' '}
+                        {(marker.lng ?? marker.longitude ?? 0).toFixed(6)}
                     </div>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -155,14 +156,8 @@ function SortableSubTourItem({
         },
     });
 
-    // Get markers for this sub-tour
-    const subTourMarkers = subTour.markers
-        ? subTour.markers
-              .map((tourMarker) =>
-                  markers.find((marker) => marker.id === tourMarker.id),
-              )
-              .filter((marker): marker is MarkerData => marker !== undefined)
-        : [];
+    // Get markers for this sub-tour - they come directly from the API with full data
+    const subTourMarkers = subTour.markers || [];
 
     return (
         <li

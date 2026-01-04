@@ -34,6 +34,7 @@ class TourController extends Controller
             ->orderBy('created_at', 'asc')
             ->get();
 
+
         return response()->json(TourResource::collection($tours));
     }
 
@@ -87,7 +88,7 @@ class TourController extends Controller
 
         $tour->update(['name' => $validated['name']]);
 
-        return response()->json(new TourResource($tour->load(['markers', 'subTours'])));
+        return response()->json(new TourResource($tour->load(['markers', 'subTours.markers'])));
     }
 
     public function destroy(Tour $tour): JsonResponse
@@ -121,7 +122,11 @@ class TourController extends Controller
             $tour->markers()->attach($marker->id, ['position' => $maxPosition + 1]);
         }
 
-        return response()->json(new TourResource($tour->load(['markers', 'subTours'])));
+        // Refresh the tour to get updated relationships
+        $tour->refresh();
+        $tour->load(['markers', 'subTours.markers']);
+
+        return response()->json(new TourResource($tour));
     }
 
     public function detachMarker(Request $request, Tour $tour): JsonResponse
@@ -133,8 +138,9 @@ class TourController extends Controller
         ]);
 
         $tour->markers()->detach($validated['marker_id']);
+        $tour->refresh();
 
-        return response()->json(new TourResource($tour->load(['markers', 'subTours'])));
+        return response()->json(new TourResource($tour->load(['markers', 'subTours.markers'])));
     }
 
     public function reorderMarkers(Request $request, Tour $tour): JsonResponse
@@ -160,8 +166,10 @@ class TourController extends Controller
         foreach ($markerIds as $index => $markerId) {
             $tour->markers()->updateExistingPivot($markerId, ['position' => $index]);
         }
+        
+        $tour->refresh();
 
-        return response()->json(new TourResource($tour->load(['markers', 'subTours'])));
+        return response()->json(new TourResource($tour->load(['markers', 'subTours.markers'])));
     }
 
     public function reorderSubTours(Request $request, Tour $tour): JsonResponse

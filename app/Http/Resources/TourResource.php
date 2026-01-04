@@ -14,6 +14,9 @@ class TourResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // Ensure sub-tours have their markers loaded
+        $this->loadMissing('subTours.markers');
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -41,10 +44,10 @@ class TourResource extends JsonResource
                         'position' => $marker->pivot->position ?? 0,
                     ];
                 });
-            }, []),
+            }, collect()),
             'sub_tours' => $this->whenLoaded('subTours', function () {
                 return TourResource::collection($this->subTours);
-            }, []),
+            }, collect()),
         ];
     }
 }
