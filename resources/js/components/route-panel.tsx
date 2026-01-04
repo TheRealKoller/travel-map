@@ -49,12 +49,21 @@ export default function RoutePanel({
         setError(null);
 
         try {
-            const response = await axios.post('/routes', {
-                trip_id: tripId,
-                start_marker_id: startMarkerId,
-                end_marker_id: endMarkerId,
-                transport_mode: transportMode,
-            });
+            const response = await axios.post(
+                '/routes',
+                {
+                    trip_id: tripId,
+                    start_marker_id: startMarkerId,
+                    end_marker_id: endMarkerId,
+                    transport_mode: transportMode,
+                },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Accept: 'application/json',
+                    },
+                },
+            );
 
             // Add new route to the list
             onRoutesUpdate([...routes, response.data]);
@@ -65,10 +74,22 @@ export default function RoutePanel({
             setTransportMode('driving-car');
         } catch (err) {
             console.error('Failed to create route:', err);
-            if (axios.isAxiosError(err) && err.response?.data?.message) {
-                setError(err.response.data.message);
-            } else if (axios.isAxiosError(err) && err.response?.data?.error) {
-                setError(err.response.data.error);
+            console.error('Request payload:', {
+                trip_id: tripId,
+                start_marker_id: startMarkerId,
+                end_marker_id: endMarkerId,
+                transport_mode: transportMode,
+            });
+            if (axios.isAxiosError(err)) {
+                console.error('Response status:', err.response?.status);
+                console.error('Response data:', err.response?.data);
+                if (err.response?.data?.message) {
+                    setError(err.response.data.message);
+                } else if (err.response?.data?.error) {
+                    setError(err.response.data.error);
+                } else {
+                    setError('Failed to create route. Please try again.');
+                }
             } else {
                 setError('Failed to create route. Please try again.');
             }
