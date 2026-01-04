@@ -922,6 +922,8 @@ export default function TravelMap({
                 color = '#f39c12'; // Orange for bike
             } else if (route.transport_mode.value === 'foot-walking') {
                 color = '#27ae60'; // Green for walking
+            } else if (route.transport_mode.value === 'public-transport') {
+                color = '#3498db'; // Blue for public transport
             }
 
             const polyline = L.polyline(latLngs, {

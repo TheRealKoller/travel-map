@@ -158,6 +158,72 @@ it('requires valid transport mode', function () {
     $response->assertStatus(422);
 });
 
+it('can create route with public transport via Mapbox', function () {
+    // Mock Mapbox API response
+    Http::fake([
+        'api.mapbox.com/*' => Http::response([
+            'routes' => [
+                [
+                    'distance' => 25000, // 25km
+                    'duration' => 1800, // 30 minutes
+                    'geometry' => [
+                        'coordinates' => [
+                            [$this->startMarker->longitude, $this->startMarker->latitude],
+                            [$this->endMarker->longitude, $this->endMarker->latitude],
+                        ],
+                    ],
+                ],
+            ],
+        ], 200),
+    ]);
+
+    // Set Mapbox token for test
+    config(['services.mapbox.access_token' => 'test-token']);
+
+    $response = $this->postJson('/routes', [
+        'trip_id' => $this->trip->id,
+        'start_marker_id' => $this->startMarker->id,
+        'end_marker_id' => $this->endMarker->id,
+        'transport_mode' => 'public-transport',
+    ]);
+
+    $response->assertCreated()
+        ->assertJsonStructure([
+            'id',
+            'trip_id',
+            'start_marker',
+            'end_marker',
+            'transport_mode',
+            'distance',
+            'duration',
+            'geometry',
+            'warning',
+        ]);
+
+    $this->assertDatabaseHas('routes', [
+        'trip_id' => $this->trip->id,
+        'start_marker_id' => $this->startMarker->id,
+        'end_marker_id' => $this->endMarker->id,
+        'transport_mode' => 'public-transport',
+        'distance' => 25000,
+        'duration' => 1800,
+    ]);
+});
+
+it('throws exception when Mapbox token is not configured', function () {
+    // Clear Mapbox token
+    config(['services.mapbox.access_token' => null]);
+
+    $response = $this->postJson('/routes', [
+        'trip_id' => $this->trip->id,
+        'start_marker_id' => $this->startMarker->id,
+        'end_marker_id' => $this->endMarker->id,
+        'transport_mode' => 'public-transport',
+    ]);
+
+    $response->assertStatus(500);
+});
+
 it('generates warning for very long walking routes', function () {
     // Mock OSRM API response for a very long walking route (814km in 10.5 hours = unrealistic)
     Http::fake([

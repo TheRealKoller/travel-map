@@ -1,4 +1,8 @@
-export type TransportMode = 'driving-car' | 'cycling-regular' | 'foot-walking';
+export type TransportMode =
+    | 'driving-car'
+    | 'cycling-regular'
+    | 'foot-walking'
+    | 'public-transport';
 
 export interface RouteMarker {
     id: string;

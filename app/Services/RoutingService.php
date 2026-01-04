@@ -10,6 +10,8 @@ class RoutingService
 {
     private const OSRM_BASE_URL = 'https://router.project-osrm.org';
 
+    private const MAPBOX_BASE_URL = 'https://api.mapbox.com';
+
     /**
      * Calculate route between two markers using OSRM.
      *
@@ -22,6 +24,11 @@ class RoutingService
         Marker $endMarker,
         TransportMode $transportMode = TransportMode::DrivingCar
     ): array {
+        // Use Mapbox for public transport, OSRM for everything else
+        if ($transportMode === TransportMode::PublicTransport) {
+            return $this->calculateMapboxRoute($startMarker, $endMarker);
+        }
+
         $profile = $this->getOsrmProfile($transportMode);
 
         $coordinates = sprintf(
@@ -65,6 +72,67 @@ class RoutingService
             'distance' => $distance,
             'duration' => $duration,
             'geometry' => $route['geometry']['coordinates'], // [[lng, lat], [lng, lat], ...]
+            'warning' => $warning,
+        ];
+    }
+
+    /**
+     * Calculate route using Mapbox Directions API (for public transport).
+     *
+     * @return array{distance: int, duration: int, geometry: array, warning: string|null}
+     *
+     * @throws \Exception
+     */
+    private function calculateMapboxRoute(Marker $startMarker, Marker $endMarker): array
+    {
+        $accessToken = config('services.mapbox.access_token');
+
+        if (! $accessToken) {
+            throw new \Exception('Mapbox access token not configured. Please add MAPBOX_ACCESS_TOKEN to your .env file.');
+        }
+
+        $coordinates = sprintf(
+            '%s,%s;%s,%s',
+            $startMarker->longitude,
+            $startMarker->latitude,
+            $endMarker->longitude,
+            $endMarker->latitude
+        );
+
+        $url = sprintf(
+            '%s/directions/v5/mapbox/driving-traffic/%s',
+            self::MAPBOX_BASE_URL,
+            $coordinates
+        );
+
+        $response = Http::get($url, [
+            'access_token' => $accessToken,
+            'overview' => 'full',
+            'geometries' => 'geojson',
+        ]);
+
+        if (! $response->successful()) {
+            throw new \Exception('Failed to calculate route via Mapbox: '.$response->body());
+        }
+
+        $data = $response->json();
+
+        if (! isset($data['routes'][0])) {
+            throw new \Exception('No route found between the markers');
+        }
+
+        $route = $data['routes'][0];
+        $distance = (int) $route['distance']; // meters
+        $duration = (int) $route['duration']; // seconds
+
+        // Note: For public transport, warnings are less relevant
+        // as schedules and transfers make timing more predictable
+        $warning = null;
+
+        return [
+            'distance' => $distance,
+            'duration' => $duration,
+            'geometry' => $route['geometry']['coordinates'],
             'warning' => $warning,
         ];
     }

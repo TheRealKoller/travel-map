@@ -11,7 +11,7 @@ import {
 import { MarkerData } from '@/types/marker';
 import { Route, TransportMode } from '@/types/route';
 import axios from 'axios';
-import { Bike, Car, PersonStanding, Trash2 } from 'lucide-react';
+import { Bike, Car, PersonStanding, Train, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 interface RoutePanelProps {
@@ -103,6 +103,8 @@ export default function RoutePanel({
                 return <Bike className="h-4 w-4" />;
             case 'foot-walking':
                 return <PersonStanding className="h-4 w-4" />;
+            case 'public-transport':
+                return <Train className="h-4 w-4" />;
         }
     };
 
@@ -114,6 +116,8 @@ export default function RoutePanel({
                 return 'text-orange-600';
             case 'foot-walking':
                 return 'text-green-600';
+            case 'public-transport':
+                return 'text-blue-600';
         }
     };
 
@@ -234,6 +238,12 @@ export default function RoutePanel({
                                     <div className="flex items-center gap-2">
                                         <PersonStanding className="h-4 w-4" />
                                         <span>Walking</span>
+                                    </div>
+                                </SelectItem>
+                                <SelectItem value="public-transport">
+                                    <div className="flex items-center gap-2">
+                                        <Train className="h-4 w-4" />
+                                        <span>Public Transport</span>
                                     </div>
                                 </SelectItem>
                             </SelectContent>
