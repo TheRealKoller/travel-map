@@ -139,7 +139,9 @@ function DroppableTourCard({
     });
 
     // Create sortable IDs for markers
-    const sortableIds = markers.map((marker) => `tour-item-marker-${marker.id}`);
+    const sortableIds = markers.map(
+        (marker) => `tour-item-marker-${marker.id}`,
+    );
 
     return (
         <Card
