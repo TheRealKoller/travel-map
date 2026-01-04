@@ -4,7 +4,14 @@ import MarkerList from '@/components/marker-list';
 import TourPanel from '@/components/tour-panel';
 import { MarkerData, MarkerType } from '@/types/marker';
 import { Tour } from '@/types/tour';
-import { DndContext, DragEndEvent } from '@dnd-kit/core';
+import {
+    closestCenter,
+    DndContext,
+    DragEndEvent,
+    PointerSensor,
+    useSensor,
+    useSensors,
+} from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import axios from 'axios';
 import L from 'leaflet';
@@ -258,6 +265,15 @@ export default function TravelMap({
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const searchResultCirclesRef = useRef<L.Circle[]>([]);
     const searchRadiusCircleRef = useRef<L.Circle | null>(null);
+
+    // Configure drag and drop sensors
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8, // Require 8px of movement before drag starts
+            },
+        }),
+    );
 
     // Note: saveMarkerToDatabase is no longer needed as we save when user clicks Save button
 
@@ -1010,7 +1026,15 @@ export default function TravelMap({
             }
         } catch (error) {
             console.error('Failed to update marker tour assignment:', error);
-            alert('Failed to update marker tour assignment. Please try again.');
+            if (axios.isAxiosError(error) && error.response) {
+                alert(
+                    `Failed to update marker tour assignment: ${error.response.data.error || error.response.data.message || 'Unknown error'}`,
+                );
+            } else {
+                alert(
+                    'Failed to update marker tour assignment. Please try again.',
+                );
+            }
         }
     };
 
@@ -1143,17 +1167,42 @@ export default function TravelMap({
             const tourId = parseInt(overId.replace('tour-', ''));
             const markerId = activeId;
 
-            // Check if marker is already in the tour
-            const tour = tours.find((t) => t.id === tourId);
+            // Helper function to find a tour (including sub-tours)
+            const findTourById = (id: number): Tour | null => {
+                // Check top-level tours
+                const topLevelTour = tours.find((t) => t.id === id);
+                if (topLevelTour) return topLevelTour;
+
+                // Check sub-tours
+                for (const tour of tours) {
+                    if (tour.sub_tours) {
+                        const subTour = tour.sub_tours.find(
+                            (st) => st.id === id,
+                        );
+                        if (subTour) return subTour;
+                    }
+                }
+
+                return null;
+            };
+
+            // Find the tour (could be top-level or sub-tour)
+            const tour = findTourById(tourId);
+
             if (tour) {
                 const isAlreadyInTour = tour.markers?.some(
                     (m) => m.id === markerId,
                 );
 
-                if (!isAlreadyInTour) {
-                    // Attach marker to tour
-                    await handleToggleMarkerInTour(markerId, tourId, false);
+                if (isAlreadyInTour) {
+                    // Don't show alert, just skip silently as this is expected behavior
+                    return;
                 }
+
+                // Attach marker to tour
+                await handleToggleMarkerInTour(markerId, tourId, false);
+            } else {
+                console.error('Tour not found with id:', tourId);
             }
         }
     };
@@ -1162,7 +1211,11 @@ export default function TravelMap({
         markers.find((m) => m.id === selectedMarkerId) || null;
 
     return (
-        <DndContext onDragEnd={handleDragEnd}>
+        <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+        >
             <div className="flex h-full flex-col gap-4 lg:flex-row">
                 {/* Part 1: Marker list or form */}
                 <div className="w-full lg:w-1/4">

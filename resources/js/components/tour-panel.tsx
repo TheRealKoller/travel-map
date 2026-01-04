@@ -192,6 +192,7 @@ function SubTourCard({ subTour, markers, onDeleteTour }: SubTourCardProps) {
 interface DroppableTourCardProps {
     tour: Tour;
     markers: MarkerData[];
+    allMarkers: MarkerData[]; // All markers from the trip
     onDeleteTour: (tourId: number) => void;
     onCreateSubTour: (parentTourId: number) => void;
 }
@@ -199,6 +200,7 @@ interface DroppableTourCardProps {
 function DroppableTourCard({
     tour,
     markers,
+    allMarkers,
     onDeleteTour,
     onCreateSubTour,
 }: DroppableTourCardProps) {
@@ -271,7 +273,7 @@ function DroppableTourCard({
                         <SubTourCard
                             key={subTour.id}
                             subTour={subTour}
-                            markers={markers}
+                            markers={allMarkers}
                             onDeleteTour={onDeleteTour}
                         />
                     ))}
@@ -357,6 +359,7 @@ export default function TourPanel({
                 <DroppableTourCard
                     tour={selectedTour}
                     markers={selectedTourMarkers}
+                    allMarkers={markers}
                     onDeleteTour={onDeleteTour}
                     onCreateSubTour={onCreateSubTour}
                 />
