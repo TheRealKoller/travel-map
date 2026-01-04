@@ -48,6 +48,10 @@ class TourController extends Controller
         // If creating a sub-tour, verify parent tour belongs to the same trip
         if ($parentTourId) {
             $parentTour = Tour::findOrFail($parentTourId);
+
+            // Authorize that user can update the parent tour
+            $this->authorize('update', $parentTour);
+
             if ($parentTour->trip_id !== $tripId) {
                 return response()->json(['error' => 'Parent tour does not belong to this trip'], 422);
             }

@@ -253,3 +253,17 @@ test('sub-tour is auto-positioned at the end', function () {
     $response->assertStatus(201)
         ->assertJsonFragment(['position' => 2]);
 });
+
+test('user cannot create sub-tour in another users tour', function () {
+    $otherUser = User::factory()->withoutTwoFactor()->create();
+    $otherTrip = Trip::factory()->create(['user_id' => $otherUser->id]);
+    $otherTour = Tour::factory()->create(['trip_id' => $otherTrip->id]);
+
+    $response = $this->actingAs($this->user)->postJson('/tours', [
+        'name' => 'Unauthorized sub-tour',
+        'trip_id' => $otherTrip->id,
+        'parent_tour_id' => $otherTour->id,
+    ]);
+
+    $response->assertStatus(403);
+});
