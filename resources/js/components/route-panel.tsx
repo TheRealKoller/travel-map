@@ -117,6 +117,41 @@ export default function RoutePanel({
         }
     };
 
+    const formatDuration = (minutes: number): string => {
+        const totalMinutes = Math.round(minutes);
+
+        // More than a day (1440 minutes)
+        if (totalMinutes >= 1440) {
+            const days = Math.floor(totalMinutes / 1440);
+            const remainingMinutes = totalMinutes % 1440;
+            const hours = Math.floor(remainingMinutes / 60);
+            const mins = remainingMinutes % 60;
+
+            if (hours === 0 && mins === 0) {
+                return `${days}d`;
+            } else if (hours === 0) {
+                return `${days}d ${mins}min`;
+            } else if (mins === 0) {
+                return `${days}d ${hours}h`;
+            }
+            return `${days}d ${hours}h ${mins}min`;
+        }
+
+        // More than an hour (60 minutes)
+        if (totalMinutes >= 60) {
+            const hours = Math.floor(totalMinutes / 60);
+            const mins = totalMinutes % 60;
+
+            if (mins === 0) {
+                return `${hours}h`;
+            }
+            return `${hours}h ${mins}min`;
+        }
+
+        // Less than an hour
+        return `${totalMinutes} min`;
+    };
+
     return (
         <div className="space-y-4">
             <Card className="p-4">
@@ -251,8 +286,8 @@ export default function RoutePanel({
                                     </div>
                                     <div className="text-xs text-muted-foreground">
                                         {route.distance.km.toFixed(2)} km •{' '}
-                                        {Math.round(route.duration.minutes)} min
-                                        • {route.transport_mode.label}
+                                        {formatDuration(route.duration.minutes)} •{' '}
+                                        {route.transport_mode.label}
                                     </div>
                                 </div>
                                 <Button
