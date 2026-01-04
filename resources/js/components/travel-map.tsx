@@ -1032,35 +1032,90 @@ export default function TravelMap({
             const activeMarkerId = activeId.replace('tour-marker-', '');
             const overMarkerId = overId.replace('tour-marker-', '');
 
-            const tour = tours.find((t) => t.id === selectedTourId);
-            if (tour && tour.markers) {
-                const oldIndex = tour.markers.findIndex(
+            const selectedTour = tours.find((t) => t.id === selectedTourId);
+
+            // Helper function to find which tour (parent or sub) contains both markers
+            const findTourWithMarkers = (
+                tour: Tour | undefined,
+            ): Tour | null => {
+                if (!tour) return null;
+
+                // Check if markers are in the parent tour
+                if (tour.markers) {
+                    const hasActive = tour.markers.some(
+                        (m) => m.id === activeMarkerId,
+                    );
+                    const hasOver = tour.markers.some(
+                        (m) => m.id === overMarkerId,
+                    );
+                    if (hasActive && hasOver) {
+                        return tour;
+                    }
+                }
+
+                // Check sub-tours
+                if (tour.sub_tours) {
+                    for (const subTour of tour.sub_tours) {
+                        if (subTour.markers) {
+                            const hasActive = subTour.markers.some(
+                                (m) => m.id === activeMarkerId,
+                            );
+                            const hasOver = subTour.markers.some(
+                                (m) => m.id === overMarkerId,
+                            );
+                            if (hasActive && hasOver) {
+                                return subTour;
+                            }
+                        }
+                    }
+                }
+
+                return null;
+            };
+
+            const tourWithMarkers = findTourWithMarkers(selectedTour);
+
+            if (tourWithMarkers && tourWithMarkers.markers) {
+                const oldIndex = tourWithMarkers.markers.findIndex(
                     (m) => m.id === activeMarkerId,
                 );
-                const newIndex = tour.markers.findIndex(
+                const newIndex = tourWithMarkers.markers.findIndex(
                     (m) => m.id === overMarkerId,
                 );
 
                 if (oldIndex !== -1 && newIndex !== -1) {
                     // Reorder markers in the tour
                     const reorderedMarkers = arrayMove(
-                        tour.markers,
+                        tourWithMarkers.markers,
                         oldIndex,
                         newIndex,
                     );
 
                     // Update tours state optimistically
-                    const updatedTours = tours.map((t) =>
-                        t.id === selectedTourId
-                            ? { ...t, markers: reorderedMarkers }
-                            : t,
-                    );
+                    const updatedTours = tours.map((t) => {
+                        if (t.id === selectedTourId) {
+                            // If reordering in parent tour
+                            if (tourWithMarkers.id === selectedTourId) {
+                                return { ...t, markers: reorderedMarkers };
+                            }
+                            // If reordering in sub-tour
+                            return {
+                                ...t,
+                                sub_tours: t.sub_tours?.map((st) =>
+                                    st.id === tourWithMarkers.id
+                                        ? { ...st, markers: reorderedMarkers }
+                                        : st,
+                                ),
+                            };
+                        }
+                        return t;
+                    });
                     onToursUpdate(updatedTours);
 
                     // Send reorder request to server
                     try {
                         await axios.put(
-                            `/tours/${selectedTourId}/markers/reorder`,
+                            `/tours/${tourWithMarkers.id}/markers/reorder`,
                             {
                                 marker_ids: reorderedMarkers.map((m) => m.id),
                             },
