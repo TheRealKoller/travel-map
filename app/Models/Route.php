@@ -20,6 +20,7 @@ class Route extends Model
         'distance',
         'duration',
         'geometry',
+        'warning',
     ];
 
     protected function casts(): array

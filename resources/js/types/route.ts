@@ -24,7 +24,6 @@ export interface Route {
         seconds: number;
         minutes: number;
     };
-    geometry: [number, number][]; // GeoJSON coordinates [lng, lat]
-    created_at: string;
+    geometry: [number, number][]; // GeoJSON coordinates [lng, lat]    warning: string | null    created_at: string;
     updated_at: string;
 }

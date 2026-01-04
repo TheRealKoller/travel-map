@@ -38,6 +38,7 @@ it('can list routes for a trip', function () {
                 'distance',
                 'duration',
                 'geometry',
+                'warning',
             ],
         ]);
 });
@@ -59,8 +60,8 @@ it('can create a route between two markers', function () {
                     'duration' => 3600, // 1 hour
                     'geometry' => [
                         'coordinates' => [
-                            [$this->startMarker->lng, $this->startMarker->lat],
-                            [$this->endMarker->lng, $this->endMarker->lat],
+                            [$this->startMarker->longitude, $this->startMarker->latitude],
+                            [$this->endMarker->longitude, $this->endMarker->latitude],
                         ],
                     ],
                 ],
@@ -85,6 +86,7 @@ it('can create a route between two markers', function () {
             'distance',
             'duration',
             'geometry',
+            'warning',
         ]);
 
     $this->assertDatabaseHas('routes', [
@@ -154,4 +156,43 @@ it('requires valid transport mode', function () {
     ]);
 
     $response->assertStatus(422);
+});
+
+it('generates warning for very long walking routes', function () {
+    // Mock OSRM API response for a very long walking route (814km in 10.5 hours = unrealistic)
+    Http::fake([
+        'router.project-osrm.org/*' => Http::response([
+            'routes' => [
+                [
+                    'distance' => 814530, // 814.53km
+                    'duration' => 37860, // 10.5 hours (unrealistic)
+                    'geometry' => [
+                        'coordinates' => [
+                            [$this->startMarker->longitude, $this->startMarker->latitude],
+                            [$this->endMarker->longitude, $this->endMarker->latitude],
+                        ],
+                    ],
+                ],
+            ],
+        ], 200),
+    ]);
+
+    $response = $this->postJson('/routes', [
+        'trip_id' => $this->trip->id,
+        'start_marker_id' => $this->startMarker->id,
+        'end_marker_id' => $this->endMarker->id,
+        'transport_mode' => 'foot-walking',
+    ]);
+
+    $response->assertCreated();
+
+    // Verify the route was created with a warning
+    $route = Route::latest()->first();
+    expect($route->warning)->not->toBeNull();
+    expect($route->warning)->toContain('very long');
+
+    // Check that the warning is in the response
+    $data = $response->json();
+    expect($data['warning'])->not->toBeNull();
+    expect($data['warning'])->toContain('very long');
 });

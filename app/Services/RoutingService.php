@@ -13,7 +13,7 @@ class RoutingService
     /**
      * Calculate route between two markers using OSRM.
      *
-     * @return array{distance: int, duration: int, geometry: array}
+     * @return array{distance: int, duration: int, geometry: array, warning: string|null}
      *
      * @throws \Exception
      */
@@ -55,12 +55,73 @@ class RoutingService
         }
 
         $route = $data['routes'][0];
+        $distance = (int) $route['distance']; // meters
+        $duration = (int) $route['duration']; // seconds
+
+        // Check for unrealistic routes
+        $warning = $this->checkRouteRealism($distance, $duration, $transportMode);
 
         return [
-            'distance' => (int) $route['distance'], // meters
-            'duration' => (int) $route['duration'], // seconds
+            'distance' => $distance,
+            'duration' => $duration,
             'geometry' => $route['geometry']['coordinates'], // [[lng, lat], [lng, lat], ...]
+            'warning' => $warning,
         ];
+    }
+
+    /**
+     * Check if route is realistic based on distance, duration and transport mode.
+     */
+    private function checkRouteRealism(int $distanceMeters, int $durationSeconds, TransportMode $mode): ?string
+    {
+        $distanceKm = $distanceMeters / 1000;
+        $durationHours = $durationSeconds / 3600;
+
+        // Calculate average speed in km/h
+        $avgSpeed = $durationHours > 0 ? $distanceKm / $durationHours : 0;
+
+        $warnings = [];
+
+        // Check based on transport mode
+        switch ($mode) {
+            case TransportMode::FootWalking:
+                // Normal walking speed: 4-6 km/h
+                // Distance warnings
+                if ($distanceKm > 50) {
+                    $warnings[] = "This walking route is very long ({$distanceKm} km). Consider using bicycle or car instead.";
+                } elseif ($distanceKm > 30) {
+                    $warnings[] = "This is a long walking route ({$distanceKm} km). Make sure you're prepared for a multi-hour walk.";
+                }
+
+                // Speed warnings (unrealistic if over 8 km/h average)
+                if ($avgSpeed > 8) {
+                    $warnings[] = "The calculated duration seems unrealistic. OSRM's walking routes are optimized for short urban distances, not long-distance travel.";
+                }
+                break;
+
+            case TransportMode::CyclingRegular:
+                // Normal cycling speed: 15-25 km/h
+                if ($distanceKm > 200) {
+                    $warnings[] = "This is a very long cycling route ({$distanceKm} km). Consider breaking it into multiple days.";
+                } elseif ($distanceKm > 100) {
+                    $warnings[] = "This is a long cycling route ({$distanceKm} km). Plan for rest stops and sufficient time.";
+                }
+
+                // Speed warnings (unrealistic if over 40 km/h average)
+                if ($avgSpeed > 40) {
+                    $warnings[] = 'The calculated duration seems unrealistic for cycling.';
+                }
+                break;
+
+            case TransportMode::DrivingCar:
+                // Normal driving speed varies greatly, but average over 150 km/h is unrealistic
+                if ($avgSpeed > 150) {
+                    $warnings[] = 'The calculated duration seems unrealistic for driving.';
+                }
+                break;
+        }
+
+        return empty($warnings) ? null : implode(' ', $warnings);
     }
 
     /**

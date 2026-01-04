@@ -286,9 +286,14 @@ export default function RoutePanel({
                                     </div>
                                     <div className="text-xs text-muted-foreground">
                                         {route.distance.km.toFixed(2)} km •{' '}
-                                        {formatDuration(route.duration.minutes)} •{' '}
-                                        {route.transport_mode.label}
+                                        {formatDuration(route.duration.minutes)}{' '}
+                                        • {route.transport_mode.label}
                                     </div>
+                                    {route.warning && (
+                                        <div className="mt-2 rounded border-l-4 border-yellow-500 bg-yellow-50 p-2 text-xs text-yellow-800 dark:border-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400">
+                                            ⚠️ {route.warning}
+                                        </div>
+                                    )}
                                 </div>
                                 <Button
                                     variant="ghost"
