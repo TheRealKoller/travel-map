@@ -13,6 +13,9 @@ export enum MarkerType {
     Leisure = 'leisure',
     Sightseeing = 'sightseeing',
     NaturalAttraction = 'natural attraction',
+    City = 'city',
+    Village = 'village',
+    Region = 'region',
 }
 
 export interface MarkerData {
