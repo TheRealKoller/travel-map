@@ -42,8 +42,30 @@ export default function CreateSubTourModal({
             await onCreateSubTour(name);
             setName('');
             onOpenChange(false);
-        } catch {
-            setError('Failed to create sub-tour. Please try again.');
+        } catch (error: unknown) {
+            // Extract validation error message from server response if available
+            if (
+                error &&
+                typeof error === 'object' &&
+                'response' in error &&
+                error.response &&
+                typeof error.response === 'object' &&
+                'data' in error.response
+            ) {
+                const responseData = error.response.data as {
+                    message?: string;
+                    errors?: Record<string, string[]>;
+                };
+                if (responseData.errors?.name?.[0]) {
+                    setError(responseData.errors.name[0]);
+                } else if (responseData.message) {
+                    setError(responseData.message);
+                } else {
+                    setError('Failed to create sub-tour. Please try again.');
+                }
+            } else {
+                setError('Failed to create sub-tour. Please try again.');
+            }
         } finally {
             setIsSubmitting(false);
         }

@@ -50,9 +50,6 @@ class TourController extends Controller
         if ($parentTourId) {
             $parentTour = Tour::findOrFail($parentTourId);
 
-            // Authorize that user can update the parent tour
-            $this->authorize('update', $parentTour);
-
             if ($parentTour->trip_id !== $tripId) {
                 return response()->json(['error' => 'Parent tour does not belong to this trip'], 422);
             }
@@ -212,7 +209,7 @@ class TourController extends Controller
 
         // Verify all markers belong to this tour
         $tourMarkerIds = $tour->markers->pluck('id')->toArray();
-        $requestedMarkerIds = array_column($markerItems, 'id');
+        $requestedMarkerIds = array_map(fn ($id) => (string) $id, array_column($markerItems, 'id'));
         $invalidMarkerIds = array_diff($requestedMarkerIds, $tourMarkerIds);
 
         if (! empty($invalidMarkerIds)) {
@@ -221,7 +218,7 @@ class TourController extends Controller
 
         // Verify all sub-tours belong to this tour
         $tourSubTourIds = $tour->subTours->pluck('id')->toArray();
-        $requestedSubTourIds = array_map('intval', array_column($subTourItems, 'id'));
+        $requestedSubTourIds = array_map(fn ($id) => (int) $id, array_column($subTourItems, 'id'));
         $invalidSubTourIds = array_diff($requestedSubTourIds, $tourSubTourIds);
 
         if (! empty($invalidSubTourIds)) {

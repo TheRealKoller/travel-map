@@ -211,7 +211,9 @@ function SortableSubTourItem({
                     </p>
                 ) : (
                     <SortableContext
-                        items={subTourMarkers.map((m) => `tour-marker-${m.id}`)}
+                        items={subTourMarkers.map(
+                            (m) => `tour-item-marker-${m.id}`,
+                        )}
                         strategy={verticalListSortingStrategy}
                     >
                         <ul className="ml-8 space-y-1.5">

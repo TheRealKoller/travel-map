@@ -270,7 +270,7 @@ export default function TravelMap({
     const sensors = useSensors(
         useSensor(PointerSensor, {
             activationConstraint: {
-                distance: 8, // Require 8px of movement before drag starts
+                distance: 12, // Require 12px of movement to prevent accidental drags
             },
         }),
     );
@@ -1046,7 +1046,8 @@ export default function TravelMap({
         const activeId = active.id as string;
         const overId = over.id as string;
 
-        // Check if this is reordering within a tour (mixed items)
+        // Check if this is reordering within a tour (mixed items: markers and sub-tours)
+        // This handles drag-and-drop reordering of items within the selected parent tour
         if (
             activeId !== overId &&
             activeId.startsWith('tour-item-') &&
@@ -1056,14 +1057,15 @@ export default function TravelMap({
             const selectedTour = tours.find((t) => t.id === selectedTourId);
             if (!selectedTour) return;
 
-            // Build combined items list
+            // Step 1: Build a combined list of all items (markers and sub-tours) in the tour
+            // This allows markers and sub-tours to be reordered together
             type TourItem =
                 | { type: 'marker'; id: string; position: number }
                 | { type: 'subtour'; id: number; position: number };
 
             const items: TourItem[] = [];
 
-            // Add markers
+            // Add all markers from the tour with their current positions
             selectedTour.markers?.forEach((m) => {
                 items.push({
                     type: 'marker',
@@ -1072,7 +1074,7 @@ export default function TravelMap({
                 });
             });
 
-            // Add sub-tours
+            // Add all sub-tours from the tour with their current positions
             selectedTour.sub_tours?.forEach((st) => {
                 items.push({
                     type: 'subtour',
@@ -1081,10 +1083,10 @@ export default function TravelMap({
                 });
             });
 
-            // Sort by position
+            // Step 2: Sort items by their current position to get the correct order
             items.sort((a, b) => a.position - b.position);
 
-            // Find indices
+            // Step 3: Find the indices of the dragged item (active) and drop target (over)
             const activeIndex = items.findIndex((item) => {
                 const itemId =
                     item.type === 'marker'
@@ -1102,16 +1104,17 @@ export default function TravelMap({
             });
 
             if (activeIndex !== -1 && overIndex !== -1) {
-                // Reorder items
+                // Step 4: Reorder the items array by moving the active item to the over position
                 const reorderedItems = arrayMove(items, activeIndex, overIndex);
 
-                // Prepare data for backend
+                // Step 5: Prepare the reordered data in the format expected by the backend API
                 const itemsForBackend = reorderedItems.map((item) => ({
                     type: item.type,
                     id: item.type === 'marker' ? item.id : item.id.toString(),
                 }));
 
-                // Optimistically update the UI with correct positions
+                // Step 6: Optimistically update the UI with new positions before server response
+                // This provides immediate visual feedback to the user
                 const updatedMarkers = reorderedItems
                     .map((item, index) => {
                         if (item.type === 'marker') {
@@ -1142,6 +1145,7 @@ export default function TravelMap({
                         (st): st is NonNullable<typeof st> => st !== undefined,
                     );
 
+                // Update the tours state with the new order
                 const updatedTours = tours.map((t) =>
                     t.id === selectedTourId
                         ? {
@@ -1154,13 +1158,13 @@ export default function TravelMap({
 
                 onToursUpdate(updatedTours);
 
-                // Send reorder request to server
+                // Step 7: Send the reorder request to the server and reload data
                 try {
                     await axios.put(`/tours/${selectedTourId}/items/reorder`, {
                         items: itemsForBackend,
                     });
 
-                    // Reload tours from server to get the correct data
+                    // Reload tours from server to ensure we have the latest correct data
                     if (selectedTripId) {
                         const response = await axios.get('/tours', {
                             params: { trip_id: selectedTripId },
@@ -1172,7 +1176,7 @@ export default function TravelMap({
                     alert(
                         'Failed to reorder items. The order has been reverted.',
                     );
-                    // Revert on error
+                    // Step 8: Revert the optimistic update on error by reloading from server
                     if (selectedTripId) {
                         const response = await axios.get('/tours', {
                             params: { trip_id: selectedTripId },
