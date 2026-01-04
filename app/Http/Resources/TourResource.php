@@ -18,8 +18,6 @@ class TourResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'trip_id' => $this->trip_id,
-            'parent_tour_id' => $this->parent_tour_id,
-            'position' => $this->position,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'markers' => $this->markers->map(function ($marker) {
@@ -40,7 +38,6 @@ class TourResource extends JsonResource
                     'position' => $marker->pivot->position ?? 0,
                 ];
             }),
-            'sub_tours' => TourResource::collection($this->whenLoaded('subTours')),
         ];
     }
 }
