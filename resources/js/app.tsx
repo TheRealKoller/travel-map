@@ -16,8 +16,8 @@ if (csrfToken) {
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 axios.defaults.headers.common['Accept'] = 'application/json';
 
-// Set base URL to root to avoid /public/ in requests
-axios.defaults.baseURL = '/';
+// Set base URL to /public/ to avoid 301 redirects that lose POST body
+axios.defaults.baseURL = '/public';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
