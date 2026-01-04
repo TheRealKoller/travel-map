@@ -7,6 +7,7 @@ enum TransportMode: string
     case DrivingCar = 'driving-car';
     case CyclingRegular = 'cycling-regular';
     case FootWalking = 'foot-walking';
+    case PublicTransport = 'public-transport';
 
     public function label(): string
     {
@@ -14,6 +15,7 @@ enum TransportMode: string
             self::DrivingCar => 'Car',
             self::CyclingRegular => 'Bicycle',
             self::FootWalking => 'Walking',
+            self::PublicTransport => 'Public Transport',
         };
     }
 
@@ -23,6 +25,7 @@ enum TransportMode: string
             self::DrivingCar => 'car',
             self::CyclingRegular => 'bike',
             self::FootWalking => 'person-walking',
+            self::PublicTransport => 'train',
         };
     }
 }

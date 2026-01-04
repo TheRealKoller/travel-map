@@ -45,7 +45,7 @@ class RouteController extends Controller
             'trip_id' => 'required|exists:trips,id',
             'start_marker_id' => 'required|uuid|exists:markers,id',
             'end_marker_id' => 'required|uuid|exists:markers,id|different:start_marker_id',
-            'transport_mode' => 'required|string|in:driving-car,cycling-regular,foot-walking',
+            'transport_mode' => 'required|string|in:driving-car,cycling-regular,foot-walking,public-transport',
         ]);
 
         $trip = Trip::findOrFail($validated['trip_id']);
