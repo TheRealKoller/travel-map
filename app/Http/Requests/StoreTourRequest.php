@@ -29,18 +29,30 @@ class StoreTourRequest extends FormRequest
                 'max:255',
                 function ($attribute, $value, $fail) {
                     $tripId = $this->input('trip_id');
-                    if ($tripId) {
-                        $exists = Tour::where('trip_id', $tripId)
-                            ->whereRaw('LOWER(name) = ?', [strtolower($value)])
-                            ->exists();
+                    $parentTourId = $this->input('parent_tour_id');
 
-                        if ($exists) {
-                            $fail('A tour with this name already exists for this trip.');
+                    if ($tripId) {
+                        $query = Tour::where('trip_id', $tripId)
+                            ->whereRaw('LOWER(name) = ?', [strtolower($value)]);
+
+                        // If creating a sub-tour, check uniqueness within parent tour only
+                        if ($parentTourId) {
+                            $query->where('parent_tour_id', $parentTourId);
+                        } else {
+                            // For top-level tours, check among other top-level tours
+                            $query->whereNull('parent_tour_id');
+                        }
+
+                        if ($query->exists()) {
+                            $fail($parentTourId
+                                ? 'A sub-tour with this name already exists in this tour.'
+                                : 'A tour with this name already exists for this trip.');
                         }
                     }
                 },
             ],
             'trip_id' => 'required|integer|exists:trips,id',
+            'parent_tour_id' => 'nullable|integer|exists:tours,id',
         ];
     }
 }

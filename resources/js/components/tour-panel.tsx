@@ -19,6 +19,7 @@ interface TourPanelProps {
     selectedTourId: number | null;
     onSelectTour: (tourId: number | null) => void;
     onCreateTour: () => void;
+    onCreateSubTour: (parentTourId: number) => void;
     onDeleteTour: (tourId: number) => void;
     markers: MarkerData[];
 }
@@ -70,7 +71,7 @@ function SortableMarkerItem({ marker, index }: SortableMarkerItemProps) {
         transform,
         transition,
         isDragging,
-    } = useSortable({ id: `tour-marker-${marker.id}` });
+    } = useSortable({ id: `tour-item-marker-${marker.id}` });
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -120,16 +121,131 @@ function SortableMarkerItem({ marker, index }: SortableMarkerItemProps) {
     );
 }
 
+interface SortableSubTourItemProps {
+    subTour: Tour;
+    index: number;
+    markers: MarkerData[];
+    onDeleteTour: (tourId: number) => void;
+}
+
+function SortableSubTourItem({
+    subTour,
+    index,
+    markers,
+    onDeleteTour,
+}: SortableSubTourItemProps) {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: `tour-item-subtour-${subTour.id}` });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+    };
+
+    const { setNodeRef: setDropRef, isOver } = useDroppable({
+        id: `tour-${subTour.id}`,
+        data: {
+            tourId: subTour.id,
+        },
+    });
+
+    // Get markers for this sub-tour
+    const subTourMarkers = subTour.markers
+        ? subTour.markers
+              .map((tourMarker) =>
+                  markers.find((marker) => marker.id === tourMarker.id),
+              )
+              .filter((marker): marker is MarkerData => marker !== undefined)
+        : [];
+
+    return (
+        <li
+            ref={setNodeRef}
+            style={style}
+            className={`${isDragging ? 'opacity-50' : ''}`}
+        >
+            <div
+                ref={setDropRef}
+                className={`rounded-md border border-gray-200 bg-white p-3 ${
+                    isOver
+                        ? 'bg-blue-50 ring-2 ring-blue-500 ring-offset-2'
+                        : ''
+                }`}
+            >
+                <div className="mb-2 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <button
+                            {...listeners}
+                            {...attributes}
+                            className="cursor-grab active:cursor-grabbing"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <GripVertical className="h-4 w-4 text-gray-400" />
+                        </button>
+                        <span className="font-medium text-gray-500">
+                            {index + 1}.
+                        </span>
+                        <h5 className="text-xs font-semibold text-gray-700">
+                            {subTour.name}
+                        </h5>
+                    </div>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onDeleteTour(subTour.id)}
+                        className="h-6 w-6 text-gray-400 hover:text-red-600"
+                        title="Delete sub-tour"
+                    >
+                        <Trash2 className="h-3 w-3" />
+                    </Button>
+                </div>
+                {subTourMarkers.length === 0 ? (
+                    <p className="ml-8 text-xs text-gray-400">
+                        Drag markers here to add them to this sub-tour
+                    </p>
+                ) : (
+                    <SortableContext
+                        items={subTourMarkers.map(
+                            (m) => `tour-item-marker-${m.id}`,
+                        )}
+                        strategy={verticalListSortingStrategy}
+                    >
+                        <ul className="ml-8 space-y-1.5">
+                            {subTourMarkers.map((marker, idx) => (
+                                <SortableMarkerItem
+                                    key={marker.id}
+                                    marker={marker}
+                                    index={idx}
+                                />
+                            ))}
+                        </ul>
+                    </SortableContext>
+                )}
+            </div>
+        </li>
+    );
+}
+
 interface DroppableTourCardProps {
     tour: Tour;
     markers: MarkerData[];
+    allMarkers: MarkerData[]; // All markers from the trip
     onDeleteTour: (tourId: number) => void;
+    onCreateSubTour: (parentTourId: number) => void;
 }
 
 function DroppableTourCard({
     tour,
     markers,
+    allMarkers,
     onDeleteTour,
+    onCreateSubTour,
 }: DroppableTourCardProps) {
     const { setNodeRef, isOver } = useDroppable({
         id: `tour-${tour.id}`,
@@ -137,6 +253,46 @@ function DroppableTourCard({
             tourId: tour.id,
         },
     });
+
+    // Combine markers and sub-tours into a sorted list
+    type TourItem =
+        | { type: 'marker'; data: MarkerData; position: number }
+        | { type: 'subtour'; data: Tour; position: number };
+
+    const tourItems: TourItem[] = [];
+
+    // Add markers
+    markers.forEach((marker) => {
+        const tourMarker = tour.markers?.find((m) => m.id === marker.id);
+        if (tourMarker) {
+            tourItems.push({
+                type: 'marker',
+                data: marker,
+                position: tourMarker.position || 0,
+            });
+        }
+    });
+
+    // Add sub-tours
+    if (tour.sub_tours) {
+        tour.sub_tours.forEach((subTour) => {
+            tourItems.push({
+                type: 'subtour',
+                data: subTour,
+                position: subTour.position,
+            });
+        });
+    }
+
+    // Sort by position
+    tourItems.sort((a, b) => a.position - b.position);
+
+    // Create sortable IDs
+    const sortableIds = tourItems.map((item) =>
+        item.type === 'marker'
+            ? `tour-item-marker-${item.data.id}`
+            : `tour-item-subtour-${item.data.id}`,
+    );
 
     return (
         <Card
@@ -147,33 +303,54 @@ function DroppableTourCard({
         >
             <div className="mb-3 flex items-center justify-between">
                 <h3 className="text-sm font-semibold">{tour.name}</h3>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onDeleteTour(tour.id)}
-                    className="h-7 w-7 text-gray-500 hover:text-red-600"
-                    title="Delete tour"
-                >
-                    <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="flex gap-1">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onCreateSubTour(tour.id)}
+                        className="h-7 w-7 text-gray-500 hover:text-blue-600"
+                        title="Create sub-tour"
+                    >
+                        <Plus className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onDeleteTour(tour.id)}
+                        className="h-7 w-7 text-gray-500 hover:text-red-600"
+                        title="Delete tour"
+                    >
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
+                </div>
             </div>
-            {markers.length === 0 ? (
+            {tourItems.length === 0 ? (
                 <p className="text-sm text-gray-500">
                     Drag markers here to add them to this tour
                 </p>
             ) : (
                 <SortableContext
-                    items={markers.map((m) => `tour-marker-${m.id}`)}
+                    items={sortableIds}
                     strategy={verticalListSortingStrategy}
                 >
                     <ul className="space-y-2">
-                        {markers.map((marker, index) => (
-                            <SortableMarkerItem
-                                key={marker.id}
-                                marker={marker}
-                                index={index}
-                            />
-                        ))}
+                        {tourItems.map((item, index) =>
+                            item.type === 'marker' ? (
+                                <SortableMarkerItem
+                                    key={`marker-${item.data.id}`}
+                                    marker={item.data}
+                                    index={index}
+                                />
+                            ) : (
+                                <SortableSubTourItem
+                                    key={`subtour-${item.data.id}`}
+                                    subTour={item.data}
+                                    index={index}
+                                    markers={allMarkers}
+                                    onDeleteTour={onDeleteTour}
+                                />
+                            ),
+                        )}
                     </ul>
                 </SortableContext>
             )}
@@ -186,6 +363,7 @@ export default function TourPanel({
     selectedTourId,
     onSelectTour,
     onCreateTour,
+    onCreateSubTour,
     onDeleteTour,
     markers,
 }: TourPanelProps) {
@@ -256,7 +434,9 @@ export default function TourPanel({
                 <DroppableTourCard
                     tour={selectedTour}
                     markers={selectedTourMarkers}
+                    allMarkers={markers}
                     onDeleteTour={onDeleteTour}
+                    onCreateSubTour={onCreateSubTour}
                 />
             )}
         </div>

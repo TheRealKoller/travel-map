@@ -26,4 +26,5 @@ export interface MarkerData {
     isUnesco: boolean;
     marker: L.Marker;
     isSaved: boolean; // Track if marker is persisted in database
+    position?: number; // Position in tour (when part of a tour)
 }
