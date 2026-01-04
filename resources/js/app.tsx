@@ -16,6 +16,9 @@ if (csrfToken) {
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 axios.defaults.headers.common['Accept'] = 'application/json';
 
+// Set base URL to root to avoid /public/ in requests
+axios.defaults.baseURL = '/';
+
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
