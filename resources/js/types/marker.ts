@@ -12,6 +12,7 @@ export enum MarkerType {
     FestivalParty = 'festival/party',
     Leisure = 'leisure',
     Sightseeing = 'sightseeing',
+    NaturalAttraction = 'natural attraction',
 }
 
 export interface MarkerData {

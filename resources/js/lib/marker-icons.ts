@@ -10,6 +10,7 @@ import {
     Lightbulb,
     type LucideIcon,
     MapPin,
+    Mountain,
     Palmtree,
     PartyPopper,
     Utensils,
@@ -30,6 +31,7 @@ export const markerTypeIcons: Record<MarkerType, LucideIcon> = {
     [MarkerType.FestivalParty]: PartyPopper,
     [MarkerType.Leisure]: Palmtree,
     [MarkerType.Sightseeing]: Eye,
+    [MarkerType.NaturalAttraction]: Mountain,
 };
 
 /**
