@@ -22,7 +22,7 @@ class StoreRouteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'trip_id' => 'required|exists:trips,id',
+            'trip_id' => 'required|integer|exists:trips,id',
             'start_marker_id' => 'required|uuid|exists:markers,id',
             'end_marker_id' => 'required|uuid|exists:markers,id|different:start_marker_id',
             'transport_mode' => 'required|string|in:driving-car,cycling-regular,foot-walking,public-transport',
