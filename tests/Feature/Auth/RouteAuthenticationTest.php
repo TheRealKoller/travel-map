@@ -5,7 +5,6 @@ use App\Models\Route;
 use App\Models\Tour;
 use App\Models\Trip;
 use App\Models\User;
-use Illuminate\Support\Facades\Route as RouteFacade;
 
 test('unauthenticated users cannot access home page', function () {
     $response = $this->get('/');
