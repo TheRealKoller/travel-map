@@ -46,8 +46,8 @@ it('can list routes for a trip', function () {
 it('requires trip_id when listing routes', function () {
     $response = $this->getJson('/routes');
 
-    $response->assertStatus(400)
-        ->assertJson(['error' => 'trip_id is required']);
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['trip_id']);
 });
 
 it('can create a route between two markers', function () {
