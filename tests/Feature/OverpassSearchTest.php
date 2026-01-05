@@ -5,6 +5,9 @@ use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
     $this->user = User::factory()->withoutTwoFactor()->create();
+    
+    // Set a fake Mapbox access token for tests
+    config(['services.mapbox.access_token' => 'pk.test.fake_token_for_testing']);
 });
 
 test('search nearby endpoint requires authentication', function () {
@@ -60,13 +63,34 @@ test('search nearby validates radius', function () {
 });
 
 test('search nearby returns count on successful request', function () {
-    // Mock the Overpass API response
+    // Mock the Mapbox Geocoding API response
     Http::fake([
-        'overpass.private.coffee/*' => Http::response([
-            'elements' => [
-                ['type' => 'node', 'id' => 1, 'lat' => 35.6762, 'lon' => 139.6503, 'tags' => ['name' => 'Place 1', 'amenity' => 'restaurant']],
-                ['type' => 'node', 'id' => 2, 'lat' => 35.6763, 'lon' => 139.6504, 'tags' => ['name' => 'Place 2', 'tourism' => 'hotel']],
-                ['type' => 'node', 'id' => 3, 'lat' => 35.6764, 'lon' => 139.6505, 'tags' => ['shop' => 'bakery']],
+        'api.mapbox.com/*' => Http::response([
+            'features' => [
+                [
+                    'id' => 'poi.1',
+                    'type' => 'Feature',
+                    'place_name' => 'Place 1',
+                    'text' => 'Place 1',
+                    'geometry' => ['type' => 'Point', 'coordinates' => [139.6503, 35.6762]],
+                    'properties' => ['category' => 'restaurant'],
+                ],
+                [
+                    'id' => 'poi.2',
+                    'type' => 'Feature',
+                    'place_name' => 'Place 2',
+                    'text' => 'Place 2',
+                    'geometry' => ['type' => 'Point', 'coordinates' => [139.6504, 35.6763]],
+                    'properties' => ['category' => 'hotel'],
+                ],
+                [
+                    'id' => 'poi.3',
+                    'type' => 'Feature',
+                    'place_name' => 'Place 3',
+                    'text' => 'Place 3',
+                    'geometry' => ['type' => 'Point', 'coordinates' => [139.6505, 35.6764]],
+                    'properties' => ['category' => 'bakery'],
+                ],
             ],
         ], 200),
     ]);
@@ -99,10 +123,10 @@ test('search nearby returns count on successful request', function () {
 });
 
 test('search nearby handles empty results', function () {
-    // Mock the Overpass API response with no elements
+    // Mock the Mapbox Geocoding API response with no features
     Http::fake([
-        'overpass.private.coffee/*' => Http::response([
-            'elements' => [],
+        'api.mapbox.com/*' => Http::response([
+            'features' => [],
         ], 200),
     ]);
 
@@ -121,9 +145,9 @@ test('search nearby handles empty results', function () {
 });
 
 test('search nearby handles API errors gracefully', function () {
-    // Mock the Overpass API to return an error
+    // Mock the Mapbox Geocoding API to return an error
     Http::fake([
-        'overpass.private.coffee/*' => Http::response([], 500),
+        'api.mapbox.com/*' => Http::response([], 500),
     ]);
 
     $response = $this->actingAs($this->user)->postJson('/markers/search-nearby', [
@@ -147,11 +171,18 @@ test('search nearby handles API errors gracefully', function () {
 });
 
 test('search nearby accepts place type parameter', function () {
-    // Mock the Overpass API response
+    // Mock the Mapbox Geocoding API response
     Http::fake([
-        'overpass.private.coffee/*' => Http::response([
-            'elements' => [
-                ['type' => 'node', 'id' => 1, 'lat' => 35.6762, 'lon' => 139.6503, 'tags' => ['name' => 'Hotel 1', 'tourism' => 'hotel']],
+        'api.mapbox.com/*' => Http::response([
+            'features' => [
+                [
+                    'id' => 'poi.1',
+                    'type' => 'Feature',
+                    'place_name' => 'Hotel 1',
+                    'text' => 'Hotel 1',
+                    'geometry' => ['type' => 'Point', 'coordinates' => [139.6503, 35.6762]],
+                    'properties' => ['category' => 'hotel'],
+                ],
             ],
         ], 200),
     ]);
@@ -196,18 +227,45 @@ test('place types endpoint returns available types', function () {
 });
 
 test('search results include optional name and type fields', function () {
-    // Mock the Overpass API response with various data combinations
+    // Mock the Mapbox Geocoding API response with various data combinations
     Http::fake([
-        'overpass.private.coffee/*' => Http::response([
-            'elements' => [
-                // Element with name and amenity type
-                ['type' => 'node', 'id' => 1, 'lat' => 35.6762, 'lon' => 139.6503, 'tags' => ['name' => 'Restaurant A', 'amenity' => 'restaurant']],
-                // Element with name and tourism type
-                ['type' => 'node', 'id' => 2, 'lat' => 35.6763, 'lon' => 139.6504, 'tags' => ['name' => 'Hotel B', 'tourism' => 'hotel']],
-                // Element without name but with shop type
-                ['type' => 'node', 'id' => 3, 'lat' => 35.6764, 'lon' => 139.6505, 'tags' => ['shop' => 'bakery']],
-                // Element with only coordinates (no tags)
-                ['type' => 'node', 'id' => 4, 'lat' => 35.6765, 'lon' => 139.6506, 'tags' => []],
+        'api.mapbox.com/*' => Http::response([
+            'features' => [
+                // Element with name and category type
+                [
+                    'id' => 'poi.1',
+                    'type' => 'Feature',
+                    'place_name' => 'Restaurant A',
+                    'text' => 'Restaurant A',
+                    'geometry' => ['type' => 'Point', 'coordinates' => [139.6503, 35.6762]],
+                    'properties' => ['category' => 'restaurant'],
+                ],
+                // Element with name and category type
+                [
+                    'id' => 'poi.2',
+                    'type' => 'Feature',
+                    'place_name' => 'Hotel B',
+                    'text' => 'Hotel B',
+                    'geometry' => ['type' => 'Point', 'coordinates' => [139.6504, 35.6763]],
+                    'properties' => ['category' => 'hotel'],
+                ],
+                // Element without name but with category type
+                [
+                    'id' => 'poi.3',
+                    'type' => 'Feature',
+                    'text' => 'Bakery',
+                    'geometry' => ['type' => 'Point', 'coordinates' => [139.6505, 35.6764]],
+                    'properties' => ['category' => 'bakery'],
+                ],
+                // Element with only coordinates (no category)
+                [
+                    'id' => 'poi.4',
+                    'type' => 'Feature',
+                    'place_name' => 'Unknown Place',
+                    'text' => 'Unknown Place',
+                    'geometry' => ['type' => 'Point', 'coordinates' => [139.6506, 35.6765]],
+                    'properties' => [],
+                ],
             ],
         ], 200),
     ]);
@@ -233,28 +291,47 @@ test('search results include optional name and type fields', function () {
     expect($results[1]['name'])->toBe('Hotel B');
     expect($results[1]['type'])->toBe('hotel');
 
-    // Third result should have type but no name
-    expect($results[2])->not->toHaveKey('name');
+    // Third result should have name but type can be optional
+    expect($results[2]['name'])->toBe('Bakery');
     expect($results[2]['type'])->toBe('bakery');
 
-    // Fourth result should have neither name nor type
-    expect($results[3])->not->toHaveKey('name');
+    // Fourth result should have name but no type
+    expect($results[3]['name'])->toBe('Unknown Place');
     expect($results[3])->not->toHaveKey('type');
 });
 
 test('search results skip elements without coordinates', function () {
-    // Mock the Overpass API response with some elements missing coordinates
+    // Mock the Mapbox Geocoding API response with some features missing coordinates
     Http::fake([
-        'overpass.private.coffee/*' => Http::response([
-            'elements' => [
+        'api.mapbox.com/*' => Http::response([
+            'features' => [
                 // Valid element with coordinates
-                ['type' => 'node', 'id' => 1, 'lat' => 35.6762, 'lon' => 139.6503, 'tags' => ['name' => 'Valid Place']],
+                [
+                    'id' => 'poi.1',
+                    'type' => 'Feature',
+                    'place_name' => 'Valid Place',
+                    'text' => 'Valid Place',
+                    'geometry' => ['type' => 'Point', 'coordinates' => [139.6503, 35.6762]],
+                    'properties' => [],
+                ],
                 // Element without coordinates (should be filtered out)
-                ['type' => 'node', 'id' => 2, 'tags' => ['name' => 'No Coordinates']],
+                [
+                    'id' => 'poi.2',
+                    'type' => 'Feature',
+                    'place_name' => 'No Coordinates',
+                    'text' => 'No Coordinates',
+                    'geometry' => ['type' => 'Point', 'coordinates' => []],
+                    'properties' => [],
+                ],
                 // Another valid element
-                ['type' => 'node', 'id' => 3, 'lat' => 35.6764, 'lon' => 139.6505, 'tags' => ['name' => 'Another Valid']],
-                // Element with only lat (should be filtered out)
-                ['type' => 'node', 'id' => 4, 'lat' => 35.6765, 'tags' => ['name' => 'Only Lat']],
+                [
+                    'id' => 'poi.3',
+                    'type' => 'Feature',
+                    'place_name' => 'Another Valid',
+                    'text' => 'Another Valid',
+                    'geometry' => ['type' => 'Point', 'coordinates' => [139.6505, 35.6764]],
+                    'properties' => [],
+                ],
             ],
         ], 200),
     ]);

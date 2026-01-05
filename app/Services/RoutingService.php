@@ -10,12 +10,10 @@ use Illuminate\Support\Facades\Http;
 
 class RoutingService
 {
-    private const OSRM_BASE_URL = 'https://router.project-osrm.org';
-
     private const MAPBOX_BASE_URL = 'https://api.mapbox.com';
 
     /**
-     * Calculate route between two markers using OSRM.
+     * Calculate route between two markers using Mapbox Directions API.
      *
      * @return array{distance: int, duration: int, geometry: array, warning: string|null}
      *
@@ -27,67 +25,18 @@ class RoutingService
         Marker $endMarker,
         TransportMode $transportMode = TransportMode::DrivingCar
     ): array {
-        // Use Mapbox for public transport, OSRM for everything else
-        if ($transportMode === TransportMode::PublicTransport) {
-            return $this->calculateMapboxRoute($startMarker, $endMarker);
-        }
-
-        $profile = $this->getOsrmProfile($transportMode);
-
-        $coordinates = sprintf(
-            '%s,%s;%s,%s',
-            $startMarker->longitude,
-            $startMarker->latitude,
-            $endMarker->longitude,
-            $endMarker->latitude
-        );
-
-        $url = sprintf(
-            '%s/route/v1/%s/%s',
-            self::OSRM_BASE_URL,
-            $profile,
-            $coordinates
-        );
-
-        $response = Http::get($url, [
-            'overview' => 'full',
-            'geometries' => 'geojson',
-        ]);
-
-        if (! $response->successful()) {
-            throw new RoutingProviderException('Failed to calculate route via OSRM: '.$response->body());
-        }
-
-        $data = $response->json();
-
-        if (! isset($data['routes'][0])) {
-            throw new RouteNotFoundException('No route found between the markers');
-        }
-
-        $route = $data['routes'][0];
-        $distance = (int) $route['distance']; // meters
-        $duration = (int) $route['duration']; // seconds
-
-        // Check for unrealistic routes
-        $warning = $this->checkRouteRealism($distance, $duration, $transportMode);
-
-        return [
-            'distance' => $distance,
-            'duration' => $duration,
-            'geometry' => $route['geometry']['coordinates'], // [[lng, lat], [lng, lat], ...]
-            'warning' => $warning,
-        ];
+        return $this->calculateMapboxRoute($startMarker, $endMarker, $transportMode);
     }
 
     /**
-     * Calculate route using Mapbox Directions API (for public transport).
+     * Calculate route using Mapbox Directions API.
      *
      * @return array{distance: int, duration: int, geometry: array, warning: string|null}
      *
      * @throws RouteNotFoundException
      * @throws RoutingProviderException
      */
-    private function calculateMapboxRoute(Marker $startMarker, Marker $endMarker): array
+    private function calculateMapboxRoute(Marker $startMarker, Marker $endMarker, TransportMode $transportMode): array
     {
         $accessToken = config('services.mapbox.access_token');
 
@@ -95,6 +44,8 @@ class RoutingService
             throw new RoutingProviderException('Mapbox access token not configured. Please add MAPBOX_ACCESS_TOKEN to your .env file.');
         }
 
+        $profile = $this->getMapboxProfile($transportMode);
+
         $coordinates = sprintf(
             '%s,%s;%s,%s',
             $startMarker->longitude,
@@ -104,8 +55,9 @@ class RoutingService
         );
 
         $url = sprintf(
-            '%s/directions/v5/mapbox/driving-traffic/%s',
+            '%s/directions/v5/mapbox/%s/%s',
             self::MAPBOX_BASE_URL,
+            $profile,
             $coordinates
         );
 
@@ -129,9 +81,10 @@ class RoutingService
         $distance = (int) $route['distance']; // meters
         $duration = (int) $route['duration']; // seconds
 
-        // Note: For public transport, warnings are less relevant
-        // as schedules and transfers make timing more predictable
-        $warning = null;
+        // Check for unrealistic routes (except for public transport)
+        $warning = $transportMode === TransportMode::PublicTransport
+            ? null
+            : $this->checkRouteRealism($distance, $duration, $transportMode);
 
         return [
             'distance' => $distance,
@@ -167,7 +120,7 @@ class RoutingService
 
                 // Speed warnings (unrealistic if over 8 km/h average)
                 if ($avgSpeed > 8) {
-                    $warnings[] = "The calculated duration seems unrealistic. OSRM's walking routes are optimized for short urban distances, not long-distance travel.";
+                    $warnings[] = 'The calculated duration seems unrealistic for walking on this route.';
                 }
                 break;
 
@@ -197,15 +150,16 @@ class RoutingService
     }
 
     /**
-     * Get OSRM profile based on transport mode.
-     * OSRM only supports: driving, cycling, foot
+     * Get Mapbox profile based on transport mode.
+     * Mapbox supports: driving-traffic, driving, walking, cycling
      */
-    private function getOsrmProfile(TransportMode $mode): string
+    private function getMapboxProfile(TransportMode $mode): string
     {
         return match ($mode) {
-            TransportMode::DrivingCar => 'driving',
+            TransportMode::DrivingCar => 'driving-traffic',
             TransportMode::CyclingRegular => 'cycling',
-            TransportMode::FootWalking => 'foot',
+            TransportMode::FootWalking => 'walking',
+            TransportMode::PublicTransport => 'driving-traffic', // Mapbox doesn't have dedicated public transport routing, use driving as fallback
         };
     }
 }
