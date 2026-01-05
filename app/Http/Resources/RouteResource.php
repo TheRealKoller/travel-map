@@ -17,18 +17,8 @@ class RouteResource extends JsonResource
         return [
             'id' => $this->id,
             'trip_id' => $this->trip_id,
-            'start_marker' => [
-                'id' => $this->startMarker->id,
-                'name' => $this->startMarker->name,
-                'latitude' => $this->startMarker->latitude,
-                'longitude' => $this->startMarker->longitude,
-            ],
-            'end_marker' => [
-                'id' => $this->endMarker->id,
-                'name' => $this->endMarker->name,
-                'latitude' => $this->endMarker->latitude,
-                'longitude' => $this->endMarker->longitude,
-            ],
+            'start_marker' => new RouteMarkerResource($this->startMarker),
+            'end_marker' => new RouteMarkerResource($this->endMarker),
             'transport_mode' => [
                 'value' => $this->transport_mode->value,
                 'label' => $this->transport_mode->label(),
