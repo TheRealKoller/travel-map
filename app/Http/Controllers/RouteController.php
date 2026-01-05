@@ -8,8 +8,8 @@ use App\Http\Requests\StoreRouteRequest;
 use App\Http\Resources\RouteResource;
 use App\Models\Marker;
 use App\Models\Route;
-use App\Models\Trip;
 use App\Services\RoutingService;
+use App\Services\TripService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 
@@ -18,7 +18,8 @@ class RouteController extends Controller
     use AuthorizesRequests;
 
     public function __construct(
-        private readonly RoutingService $routingService
+        private readonly RoutingService $routingService,
+        private readonly TripService $tripService
     ) {}
 
     public function index(RouteIndexRequest $request): JsonResponse
@@ -26,8 +27,7 @@ class RouteController extends Controller
         $validated = $request->validated();
         $tripId = $validated['trip_id'];
 
-        $trip = Trip::findOrFail($tripId);
-        $this->authorize('view', $trip);
+        $trip = $this->tripService->findTripForUser($request->user(), $tripId);
 
         $routes = $trip->routes()
             ->with(['startMarker', 'endMarker'])
@@ -41,14 +41,12 @@ class RouteController extends Controller
     {
         $validated = $request->validated();
 
-        $trip = Trip::findOrFail($validated['trip_id']);
-        $this->authorize('update', $trip);
+        $trip = $this->tripService->findTripForUser($request->user(), $validated['trip_id']);
 
         $startMarker = Marker::findOrFail($validated['start_marker_id']);
         $endMarker = Marker::findOrFail($validated['end_marker_id']);
 
-        // Verify both markers belong to the same trip
-        if ($startMarker->trip_id !== $trip->id || $endMarker->trip_id !== $trip->id) {
+        if (! $this->tripService->assertMarkersBelongToTrip($trip, $startMarker, $endMarker)) {
             return response()->json(['error' => 'Markers must belong to the same trip'], 422);
         }
 
