@@ -1,15 +1,11 @@
-import CreateTourModal from '@/components/create-tour-modal';
-import CreateTripModal from '@/components/create-trip-modal';
-import DeleteTourDialog from '@/components/delete-tour-dialog';
-import RenameTripModal from '@/components/rename-trip-modal';
-import TravelMap from '@/components/travel-map';
+import { MapContainer } from '@/components/map-container';
+import { ModalManager } from '@/components/modal-manager';
+import { useModalState } from '@/hooks/use-modal-state';
+import { useTours } from '@/hooks/use-tours';
+import { useTrips } from '@/hooks/use-trips';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Tour } from '@/types/tour';
-import { Trip } from '@/types/trip';
 import { Head } from '@inertiajs/react';
-import axios from 'axios';
-import { useEffect, useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -19,83 +15,29 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function MapPage() {
-    const [trips, setTrips] = useState<Trip[]>([]);
-    const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
-    const [tours, setTours] = useState<Tour[]>([]);
-    const [selectedTourId, setSelectedTourId] = useState<number | null>(null);
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
-    const [isCreateTourModalOpen, setIsCreateTourModalOpen] = useState(false);
-    const [isDeleteTourDialogOpen, setIsDeleteTourDialogOpen] = useState(false);
-    const [tripToRename, setTripToRename] = useState<Trip | null>(null);
-    const [tourToDelete, setTourToDelete] = useState<Tour | null>(null);
+    const { trips, selectedTripId, setSelectedTripId, createTrip, renameTrip } =
+        useTrips();
 
-    useEffect(() => {
-        const loadTrips = async () => {
-            try {
-                const response = await axios.get('/trips');
-                const loadedTrips = response.data;
-                setTrips(loadedTrips);
-                if (loadedTrips.length > 0 && selectedTripId === null) {
-                    setSelectedTripId(loadedTrips[0].id);
-                }
-            } catch (error) {
-                console.error('Failed to load trips:', error);
-            }
-        };
+    const {
+        tours,
+        setTours,
+        selectedTourId,
+        setSelectedTourId,
+        createTour,
+        deleteTour,
+    } = useTours(selectedTripId);
 
-        loadTrips();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    useEffect(() => {
-        const loadTours = async () => {
-            if (!selectedTripId) return;
-
-            try {
-                const response = await axios.get('/tours', {
-                    params: { trip_id: selectedTripId },
-                });
-                setTours(response.data);
-                setSelectedTourId(null); // Reset to "All markers" when switching trips
-            } catch (error) {
-                console.error('Failed to load tours:', error);
-            }
-        };
-
-        loadTours();
-    }, [selectedTripId]);
-
-    const handleCreateTrip = async (name: string) => {
-        try {
-            const response = await axios.post('/trips', { name });
-            const newTrip = response.data;
-            setTrips((prev) => [...prev, newTrip]);
-            setSelectedTripId(newTrip.id);
-        } catch (error) {
-            console.error('Failed to create trip:', error);
-            throw error;
-        }
-    };
-
-    const handleRenameTrip = async (name: string) => {
-        if (!tripToRename) return;
-
-        try {
-            const response = await axios.put(`/trips/${tripToRename.id}`, {
-                name,
-            });
-            const updatedTrip = response.data;
-            setTrips((prev) =>
-                prev.map((trip) =>
-                    trip.id === updatedTrip.id ? updatedTrip : trip,
-                ),
-            );
-        } catch (error) {
-            console.error('Failed to rename trip:', error);
-            throw error;
-        }
-    };
+    const {
+        state: modalState,
+        openCreateTripModal,
+        closeCreateTripModal,
+        openRenameTripModal,
+        closeRenameTripModal,
+        openCreateTourModal,
+        closeCreateTourModal,
+        openDeleteTourDialog,
+        closeDeleteTourDialog,
+    } = useModalState();
 
     const handleOpenRenameModal = (tripId: number) => {
         const trip = trips.find((t) => t.id === tripId);
@@ -103,25 +45,7 @@ export default function MapPage() {
             console.warn(`Trip with id ${tripId} not found`);
             return;
         }
-        setTripToRename(trip);
-        setIsRenameModalOpen(true);
-    };
-
-    const handleCreateTour = async (name: string) => {
-        if (!selectedTripId) return;
-
-        try {
-            const response = await axios.post('/tours', {
-                name,
-                trip_id: selectedTripId,
-            });
-            const newTour = response.data;
-            setTours((prev) => [...prev, newTour]);
-            setSelectedTourId(newTour.id);
-        } catch (error) {
-            console.error('Failed to create tour:', error);
-            throw error;
-        }
+        openRenameTripModal(trip);
     };
 
     const handleOpenDeleteTourDialog = (tourId: number) => {
@@ -130,26 +54,25 @@ export default function MapPage() {
             console.warn(`Tour with id ${tourId} not found`);
             return;
         }
-        setTourToDelete(tour);
-        setIsDeleteTourDialogOpen(true);
+        openDeleteTourDialog(tour);
+    };
+
+    const handleCreateTrip = async (name: string) => {
+        await createTrip(name);
+    };
+
+    const handleRenameTrip = async (name: string) => {
+        if (!modalState.tripToRename) return;
+        await renameTrip(modalState.tripToRename, name);
+    };
+
+    const handleCreateTour = async (name: string) => {
+        await createTour(name);
     };
 
     const handleDeleteTour = async () => {
-        if (!tourToDelete) return;
-
-        try {
-            await axios.delete(`/tours/${tourToDelete.id}`);
-
-            // Remove tour from tours array
-            setTours((prev) => prev.filter((t) => t.id !== tourToDelete.id));
-            // Reset to "All markers" view if the deleted tour was selected
-            if (selectedTourId === tourToDelete.id) {
-                setSelectedTourId(null);
-            }
-        } catch (error) {
-            console.error('Failed to delete tour:', error);
-            throw error;
-        }
+        if (!modalState.tourToDelete) return;
+        await deleteTour(modalState.tourToDelete);
     };
 
     return (
@@ -158,42 +81,34 @@ export default function MapPage() {
             trips={trips}
             selectedTripId={selectedTripId}
             onSelectTrip={setSelectedTripId}
-            onCreateTrip={() => setIsCreateModalOpen(true)}
+            onCreateTrip={openCreateTripModal}
             onRenameTrip={handleOpenRenameModal}
         >
             <Head title="Map" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <TravelMap
-                    selectedTripId={selectedTripId}
-                    selectedTourId={selectedTourId}
-                    tours={tours}
-                    onToursUpdate={setTours}
-                    onSelectTour={setSelectedTourId}
-                    onCreateTour={() => setIsCreateTourModalOpen(true)}
-                    onDeleteTour={handleOpenDeleteTourDialog}
-                />
-            </div>
-            <CreateTripModal
-                open={isCreateModalOpen}
-                onOpenChange={setIsCreateModalOpen}
+            <MapContainer
+                selectedTripId={selectedTripId}
+                selectedTourId={selectedTourId}
+                tours={tours}
+                onToursUpdate={setTours}
+                onSelectTour={setSelectedTourId}
+                onCreateTour={openCreateTourModal}
+                onDeleteTour={handleOpenDeleteTourDialog}
+            />
+            <ModalManager
+                isCreateTripModalOpen={modalState.isCreateTripModalOpen}
+                isRenameTripModalOpen={modalState.isRenameTripModalOpen}
+                isCreateTourModalOpen={modalState.isCreateTourModalOpen}
+                isDeleteTourDialogOpen={modalState.isDeleteTourDialogOpen}
+                tripToRename={modalState.tripToRename}
+                tourToDelete={modalState.tourToDelete}
+                onCreateTripOpenChange={closeCreateTripModal}
+                onRenameTripOpenChange={closeRenameTripModal}
+                onCreateTourOpenChange={closeCreateTourModal}
+                onDeleteTourOpenChange={closeDeleteTourDialog}
                 onCreateTrip={handleCreateTrip}
-            />
-            <RenameTripModal
-                open={isRenameModalOpen}
-                onOpenChange={setIsRenameModalOpen}
                 onRenameTrip={handleRenameTrip}
-                currentName={tripToRename?.name ?? ''}
-            />
-            <CreateTourModal
-                open={isCreateTourModalOpen}
-                onOpenChange={setIsCreateTourModalOpen}
                 onCreateTour={handleCreateTour}
-            />
-            <DeleteTourDialog
-                open={isDeleteTourDialogOpen}
-                onOpenChange={setIsDeleteTourDialogOpen}
-                onConfirm={handleDeleteTour}
-                tourName={tourToDelete?.name ?? ''}
+                onDeleteTour={handleDeleteTour}
             />
         </AppLayout>
     );
