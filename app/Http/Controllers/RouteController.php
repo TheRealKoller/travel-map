@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Enums\TransportMode;
+use App\Exceptions\RouteNotFoundException;
+use App\Exceptions\RoutingProviderException;
 use App\Http\Requests\RouteIndexRequest;
 use App\Http\Requests\StoreRouteRequest;
 use App\Http\Resources\RouteResource;
@@ -68,8 +70,10 @@ class RouteController extends Controller
             $route->load(['startMarker', 'endMarker']);
 
             return response()->json(new RouteResource($route), 201);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to calculate route: '.$e->getMessage()], 500);
+        } catch (RouteNotFoundException $e) {
+            return response()->json(['error' => $e->getMessage()], 404);
+        } catch (RoutingProviderException $e) {
+            return response()->json(['error' => $e->getMessage()], 503);
         }
     }
 

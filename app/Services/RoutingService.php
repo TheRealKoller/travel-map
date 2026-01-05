@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Enums\TransportMode;
+use App\Exceptions\RouteNotFoundException;
+use App\Exceptions\RoutingProviderException;
 use App\Models\Marker;
 use Illuminate\Support\Facades\Http;
 
@@ -17,7 +19,8 @@ class RoutingService
      *
      * @return array{distance: int, duration: int, geometry: array, warning: string|null}
      *
-     * @throws \Exception
+     * @throws RouteNotFoundException
+     * @throws RoutingProviderException
      */
     public function calculateRoute(
         Marker $startMarker,
@@ -52,13 +55,13 @@ class RoutingService
         ]);
 
         if (! $response->successful()) {
-            throw new \Exception('Failed to calculate route: '.$response->body());
+            throw new RoutingProviderException('Failed to calculate route via OSRM: '.$response->body());
         }
 
         $data = $response->json();
 
         if (! isset($data['routes'][0])) {
-            throw new \Exception('No route found between the markers');
+            throw new RouteNotFoundException('No route found between the markers');
         }
 
         $route = $data['routes'][0];
@@ -81,14 +84,15 @@ class RoutingService
      *
      * @return array{distance: int, duration: int, geometry: array, warning: string|null}
      *
-     * @throws \Exception
+     * @throws RouteNotFoundException
+     * @throws RoutingProviderException
      */
     private function calculateMapboxRoute(Marker $startMarker, Marker $endMarker): array
     {
         $accessToken = config('services.mapbox.access_token');
 
         if (! $accessToken) {
-            throw new \Exception('Mapbox access token not configured. Please add MAPBOX_ACCESS_TOKEN to your .env file.');
+            throw new RoutingProviderException('Mapbox access token not configured. Please add MAPBOX_ACCESS_TOKEN to your .env file.');
         }
 
         $coordinates = sprintf(
@@ -112,13 +116,13 @@ class RoutingService
         ]);
 
         if (! $response->successful()) {
-            throw new \Exception('Failed to calculate route via Mapbox: '.$response->body());
+            throw new RoutingProviderException('Failed to calculate route via Mapbox: '.$response->body());
         }
 
         $data = $response->json();
 
         if (! isset($data['routes'][0])) {
-            throw new \Exception('No route found between the markers');
+            throw new RouteNotFoundException('No route found between the markers');
         }
 
         $route = $data['routes'][0];
