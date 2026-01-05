@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Enums\TransportMode;
+use App\Http\Requests\RouteIndexRequest;
+use App\Http\Requests\StoreRouteRequest;
 use App\Http\Resources\RouteResource;
 use App\Models\Marker;
 use App\Models\Route;
@@ -10,7 +12,6 @@ use App\Models\Trip;
 use App\Services\RoutingService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class RouteController extends Controller
 {
@@ -20,13 +21,10 @@ class RouteController extends Controller
         private readonly RoutingService $routingService
     ) {}
 
-    public function index(Request $request): JsonResponse
+    public function index(RouteIndexRequest $request): JsonResponse
     {
-        $tripId = $request->query('trip_id');
-
-        if (! $tripId) {
-            return response()->json(['error' => 'trip_id is required'], 400);
-        }
+        $validated = $request->validated();
+        $tripId = $validated['trip_id'];
 
         $trip = Trip::findOrFail($tripId);
         $this->authorize('view', $trip);
@@ -39,14 +37,9 @@ class RouteController extends Controller
         return response()->json(RouteResource::collection($routes));
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(StoreRouteRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'trip_id' => 'required|exists:trips,id',
-            'start_marker_id' => 'required|uuid|exists:markers,id',
-            'end_marker_id' => 'required|uuid|exists:markers,id|different:start_marker_id',
-            'transport_mode' => 'required|string|in:driving-car,cycling-regular,foot-walking,public-transport',
-        ]);
+        $validated = $request->validated();
 
         $trip = Trip::findOrFail($validated['trip_id']);
         $this->authorize('update', $trip);
