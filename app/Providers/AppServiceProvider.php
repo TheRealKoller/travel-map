@@ -21,9 +21,13 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Protect Laravel Boost browser logs endpoint with authentication
-        // This prevents unauthorized access to the logging endpoint
+        // Laravel Boost (dev dependency) provides a browser logging endpoint that should
+        // be protected to prevent unauthorized access if accidentally enabled in production.
+        // The route name is defined by the Boost package as 'boost.browser-logs'.
         $this->app->booted(function () {
-            $route = Route::getRoutes()->getByName('boost.browser-logs');
+            $boostRouteName = 'boost.browser-logs';
+            $route = Route::getRoutes()->getByName($boostRouteName);
+
             if ($route) {
                 $route->middleware('auth');
             }
