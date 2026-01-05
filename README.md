@@ -58,17 +58,21 @@ When GitHub Copilot starts working on an issue, it will automatically:
 For detailed instructions and project conventions, see [`.github/copilot-instructions.md`](.github/copilot-instructions.md).
 
 ## Some infos and links
-* icons https://fontawesome.com/search?o=r&ic=free&s=regular&ip=classic
-* marker icons: https://github.com/lennardv2/Leaflet.awesome-markers
-* map library: https://leafletjs.com/
+* Icons: https://fontawesome.com/search?o=r&ic=free&s=regular&ip=classic
+* **Map Services: [Mapbox](https://www.mapbox.com/)** - Used for routing, geocoding, and map rendering
+  * Routing API: https://docs.mapbox.com/api/navigation/directions/
+  * Geocoding API: https://docs.mapbox.com/api/search/geocoding/
+  * Maps: https://docs.mapbox.com/mapbox-gl-js/
+  * Free tier: 50,000 requests/month
 
 ## Requirements
 
-- PHP 8.1 or higher
+- PHP 8.2 or higher
 - Composer
 - Node.js 18 or higher
-- npm or yarn
-- MySQL or PostgreSQL database
+- npm
+- MySQL or PostgreSQL database (SQLite works too)
+- **Mapbox API Access Token** (required for routing and geocoding)
 
 ## Installation & Setup
 
@@ -102,6 +106,16 @@ DB_DATABASE=your_database_name
 DB_USERNAME=your_username
 DB_PASSWORD=your_password
 ```
+
+**Important:** Set your Mapbox API token:
+
+```
+MAPBOX_ACCESS_TOKEN=pk.your_mapbox_token_here
+```
+
+Get your Mapbox token from: https://account.mapbox.com/access-tokens/
+
+The free tier provides 50,000 requests per month, which should be sufficient for typical usage.
 
 ### 4. Generate Application Key
 
