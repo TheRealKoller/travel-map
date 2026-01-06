@@ -117,6 +117,8 @@ test('search nearby returns count on successful request', function () {
         ]);
 
     $results = $response->json('results');
+    // The service searches multiple categories, so we expect at least the mocked features
+    // The count may be higher due to multiple category searches returning the same features
     expect(count($results))->toBeGreaterThanOrEqual(3);
     expect($results[0])->toHaveKey('lat');
     expect($results[0])->toHaveKey('lon');
@@ -375,6 +377,7 @@ test('search results skip elements without coordinates', function () {
     $results = $response->json('results');
 
     // Should only return the 2 valid features
+    // Using >= because the service searches multiple categories with the same mock
     expect(count($results))->toBeGreaterThanOrEqual(2);
 
     // Verify we have valid places (check that at least some expected results are there)

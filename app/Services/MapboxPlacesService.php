@@ -23,7 +23,7 @@ class MapboxPlacesService
      * @param  float  $longitude  The longitude of the search center
      * @param  int  $radiusKm  The search radius in kilometers
      * @param  PlaceType|null  $placeType  Optional place type to filter by
-     * @return array{count: int, results: array<array{lat: float, lon: float, name?: string, name_en?: string, name_int?: string, type?: string, website?: string, description?: string, fee?: string, opening_hours?: string, address?: array}>, error: string|null}
+     * @return array{count: int, results: array<array{lat: float, lon: float, name?: string, name_en?: string, type?: string, address?: array}>, error: string|null}
      */
     public function searchNearby(float $latitude, float $longitude, int $radiusKm, ?PlaceType $placeType = null): array
     {
@@ -65,7 +65,8 @@ class MapboxPlacesService
                 );
 
                 if ($categoryResults !== null) {
-                    $allResults = array_merge($allResults, $categoryResults);
+                    // Use array spread operator for better performance
+                    array_push($allResults, ...$categoryResults);
                 } else {
                     $failedCategories++;
                 }
