@@ -129,11 +129,13 @@ php artisan test
 ### E2E Testing Best Practices
 
 **Test Selectors:**
-- **ALWAYS use `data-testid` attributes** for selecting elements in E2E tests
-- Add `data-testid` to all interactive elements (buttons, inputs, forms, links, etc.)
+- **SHOULD use `data-testid` attributes** for selecting elements in E2E tests when possible
+- Add `data-testid` to interactive elements (buttons, inputs, forms, links, etc.) for more robust tests
 - Use descriptive, kebab-case naming: `data-testid="create-marker-button"`, `data-testid="marker-name-input"`
 - Select elements in tests using: `page.getByTestId('element-id')` or  `page.locator('[data-testid="element-id"]')` when necessary
-- Avoid selecting by text content, CSS classes, or element types as they are fragile and break easily
+- When `data-testid` is not available, use stable selectors like `input[name="email"]`, `button[type="submit"]`, or `[role="dialog"]`
+- Avoid selecting by text content as primary selector, as it breaks with translations and content changes
+- CSS classes and element types are acceptable but less preferred as they may change with styling updates
 - Exception: Text content can be used for non-interactive elements like headings or labels when appropriate
 
 **Test Assertions:**
