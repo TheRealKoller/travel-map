@@ -36,14 +36,9 @@ test.describe('Drag and Drop Markers to Tours', () => {
             const markerListHeading = page.locator('h2:has-text("Markers (1)")');
             await expect(markerListHeading).toBeVisible({ timeout: 10000 });
 
-            // Form should close automatically after save
-            // If it's still visible, close it manually
-            const closeButton = page
-                .locator('button[aria-label="Close"]')
-                .first();
-            if (await closeButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-                await closeButton.click();
-            }
+            // check for the marker item in the list
+            const markerListItem = page.getByTestId('marker-list-items').locator('text=Test Marker');
+            await expect(markerListItem).toBeVisible({ timeout: 5000 });
 
             // Now check for drag instruction text (should be visible once marker list has items)
             const dragInstructionText = page.locator(
@@ -51,8 +46,8 @@ test.describe('Drag and Drop Markers to Tours', () => {
             );
             await expect(dragInstructionText).toBeVisible({ timeout: 5000 });
 
-            // Check for grip icon (drag handle) - lucide-react uses SVG
-            const gripHandle = page.locator('svg').first();
+            // Check for drag handle
+            const gripHandle = page.locator('[data-testid="marker-list-item"]:has-text("Test Marker")').getByTestId('marker-drag-handle');
             await expect(gripHandle).toBeVisible();
         }
     });
@@ -78,30 +73,30 @@ test.describe('Drag and Drop Markers to Tours', () => {
         }
 
         // Click the "+" button to create a tour
-        const createTourButton = page.locator('button[value="create"]').first();
+        const createTourButton = page.getByTestId('tour-tab-create-new').first();
         if (await createTourButton.isVisible({ timeout: 2000 })) {
             await createTourButton.click();
             await page.waitForTimeout(500);
 
             // Look for the tour creation modal/form
-            const tourNameInput = page.locator('input#tour-name').first();
+            const tourNameInput = page.getByTestId('input-tour-name');
             if (await tourNameInput.isVisible({ timeout: 2000 })) {
                 await tourNameInput.fill('Day 1 Tour');
 
-                const createButton = page
-                    .locator('button:has-text("Create Tour")')
-                    .first();
+                const createButton = page.getByTestId('button-submit-create-tour').first();
                 await createButton.click();
                 await page.waitForTimeout(1500);
 
                 // Check if tour tab appears
-                const tourTab = page.locator('text=Day 1 Tour').first();
-                await expect(tourTab).toBeVisible();
+                const tourTab = page.getByTestId('tour-tab').locator('text=Day 1 Tour');
+                await expect(tourTab).toBeVisible({ timeout: 5000 });
 
                 // Check if marker count is displayed (should be 0 initially)
                 const allMarkersTab = page.locator('text=All markers').first();
                 await expect(allMarkersTab).toBeVisible();
             }
+        } else {
+            throw new Error('Create Tour button not visible');
         }
     });
 

@@ -14,6 +14,7 @@ export default defineConfig({
         baseURL: process.env.APP_URL || 'http://localhost:8000',
         trace: 'on-first-retry',
         screenshot: 'only-on-failure',
+        viewport: { width: 1920, height: 1080 },
     },
 
     projects: [
