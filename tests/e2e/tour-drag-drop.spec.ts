@@ -54,7 +54,7 @@ test.describe('Drag and Drop Markers to Tours', () => {
 
     // TODO: This test is flaky - tour creation doesn't always update the UI properly
     // Need to investigate the tour creation flow and ensure proper state management
-    test.skip('user can create a tour and see marker count', async ({ page }) => {
+    test('user can create a tour and see marker count', async ({ page }) => {
         // First, create a marker
         const mapContainer = page.locator('.leaflet-container').first();
         await mapContainer.click({ position: { x: 300, y: 300 } });
@@ -126,17 +126,15 @@ test.describe('Drag and Drop Markers to Tours', () => {
         }
 
         // Create a tour
-        const createTourButton = page.locator('button[value="create"]').first();
+        const createTourButton = page.getByTestId('tour-tab-create-new');
         await expect(createTourButton).toBeVisible({ timeout: 5000 });
         await createTourButton.click();
 
-        const tourNameInput = page.locator('input#tour-name').first();
+        const tourNameInput = page.getByTestId('input-tour-name');
         await expect(tourNameInput).toBeVisible({ timeout: 5000 });
         await tourNameInput.fill('Sample Tour');
 
-        const createButton = page
-            .locator('button:has-text("Create Tour")')
-            .first();
+        const createButton = page.getByTestId('button-submit-create-tour');
         await createButton.click();
 
         // Wait for dialog to close
@@ -174,17 +172,15 @@ test.describe('Drag and Drop Markers to Tours', () => {
         }
 
         // Create a tour
-        const createTourButton = page.locator('button[value="create"]').first();
+        const createTourButton = page.getByTestId('tour-tab-create-new');
         await expect(createTourButton).toBeVisible({ timeout: 5000 });
         await createTourButton.click();
 
-        const tourNameInput = page.locator('input#tour-name').first();
+        const tourNameInput = page.getByTestId('input-tour-name');
         await expect(tourNameInput).toBeVisible({ timeout: 5000 });
         await tourNameInput.fill('Food Tour');
 
-        const createButton = page
-            .locator('button:has-text("Create Tour")')
-            .first();
+        const createButton = page.getByTestId('button-submit-create-tour');
         await createButton.click();
 
         // Wait for dialog to close
