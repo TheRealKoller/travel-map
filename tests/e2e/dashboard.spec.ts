@@ -23,9 +23,9 @@ test.describe('Dashboard', () => {
     test('dashboard displays navigation elements', async ({ page }) => {
         await page.goto('/dashboard');
 
-        // Check for common navigation elements
+        // Check for dashboard content
         await expect(
-            page.locator('nav, [role="navigation"]').first(),
+            page.getByTestId('dashboard-content'),
         ).toBeVisible();
     });
 
@@ -34,17 +34,17 @@ test.describe('Dashboard', () => {
 
         // The map link is in the sidebar, so we need to open it first
         // Click the sidebar trigger button
-        const sidebarTrigger = page.locator('[data-sidebar="trigger"]');
+        const sidebarTrigger = page.getByTestId('sidebar-trigger');
+        await expect(sidebarTrigger).toBeVisible();
         await sidebarTrigger.click();
         
         // Wait for sidebar to expand
         await page.waitForTimeout(800);
 
-        // The sidebar overlay blocks clicks, so we programmatically click the Map link
-        await page.evaluate(() => {
-            const mapButton = document.querySelector<HTMLElement>('[data-sidebar="menu-button"][href="/"]');
-            mapButton?.click();
-        });
+        // Click the Map link in the sidebar
+        const mapLink = page.getByTestId('nav-map-link');
+        await expect(mapLink).toBeVisible({ timeout: 5000 });
+        await mapLink.click();
         
         // Wait for navigation to complete (should not be on dashboard anymore)
         await page.waitForURL((url) => !url.pathname.includes('/dashboard'), { timeout: 5000 });
