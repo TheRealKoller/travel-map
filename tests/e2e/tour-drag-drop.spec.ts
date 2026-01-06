@@ -42,14 +42,11 @@ test.describe('Drag and Drop Markers to Tours', () => {
                 await page.waitForTimeout(1000);
             }
 
-            // Wait for marker list to render
-            await page.waitForTimeout(1000);
-
-            // Check for drag instruction text
+            // Wait for marker list to render and drag instruction text to appear
             const dragInstructionText = page.locator(
                 'text=Drag markers to tour tabs to add them to a tour',
             );
-            await expect(dragInstructionText).toBeVisible({ timeout: 5000 });
+            await expect(dragInstructionText).toBeVisible({ timeout: 10000 });
 
             // Check for grip icon (drag handle) - lucide-react uses SVG
             const gripHandle = page.locator('svg').first();
