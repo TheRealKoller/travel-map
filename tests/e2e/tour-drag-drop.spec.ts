@@ -30,7 +30,11 @@ test.describe('Drag and Drop Markers to Tours', () => {
             // Save the marker
             const saveButton = page.locator('button:has-text("Save")');
             await saveButton.click();
-            await page.waitForTimeout(2000);
+
+            // Wait for marker to be saved and appear in the list
+            // Check for "Markers (1)" heading to confirm marker was added
+            const markerListHeading = page.locator('h2:has-text("Markers (1)")');
+            await expect(markerListHeading).toBeVisible({ timeout: 10000 });
 
             // Form should close automatically after save
             // If it's still visible, close it manually
@@ -39,14 +43,13 @@ test.describe('Drag and Drop Markers to Tours', () => {
                 .first();
             if (await closeButton.isVisible({ timeout: 1000 }).catch(() => false)) {
                 await closeButton.click();
-                await page.waitForTimeout(1000);
             }
 
-            // Wait for marker list to render and drag instruction text to appear
+            // Now check for drag instruction text (should be visible once marker list has items)
             const dragInstructionText = page.locator(
                 'text=Drag markers to tour tabs to add them to a tour',
             );
-            await expect(dragInstructionText).toBeVisible({ timeout: 10000 });
+            await expect(dragInstructionText).toBeVisible({ timeout: 5000 });
 
             // Check for grip icon (drag handle) - lucide-react uses SVG
             const gripHandle = page.locator('svg').first();
@@ -68,7 +71,10 @@ test.describe('Drag and Drop Markers to Tours', () => {
 
             const saveButton = page.locator('button:has-text("Save")');
             await saveButton.click();
-            await page.waitForTimeout(1500);
+
+            // Wait for marker to be saved and appear in the list
+            const markerListHeading = page.locator('h2:has-text("Markers (1)")');
+            await expect(markerListHeading).toBeVisible({ timeout: 10000 });
 
             // Form should close automatically after save
             // If it's still visible, close it manually
@@ -77,7 +83,6 @@ test.describe('Drag and Drop Markers to Tours', () => {
                 .first();
             if (await closeButton.isVisible({ timeout: 1000 }).catch(() => false)) {
                 await closeButton.click();
-                await page.waitForTimeout(500);
             }
         }
 
@@ -125,7 +130,10 @@ test.describe('Drag and Drop Markers to Tours', () => {
 
             const saveButton = page.locator('button:has-text("Save")');
             await saveButton.click();
-            await page.waitForTimeout(1500);
+
+            // Wait for marker to be saved and appear in the list
+            const markerListHeading = page.locator('h2:has-text("Markers (1)")');
+            await expect(markerListHeading).toBeVisible({ timeout: 10000 });
 
             // Form should close automatically after save
             // If it's still visible, close it manually
@@ -134,7 +142,6 @@ test.describe('Drag and Drop Markers to Tours', () => {
                 .first();
             if (await closeButton.isVisible({ timeout: 1000 }).catch(() => false)) {
                 await closeButton.click();
-                await page.waitForTimeout(500);
             }
         }
 
@@ -180,7 +187,10 @@ test.describe('Drag and Drop Markers to Tours', () => {
 
             const saveButton = page.locator('button:has-text("Save")');
             await saveButton.click();
-            await page.waitForTimeout(1500);
+
+            // Wait for marker to be saved and appear in the list
+            const markerListHeading = page.locator('h2:has-text("Markers (1)")');
+            await expect(markerListHeading).toBeVisible({ timeout: 10000 });
 
             // Form should close automatically after save
             // If it's still visible, close it manually
@@ -189,7 +199,6 @@ test.describe('Drag and Drop Markers to Tours', () => {
                 .first();
             if (await closeButton.isVisible({ timeout: 1000 }).catch(() => false)) {
                 await closeButton.click();
-                await page.waitForTimeout(500);
             }
         }
 
