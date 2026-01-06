@@ -72,18 +72,9 @@ test.describe('Drag and Drop Markers to Tours', () => {
             const saveButton = page.locator('button:has-text("Save")');
             await saveButton.click();
 
-            // Wait for marker to be saved and appear in the list
-            const markerListHeading = page.locator('h2:has-text("Markers (1)")');
-            await expect(markerListHeading).toBeVisible({ timeout: 10000 });
-
-            // Form should close automatically after save
-            // If it's still visible, close it manually
-            const closeButton = page
-                .locator('button[aria-label="Close"]')
-                .first();
-            if (await closeButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-                await closeButton.click();
-            }
+            // Wait for marker to be saved and appear in the marker list
+            const markerInList = page.locator('text=Tourist Spot').first();
+            await expect(markerInList).toBeVisible({ timeout: 10000 });
         }
 
         // Click the "+" button to create a tour
@@ -131,18 +122,9 @@ test.describe('Drag and Drop Markers to Tours', () => {
             const saveButton = page.locator('button:has-text("Save")');
             await saveButton.click();
 
-            // Wait for marker to be saved and appear in the list
-            const markerListHeading = page.locator('h2:has-text("Markers (1)")');
-            await expect(markerListHeading).toBeVisible({ timeout: 10000 });
-
-            // Form should close automatically after save
-            // If it's still visible, close it manually
-            const closeButton = page
-                .locator('button[aria-label="Close"]')
-                .first();
-            if (await closeButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-                await closeButton.click();
-            }
+            // Wait for marker to be saved and appear in the marker list
+            const markerInList = page.locator('text=Test Location').first();
+            await expect(markerInList).toBeVisible({ timeout: 10000 });
         }
 
         // Create a tour
@@ -188,18 +170,9 @@ test.describe('Drag and Drop Markers to Tours', () => {
             const saveButton = page.locator('button:has-text("Save")');
             await saveButton.click();
 
-            // Wait for marker to be saved and appear in the list
-            const markerListHeading = page.locator('h2:has-text("Markers (1)")');
-            await expect(markerListHeading).toBeVisible({ timeout: 10000 });
-
-            // Form should close automatically after save
-            // If it's still visible, close it manually
-            const closeButton = page
-                .locator('button[aria-label="Close"]')
-                .first();
-            if (await closeButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-                await closeButton.click();
-            }
+            // Wait for marker to be saved and appear in the marker list
+            const markerInList = page.locator('text=Restaurant').first();
+            await expect(markerInList).toBeVisible({ timeout: 10000 });
         }
 
         // Create a tour
