@@ -116,7 +116,7 @@ test.describe('Tour Management', () => {
         await createButton.click();
 
         // Verify error message appears
-        const errorMessage = page.locator('text=already exists').or(page.locator('text=must be unique'));
+        const errorMessage = page.locator('text=A tour with this name already exists');
         await expect(errorMessage).toBeVisible({ timeout: 5000 });
 
         // Dialog should still be open because of validation error
@@ -148,25 +148,21 @@ test.describe('Tour Management', () => {
         // Click on the tour to select it
         await tourTab.click();
 
-        // Look for delete button (could be in tour panel or context menu)
-        const deleteTourButton = page.getByTestId('button-delete-tour').or(
-            page.locator('button:has-text("Delete")').first()
-        );
+        // Click the trash icon button to delete the tour
+        const deleteTourButton = page.locator('button[title="Delete tour"]');
         await expect(deleteTourButton).toBeVisible({ timeout: 5000 });
         await deleteTourButton.click();
 
-        // Confirm deletion if there's a confirmation dialog
+        // Confirm deletion in the dialog
         const confirmDialog = page.getByRole('dialog');
-        if (await confirmDialog.isVisible({ timeout: 2000 }).catch(() => false)) {
-            const confirmButton = page.getByTestId('button-confirm-delete').or(
-                page.locator('button:has-text("Delete")').last()
-            );
-            await expect(confirmButton).toBeVisible({ timeout: 5000 });
-            await confirmButton.click();
+        await expect(confirmDialog).toBeVisible({ timeout: 5000 });
+        
+        const confirmButton = page.locator('button:has-text("Delete tour")');
+        await expect(confirmButton).toBeVisible({ timeout: 5000 });
+        await confirmButton.click();
 
-            // Wait for confirmation dialog to close
-            await expect(confirmDialog).not.toBeVisible({ timeout: 10000 });
-        }
+        // Wait for confirmation dialog to close
+        await expect(confirmDialog).not.toBeVisible({ timeout: 10000 });
 
         // Verify the tour tab is no longer visible
         await expect(tourTab).not.toBeVisible({ timeout: 10000 });

@@ -40,8 +40,23 @@ export default function CreateTourModal({
             await onCreateTour(name);
             setName('');
             onOpenChange(false);
-        } catch {
-            setError('Failed to create tour. Please try again.');
+        } catch (err) {
+            // Extract error message from axios error response
+            if (err && typeof err === 'object' && 'response' in err) {
+                const axiosError = err as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
+                const responseData = axiosError.response?.data;
+                
+                // Check for validation errors
+                if (responseData?.errors?.name) {
+                    setError(responseData.errors.name[0]);
+                } else if (responseData?.message) {
+                    setError(responseData.message);
+                } else {
+                    setError('Failed to create tour. Please try again.');
+                }
+            } else {
+                setError('Failed to create tour. Please try again.');
+            }
         } finally {
             setIsSubmitting(false);
         }

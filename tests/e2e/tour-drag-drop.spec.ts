@@ -10,6 +10,46 @@ test.describe('Drag and Drop Markers to Tours', () => {
         // Navigate to map page
         await page.goto('/');
         await page.waitForSelector('.leaflet-container', { timeout: 10000 });
+
+        // Open sidebar
+        const sidebarTrigger = page.locator('[data-sidebar="trigger"]');
+        await sidebarTrigger.click();
+        await page.waitForTimeout(500);
+
+        // Create a trip first (required for tour creation)
+        const createTripButton = page
+            .locator('button[title="Create new trip"]')
+            .first();
+        await expect(createTripButton).toBeVisible({ timeout: 5000 });
+        await createTripButton.click();
+
+        // Wait for modal to appear
+        await page.waitForSelector('[role="dialog"]', { timeout: 5000 });
+
+        const tripNameInput = page.locator('input#tripName');
+        await tripNameInput.fill('Test Trip');
+
+        // Wait for the trip creation API call
+        const tripCreationPromise = page.waitForResponse(
+            (response) =>
+                response.url().includes('/trips') &&
+                response.request().method() === 'POST' &&
+                response.status() === 201,
+            { timeout: 10000 },
+        );
+
+        const submitTripButton = page.locator('button:has-text("Create trip")');
+        await submitTripButton.click();
+
+        // Wait for trip creation to complete
+        await tripCreationPromise;
+
+        // Wait for modal to close
+        await expect(page.locator('[role="dialog"]')).not.toBeVisible({ timeout: 10000 });
+        
+        // Close the sidebar to remove any lingering overlays
+        await sidebarTrigger.click({ force: true });
+        await page.waitForTimeout(1000);
     });
 
     test('user can see drag handle on markers', async ({ page }) => {
