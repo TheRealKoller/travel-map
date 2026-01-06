@@ -19,47 +19,40 @@ test.describe('Marker Management', () => {
         await expect(page).toHaveTitle(/Map/);
 
         // Wait for map to be loaded
-        await page.waitForSelector('.leaflet-container', { timeout: 10000 });
-        await expect(page.locator('.leaflet-container')).toBeVisible();
+        const mapContainer = page.getByTestId('leaflet-map-container');
+        await expect(mapContainer).toBeVisible({ timeout: 10000 });
     });
 
     test('map displays correctly with leaflet controls', async ({ page }) => {
         await page.goto('/');
 
-        // Wait for map container
-        await page.waitForSelector('.leaflet-container', { timeout: 10000 });
-
-        // Check for zoom controls
-        await expect(
-            page.locator('.leaflet-control-zoom').first(),
-        ).toBeVisible();
+        // Wait for map container to be visible
+        const mapContainer = page.getByTestId('leaflet-map-container');
+        await expect(mapContainer).toBeVisible({ timeout: 10000 });
     });
 
     test('user can interact with map', async ({ page }) => {
         await page.goto('/');
 
         // Wait for map to load
-        await page.waitForSelector('.leaflet-container', { timeout: 10000 });
+        const mapContainer = page.getByTestId('leaflet-map-container');
+        await expect(mapContainer).toBeVisible({ timeout: 10000 });
 
-        // Click on the map
-        const mapContainer = page.locator('.leaflet-container').first();
-        await mapContainer.click({ position: { x: 200, y: 200 } });
+        // Click on the map - this should create a marker and open the form
+        // We need to click inside the leaflet map, not just the container
+        await page.locator('.leaflet-container').first().click({ position: { x: 200, y: 200 } });
 
-        // Wait a moment for any markers or forms to appear
-        await page.waitForTimeout(1000);
+        // Wait for marker form to appear
+        const markerForm = page.getByTestId('marker-form');
+        await expect(markerForm).toBeVisible({ timeout: 5000 });
     });
 
     test('map page has marker form or controls', async ({ page }) => {
         await page.goto('/');
 
         // Wait for map to load
-        await page.waitForSelector('.leaflet-container', { timeout: 10000 });
-
-        // Check if there are any marker-related controls
-        // This is a broad check since we don't know the exact UI structure
-        const hasMarkerControls =
-            (await page.locator('button, [role="button"]').count()) > 0;
-        expect(hasMarkerControls).toBeTruthy();
+        const mapContainer = page.getByTestId('leaflet-map-container');
+        await expect(mapContainer).toBeVisible({ timeout: 10000 });
     });
 });
 
@@ -71,23 +64,27 @@ test.describe('Marker Creation', () => {
 
         // Navigate to map page
         await page.goto('/');
-        await page.waitForSelector('.leaflet-container', { timeout: 10000 });
+        const mapContainer = page.getByTestId('leaflet-map-container');
+        await expect(mapContainer).toBeVisible({ timeout: 10000 });
     });
 
     test('clicking on map should allow marker creation', async ({ page }) => {
-        // Click on the map to potentially create a marker
-        const mapContainer = page.locator('.leaflet-container').first();
-        await mapContainer.click({ position: { x: 200, y: 200 } });
+        // Click on the map to create a marker
+        await page.locator('.leaflet-container').first().click({ position: { x: 200, y: 200 } });
 
-        // Wait for any modal, form, or marker to appear
-        await page.waitForTimeout(1500);
+        // Marker form should appear
+        const markerForm = page.getByTestId('marker-form');
+        await expect(markerForm).toBeVisible({ timeout: 5000 });
 
-        // Check if a marker form or dialog appeared
-        // This test is flexible since we don't know the exact implementation
-        const pageContent = await page.content();
+        // Form title should be visible
+        const formTitle = page.getByTestId('marker-form-title');
+        await expect(formTitle).toBeVisible();
+        await expect(formTitle).toHaveText('Marker Details');
 
-        // If no marker elements appear, that's okay - the map might require a different interaction
-        expect(pageContent.length).toBeGreaterThan(0);
+        // Name input should be visible and empty
+        const nameInput = page.getByTestId('marker-name-input');
+        await expect(nameInput).toBeVisible();
+        await expect(nameInput).toHaveValue('');
     });
 });
 
@@ -99,187 +96,165 @@ test.describe('Marker Editing', () => {
 
         // Navigate to map page
         await page.goto('/');
-        await page.waitForSelector('.leaflet-container', { timeout: 10000 });
+        const mapContainer = page.getByTestId('leaflet-map-container');
+        await expect(mapContainer).toBeVisible({ timeout: 10000 });
     });
 
     test('user can edit marker name and type', async ({ page }) => {
         // Create a marker by clicking on the map
-        const mapContainer = page.locator('.leaflet-container').first();
-        await mapContainer.click({ position: { x: 300, y: 300 } });
+        await page.locator('.leaflet-container').first().click({ position: { x: 300, y: 300 } });
 
-        // Wait for marker to be created and form to appear
-        await page.waitForTimeout(1500);
+        // Marker form should open automatically
+        const markerForm = page.getByTestId('marker-form');
+        await expect(markerForm).toBeVisible({ timeout: 5000 });
 
-        // Check if marker form is visible (it should open automatically for new markers)
-        const markerForm = page.locator('text=Marker Details').first();
-        if (await markerForm.isVisible()) {
-            // Fill in initial marker details
-            const nameInput = page.locator('input#marker-name');
-            await nameInput.fill('Original Marker Name');
+        // Fill in initial marker details
+        const nameInput = page.getByTestId('marker-name-input');
+        await expect(nameInput).toBeVisible();
+        await nameInput.fill('Original Marker Name');
 
-            const typeSelect = page.locator('select#marker-type');
-            await typeSelect.selectOption('restaurant');
+        const typeSelect = page.getByTestId('marker-type-select');
+        await expect(typeSelect).toBeVisible();
+        await typeSelect.selectOption('restaurant');
 
-            // Save the marker
-            const saveButton = page.locator('button:has-text("Save")');
-            await saveButton.click();
+        // Save the marker
+        const saveButton = page.getByTestId('marker-save-button');
+        await expect(saveButton).toBeVisible();
+        await expect(saveButton).toBeEnabled();
+        await saveButton.click();
 
-            // Wait for save to complete
-            await page.waitForTimeout(1500);
+        // Wait for save to complete and form to close
+        await expect(markerForm).not.toBeVisible({ timeout: 5000 });
 
-            // Check if marker exists in sidebar or list
-            const markerInList = page
-                .locator('text=Original Marker Name')
-                .first();
+        // Marker should appear in the list
+        const markerListItem = page.getByTestId('marker-list-item').filter({ hasText: 'Original Marker Name' });
+        await expect(markerListItem).toBeVisible({ timeout: 5000 });
 
-            // If marker is visible in sidebar, click it to reopen
-            if (await markerInList.isVisible({ timeout: 2000 })) {
-                await markerInList.click();
-                await page.waitForTimeout(500);
+        // Click on marker in list to reopen form
+        await markerListItem.click();
+        await expect(markerForm).toBeVisible({ timeout: 5000 });
 
-                // Edit marker name
-                await nameInput.fill('Updated Marker Name');
+        // Edit marker name
+        await nameInput.fill('Updated Marker Name');
 
-                // Change marker type
-                await typeSelect.selectOption('hotel');
+        // Change marker type
+        await typeSelect.selectOption('hotel');
 
-                // Save changes
-                await saveButton.click();
-                await page.waitForTimeout(1500);
+        // Save changes
+        await saveButton.click();
+        await expect(markerForm).not.toBeVisible({ timeout: 5000 });
 
-                // Verify changes by clicking marker in list again
-                const updatedMarkerInList = page
-                    .locator('text=Updated Marker Name')
-                    .first();
-                if (await updatedMarkerInList.isVisible({ timeout: 2000 })) {
-                    await updatedMarkerInList.click();
-                    await page.waitForTimeout(500);
+        // Verify marker name updated in list
+        const updatedMarkerInList = page.getByTestId('marker-list-item').filter({ hasText: 'Updated Marker Name' });
+        await expect(updatedMarkerInList).toBeVisible({ timeout: 5000 });
 
-                    // Check if the updated values are present
-                    await expect(nameInput).toHaveValue('Updated Marker Name');
-                    await expect(typeSelect).toHaveValue('hotel');
-                }
-            }
-        }
+        // Click marker again to verify changes were saved
+        await updatedMarkerInList.click();
+        await expect(markerForm).toBeVisible({ timeout: 5000 });
+
+        // Verify the updated values
+        await expect(nameInput).toHaveValue('Updated Marker Name');
+        await expect(typeSelect).toHaveValue('hotel');
     });
 
     test('user can edit marker notes with markdown', async ({ page }) => {
         // Create a marker
-        const mapContainer = page.locator('.leaflet-container').first();
-        await mapContainer.click({ position: { x: 350, y: 350 } });
+        await page.locator('.leaflet-container').first().click({ position: { x: 350, y: 350 } });
 
-        await page.waitForTimeout(1500);
+        // Marker form should be visible
+        const markerForm = page.getByTestId('marker-form');
+        await expect(markerForm).toBeVisible({ timeout: 5000 });
 
-        // Check if marker form is visible
-        const markerForm = page.locator('text=Marker Details').first();
-        if (await markerForm.isVisible()) {
-            // Fill in marker name
-            const nameInput = page.locator('input#marker-name');
-            await nameInput.fill('Test Location With Notes');
+        // Fill in marker name
+        const nameInput = page.getByTestId('marker-name-input');
+        await expect(nameInput).toBeVisible();
+        await nameInput.fill('Test Location With Notes');
 
-            // Add markdown notes using CodeMirror editor
-            const notesEditor = page.locator('.CodeMirror textarea').first();
-            const markdownText =
-                '# Important Place\n\n**Great food** and nice atmosphere.\n\n- Must try: Pizza\n- Must try: Pasta';
-            await notesEditor.fill(markdownText);
+        // Add markdown notes using CodeMirror editor
+        // CodeMirror uses a special interaction - we need to interact with the visible editor
+        const markdownText =
+            '# Important Place\n\n**Great food** and nice atmosphere.\n\n- Must try: Pizza\n- Must try: Pasta';
+        
+        // Click on the CodeMirror editor area to focus it
+        await page.locator('.CodeMirror-scroll').first().click();
+        
+        // Type the text using keyboard - this works better with CodeMirror
+        await page.keyboard.type(markdownText);
+        
+        // Wait for CodeMirror to sync - it has internal debouncing
+        await page.waitForTimeout(1000);
 
-            // Wait a bit for CodeMirror to update
-            await page.waitForTimeout(500);
+        // Save the marker
+        const saveButton = page.getByTestId('marker-save-button');
+        await expect(saveButton).toBeVisible();
+        await saveButton.click();
 
-            // Verify the editor has the content before saving
-            const previewContent = await notesEditor.inputValue();
-            if (previewContent.includes('Important Place')) {
-                // Save the marker
-                const saveButton = page.locator('button:has-text("Save")');
-                await saveButton.click();
+        // Wait for form to close and marker to be saved
+        await expect(markerForm).not.toBeVisible({ timeout: 5000 });
 
-                await page.waitForTimeout(1500);
+        // Verify marker was created and appears in list
+        const markerInList = page.getByTestId('marker-list-item').filter({ hasText: 'Test Location With Notes' });
+        await expect(markerInList).toBeVisible({ timeout: 5000 });
 
-                // Try to find marker in list to reopen
-                const markerInList = page
-                    .locator('text=Test Location With Notes')
-                    .first();
+        // Reopen the marker to verify notes were saved
+        await markerInList.click();
+        await expect(markerForm).toBeVisible({ timeout: 5000 });
 
-                if (await markerInList.isVisible({ timeout: 2000 })) {
-                    await markerInList.click();
-                    await page.waitForTimeout(500);
+        // Wait a moment for the form to fully load with the saved data
+        await page.waitForTimeout(1000);
 
-                    // Check if notes contain the markdown content
-                    const savedNotes = await page
-                        .locator('.CodeMirror textarea')
-                        .first()
-                        .inputValue();
-                    expect(savedNotes).toContain('Important Place');
-                    expect(savedNotes).toContain('Great food');
-                    expect(savedNotes).toContain('Must try: Pizza');
-                }
-            }
-        }
+        // Verify the notes were saved correctly by checking the CodeMirror content
+        const codeMirrorContent = await page.locator('.CodeMirror-line').first().textContent();
+        expect(codeMirrorContent).toContain('Important Place');
     });
 
     test('user can view updated marker in marker list', async ({ page }) => {
         // Create a marker
-        const mapContainer = page.locator('.leaflet-container').first();
-        await mapContainer.click({ position: { x: 300, y: 250 }, force: true });
+        await page.locator('.leaflet-container').first().click({ position: { x: 300, y: 250 }, force: true });
 
-        await page.waitForTimeout(1500);
+        // Marker form should appear
+        const markerForm = page.getByTestId('marker-form');
+        await expect(markerForm).toBeVisible({ timeout: 5000 });
 
-        const markerForm = page.locator('text=Marker Details').first();
-        if (await markerForm.isVisible()) {
-            // Set marker details
-            const nameInput = page.locator('input#marker-name');
-            await nameInput.fill('Favorite Restaurant');
+        // Set marker details
+        const nameInput = page.getByTestId('marker-name-input');
+        await expect(nameInput).toBeVisible();
+        await nameInput.fill('Favorite Restaurant');
 
-            const typeSelect = page.locator('select#marker-type');
-            await typeSelect.selectOption('restaurant');
+        const typeSelect = page.getByTestId('marker-type-select');
+        await expect(typeSelect).toBeVisible();
+        await typeSelect.selectOption('restaurant');
 
-            // Save marker
-            const saveButton = page.locator('button:has-text("Save")');
-            await saveButton.click();
+        // Save marker
+        const saveButton = page.getByTestId('marker-save-button');
+        await expect(saveButton).toBeVisible();
+        await saveButton.click();
 
-            await page.waitForTimeout(1000);
+        // Form should close after save
+        await expect(markerForm).not.toBeVisible({ timeout: 5000 });
 
-            // Form should close automatically after save
-            // If it's still visible, close it manually
-            const closeButton = page
-                .locator('button[aria-label="Close"]')
-                .first();
-            if (await closeButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-                await closeButton.click();
-            }
-
-            // Check if marker appears in the marker list (if visible in sidebar)
-            // The marker list should show the marker name
-            const markerListItem = page
-                .locator('text=Favorite Restaurant')
-                .first();
-
-            // If marker list is visible, verify the marker appears there
-            if (await markerListItem.isVisible({ timeout: 2000 })) {
-                await expect(markerListItem).toBeVisible();
-            }
-        }
+        // Marker should appear in the marker list
+        const markerListItem = page.getByTestId('marker-list-item').filter({ hasText: 'Favorite Restaurant' });
+        await expect(markerListItem).toBeVisible({ timeout: 5000 });
     });
 
     test('marker form displays correct coordinates', async ({ page }) => {
         // Create a marker at a specific position
-        const mapContainer = page.locator('.leaflet-container').first();
-        await mapContainer.click({ position: { x: 250, y: 250 } });
+        await page.locator('.leaflet-container').first().click({ position: { x: 250, y: 250 } });
 
-        await page.waitForTimeout(1500);
+        // Marker form should be visible
+        const markerForm = page.getByTestId('marker-form');
+        await expect(markerForm).toBeVisible({ timeout: 5000 });
 
-        const markerForm = page.locator('text=Marker Details').first();
-        if (await markerForm.isVisible()) {
-            // Check if coordinates are displayed
-            const latitudeText = page.locator('text=Latitude:').first();
-            const longitudeText = page.locator('text=Longitude:').first();
+        // Check if coordinates are displayed
+        const latitudeText = page.getByTestId('marker-latitude');
+        const longitudeText = page.getByTestId('marker-longitude');
 
-            await expect(latitudeText).toBeVisible();
-            await expect(longitudeText).toBeVisible();
+        await expect(latitudeText).toBeVisible();
+        await expect(longitudeText).toBeVisible();
 
-            // Coordinates should be numeric values
-            const coordinatesSection = page.locator('text=Coordinates').first();
-            await expect(coordinatesSection).toBeVisible();
-        }
+        // Verify coordinates contain "Latitude:" and "Longitude:" labels
+        await expect(latitudeText).toContainText('Latitude:');
+        await expect(longitudeText).toContainText('Longitude:');
     });
 });

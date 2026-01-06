@@ -113,7 +113,7 @@ export default function MarkerList({
 }: MarkerListProps) {
     if (markers.length === 0) {
         return (
-            <div className="rounded-lg bg-white p-3 shadow">
+            <div className="rounded-lg bg-white p-3 shadow" data-testid="marker-list">
                 <h2 className="mb-3 text-base font-semibold">Markers (0)</h2>
                 <p className="text-sm text-gray-500">
                     Click on the map to add markers

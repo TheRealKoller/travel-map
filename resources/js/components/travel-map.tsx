@@ -1278,6 +1278,7 @@ export default function TravelMap({
                             ref={mapRef}
                             id="map"
                             className="z-10 h-[400px] w-full lg:h-[600px]"
+                            data-testid="leaflet-map-container"
                         />
                         <MapOptionsMenu
                             isSearchMode={isSearchMode}

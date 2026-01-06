@@ -144,11 +144,12 @@ export default function MarkerForm({
     };
 
     return (
-        <div className="relative rounded-lg bg-white p-4 shadow">
+        <div className="relative rounded-lg bg-white p-4 shadow" data-testid="marker-form">
             <button
                 onClick={onClose}
                 className="absolute top-2 right-2 rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
                 aria-label="Close"
+                data-testid="marker-form-close-button"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -163,7 +164,7 @@ export default function MarkerForm({
                     />
                 </svg>
             </button>
-            <h2 className="mb-4 pr-8 text-xl font-semibold">Marker Details</h2>
+            <h2 className="mb-4 pr-8 text-xl font-semibold" data-testid="marker-form-title">Marker Details</h2>
             <div className="space-y-4">
                 <div>
                     <label
@@ -179,6 +180,7 @@ export default function MarkerForm({
                         onChange={handleNameChange}
                         className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                         placeholder="Enter marker name"
+                        data-testid="marker-name-input"
                     />
                 </div>
                 <div>
@@ -193,6 +195,7 @@ export default function MarkerForm({
                         value={type}
                         onChange={handleTypeChange}
                         className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        data-testid="marker-type-select"
                     >
                         <option value={MarkerType.Restaurant}>
                             Restaurant
@@ -285,11 +288,11 @@ export default function MarkerForm({
                     <label className="mb-2 block text-sm font-medium text-gray-700">
                         Coordinates
                     </label>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600" data-testid="marker-latitude">
                         <span className="font-medium">Latitude:</span>{' '}
                         {marker.lat.toFixed(6)}
                     </p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600" data-testid="marker-longitude">
                         <span className="font-medium">Longitude:</span>{' '}
                         {marker.lng.toFixed(6)}
                     </p>
@@ -338,6 +341,7 @@ export default function MarkerForm({
                         onClick={handleSave}
                         disabled={!name.trim()}
                         className="w-full rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:bg-gray-400"
+                        data-testid="marker-save-button"
                     >
                         Save
                     </button>
@@ -345,6 +349,7 @@ export default function MarkerForm({
                         <button
                             onClick={handleDelete}
                             className="w-full rounded-md bg-red-600 px-3 py-1.5 text-sm text-white transition-colors hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none"
+                            data-testid="marker-delete-button"
                         >
                             Delete
                         </button>
