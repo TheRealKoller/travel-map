@@ -227,4 +227,67 @@ enum PlaceType: string
             ],
         };
     }
+
+    /**
+     * Get Mapbox category names for this place type.
+     *
+     * @return array<string> Array of Mapbox category identifiers
+     */
+    public function getMapboxCategories(): array
+    {
+        return match ($this) {
+            self::All => [
+                'restaurant',
+                'cafe',
+                'bar',
+                'hotel',
+                'museum',
+                'park',
+                'shopping',
+                'gas_station',
+                'hospital',
+                'pharmacy',
+                'bank',
+                'atm',
+                'library',
+            ],
+            self::Hotel => ['hotel', 'motel', 'hostel'],
+            self::Restaurant => ['restaurant'],
+            self::Cafe => ['cafe', 'coffee'],
+            self::Bar => ['bar', 'pub', 'nightclub'],
+            self::FastFood => ['fast_food'],
+            self::Museum => ['museum'],
+            self::Attraction => ['landmark', 'tourist_attraction'],
+            self::Viewpoint => ['scenic_viewpoint'],
+            self::Monument => ['monument', 'memorial'],
+            self::Castle => ['castle'],
+            self::Ruins => ['ruins'],
+            self::Church => ['church', 'place_of_worship'],
+            self::Temple => ['temple', 'place_of_worship'],
+            self::Mosque => ['mosque', 'place_of_worship'],
+            self::Park => ['park', 'playground'],
+            self::Garden => ['garden'],
+            self::Zoo => ['zoo'],
+            self::AmusementPark => ['amusement_park', 'theme_park'],
+            self::Beach => ['beach'],
+            self::Marina => ['marina', 'harbor'],
+            self::Shop => ['shopping', 'store'],
+            self::Supermarket => ['grocery', 'supermarket'],
+            self::BusStation => ['bus_station', 'bus_stop'],
+            self::TrainStation => ['train_station', 'railway_station'],
+            self::Airport => ['airport'],
+            self::Ferry => ['ferry_terminal'],
+            self::Parking => ['parking'],
+            self::FuelStation => ['gas_station', 'fuel'],
+            self::Hospital => ['hospital', 'clinic'],
+            self::Pharmacy => ['pharmacy', 'drugstore'],
+            self::Bank => ['bank'],
+            self::ATM => ['atm'],
+            self::PostOffice => ['post_office'],
+            self::Library => ['library'],
+            self::Cinema => ['cinema', 'movie_theater'],
+            self::Theatre => ['theatre', 'theater'],
+            self::Gallery => ['art_gallery', 'gallery'],
+        };
+    }
 }
