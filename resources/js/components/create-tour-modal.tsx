@@ -59,16 +59,17 @@ export default function CreateTourModal({
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="name" className="text-right">
+                            <Label htmlFor="input-tour-name" className="text-right">
                                 Name
                             </Label>
                             <Input
-                                id="name"
+                                id="input-tour-name"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 className="col-span-3"
                                 placeholder="e.g., Day 1 - Tokyo"
                                 disabled={isSubmitting}
+                                data-testid="input-tour-name"
                             />
                         </div>
                         {error && (
@@ -81,10 +82,13 @@ export default function CreateTourModal({
                             variant="outline"
                             onClick={() => onOpenChange(false)}
                             disabled={isSubmitting}
+                            data-testid="button-cancel-create-tour"
                         >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={isSubmitting}>
+                        <Button type="submit" disabled={isSubmitting}
+                            data-testid="button-submit-create-tour"
+                        >
                             {isSubmitting ? 'Creating...' : 'Create tour'}
                         </Button>
                     </DialogFooter>
