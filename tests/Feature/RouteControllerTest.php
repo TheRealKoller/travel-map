@@ -51,9 +51,12 @@ it('requires trip_id when listing routes', function () {
 });
 
 it('can create a route between two markers', function () {
-    // Mock OSRM API response
+    // Set Mapbox token for test
+    config(['services.mapbox.access_token' => 'test-token']);
+
+    // Mock Mapbox API response
     Http::fake([
-        'router.project-osrm.org/*' => Http::response([
+        'api.mapbox.com/*' => Http::response([
             'routes' => [
                 [
                     'distance' => 50000, // 50km
@@ -218,7 +221,7 @@ it('throws exception when Mapbox token is not configured', function () {
         'trip_id' => $this->trip->id,
         'start_marker_id' => $this->startMarker->id,
         'end_marker_id' => $this->endMarker->id,
-        'transport_mode' => 'public-transport',
+        'transport_mode' => 'driving-car',
     ]);
 
     $response->assertStatus(503)
@@ -226,9 +229,12 @@ it('throws exception when Mapbox token is not configured', function () {
 });
 
 it('generates warning for very long walking routes', function () {
-    // Mock OSRM API response for a very long walking route (814km in 10.5 hours = unrealistic)
+    // Set Mapbox token for test
+    config(['services.mapbox.access_token' => 'test-token']);
+
+    // Mock Mapbox API response for a very long walking route (814km in 10.5 hours = unrealistic)
     Http::fake([
-        'router.project-osrm.org/*' => Http::response([
+        'api.mapbox.com/*' => Http::response([
             'routes' => [
                 [
                     'distance' => 814530, // 814.53km
@@ -265,9 +271,12 @@ it('generates warning for very long walking routes', function () {
 });
 
 it('returns 404 when no route is found between markers', function () {
-    // Mock OSRM API response with no routes
+    // Set Mapbox token for test
+    config(['services.mapbox.access_token' => 'test-token']);
+
+    // Mock Mapbox API response with no routes
     Http::fake([
-        'router.project-osrm.org/*' => Http::response([
+        'api.mapbox.com/*' => Http::response([
             'routes' => [],
         ], 200),
     ]);
@@ -283,10 +292,13 @@ it('returns 404 when no route is found between markers', function () {
         ->assertJson(['error' => 'No route found between the markers']);
 });
 
-it('returns 503 when OSRM API fails', function () {
-    // Mock OSRM API failure
+it('returns 503 when Mapbox API fails', function () {
+    // Set Mapbox token for test
+    config(['services.mapbox.access_token' => 'test-token']);
+
+    // Mock Mapbox API failure
     Http::fake([
-        'router.project-osrm.org/*' => Http::response('Internal Server Error', 500),
+        'api.mapbox.com/*' => Http::response('Internal Server Error', 500),
     ]);
 
     $response = $this->postJson('/routes', [
@@ -294,26 +306,6 @@ it('returns 503 when OSRM API fails', function () {
         'start_marker_id' => $this->startMarker->id,
         'end_marker_id' => $this->endMarker->id,
         'transport_mode' => 'driving-car',
-    ]);
-
-    $response->assertStatus(503)
-        ->assertJsonStructure(['error']);
-});
-
-it('returns 503 when Mapbox API fails', function () {
-    // Set Mapbox token for test
-    config(['services.mapbox.access_token' => 'test-token']);
-
-    // Mock Mapbox API failure
-    Http::fake([
-        'api.mapbox.com/*' => Http::response('Service Unavailable', 503),
-    ]);
-
-    $response = $this->postJson('/routes', [
-        'trip_id' => $this->trip->id,
-        'start_marker_id' => $this->startMarker->id,
-        'end_marker_id' => $this->endMarker->id,
-        'transport_mode' => 'public-transport',
     ]);
 
     $response->assertStatus(503)
