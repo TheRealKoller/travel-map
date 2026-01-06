@@ -53,7 +53,6 @@ function DroppableTourTab({ tour, markerCount }: DroppableTourTabProps) {
                         ({markerCount})
                     </span>
                 )}
-
             </TabsTrigger>
         </div>
     );
@@ -83,8 +82,9 @@ function SortableMarkerItem({ marker, index }: SortableMarkerItemProps) {
         <li
             ref={setNodeRef}
             style={style}
-            className={`rounded bg-gray-50 p-2 text-sm ${isDragging ? 'opacity-50' : ''
-                }`}
+            className={`rounded bg-gray-50 p-2 text-sm ${
+                isDragging ? 'opacity-50' : ''
+            }`}
         >
             <div className="flex items-start gap-2">
                 <button
@@ -147,8 +147,9 @@ function DroppableTourCard({
     return (
         <Card
             ref={setNodeRef}
-            className={`flex-1 overflow-auto p-4 ${isOver ? 'bg-blue-50 ring-2 ring-blue-500 ring-offset-2' : ''
-                }`}
+            className={`flex-1 overflow-auto p-4 ${
+                isOver ? 'bg-blue-50 ring-2 ring-blue-500 ring-offset-2' : ''
+            }`}
         >
             <div className="mb-3 flex items-center justify-between">
                 <h3 className="text-sm font-semibold">{tour.name}</h3>
@@ -215,10 +216,10 @@ export default function TourPanel({
     // Get markers for the selected tour in the correct order from the tour
     const selectedTourMarkers = selectedTour?.markers
         ? selectedTour.markers
-            .map((tourMarker) =>
-                markers.find((marker) => marker.id === tourMarker.id),
-            )
-            .filter((marker): marker is MarkerData => marker !== undefined)
+              .map((tourMarker) =>
+                  markers.find((marker) => marker.id === tourMarker.id),
+              )
+              .filter((marker): marker is MarkerData => marker !== undefined)
         : [];
 
     return (

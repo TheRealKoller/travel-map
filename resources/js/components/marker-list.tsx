@@ -123,7 +123,10 @@ export default function MarkerList({
     }
 
     return (
-        <div className="rounded-lg bg-white p-3 shadow" data-testid="marker-list">
+        <div
+            className="rounded-lg bg-white p-3 shadow"
+            data-testid="marker-list"
+        >
             <h2 className="mb-3 text-base font-semibold">
                 Markers ({markers.length})
             </h2>

@@ -43,9 +43,16 @@ export default function CreateTourModal({
         } catch (err) {
             // Extract error message from axios error response
             if (err && typeof err === 'object' && 'response' in err) {
-                const axiosError = err as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
+                const axiosError = err as {
+                    response?: {
+                        data?: {
+                            message?: string;
+                            errors?: Record<string, string[]>;
+                        };
+                    };
+                };
                 const responseData = axiosError.response?.data;
-                
+
                 // Check for validation errors
                 if (responseData?.errors?.name) {
                     setError(responseData.errors.name[0]);
@@ -74,7 +81,10 @@ export default function CreateTourModal({
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="input-tour-name" className="text-right">
+                            <Label
+                                htmlFor="input-tour-name"
+                                className="text-right"
+                            >
                                 Name
                             </Label>
                             <Input
@@ -101,7 +111,9 @@ export default function CreateTourModal({
                         >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={isSubmitting}
+                        <Button
+                            type="submit"
+                            disabled={isSubmitting}
                             data-testid="button-submit-create-tour"
                         >
                             {isSubmitting ? 'Creating...' : 'Create tour'}
