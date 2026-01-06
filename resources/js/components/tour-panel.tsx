@@ -26,10 +26,7 @@ interface TourTabProps {
 function TourTab({ tour, markerCount }: TourTabProps) {
     return (
         <div className="inline-flex" style={{ minHeight: '40px' }}>
-            <TabsTrigger
-                value={tour.id.toString()}
-                data-testid="tour-tab"
-            >
+            <TabsTrigger value={tour.id.toString()} data-testid="tour-tab">
                 {tour.name}
                 {markerCount > 0 && (
                     <span className="ml-1 text-xs text-gray-500">

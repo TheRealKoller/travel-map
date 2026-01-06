@@ -1187,7 +1187,10 @@ export default function TravelMap({
             (m) => m.id === markerId,
         );
 
-        if (currentIndex === -1 || currentIndex >= selectedTour.markers.length - 1)
+        if (
+            currentIndex === -1 ||
+            currentIndex >= selectedTour.markers.length - 1
+        )
             return; // Already at the bottom or not found
 
         // Swap with next marker
@@ -1271,41 +1274,41 @@ export default function TravelMap({
                 />
             </div>
 
-                {/* Part 3: Route panel */}
-                {selectedTripId && (
-                    <div className="w-full lg:w-1/5">
-                        <RoutePanel
-                            tripId={selectedTripId}
-                            markers={markers}
-                            routes={routes}
-                            onRoutesUpdate={setRoutes}
-                        />
-                    </div>
-                )}
+            {/* Part 3: Route panel */}
+            {selectedTripId && (
+                <div className="w-full lg:w-1/5">
+                    <RoutePanel
+                        tripId={selectedTripId}
+                        markers={markers}
+                        routes={routes}
+                        onRoutesUpdate={setRoutes}
+                    />
+                </div>
+            )}
 
-                {/* Part 4: Map */}
-                <div className="w-full flex-1">
-                    <div className="relative">
-                        <div
-                            ref={mapRef}
-                            id="map"
-                            className="z-10 h-[400px] w-full lg:h-[600px]"
-                        />
-                        <MapOptionsMenu
-                            isSearchMode={isSearchMode}
-                            onSearchModeChange={setIsSearchMode}
-                            searchCoordinates={searchCoordinates}
-                            searchRadius={searchRadius}
-                            onSearchRadiusChange={setSearchRadius}
-                            searchResultCount={searchResultCount}
-                            isSearching={isSearching}
-                            searchError={searchError}
-                            placeTypes={placeTypes}
-                            selectedPlaceType={selectedPlaceType}
-                            onPlaceTypeChange={setSelectedPlaceType}
-                        />
-                    </div>
+            {/* Part 4: Map */}
+            <div className="w-full flex-1">
+                <div className="relative">
+                    <div
+                        ref={mapRef}
+                        id="map"
+                        className="z-10 h-[400px] w-full lg:h-[600px]"
+                    />
+                    <MapOptionsMenu
+                        isSearchMode={isSearchMode}
+                        onSearchModeChange={setIsSearchMode}
+                        searchCoordinates={searchCoordinates}
+                        searchRadius={searchRadius}
+                        onSearchRadiusChange={setSearchRadius}
+                        searchResultCount={searchResultCount}
+                        isSearching={isSearching}
+                        searchError={searchError}
+                        placeTypes={placeTypes}
+                        selectedPlaceType={selectedPlaceType}
+                        onPlaceTypeChange={setSelectedPlaceType}
+                    />
                 </div>
             </div>
+        </div>
     );
 }
