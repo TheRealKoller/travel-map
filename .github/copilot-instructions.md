@@ -122,8 +122,75 @@ php artisan test
 ### Test Structure
 - **Unit tests:** `tests/Unit/` - Pure unit tests
 - **Feature tests:** `tests/Feature/` - Integration tests with database
+- **E2E tests:** `tests/e2e/` - End-to-end tests with Playwright
 - Test configuration: `phpunit.xml` and `tests/Pest.php`
 - Tests automatically use `DB_CONNECTION=sqlite` and `DB_DATABASE=:memory:`
+
+### E2E Testing Best Practices
+
+**Test Selectors:**
+- **ALWAYS use `data-testid` attributes** for selecting elements in E2E tests
+- Add `data-testid` to all interactive elements (buttons, inputs, forms, links, etc.)
+- Use descriptive, kebab-case naming: `data-testid="create-marker-button"`, `data-testid="marker-name-input"`
+- Select elements in tests using: `page.getByTestId('element-id')` or  `page.locator('[data-testid="element-id"]')` when necessary
+- Avoid selecting by text content, CSS classes, or element types as they are fragile and break easily
+- Exception: Text content can be used for non-interactive elements like headings or labels when appropriate
+
+**Test Assertions:**
+- **NEVER use `if` statements to check element visibility** - they cause tests to pass silently when elements are missing
+- **ALWAYS use `await expect().toBeVisible()`** to assert element visibility
+- **Use proper timeouts** for async operations: `{ timeout: 5000 }` or `{ timeout: 10000 }`
+- If an element might not be visible, use `try/catch` or explicitly check with `.catch()`, but always fail the test if the element is required
+
+**Anti-patterns (DO NOT DO):**
+```typescript
+// BAD: Test passes even if button is not visible
+if (await button.isVisible({ timeout: 2000 })) {
+    await button.click();
+}
+
+// BAD: No else clause means test passes silently
+const element = page.locator('text=Something');
+if (await element.isVisible()) {
+    await expect(element).toHaveText('Expected');
+}
+```
+
+**Good patterns:**
+```typescript
+// GOOD: Test fails if button is not visible
+const button = page.getByTestId('submit-button');
+await expect(button).toBeVisible({ timeout: 5000 });
+await button.click();
+
+// GOOD: For optional elements, use try/catch and handle both cases explicitly
+try {
+    const optional = page.locator('text=Optional');
+    await expect(optional).toBeVisible({ timeout: 2000 });
+    // Handle the case when it's visible
+} catch {
+    // Explicitly handle when it's not visible (if that's valid)
+}
+```
+
+**Example:**
+```tsx
+// Good: Using data-testid
+<button data-testid="save-marker-button" onClick={handleSave}>
+  Save Marker
+</button>
+
+// In test:
+await page.getByTestId('save-marker-button').click();
+```
+
+**Running E2E Tests:**
+```bash
+npm run test:e2e           # Run all E2E tests
+npm run test:e2e:ui        # Run with interactive UI
+npm run test:e2e:headed    # Run in headed mode (see browser)
+npm run test:e2e:debug     # Run in debug mode
+```
 
 ## Linting & Formatting
 

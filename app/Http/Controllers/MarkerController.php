@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreMarkerRequest;
 use App\Http\Requests\UpdateMarkerRequest;
 use App\Models\Marker;
-use App\Services\OverpassService;
+use App\Services\MapboxPlacesService;
 use App\Services\TripService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
@@ -17,7 +17,7 @@ class MarkerController extends Controller
 
     public function __construct(
         private readonly TripService $tripService,
-        private readonly OverpassService $overpassService
+        private readonly MapboxPlacesService $mapboxPlacesService
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -82,7 +82,7 @@ class MarkerController extends Controller
     }
 
     /**
-     * Search for points of interest near given coordinates using Overpass API.
+     * Search for points of interest near given coordinates using Mapbox Search API.
      */
     public function searchNearby(Request $request): JsonResponse
     {
@@ -98,7 +98,7 @@ class MarkerController extends Controller
             ? \App\Enums\PlaceType::tryFrom($validated['place_type'])
             : null;
 
-        $result = $this->overpassService->searchNearby(
+        $result = $this->mapboxPlacesService->searchNearby(
             latitude: $validated['latitude'],
             longitude: $validated['longitude'],
             radiusKm: $validated['radius_km'],

@@ -57,12 +57,14 @@ function DraggableMarkerItem({
                       ? 'border-2 border-blue-500 bg-blue-100'
                       : 'bg-gray-50 hover:bg-gray-100'
             }`}
+            data-testid="marker-list-item"
         >
             <button
                 {...listeners}
                 {...attributes}
                 className="mt-0.5 cursor-grab active:cursor-grabbing"
                 onClick={(e) => e.stopPropagation()}
+                data-testid="marker-drag-handle"
             >
                 <GripVertical className="h-4 w-4 text-gray-400" />
             </button>
@@ -121,14 +123,17 @@ export default function MarkerList({
     }
 
     return (
-        <div className="rounded-lg bg-white p-3 shadow">
+        <div
+            className="rounded-lg bg-white p-3 shadow"
+            data-testid="marker-list"
+        >
             <h2 className="mb-3 text-base font-semibold">
                 Markers ({markers.length})
             </h2>
             <p className="mb-2 text-xs text-gray-500">
                 Drag markers to tour tabs to add them to a tour
             </p>
-            <ul className="space-y-1.5">
+            <ul className="space-y-1.5" data-testid="marker-list-items">
                 {markers.map((markerData) => (
                     <DraggableMarkerItem
                         key={markerData.id}

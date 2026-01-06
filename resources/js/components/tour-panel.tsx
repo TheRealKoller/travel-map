@@ -45,6 +45,7 @@ function DroppableTourTab({ tour, markerCount }: DroppableTourTabProps) {
             <TabsTrigger
                 value={tour.id.toString()}
                 className={`${isOver ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
+                data-testid="tour-tab"
             >
                 {tour.name}
                 {markerCount > 0 && (
@@ -222,7 +223,7 @@ export default function TourPanel({
         : [];
 
     return (
-        <div className="flex h-full flex-col gap-4">
+        <div className="flex h-full flex-col gap-4" data-testid="tour-panel">
             <Tabs
                 value={
                     selectedTourId === null ? 'all' : selectedTourId.toString()
@@ -231,7 +232,7 @@ export default function TourPanel({
                 className="w-full"
             >
                 <TabsList className="flex w-full justify-start overflow-x-auto">
-                    <TabsTrigger value="all">
+                    <TabsTrigger value="all" data-testid="tour-tab-all-markers">
                         All markers
                         <span className="ml-1 text-xs text-gray-500">
                             ({markers.length})
@@ -251,6 +252,7 @@ export default function TourPanel({
                             e.preventDefault();
                             onCreateTour();
                         }}
+                        data-testid="tour-tab-create-new"
                     >
                         <Plus className="h-4 w-4" />
                     </TabsTrigger>

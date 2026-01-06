@@ -227,7 +227,7 @@ Falls du manuell deployen möchtest:
 Wenn DB-Änderungen vorhanden sind:
 
 ```bash
-ssh kas123456@ssh.kasserver.com
+ssh ssh-w00b3df6@w00b3df6.kasserver.com
 cd /www/htdocs/w00b3df6/dev.travelmap.koller.dk
 php artisan migrate --force
 ```

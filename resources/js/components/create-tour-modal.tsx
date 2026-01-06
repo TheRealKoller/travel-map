@@ -40,8 +40,30 @@ export default function CreateTourModal({
             await onCreateTour(name);
             setName('');
             onOpenChange(false);
-        } catch {
-            setError('Failed to create tour. Please try again.');
+        } catch (err) {
+            // Extract error message from axios error response
+            if (err && typeof err === 'object' && 'response' in err) {
+                const axiosError = err as {
+                    response?: {
+                        data?: {
+                            message?: string;
+                            errors?: Record<string, string[]>;
+                        };
+                    };
+                };
+                const responseData = axiosError.response?.data;
+
+                // Check for validation errors
+                if (responseData?.errors?.name) {
+                    setError(responseData.errors.name[0]);
+                } else if (responseData?.message) {
+                    setError(responseData.message);
+                } else {
+                    setError('Failed to create tour. Please try again.');
+                }
+            } else {
+                setError('Failed to create tour. Please try again.');
+            }
         } finally {
             setIsSubmitting(false);
         }
@@ -59,16 +81,20 @@ export default function CreateTourModal({
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="name" className="text-right">
+                            <Label
+                                htmlFor="input-tour-name"
+                                className="text-right"
+                            >
                                 Name
                             </Label>
                             <Input
-                                id="name"
+                                id="input-tour-name"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 className="col-span-3"
                                 placeholder="e.g., Day 1 - Tokyo"
                                 disabled={isSubmitting}
+                                data-testid="input-tour-name"
                             />
                         </div>
                         {error && (
@@ -81,10 +107,15 @@ export default function CreateTourModal({
                             variant="outline"
                             onClick={() => onOpenChange(false)}
                             disabled={isSubmitting}
+                            data-testid="button-cancel-create-tour"
                         >
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={isSubmitting}>
+                        <Button
+                            type="submit"
+                            disabled={isSubmitting}
+                            data-testid="button-submit-create-tour"
+                        >
                             {isSubmitting ? 'Creating...' : 'Create tour'}
                         </Button>
                     </DialogFooter>

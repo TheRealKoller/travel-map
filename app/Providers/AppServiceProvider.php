@@ -12,7 +12,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Register MapboxPlacesService with access token from config
+        $this->app->singleton(\App\Services\MapboxPlacesService::class, function ($app) {
+            return new \App\Services\MapboxPlacesService(
+                accessToken: config('services.mapbox.access_token')
+            );
+        });
     }
 
     /**
