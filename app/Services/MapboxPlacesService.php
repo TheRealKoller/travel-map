@@ -129,7 +129,7 @@ class MapboxPlacesService
                 ->get($url, [
                     'access_token' => $this->accessToken,
                     'proximity' => "{$longitude},{$latitude}", // Mapbox uses lon,lat order
-                    'limit' => 50, // Maximum results per category
+                    'limit' => 25, // Maximum results per category (Mapbox API limit)
                     'language' => 'en,de', // Support both English and German
                 ]);
 
