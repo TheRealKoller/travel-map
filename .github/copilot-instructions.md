@@ -136,6 +136,43 @@ php artisan test
 - Avoid selecting by text content, CSS classes, or element types as they are fragile and break easily
 - Exception: Text content can be used for non-interactive elements like headings or labels when appropriate
 
+**Test Assertions:**
+- **NEVER use `if` statements to check element visibility** - they cause tests to pass silently when elements are missing
+- **ALWAYS use `await expect().toBeVisible()`** to assert element visibility
+- **Use proper timeouts** for async operations: `{ timeout: 5000 }` or `{ timeout: 10000 }`
+- If an element might not be visible, use `try/catch` or explicitly check with `.catch()`, but always fail the test if the element is required
+
+**Anti-patterns (DO NOT DO):**
+```typescript
+// BAD: Test passes even if button is not visible
+if (await button.isVisible({ timeout: 2000 })) {
+    await button.click();
+}
+
+// BAD: No else clause means test passes silently
+const element = page.locator('text=Something');
+if (await element.isVisible()) {
+    await expect(element).toHaveText('Expected');
+}
+```
+
+**Good patterns:**
+```typescript
+// GOOD: Test fails if button is not visible
+const button = page.getByTestId('submit-button');
+await expect(button).toBeVisible({ timeout: 5000 });
+await button.click();
+
+// GOOD: For optional elements, use try/catch and handle both cases explicitly
+try {
+    const optional = page.locator('text=Optional');
+    await expect(optional).toBeVisible({ timeout: 2000 });
+    // Handle the case when it's visible
+} catch {
+    // Explicitly handle when it's not visible (if that's valid)
+}
+```
+
 **Example:**
 ```tsx
 // Good: Using data-testid
