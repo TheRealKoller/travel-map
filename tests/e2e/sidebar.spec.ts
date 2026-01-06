@@ -20,14 +20,8 @@ test.describe('Sidebar Navigation', () => {
         await page.waitForLoadState('networkidle');
 
         // Check that sidebar is not visible (collapsed/offcanvas mode)
-        const sidebarState = await page.evaluate(() => {
-            const sidebarElement = document.querySelector(
-                '[data-slot="sidebar"]',
-            );
-            return sidebarElement?.getAttribute('data-state');
-        });
-
-        expect(sidebarState).toBe('collapsed');
+        const sidebar = page.getByTestId('sidebar');
+        await expect(sidebar).toHaveAttribute('data-state', 'collapsed');
     });
 
     test('sidebar trigger button is visible', async ({ page }) => {
@@ -35,7 +29,7 @@ test.describe('Sidebar Navigation', () => {
         await page.setViewportSize({ width: 1280, height: 720 });
 
         // The burger menu trigger should be visible
-        const trigger = page.locator('[data-sidebar="trigger"]');
+        const trigger = page.getByTestId('sidebar-trigger');
         await expect(trigger).toBeVisible();
     });
 
@@ -44,29 +38,12 @@ test.describe('Sidebar Navigation', () => {
         await page.setViewportSize({ width: 1280, height: 720 });
 
         // Click the sidebar trigger
-        const trigger = page.locator('[data-sidebar="trigger"]');
+        const trigger = page.getByTestId('sidebar-trigger');
         await trigger.click();
 
         // Wait for sidebar to become expanded
-        await page.waitForFunction(
-            () => {
-                const sidebarElement = document.querySelector(
-                    '[data-slot="sidebar"]',
-                );
-                return sidebarElement?.getAttribute('data-state') === 'expanded';
-            },
-            { timeout: 2000 },
-        );
-
-        // Check that sidebar is now expanded
-        const sidebarState = await page.evaluate(() => {
-            const sidebarElement = document.querySelector(
-                '[data-slot="sidebar"]',
-            );
-            return sidebarElement?.getAttribute('data-state');
-        });
-
-        expect(sidebarState).toBe('expanded');
+        const sidebar = page.getByTestId('sidebar');
+        await expect(sidebar).toHaveAttribute('data-state', 'expanded', { timeout: 2000 });
     });
 
     test('clicking outside sidebar closes it on desktop', async ({ page }) => {
@@ -74,56 +51,20 @@ test.describe('Sidebar Navigation', () => {
         await page.setViewportSize({ width: 1280, height: 720 });
 
         // Open the sidebar first
-        const trigger = page.locator('[data-sidebar="trigger"]');
+        const trigger = page.getByTestId('sidebar-trigger');
         await trigger.click();
 
         // Wait for sidebar to be expanded
-        await page.waitForFunction(
-            () => {
-                const sidebarElement = document.querySelector(
-                    '[data-slot="sidebar"]',
-                );
-                return sidebarElement?.getAttribute('data-state') === 'expanded';
-            },
-            { timeout: 2000 },
-        );
-
-        // Verify sidebar is open
-        let sidebarState = await page.evaluate(() => {
-            const sidebarElement = document.querySelector(
-                '[data-slot="sidebar"]',
-            );
-            return sidebarElement?.getAttribute('data-state');
-        });
-        expect(sidebarState).toBe('expanded');
+        const sidebar = page.getByTestId('sidebar');
+        await expect(sidebar).toHaveAttribute('data-state', 'expanded', { timeout: 2000 });
 
         // Click on the overlay (should be visible when sidebar is open)
-        const overlay = page.locator(
-            'div[class*="fixed"][class*="bg-black"]',
-        ).first();
-        await overlay.waitFor({ state: 'visible', timeout: 2000 });
-        await overlay.click();
+        const overlay = page.getByTestId('sidebar-overlay');
+        await expect(overlay).toBeVisible({ timeout: 2000 });
+        await overlay.click({ force: true });
 
         // Wait for sidebar to collapse
-        await page.waitForFunction(
-            () => {
-                const sidebarElement = document.querySelector(
-                    '[data-slot="sidebar"]',
-                );
-                return sidebarElement?.getAttribute('data-state') === 'collapsed';
-            },
-            { timeout: 2000 },
-        );
-
-        // Verify sidebar is closed
-        sidebarState = await page.evaluate(() => {
-            const sidebarElement = document.querySelector(
-                '[data-slot="sidebar"]',
-            );
-            return sidebarElement?.getAttribute('data-state');
-        });
-
-        expect(sidebarState).toBe('collapsed');
+        await expect(sidebar).toHaveAttribute('data-state', 'collapsed', { timeout: 2000 });
     });
 
     test('navigating to another page closes sidebar on desktop', async ({
@@ -133,63 +74,21 @@ test.describe('Sidebar Navigation', () => {
         await page.setViewportSize({ width: 1280, height: 720 });
 
         // Open the sidebar
-        const trigger = page.locator('[data-sidebar="trigger"]');
+        const trigger = page.getByTestId('sidebar-trigger');
         await trigger.click();
 
         // Wait for sidebar to be expanded
-        await page.waitForFunction(
-            () => {
-                const sidebarElement = document.querySelector(
-                    '[data-slot="sidebar"]',
-                );
-                return sidebarElement?.getAttribute('data-state') === 'expanded';
-            },
-            { timeout: 2000 },
-        );
-
-        // Verify sidebar is open
-        let sidebarState = await page.evaluate(() => {
-            const sidebarElement = document.querySelector(
-                '[data-slot="sidebar"]',
-            );
-            return sidebarElement?.getAttribute('data-state');
-        });
-        expect(sidebarState).toBe('expanded');
+        const sidebar = page.getByTestId('sidebar');
+        await expect(sidebar).toHaveAttribute('data-state', 'expanded', { timeout: 2000 });
 
         // Click on a navigation link in the sidebar
-        const navLink = page
-            .locator('[data-sidebar="menu-button"]')
-            .filter({ hasText: 'Dashboard' })
-            .first();
+        const navLink = page.getByTestId('nav-dashboard-link');
+        await expect(navLink).toBeVisible({ timeout: 5000 });
+        await navLink.click();
+        await page.waitForLoadState('networkidle');
 
-        if ((await navLink.count()) > 0) {
-            await navLink.click();
-            await page.waitForLoadState('networkidle');
-
-            // Wait for sidebar to collapse after navigation
-            await page.waitForFunction(
-                () => {
-                    const sidebarElement = document.querySelector(
-                        '[data-slot="sidebar"]',
-                    );
-                    return (
-                        sidebarElement?.getAttribute('data-state') ===
-                        'collapsed'
-                    );
-                },
-                { timeout: 2000 },
-            );
-
-            // Verify sidebar is closed after navigation
-            sidebarState = await page.evaluate(() => {
-                const sidebarElement = document.querySelector(
-                    '[data-slot="sidebar"]',
-                );
-                return sidebarElement?.getAttribute('data-state');
-            });
-
-            expect(sidebarState).toBe('collapsed');
-        }
+        // Wait for sidebar to collapse after navigation
+        await expect(sidebar).toHaveAttribute('data-state', 'collapsed', { timeout: 2000 });
     });
 
     test('sidebar works correctly on mobile', async ({ page }) => {
@@ -197,21 +96,18 @@ test.describe('Sidebar Navigation', () => {
         await page.setViewportSize({ width: 375, height: 667 });
 
         // On mobile, sidebar should be in a Sheet (modal)
-        const trigger = page.locator('[data-sidebar="trigger"]');
+        const trigger = page.getByTestId('sidebar-trigger');
         await expect(trigger).toBeVisible();
 
         // Click to open
         await trigger.click();
 
         // Wait for mobile sheet to appear
-        const mobileSheet = page.locator('[data-mobile="true"]');
-        await mobileSheet.waitFor({ state: 'visible', timeout: 2000 });
-
-        // Check that Sheet is visible (mobile sidebar)
-        await expect(mobileSheet).toBeVisible();
+        const mobileSheet = page.getByTestId('sidebar-mobile-sheet');
+        await expect(mobileSheet).toBeVisible({ timeout: 2000 });
 
         // The sidebar content should be visible
-        const sidebarContent = mobileSheet.locator('[data-sidebar="content"]');
+        const sidebarContent = page.getByTestId('sidebar-content');
         await expect(sidebarContent).toBeVisible();
     });
 
@@ -222,36 +118,16 @@ test.describe('Sidebar Navigation', () => {
         await page.setViewportSize({ width: 1280, height: 720 });
 
         // Initially, no overlay should be visible
-        let overlay = page.locator(
-            'div[class*="fixed"][class*="bg-black"][class*="z-"]',
-        );
+        const overlay = page.getByTestId('sidebar-overlay');
         await expect(overlay).not.toBeVisible();
 
         // Open the sidebar
-        const trigger = page.locator('[data-sidebar="trigger"]');
+        const trigger = page.getByTestId('sidebar-trigger');
         await trigger.click();
 
         // Wait for sidebar to expand and overlay to appear
-        await page.waitForFunction(
-            () => {
-                const sidebarElement = document.querySelector(
-                    '[data-slot="sidebar"]',
-                );
-                const overlayElement = document.querySelector(
-                    'div[class*="fixed"][class*="bg-black"]',
-                );
-                return (
-                    sidebarElement?.getAttribute('data-state') === 'expanded' &&
-                    overlayElement !== null
-                );
-            },
-            { timeout: 2000 },
-        );
-
-        // Now overlay should be visible
-        overlay = page.locator(
-            'div[class*="fixed"][class*="bg-black"][class*="z-"]',
-        );
-        await expect(overlay).toBeVisible();
+        const sidebar = page.getByTestId('sidebar');
+        await expect(sidebar).toHaveAttribute('data-state', 'expanded', { timeout: 2000 });
+        await expect(overlay).toBeVisible({ timeout: 2000 });
     });
 });
