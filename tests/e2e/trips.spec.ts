@@ -132,19 +132,17 @@ test.describe('Trip Management', () => {
 
         // Select the first trip from dropdown
         const tripSelector = page.locator('select, [role="combobox"]').first();
-        if (await tripSelector.isVisible()) {
-            await tripSelector.click();
-            await page.waitForTimeout(300);
+        await expect(tripSelector).toBeVisible({ timeout: 5000 });
+        await tripSelector.click();
+        await page.waitForTimeout(300);
 
-            // Look for the "Default" option
-            const defaultOption = page
-                .locator('[role="option"]:has-text("Default")')
-                .first();
-            if (await defaultOption.isVisible()) {
-                await defaultOption.click();
-                await page.waitForTimeout(1000);
-            }
-        }
+        // Look for the "Default" option
+        const defaultOption = page
+            .locator('[role="option"]:has-text("Default")')
+            .first();
+        await expect(defaultOption).toBeVisible({ timeout: 5000 });
+        await defaultOption.click();
+        await page.waitForTimeout(1000);
 
         // Markers from first trip should be visible again
         // This is a simplified check - actual implementation might verify specific markers
