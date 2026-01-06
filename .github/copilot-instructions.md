@@ -122,8 +122,38 @@ php artisan test
 ### Test Structure
 - **Unit tests:** `tests/Unit/` - Pure unit tests
 - **Feature tests:** `tests/Feature/` - Integration tests with database
+- **E2E tests:** `tests/e2e/` - End-to-end tests with Playwright
 - Test configuration: `phpunit.xml` and `tests/Pest.php`
 - Tests automatically use `DB_CONNECTION=sqlite` and `DB_DATABASE=:memory:`
+
+### E2E Testing Best Practices
+
+**Test Selectors:**
+- **ALWAYS use `data-testid` attributes** for selecting elements in E2E tests
+- Add `data-testid` to all interactive elements (buttons, inputs, forms, links, etc.)
+- Use descriptive, kebab-case naming: `data-testid="create-marker-button"`, `data-testid="marker-name-input"`
+- Select elements in tests using: `page.getByTestId('element-id')` or  `page.locator('[data-testid="element-id"]')` when necessary
+- Avoid selecting by text content, CSS classes, or element types as they are fragile and break easily
+- Exception: Text content can be used for non-interactive elements like headings or labels when appropriate
+
+**Example:**
+```tsx
+// Good: Using data-testid
+<button data-testid="save-marker-button" onClick={handleSave}>
+  Save Marker
+</button>
+
+// In test:
+await page.getByTestId('save-marker-button').click();
+```
+
+**Running E2E Tests:**
+```bash
+npm run test:e2e           # Run all E2E tests
+npm run test:e2e:ui        # Run with interactive UI
+npm run test:e2e:headed    # Run in headed mode (see browser)
+npm run test:e2e:debug     # Run in debug mode
+```
 
 ## Linting & Formatting
 
