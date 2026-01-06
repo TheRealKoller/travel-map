@@ -12,7 +12,10 @@ test.describe('Smoke Tests', () => {
     test('login page renders all required elements', async ({ page }) => {
         await page.goto('/login');
 
-        await expect(page.locator('input[name="email"]')).toBeVisible();
+        // Wait for page to be fully loaded
+        await page.waitForLoadState('networkidle');
+
+        await expect(page.locator('input[name="email"]')).toBeVisible({ timeout: 10000 });
         await expect(page.locator('input[name="password"]')).toBeVisible();
         await expect(page.locator('button[type="submit"]')).toBeVisible();
 
