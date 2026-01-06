@@ -1,0 +1,258 @@
+import { expect, test } from '@playwright/test';
+import { generateUniqueEmail, register } from './helpers/auth';
+
+test.describe('Arrow-Based Tour Management', () => {
+    test.beforeEach(async ({ page }) => {
+        // Register and login a test user
+        const email = generateUniqueEmail();
+        await register(page, 'Test User', email, 'password123');
+
+        // Navigate to map page
+        await page.goto('/');
+        await page.waitForSelector('.leaflet-container', { timeout: 10000 });
+
+        // Open sidebar
+        const sidebarTrigger = page.locator('[data-sidebar="trigger"]');
+        await sidebarTrigger.click();
+        await page.waitForTimeout(500);
+
+        // Create a trip first (required for tour creation)
+        const createTripButton = page
+            .locator('button[title="Create new trip"]')
+            .first();
+        await expect(createTripButton).toBeVisible({ timeout: 5000 });
+        await createTripButton.click();
+
+        // Wait for modal to appear
+        await page.waitForSelector('[role="dialog"]', { timeout: 5000 });
+
+        const tripNameInput = page.locator('input#tripName');
+        await tripNameInput.fill('Test Trip');
+
+        // Wait for the trip creation API call
+        const tripCreationPromise = page.waitForResponse(
+            (response) =>
+                response.url().includes('/trips') &&
+                response.request().method() === 'POST' &&
+                response.status() === 201,
+            { timeout: 10000 },
+        );
+
+        const submitTripButton = page.locator('button:has-text("Create trip")');
+        await submitTripButton.click();
+
+        // Wait for trip creation to complete
+        await tripCreationPromise;
+
+        // Wait for modal to close
+        await expect(page.locator('[role="dialog"]')).not.toBeVisible({
+            timeout: 10000,
+        });
+
+        // Close the sidebar to remove any lingering overlays
+        await sidebarTrigger.click({ force: true });
+        await page.waitForTimeout(1000);
+    });
+
+    test('user can see add to tour arrow when tour is selected', async ({
+        page,
+    }) => {
+        // Create a marker by clicking on the map
+        const mapContainer = page.locator('.leaflet-container').first();
+        await mapContainer.click({ position: { x: 300, y: 300 } });
+
+        // Wait for marker to be created and form to appear
+        await page.waitForTimeout(1500);
+
+        // Check if marker form is visible
+        const markerForm = page.locator('text=Marker Details').first();
+        await expect(markerForm).toBeVisible({ timeout: 5000 });
+
+        // Fill in marker details
+        const nameInput = page.locator('input#marker-name');
+        await nameInput.fill('Test Marker');
+
+        // Save the marker
+        const saveButton = page.locator('button:has-text("Save")');
+        await saveButton.click();
+
+        // Wait for marker to be saved and appear in the list
+        const markerListHeading = page.locator('h2:has-text("Markers (1)")');
+        await expect(markerListHeading).toBeVisible({ timeout: 10000 });
+
+        // Create a tour
+        const createTourButton = page.getByTestId('tour-tab-create-new');
+        await expect(createTourButton).toBeVisible({ timeout: 5000 });
+        await createTourButton.click();
+
+        // Fill in tour details
+        const tourNameInput = page.getByTestId('input-tour-name');
+        await expect(tourNameInput).toBeVisible({ timeout: 5000 });
+        await tourNameInput.fill('Day 1 Tour');
+
+        const createButton = page.getByTestId('button-submit-create-tour');
+        await createButton.click();
+
+        // Wait for the dialog to close
+        const dialog = page.getByRole('dialog');
+        await expect(dialog).not.toBeVisible({ timeout: 10000 });
+
+        // Give a moment for the page to update after tour creation
+        await page.waitForTimeout(2000);
+
+        // Now check for the instruction text about adding markers
+        const addInstructionText = page.locator(
+            'text=Click the arrow to add a marker to the current tour',
+        );
+        await expect(addInstructionText).toBeVisible({ timeout: 5000 });
+
+        // Check for add to tour arrow button
+        const addToTourButton = page.getByTestId('add-marker-to-tour-button');
+        await expect(addToTourButton).toBeVisible({ timeout: 5000 });
+    });
+
+    test('user can add marker to tour using arrow button', async ({ page }) => {
+        // Create a marker
+        const mapContainer = page.locator('.leaflet-container').first();
+        await mapContainer.click({ position: { x: 300, y: 300 } });
+        await page.waitForTimeout(1500);
+
+        const markerForm = page.locator('text=Marker Details').first();
+        await expect(markerForm).toBeVisible({ timeout: 5000 });
+
+        const nameInput = page.locator('input#marker-name');
+        await nameInput.fill('Restaurant');
+
+        const saveButton = page.locator('button:has-text("Save")');
+        await saveButton.click();
+
+        await page.waitForTimeout(1000);
+
+        // Create a tour
+        const createTourButton = page.getByTestId('tour-tab-create-new');
+        await expect(createTourButton).toBeVisible({ timeout: 5000 });
+        await createTourButton.click();
+
+        const tourNameInput = page.getByTestId('input-tour-name');
+        await expect(tourNameInput).toBeVisible({ timeout: 5000 });
+        await tourNameInput.fill('Food Tour');
+
+        const createButton = page.getByTestId('button-submit-create-tour');
+        await createButton.click();
+
+        const dialog = page.getByRole('dialog');
+        await expect(dialog).not.toBeVisible({ timeout: 10000 });
+
+        await page.waitForTimeout(2000);
+
+        // Click the add to tour arrow button
+        const addToTourButton = page.getByTestId('add-marker-to-tour-button');
+        await expect(addToTourButton).toBeVisible({ timeout: 5000 });
+        await addToTourButton.click();
+
+        // Wait for the marker to be added to the tour
+        await page.waitForTimeout(2000);
+
+        // Check that the tour now shows marker count
+        const tourTab = page
+            .getByTestId('tour-tab')
+            .filter({ hasText: 'Food Tour' });
+        await expect(tourTab).toContainText('(1)');
+    });
+
+    test('user can reorder markers in tour using up/down arrows', async ({
+        page,
+    }) => {
+        // Create two markers
+        const mapContainer = page.locator('.leaflet-container').first();
+
+        // First marker
+        await mapContainer.click({ position: { x: 300, y: 300 } });
+        await page.waitForTimeout(1500);
+
+        let markerForm = page.locator('text=Marker Details').first();
+        await expect(markerForm).toBeVisible({ timeout: 5000 });
+
+        let nameInput = page.locator('input#marker-name');
+        await nameInput.fill('First Place');
+
+        let saveButton = page.locator('button:has-text("Save")');
+        await saveButton.click();
+
+        await page.waitForTimeout(1000);
+
+        // Second marker
+        await mapContainer.click({ position: { x: 400, y: 400 } });
+        await page.waitForTimeout(1500);
+
+        markerForm = page.locator('text=Marker Details').first();
+        await expect(markerForm).toBeVisible({ timeout: 5000 });
+
+        nameInput = page.locator('input#marker-name');
+        await nameInput.fill('Second Place');
+
+        saveButton = page.locator('button:has-text("Save")');
+        await saveButton.click();
+
+        await page.waitForTimeout(1000);
+
+        // Create a tour
+        const createTourButton = page.getByTestId('tour-tab-create-new');
+        await expect(createTourButton).toBeVisible({ timeout: 5000 });
+        await createTourButton.click();
+
+        const tourNameInput = page.getByTestId('input-tour-name');
+        await expect(tourNameInput).toBeVisible({ timeout: 5000 });
+        await tourNameInput.fill('My Tour');
+
+        const createButton = page.getByTestId('button-submit-create-tour');
+        await createButton.click();
+
+        const dialog = page.getByRole('dialog');
+        await expect(dialog).not.toBeVisible({ timeout: 10000 });
+
+        await page.waitForTimeout(2000);
+
+        // Add both markers to the tour
+        const addButtons = page.getByTestId('add-marker-to-tour-button');
+        await expect(addButtons.first()).toBeVisible({ timeout: 5000 });
+
+        // Add first marker
+        await addButtons.first().click();
+        await page.waitForTimeout(1500);
+
+        // Add second marker
+        await addButtons.last().click();
+        await page.waitForTimeout(2000);
+
+        // Now verify the up/down arrows are visible in the tour panel
+        const moveUpButton = page.getByTestId('move-marker-up');
+        const moveDownButton = page.getByTestId('move-marker-down');
+
+        await expect(moveUpButton.first()).toBeVisible({ timeout: 5000 });
+        await expect(moveDownButton.first()).toBeVisible({ timeout: 5000 });
+
+        // The second item's up button should be enabled
+        const secondItemUpButton = moveUpButton.nth(1);
+        await expect(secondItemUpButton).toBeVisible();
+        await expect(secondItemUpButton).not.toBeDisabled();
+
+        // Click up on the second marker to swap it with the first
+        await secondItemUpButton.click();
+        await page.waitForTimeout(2000);
+
+        // Verify the order has changed by checking the position numbers
+        const tourPanel = page.getByTestId('tour-panel');
+        const firstPositionMarker = tourPanel.locator('text=1.').first();
+        const secondPositionMarker = tourPanel.locator('text=2.').first();
+
+        // After swap, "Second Place" should be at position 1
+        await expect(
+            firstPositionMarker.locator('..').locator('text=Second Place'),
+        ).toBeVisible();
+        // And "First Place" should be at position 2
+        await expect(
+            secondPositionMarker.locator('..').locator('text=First Place'),
+        ).toBeVisible();
+    });
+});
