@@ -18,6 +18,10 @@ export default defineConfig({
         trace: 'on-first-retry',
         screenshot: 'only-on-failure',
         viewport: { width: 1920, height: 1080 },
+        // Enable code coverage collection
+        contextOptions: {
+            recordVideo: undefined, // Disable video to speed up tests
+        },
     },
 
     projects: [
