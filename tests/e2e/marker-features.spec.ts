@@ -83,13 +83,16 @@ test.describe('Marker Management', () => {
         // Wait for the save to complete
         await responsePromise;
         
-        // Form should close automatically after save
-        const markerForm = page.getByTestId('marker-form');
-        await expect(markerForm).not.toBeVisible({ timeout: 5000 });
+        // Wait for network to settle and React to update
+        await page.waitForLoadState('networkidle', { timeout: 10000 });
         
-        // Marker list should reappear and show 1 marker
+        // Marker list should reappear - wait for it first
         const markerList = page.getByTestId('marker-list');
-        await expect(markerList).toBeVisible({ timeout: 5000 });
+        await expect(markerList).toBeVisible({ timeout: 10000 });
+        
+        // Form should have closed automatically after save
+        const markerForm = page.getByTestId('marker-form');
+        await expect(markerForm).not.toBeVisible({ timeout: 2000 });
         await expect(markerList).toContainText('Markers (1)');
         
         // Should see the marker in the list with the name we entered
@@ -153,9 +156,16 @@ test.describe('Marker Management', () => {
         await saveButton.click();
         await createResponse;
         
-        // Wait for form to close automatically
+        // Wait for network to settle
+        await page.waitForLoadState('networkidle', { timeout: 10000 });
+        
+        // Wait for marker list to appear
+        const markerList = page.getByTestId('marker-list');
+        await expect(markerList).toBeVisible({ timeout: 10000 });
+        
+        // Form should have closed automatically
         const markerForm = page.getByTestId('marker-form');
-        await expect(markerForm).not.toBeVisible({ timeout: 5000 });
+        await expect(markerForm).not.toBeVisible({ timeout: 2000 });
         
         // Click on the marker in the list to edit it
         const markerListItem = page.locator('[data-testid="marker-list-item"]').first();
@@ -179,12 +189,15 @@ test.describe('Marker Management', () => {
         await saveButton.click();
         await updateResponse;
         
-        // Wait for form to close automatically
-        await expect(markerForm).not.toBeVisible({ timeout: 5000 });
+        // Wait for network to settle
+        await page.waitForLoadState('networkidle', { timeout: 10000 });
         
-        // Marker list should show updated name
-        const markerList = page.getByTestId('marker-list');
-        await expect(markerList).toBeVisible({ timeout: 5000 });
+        // Marker list should reappear
+        await expect(markerList).toBeVisible({ timeout: 10000 });
+        
+        // Form should have closed automatically
+        await expect(markerForm).not.toBeVisible({ timeout: 2000 });
+        
         await expect(markerList).toContainText('Updated Name');
         await expect(markerList).not.toContainText('Original Name');
     });
@@ -210,9 +223,16 @@ test.describe('Marker Management', () => {
         await saveButton.click();
         await createResponse;
         
-        // Wait for form to close automatically
+        // Wait for network to settle
+        await page.waitForLoadState('networkidle', { timeout: 10000 });
+        
+        // Wait for marker list to appear
+        const markerList = page.getByTestId('marker-list');
+        await expect(markerList).toBeVisible({ timeout: 10000 });
+        
+        // Form should have closed automatically
         const markerForm = page.getByTestId('marker-form');
-        await expect(markerForm).not.toBeVisible({ timeout: 5000 });
+        await expect(markerForm).not.toBeVisible({ timeout: 2000 });
         
         // Click on the marker to edit it
         const markerListItem = page.locator('[data-testid="marker-list-item"]').first();
@@ -243,11 +263,14 @@ test.describe('Marker Management', () => {
         await deleteButton.click();
         await deleteResponse;
         
-        // Form should close automatically
-        await expect(markerForm).not.toBeVisible({ timeout: 5000 });
+        // Wait for network to settle
+        await page.waitForLoadState('networkidle', { timeout: 10000 });
         
-        // Marker list should be empty again
-        const markerList = page.getByTestId('marker-list');
+        // Marker list should reappear and be empty
+        await expect(markerList).toBeVisible({ timeout: 10000 });
+        
+        // Form should have closed automatically
+        await expect(markerForm).not.toBeVisible({ timeout: 2000 });
         await expect(markerList).toBeVisible({ timeout: 5000 });
         await expect(markerList).toContainText('Markers (0)');
     });
@@ -279,12 +302,16 @@ test.describe('Marker Management', () => {
         await saveButton.click();
         await responsePromise;
         
-        // Wait for form to close automatically
-        const markerForm = page.getByTestId('marker-form');
-        await expect(markerForm).not.toBeVisible({ timeout: 5000 });
+        // Wait for network to settle
+        await page.waitForLoadState('networkidle', { timeout: 10000 });
         
         // The marker should be saved with UNESCO flag
         const markerList = page.getByTestId('marker-list');
+        await expect(markerList).toBeVisible({ timeout: 10000 });
+        
+        // Form should have closed automatically
+        const markerForm = page.getByTestId('marker-form');
+        await expect(markerForm).not.toBeVisible({ timeout: 2000 });
         await expect(markerList).toBeVisible({ timeout: 5000 });
         await expect(markerList).toContainText('UNESCO Site');
     });
@@ -316,9 +343,16 @@ test.describe('Marker Management', () => {
         await saveButton.click();
         await responsePromise;
         
-        // Wait for form to close automatically
+        // Wait for network to settle
+        await page.waitForLoadState('networkidle', { timeout: 10000 });
+        
+        // Wait for marker list to appear
+        const markerList = page.getByTestId('marker-list');
+        await expect(markerList).toBeVisible({ timeout: 10000 });
+        
+        // Form should have closed automatically
         const markerForm = page.getByTestId('marker-form');
-        await expect(markerForm).not.toBeVisible({ timeout: 5000 });
+        await expect(markerForm).not.toBeVisible({ timeout: 2000 });
         
         // Click on marker to reopen
         const markerListItem = page.locator('[data-testid="marker-list-item"]').first();
@@ -363,12 +397,16 @@ test.describe('Marker Management', () => {
         await saveButton.click();
         await responsePromise;
         
-        // Wait for form to close automatically
-        const markerForm = page.getByTestId('marker-form');
-        await expect(markerForm).not.toBeVisible({ timeout: 5000 });
+        // Wait for network to settle
+        await page.waitForLoadState('networkidle', { timeout: 10000 });
         
         // Verify marker is saved
         const markerList = page.getByTestId('marker-list');
+        await expect(markerList).toBeVisible({ timeout: 10000 });
+        
+        // Form should have closed automatically
+        const markerForm = page.getByTestId('marker-form');
+        await expect(markerForm).not.toBeVisible({ timeout: 2000 });
         await expect(markerList).toBeVisible({ timeout: 5000 });
         await expect(markerList).toContainText('Museum');
     });
@@ -488,9 +526,16 @@ test.describe('Marker Management', () => {
         await saveButton.click();
         await responsePromise;
         
-        // Wait for form to close automatically
+        // Wait for network to settle
+        await page.waitForLoadState('networkidle', { timeout: 10000 });
+        
+        // Wait for marker list to appear
+        const markerList = page.getByTestId('marker-list');
+        await expect(markerList).toBeVisible({ timeout: 10000 });
+        
+        // Form should have closed automatically
         const markerForm = page.getByTestId('marker-form');
-        await expect(markerForm).not.toBeVisible({ timeout: 5000 });
+        await expect(markerForm).not.toBeVisible({ timeout: 2000 });
         
         // Reopen marker to verify notes were saved
         const markerListItem = page.locator('[data-testid="marker-list-item"]').first();
