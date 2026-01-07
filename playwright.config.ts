@@ -24,10 +24,28 @@ export default defineConfig({
         },
     },
 
+    // Global setup to create authenticated user once
+    globalSetup: './tests/e2e/global-setup.ts',
+
     projects: [
         {
-            name: 'chromium',
+            name: 'setup',
+            testMatch: /global-setup\.ts/,
+        },
+        {
+            name: 'authenticated',
+            use: { 
+                ...devices['Desktop Chrome'],
+                // Reuse authentication state from global setup
+                storageState: 'playwright/.auth/user.json',
+            },
+            dependencies: ['setup'],
+            testIgnore: '**/auth.spec.ts', // Exclude auth tests from using saved auth
+        },
+        {
+            name: 'auth-tests',
             use: { ...devices['Desktop Chrome'] },
+            testMatch: '**/auth.spec.ts', // Auth tests run without saved state
         },
     ],
 

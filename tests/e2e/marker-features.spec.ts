@@ -1,18 +1,49 @@
 import { expect, test } from '@playwright/test';
-import { generateUniqueEmail, register } from './helpers/auth';
 
 test.describe('Marker Management', () => {
     test.beforeEach(async ({ page }) => {
-        // Register and login a new user for each test to ensure clean state
-        const email = generateUniqueEmail();
-        await register(page, 'Test User', email, 'password123');
-
-        // Navigate to the map page
+        // User is already authenticated via global setup
+        // Just navigate to the map page
         await page.goto('/');
         await page.waitForLoadState('networkidle');
         
         // Wait for map to be ready
         await expect(page.locator('.leaflet-container')).toBeVisible({ timeout: 10000 });
+        
+        // Delete all existing markers to ensure clean state for each test
+        const markerList = page.getByTestId('marker-list');
+        await expect(markerList).toBeVisible({ timeout: 5000 });
+        
+        // Check if there are any markers
+        const markerItems = page.locator('[data-testid="marker-list-item"]');
+        const count = await markerItems.count();
+        
+        // Delete all markers one by one
+        for (let i = 0; i < count; i++) {
+            // Always click the first marker since the list updates after each deletion
+            const firstMarker = page.locator('[data-testid="marker-list-item"]').first();
+            await firstMarker.click();
+            
+            // Wait for form to open
+            const markerForm = page.getByTestId('marker-form');
+            await expect(markerForm).toBeVisible({ timeout: 5000 });
+            
+            // Click delete button
+            const deleteButton = page.getByTestId('marker-delete-button');
+            await expect(deleteButton).toBeVisible({ timeout: 5000 });
+            
+            // Set up dialog handler to accept confirmation
+            page.once('dialog', async (dialog) => {
+                await dialog.accept();
+            });
+            
+            await deleteButton.click();
+            
+            // Wait for deletion to complete
+            await page.waitForLoadState('networkidle', { timeout: 10000 });
+            await expect(markerList).toBeVisible({ timeout: 10000 });
+            await expect(markerForm).not.toBeVisible({ timeout: 5000 });
+        }
     });
 
     test('should display empty marker list initially', async ({ page }) => {
