@@ -91,7 +91,7 @@ export default function Login({
                                 className="mt-4 w-full"
                                 tabIndex={4}
                                 disabled={processing}
-                                data-test="login-button"
+                                data-testid="login-button"
                             >
                                 {processing && <Spinner />}
                                 Log in

@@ -94,7 +94,7 @@ export default function Register() {
                                 type="submit"
                                 className="mt-2 w-full"
                                 tabIndex={5}
-                                data-test="register-user-button"
+                                data-testid="register-user-button"
                             >
                                 {processing && <Spinner />}
                                 Create account
