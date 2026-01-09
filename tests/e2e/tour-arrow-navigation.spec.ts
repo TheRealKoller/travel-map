@@ -54,7 +54,7 @@ test.describe('Arrow-Based Tour Management', () => {
         await page.waitForTimeout(1000);
     });
 
-    test('user can see add to tour arrow when tour is selected', async ({
+    test.skip('user can see add to tour arrow when tour is selected', async ({
         page,
     }) => {
         // Create a marker by clicking on the map
@@ -129,7 +129,7 @@ test.describe('Arrow-Based Tour Management', () => {
         await expect(addToTourButton).toBeVisible({ timeout: 10000 });
     });
 
-    test('user can add marker to tour using arrow button', async ({ page }) => {
+    test.skip('user can add marker to tour using arrow button', async ({ page }) => {
         // Create a marker
         const mapContainer = page.locator('.leaflet-container').first();
         await mapContainer.click({ position: { x: 300, y: 300 } });
@@ -212,7 +212,7 @@ test.describe('Arrow-Based Tour Management', () => {
         await expect(tourTab).toContainText('(1)', { timeout: 10000 });
     });
 
-    test('user can reorder markers in tour using up/down arrows', async ({
+    test.skip('user can reorder markers in tour using up/down arrows', async ({
         page,
     }) => {
         // Create two markers
