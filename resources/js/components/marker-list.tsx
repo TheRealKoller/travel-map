@@ -1,9 +1,9 @@
 import '@/../../resources/css/markdown-preview.css';
+import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { getMarkerTypeIcon, UnescoIcon } from '@/lib/marker-icons';
 import { MarkerData } from '@/types/marker';
-import { useDraggable } from '@dnd-kit/core';
-import { GripVertical } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { marked } from 'marked';
 import { useEffect } from 'react';
 
@@ -11,33 +11,25 @@ interface MarkerListProps {
     markers: MarkerData[];
     selectedMarkerId: string | null;
     onSelectMarker: (id: string) => void;
+    selectedTourId: number | null;
+    onAddMarkerToTour?: (markerId: string) => void;
 }
 
-interface DraggableMarkerItemProps {
+interface MarkerItemProps {
     markerData: MarkerData;
     isSelected: boolean;
     onSelect: (id: string) => void;
+    showAddToTourButton: boolean;
+    onAddToTour?: (markerId: string) => void;
 }
 
-function DraggableMarkerItem({
+function MarkerItem({
     markerData,
     isSelected,
     onSelect,
-}: DraggableMarkerItemProps) {
-    const { attributes, listeners, setNodeRef, transform, isDragging } =
-        useDraggable({
-            id: markerData.id,
-            data: {
-                marker: markerData,
-            },
-        });
-
-    const style = transform
-        ? {
-              transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-          }
-        : undefined;
-
+    showAddToTourButton,
+    onAddToTour,
+}: MarkerItemProps) {
     // Configure marked
     useEffect(() => {
         marked.setOptions({
@@ -46,28 +38,22 @@ function DraggableMarkerItem({
         });
     }, []);
 
+    const handleAddToTour = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (onAddToTour) {
+            onAddToTour(markerData.id);
+        }
+    };
+
     return (
         <li
-            ref={setNodeRef}
-            style={style}
             className={`flex items-start gap-1 rounded p-2 transition ${
-                isDragging
-                    ? 'opacity-50'
-                    : isSelected
-                      ? 'border-2 border-blue-500 bg-blue-100'
-                      : 'bg-gray-50 hover:bg-gray-100'
+                isSelected
+                    ? 'border-2 border-blue-500 bg-blue-100'
+                    : 'bg-gray-50 hover:bg-gray-100'
             }`}
             data-testid="marker-list-item"
         >
-            <button
-                {...listeners}
-                {...attributes}
-                className="mt-0.5 cursor-grab active:cursor-grabbing"
-                onClick={(e) => e.stopPropagation()}
-                data-testid="marker-drag-handle"
-            >
-                <GripVertical className="h-4 w-4 text-gray-400" />
-            </button>
             <div
                 className="flex-1 cursor-pointer"
                 onClick={() => onSelect(markerData.id)}
@@ -91,6 +77,18 @@ function DraggableMarkerItem({
                 )}
             </div>
             <div className="flex items-center gap-1.5">
+                {showAddToTourButton && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-gray-600 hover:text-blue-600"
+                        onClick={handleAddToTour}
+                        title="Add to tour"
+                        data-testid="add-marker-to-tour-button"
+                    >
+                        <ArrowRight className="h-4 w-4" />
+                    </Button>
+                )}
                 <Icon
                     iconNode={getMarkerTypeIcon(markerData.type)}
                     className="h-4 w-4 text-gray-600"
@@ -110,6 +108,8 @@ export default function MarkerList({
     markers,
     selectedMarkerId,
     onSelectMarker,
+    selectedTourId,
+    onAddMarkerToTour,
 }: MarkerListProps) {
     if (markers.length === 0) {
         return (
@@ -122,6 +122,8 @@ export default function MarkerList({
         );
     }
 
+    const showAddToTourButtons = selectedTourId !== null;
+
     return (
         <div
             className="rounded-lg bg-white p-3 shadow"
@@ -130,16 +132,20 @@ export default function MarkerList({
             <h2 className="mb-3 text-base font-semibold">
                 Markers ({markers.length})
             </h2>
-            <p className="mb-2 text-xs text-gray-500">
-                Drag markers to tour tabs to add them to a tour
-            </p>
+            {showAddToTourButtons && (
+                <p className="mb-2 text-xs text-gray-500">
+                    Click the arrow to add a marker to the current tour
+                </p>
+            )}
             <ul className="space-y-1.5" data-testid="marker-list-items">
                 {markers.map((markerData) => (
-                    <DraggableMarkerItem
+                    <MarkerItem
                         key={markerData.id}
                         markerData={markerData}
                         isSelected={selectedMarkerId === markerData.id}
                         onSelect={onSelectMarker}
+                        showAddToTourButton={showAddToTourButtons}
+                        onAddToTour={onAddMarkerToTour}
                     />
                 ))}
             </ul>

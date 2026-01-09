@@ -5,14 +5,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getMarkerTypeIcon, UnescoIcon } from '@/lib/marker-icons';
 import { MarkerData } from '@/types/marker';
 import { Tour } from '@/types/tour';
-import { useDroppable } from '@dnd-kit/core';
-import {
-    SortableContext,
-    useSortable,
-    verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Plus, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
 
 interface TourPanelProps {
     tours: Tour[];
@@ -21,32 +14,19 @@ interface TourPanelProps {
     onCreateTour: () => void;
     onDeleteTour: (tourId: number) => void;
     markers: MarkerData[];
+    onMoveMarkerUp?: (markerId: string) => void;
+    onMoveMarkerDown?: (markerId: string) => void;
 }
 
-interface DroppableTourTabProps {
+interface TourTabProps {
     tour: Tour;
     markerCount: number;
 }
 
-function DroppableTourTab({ tour, markerCount }: DroppableTourTabProps) {
-    const { setNodeRef, isOver } = useDroppable({
-        id: `tour-${tour.id}`,
-        data: {
-            tourId: tour.id,
-        },
-    });
-
+function TourTab({ tour, markerCount }: TourTabProps) {
     return (
-        <div
-            ref={setNodeRef}
-            className="inline-flex"
-            style={{ minHeight: '40px' }}
-        >
-            <TabsTrigger
-                value={tour.id.toString()}
-                className={`${isOver ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
-                data-testid="tour-tab"
-            >
+        <div className="inline-flex" style={{ minHeight: '40px' }}>
+            <TabsTrigger value={tour.id.toString()} data-testid="tour-tab">
                 {tour.name}
                 {markerCount > 0 && (
                     <span className="ml-1 text-xs text-gray-500">
@@ -58,43 +38,50 @@ function DroppableTourTab({ tour, markerCount }: DroppableTourTabProps) {
     );
 }
 
-interface SortableMarkerItemProps {
+interface MarkerItemProps {
     marker: MarkerData;
     index: number;
+    isFirst: boolean;
+    isLast: boolean;
+    onMoveUp?: () => void;
+    onMoveDown?: () => void;
 }
 
-function SortableMarkerItem({ marker, index }: SortableMarkerItemProps) {
-    const {
-        attributes,
-        listeners,
-        setNodeRef,
-        transform,
-        transition,
-        isDragging,
-    } = useSortable({ id: `tour-item-marker-${marker.id}` });
-
-    const style = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-    };
-
+function MarkerItem({
+    marker,
+    index,
+    isFirst,
+    isLast,
+    onMoveUp,
+    onMoveDown,
+}: MarkerItemProps) {
     return (
-        <li
-            ref={setNodeRef}
-            style={style}
-            className={`rounded bg-gray-50 p-2 text-sm ${
-                isDragging ? 'opacity-50' : ''
-            }`}
-        >
+        <li className="rounded bg-gray-50 p-2 text-sm">
             <div className="flex items-start gap-2">
-                <button
-                    {...listeners}
-                    {...attributes}
-                    className="mt-0.5 cursor-grab active:cursor-grabbing"
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    <GripVertical className="h-4 w-4 text-gray-400" />
-                </button>
+                <div className="flex flex-col gap-0.5">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-5 w-5 p-0 text-gray-400 hover:text-blue-600 disabled:opacity-30"
+                        onClick={onMoveUp}
+                        disabled={isFirst}
+                        title="Move up"
+                        data-testid="move-marker-up"
+                    >
+                        <ArrowUp className="h-3 w-3" />
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-5 w-5 p-0 text-gray-400 hover:text-blue-600 disabled:opacity-30"
+                        onClick={onMoveDown}
+                        disabled={isLast}
+                        title="Move down"
+                        data-testid="move-marker-down"
+                    >
+                        <ArrowDown className="h-3 w-3" />
+                    </Button>
+                </div>
                 <span className="font-medium text-gray-500">{index + 1}.</span>
                 <div className="flex-1">
                     <div className="font-medium text-gray-900">
@@ -121,36 +108,23 @@ function SortableMarkerItem({ marker, index }: SortableMarkerItemProps) {
     );
 }
 
-interface DroppableTourCardProps {
+interface TourCardProps {
     tour: Tour;
     markers: MarkerData[];
     onDeleteTour: (tourId: number) => void;
+    onMoveMarkerUp?: (markerId: string) => void;
+    onMoveMarkerDown?: (markerId: string) => void;
 }
 
-function DroppableTourCard({
+function TourCard({
     tour,
     markers,
     onDeleteTour,
-}: DroppableTourCardProps) {
-    const { setNodeRef, isOver } = useDroppable({
-        id: `tour-${tour.id}`,
-        data: {
-            tourId: tour.id,
-        },
-    });
-
-    // Create sortable IDs for markers
-    const sortableIds = markers.map(
-        (marker) => `tour-item-marker-${marker.id}`,
-    );
-
+    onMoveMarkerUp,
+    onMoveMarkerDown,
+}: TourCardProps) {
     return (
-        <Card
-            ref={setNodeRef}
-            className={`flex-1 overflow-auto p-4 ${
-                isOver ? 'bg-blue-50 ring-2 ring-blue-500 ring-offset-2' : ''
-            }`}
-        >
+        <Card className="flex-1 overflow-auto p-4">
             <div className="mb-3 flex items-center justify-between">
                 <h3 className="text-sm font-semibold">{tour.name}</h3>
                 <Button
@@ -165,23 +139,30 @@ function DroppableTourCard({
             </div>
             {markers.length === 0 ? (
                 <p className="text-sm text-gray-500">
-                    Drag markers here to add them to this tour
+                    Click the arrow next to a marker to add it to this tour
                 </p>
             ) : (
-                <SortableContext
-                    items={sortableIds}
-                    strategy={verticalListSortingStrategy}
-                >
-                    <ul className="space-y-2">
-                        {markers.map((marker, index) => (
-                            <SortableMarkerItem
-                                key={marker.id}
-                                marker={marker}
-                                index={index}
-                            />
-                        ))}
-                    </ul>
-                </SortableContext>
+                <ul className="space-y-2">
+                    {markers.map((marker, index) => (
+                        <MarkerItem
+                            key={marker.id}
+                            marker={marker}
+                            index={index}
+                            isFirst={index === 0}
+                            isLast={index === markers.length - 1}
+                            onMoveUp={
+                                onMoveMarkerUp
+                                    ? () => onMoveMarkerUp(marker.id)
+                                    : undefined
+                            }
+                            onMoveDown={
+                                onMoveMarkerDown
+                                    ? () => onMoveMarkerDown(marker.id)
+                                    : undefined
+                            }
+                        />
+                    ))}
+                </ul>
             )}
         </Card>
     );
@@ -194,6 +175,8 @@ export default function TourPanel({
     onCreateTour,
     onDeleteTour,
     markers,
+    onMoveMarkerUp,
+    onMoveMarkerDown,
 }: TourPanelProps) {
     const handleTabChange = (value: string) => {
         if (value === 'all') {
@@ -239,7 +222,7 @@ export default function TourPanel({
                         </span>
                     </TabsTrigger>
                     {tours.map((tour) => (
-                        <DroppableTourTab
+                        <TourTab
                             key={tour.id}
                             tour={tour}
                             markerCount={getMarkerCountForTour(tour)}
@@ -260,10 +243,12 @@ export default function TourPanel({
             </Tabs>
 
             {selectedTourId !== null && selectedTour && (
-                <DroppableTourCard
+                <TourCard
                     tour={selectedTour}
                     markers={selectedTourMarkers}
                     onDeleteTour={onDeleteTour}
+                    onMoveMarkerUp={onMoveMarkerUp}
+                    onMoveMarkerDown={onMoveMarkerDown}
                 />
             )}
         </div>

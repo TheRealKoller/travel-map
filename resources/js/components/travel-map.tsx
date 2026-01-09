@@ -6,15 +6,6 @@ import TourPanel from '@/components/tour-panel';
 import { MarkerData, MarkerType } from '@/types/marker';
 import { Route } from '@/types/route';
 import { Tour } from '@/types/tour';
-import {
-    closestCenter,
-    DndContext,
-    DragEndEvent,
-    PointerSensor,
-    useSensor,
-    useSensors,
-} from '@dnd-kit/core';
-import { arrayMove } from '@dnd-kit/sortable';
 import axios from 'axios';
 import L from 'leaflet';
 import 'leaflet-control-geocoder';
@@ -267,15 +258,6 @@ export default function TravelMap({
     const searchRadiusCircleRef = useRef<L.Circle | null>(null);
     const [routes, setRoutes] = useState<Route[]>([]);
     const routePolylinesRef = useRef<Map<number, L.Polyline>>(new Map());
-
-    // Configure drag and drop sensors
-    const sensors = useSensors(
-        useSensor(PointerSensor, {
-            activationConstraint: {
-                distance: 12, // Require 12px of movement to prevent accidental drags
-            },
-        }),
-    );
 
     // Note: saveMarkerToDatabase is no longer needed as we save when user clicks Save button
 
@@ -1110,108 +1092,142 @@ export default function TravelMap({
         }
     };
 
-    const handleDragEnd = async (event: DragEndEvent) => {
-        const { active, over } = event;
+    const handleAddMarkerToTour = async (markerId: string) => {
+        if (selectedTourId === null) return;
 
-        if (!over) return;
-
-        const activeId = active.id as string;
-        const overId = over.id as string;
-
-        // Check if this is reordering markers within a tour
-        if (
-            activeId !== overId &&
-            activeId.startsWith('tour-item-marker-') &&
-            overId.startsWith('tour-item-marker-') &&
-            selectedTourId !== null
-        ) {
+        try {
+            // Check if marker is already in tour
             const selectedTour = tours.find((t) => t.id === selectedTourId);
-            if (!selectedTour || !selectedTour.markers) return;
-
-            // Extract marker IDs
-            const activeMarkerId = activeId.replace('tour-item-marker-', '');
-            const overMarkerId = overId.replace('tour-item-marker-', '');
-
-            // Find indices
-            const activeIndex = selectedTour.markers.findIndex(
-                (m) => m.id === activeMarkerId,
-            );
-            const overIndex = selectedTour.markers.findIndex(
-                (m) => m.id === overMarkerId,
-            );
-
-            if (activeIndex !== -1 && overIndex !== -1) {
-                // Reorder markers
-                const reorderedMarkers = arrayMove(
-                    selectedTour.markers,
-                    activeIndex,
-                    overIndex,
-                );
-
-                // Optimistically update the UI
-                const updatedTours = tours.map((t) =>
-                    t.id === selectedTourId
-                        ? { ...t, markers: reorderedMarkers }
-                        : t,
-                );
-
-                onToursUpdate(updatedTours);
-
-                // Send the reorder request to the server
-                try {
-                    await axios.put(
-                        `/tours/${selectedTourId}/markers/reorder`,
-                        {
-                            marker_ids: reorderedMarkers.map((m) => m.id),
-                        },
-                    );
-
-                    // Reload tours from server to ensure we have the latest correct data
-                    if (selectedTripId) {
-                        const response = await axios.get('/tours', {
-                            params: { trip_id: selectedTripId },
-                        });
-                        onToursUpdate(response.data);
-                    }
-                } catch (error) {
-                    console.error('Failed to reorder markers:', error);
-                    alert(
-                        'Failed to reorder markers. The order has been reverted.',
-                    );
-                    // Revert the optimistic update on error
-                    if (selectedTripId) {
-                        const response = await axios.get('/tours', {
-                            params: { trip_id: selectedTripId },
-                        });
-                        onToursUpdate(response.data);
-                    }
-                }
-                return;
-            }
-        }
-
-        // Check if dropped on a tour tab (adding marker to tour)
-        if (overId.startsWith('tour-')) {
-            const tourId = parseInt(overId.replace('tour-', ''));
-            const markerId = activeId;
-
-            // Find the tour
-            const tour = tours.find((t) => t.id === tourId);
-
-            if (tour) {
-                const isAlreadyInTour = tour.markers?.some(
+            if (selectedTour) {
+                const isAlreadyInTour = selectedTour.markers?.some(
                     (m) => m.id === markerId,
                 );
 
                 if (isAlreadyInTour) {
-                    // Don't show alert, just skip silently as this is expected behavior
-                    return;
+                    return; // Skip silently
                 }
+            }
 
-                // Attach marker to tour
-                await handleToggleMarkerInTour(markerId, tourId, false);
-            } else {
-                console.error('Tour not found with id:', tourId);
+            // Attach marker to tour
+            await axios.post(`/tours/${selectedTourId}/markers`, {
+                marker_id: markerId,
+            });
+
+            // Reload tours to get updated marker associations
+            if (selectedTripId) {
+                const response = await axios.get('/tours', {
+                    params: { trip_id: selectedTripId },
+                });
+                onToursUpdate(response.data);
+            }
+        } catch (error) {
+            console.error('Failed to add marker to tour:', error);
+            alert('Failed to add marker to tour. Please try again.');
+        }
+    };
+
+    const handleMoveMarkerUp = async (markerId: string) => {
+        if (selectedTourId === null) return;
+
+        const selectedTour = tours.find((t) => t.id === selectedTourId);
+        if (!selectedTour || !selectedTour.markers) return;
+
+        const currentIndex = selectedTour.markers.findIndex(
+            (m) => m.id === markerId,
+        );
+
+        if (currentIndex <= 0) return; // Already at the top
+
+        // Swap with previous marker
+        const reorderedMarkers = [...selectedTour.markers];
+        [reorderedMarkers[currentIndex - 1], reorderedMarkers[currentIndex]] = [
+            reorderedMarkers[currentIndex],
+            reorderedMarkers[currentIndex - 1],
+        ];
+
+        // Optimistically update the UI
+        const updatedTours = tours.map((t) =>
+            t.id === selectedTourId ? { ...t, markers: reorderedMarkers } : t,
+        );
+        onToursUpdate(updatedTours);
+
+        // Send the reorder request to the server
+        try {
+            await axios.put(`/tours/${selectedTourId}/markers/reorder`, {
+                marker_ids: reorderedMarkers.map((m) => m.id),
+            });
+
+            // Reload tours from server to ensure we have the latest correct data
+            if (selectedTripId) {
+                const response = await axios.get('/tours', {
+                    params: { trip_id: selectedTripId },
+                });
+                onToursUpdate(response.data);
+            }
+        } catch (error) {
+            console.error('Failed to reorder markers:', error);
+            alert('Failed to reorder markers. The order has been reverted.');
+            // Revert the optimistic update on error
+            if (selectedTripId) {
+                const response = await axios.get('/tours', {
+                    params: { trip_id: selectedTripId },
+                });
+                onToursUpdate(response.data);
+            }
+        }
+    };
+
+    const handleMoveMarkerDown = async (markerId: string) => {
+        if (selectedTourId === null) return;
+
+        const selectedTour = tours.find((t) => t.id === selectedTourId);
+        if (!selectedTour || !selectedTour.markers) return;
+
+        const currentIndex = selectedTour.markers.findIndex(
+            (m) => m.id === markerId,
+        );
+
+        if (
+            currentIndex === -1 ||
+            currentIndex >= selectedTour.markers.length - 1
+        )
+            return; // Already at the bottom or not found
+
+        // Swap with next marker
+        const reorderedMarkers = [...selectedTour.markers];
+        [reorderedMarkers[currentIndex], reorderedMarkers[currentIndex + 1]] = [
+            reorderedMarkers[currentIndex + 1],
+            reorderedMarkers[currentIndex],
+        ];
+
+        // Optimistically update the UI
+        const updatedTours = tours.map((t) =>
+            t.id === selectedTourId ? { ...t, markers: reorderedMarkers } : t,
+        );
+        onToursUpdate(updatedTours);
+
+        // Send the reorder request to the server
+        try {
+            await axios.put(`/tours/${selectedTourId}/markers/reorder`, {
+                marker_ids: reorderedMarkers.map((m) => m.id),
+            });
+
+            // Reload tours from server to ensure we have the latest correct data
+            if (selectedTripId) {
+                const response = await axios.get('/tours', {
+                    params: { trip_id: selectedTripId },
+                });
+                onToursUpdate(response.data);
+            }
+        } catch (error) {
+            console.error('Failed to reorder markers:', error);
+            alert('Failed to reorder markers. The order has been reverted.');
+            // Revert the optimistic update on error
+            if (selectedTripId) {
+                const response = await axios.get('/tours', {
+                    params: { trip_id: selectedTripId },
+                });
+                onToursUpdate(response.data);
             }
         }
     };
@@ -1220,81 +1236,79 @@ export default function TravelMap({
         markers.find((m) => m.id === selectedMarkerId) || null;
 
     return (
-        <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-        >
-            <div className="flex h-full flex-col gap-4 lg:flex-row">
-                {/* Part 1: Marker list or form */}
-                <div className="w-full lg:w-1/5">
-                    {selectedMarkerId ? (
-                        <MarkerForm
-                            key={selectedMarkerId}
-                            marker={selectedMarker}
-                            onSave={handleSaveMarker}
-                            onDeleteMarker={handleDeleteMarker}
-                            onClose={handleCloseForm}
-                            tours={tours}
-                            onToggleMarkerInTour={handleToggleMarkerInTour}
-                        />
-                    ) : (
-                        <MarkerList
-                            markers={markers}
-                            selectedMarkerId={selectedMarkerId}
-                            onSelectMarker={handleSelectMarker}
-                        />
-                    )}
-                </div>
-
-                {/* Part 2: Tour panel */}
-                <div className="w-full lg:w-1/5">
-                    <TourPanel
+        <div className="flex h-full flex-col gap-4 lg:flex-row">
+            {/* Part 1: Marker list or form */}
+            <div className="w-full lg:w-1/5">
+                {selectedMarkerId ? (
+                    <MarkerForm
+                        key={selectedMarkerId}
+                        marker={selectedMarker}
+                        onSave={handleSaveMarker}
+                        onDeleteMarker={handleDeleteMarker}
+                        onClose={handleCloseForm}
                         tours={tours}
-                        selectedTourId={selectedTourId}
-                        onSelectTour={onSelectTour}
-                        onCreateTour={onCreateTour}
-                        onDeleteTour={onDeleteTour}
+                        onToggleMarkerInTour={handleToggleMarkerInTour}
+                    />
+                ) : (
+                    <MarkerList
                         markers={markers}
+                        selectedMarkerId={selectedMarkerId}
+                        onSelectMarker={handleSelectMarker}
+                        selectedTourId={selectedTourId}
+                        onAddMarkerToTour={handleAddMarkerToTour}
+                    />
+                )}
+            </div>
+
+            {/* Part 2: Tour panel */}
+            <div className="w-full lg:w-1/5">
+                <TourPanel
+                    tours={tours}
+                    selectedTourId={selectedTourId}
+                    onSelectTour={onSelectTour}
+                    onCreateTour={onCreateTour}
+                    onDeleteTour={onDeleteTour}
+                    markers={markers}
+                    onMoveMarkerUp={handleMoveMarkerUp}
+                    onMoveMarkerDown={handleMoveMarkerDown}
+                />
+            </div>
+
+            {/* Part 3: Route panel */}
+            {selectedTripId && (
+                <div className="w-full lg:w-1/5">
+                    <RoutePanel
+                        tripId={selectedTripId}
+                        markers={markers}
+                        routes={routes}
+                        onRoutesUpdate={setRoutes}
                     />
                 </div>
+            )}
 
-                {/* Part 3: Route panel */}
-                {selectedTripId && (
-                    <div className="w-full lg:w-1/5">
-                        <RoutePanel
-                            tripId={selectedTripId}
-                            markers={markers}
-                            routes={routes}
-                            onRoutesUpdate={setRoutes}
-                        />
-                    </div>
-                )}
-
-                {/* Part 4: Map */}
-                <div className="w-full flex-1">
-                    <div className="relative">
-                        <div
-                            ref={mapRef}
-                            id="map"
-                            className="z-10 h-[400px] w-full lg:h-[600px]"
-                        />
-                        <MapOptionsMenu
-                            isSearchMode={isSearchMode}
-                            onSearchModeChange={setIsSearchMode}
-                            searchCoordinates={searchCoordinates}
-                            searchRadius={searchRadius}
-                            onSearchRadiusChange={setSearchRadius}
-                            searchResultCount={searchResultCount}
-                            isSearching={isSearching}
-                            searchError={searchError}
-                            placeTypes={placeTypes}
-                            selectedPlaceType={selectedPlaceType}
-                            onPlaceTypeChange={setSelectedPlaceType}
-                        />
-                    </div>
+            {/* Part 4: Map */}
+            <div className="w-full flex-1">
+                <div className="relative">
+                    <div
+                        ref={mapRef}
+                        id="map"
+                        className="z-10 h-[400px] w-full lg:h-[600px]"
+                    />
+                    <MapOptionsMenu
+                        isSearchMode={isSearchMode}
+                        onSearchModeChange={setIsSearchMode}
+                        searchCoordinates={searchCoordinates}
+                        searchRadius={searchRadius}
+                        onSearchRadiusChange={setSearchRadius}
+                        searchResultCount={searchResultCount}
+                        isSearching={isSearching}
+                        searchError={searchError}
+                        placeTypes={placeTypes}
+                        selectedPlaceType={selectedPlaceType}
+                        onPlaceTypeChange={setSelectedPlaceType}
+                    />
                 </div>
             </div>
-        </DndContext>
+        </div>
     );
 }

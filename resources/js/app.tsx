@@ -1,7 +1,7 @@
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import '../css/app.css';
 
-import { createInertiaApp } from '@inertiajs/react';
+import { createInertiaApp, router } from '@inertiajs/react';
 import axios from 'axios';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { StrictMode } from 'react';
@@ -26,6 +26,20 @@ if (
 ) {
     axios.defaults.baseURL = '/public';
 }
+
+// Update CSRF token on every Inertia navigation
+router.on('navigate', (event) => {
+    const token = event.detail.page.props.csrf_token as string | undefined;
+    if (token) {
+        // Update meta tag
+        const metaTag = document.head.querySelector('meta[name="csrf-token"]');
+        if (metaTag) {
+            metaTag.setAttribute('content', token);
+        }
+        // Update axios default header
+        axios.defaults.headers.common['X-CSRF-TOKEN'] = token;
+    }
+});
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 

@@ -32,6 +32,10 @@ yarn-error.log
 /playwright-report/
 /playwright/.cache/
 
+# Code Coverage
+/coverage/
+/.nyc_output/
+
 # Deployment
 /deploy/
 /deployment.zip

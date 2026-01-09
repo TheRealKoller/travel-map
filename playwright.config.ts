@@ -9,12 +9,19 @@ export default defineConfig({
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 2 : 0,
     workers: process.env.CI ? 1 : undefined,
-    reporter: 'html',
+    reporter: [
+        ['list'],
+        ['html', { open: 'never' }], // HTML report ohne Auto-Open
+    ],
     use: {
         baseURL: process.env.APP_URL || 'http://localhost:8000',
         trace: 'on-first-retry',
         screenshot: 'only-on-failure',
         viewport: { width: 1920, height: 1080 },
+        // Enable code coverage collection
+        contextOptions: {
+            recordVideo: undefined, // Disable video to speed up tests
+        },
     },
 
     projects: [
@@ -26,7 +33,7 @@ export default defineConfig({
 
     /* Run your local dev server before starting the tests */
     webServer: {
-        command: 'php artisan key:generate --force --env=e2e && php artisan migrate:fresh --force --env=e2e && php artisan serve --env=e2e',
+        command: 'php artisan migrate:fresh --force --env=e2e && php artisan serve --env=e2e',
         url: 'http://127.0.0.1:8000',
         reuseExistingServer: !process.env.CI,
         timeout: 120000,
