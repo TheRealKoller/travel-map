@@ -83,9 +83,9 @@ export async function mockMapboxRequests(page: Page) {
             return;
         }
 
-        // Mock sprite requests
-        if (url.includes('/sprites/')) {
-            if (url.endsWith('.json')) {
+        // Mock sprite requests (both /sprites/ and /sprite.json patterns)
+        if (url.includes('/sprites/') || url.includes('/sprite.')) {
+            if (url.endsWith('.json') || url.includes('sprite.json')) {
                 await route.fulfill({
                     status: 200,
                     contentType: 'application/json',
@@ -133,6 +133,27 @@ export async function mockMapboxRequests(page: Page) {
         await route.fulfill({
             status: 204,
             body: '',
+        });
+    });
+
+    // Mock sprite requests that go to localhost (relative URLs)
+    await page.route('**/sprite.json', async (route) => {
+        await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({}),
+        });
+    });
+
+    await page.route('**/sprite.png', async (route) => {
+        const emptySprite = Buffer.from(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+            'base64',
+        );
+        await route.fulfill({
+            status: 200,
+            contentType: 'image/png',
+            body: emptySprite,
         });
     });
 }
