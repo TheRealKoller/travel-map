@@ -62,6 +62,8 @@ jobs:
 
       - name: Build production assets
         run: npm run build
+        env:
+          VITE_MAPBOX_ACCESS_TOKEN: pk.test.mock-token-for-e2e-tests
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

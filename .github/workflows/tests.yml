@@ -47,6 +47,8 @@ jobs:
 
       - name: Build Assets
         run: npm run build
+        env:
+          VITE_MAPBOX_ACCESS_TOKEN: pk.test.mock-token-for-e2e-tests
 
       - name: Run Database Migrations
         run: php artisan migrate --force
@@ -82,6 +84,8 @@ jobs:
 
       - name: Build Assets
         run: npm run build
+        env:
+          VITE_MAPBOX_ACCESS_TOKEN: pk.test.mock-token-for-e2e-tests
 
       - name: Copy Environment File
         run: cp .env.example .env
