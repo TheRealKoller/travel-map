@@ -1,8 +1,12 @@
 import { expect, test } from '@playwright/test';
 import { generateUniqueEmail, login, logout, register } from './helpers/auth';
+import { setupMapboxMock } from './helpers/mapbox-mock';
 
 test.describe('Authentication', () => {
-    test.beforeEach(async () => {
+    test.beforeEach(async ({ page }) => {
+        // Setup Mapbox mocking for all tests
+        await setupMapboxMock(page);
+        
         // Reset database before each test
         // In a real scenario, you might want to use a test database
     });

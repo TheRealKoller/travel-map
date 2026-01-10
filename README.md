@@ -180,6 +180,8 @@ Or using Pest directly:
 
 The application includes E2E tests using Playwright to test the complete user workflows.
 
+> **Note:** E2E tests use mocked Mapbox API calls, so no valid Mapbox access token is required. See [tests/e2e/MAPBOX_MOCKING.md](tests/e2e/MAPBOX_MOCKING.md) for details.
+
 #### First Time Setup
 
 1. Install Playwright browsers:

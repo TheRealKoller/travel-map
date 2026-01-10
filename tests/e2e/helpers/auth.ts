@@ -1,5 +1,6 @@
 import { expect, Page } from '@playwright/test';
 import { randomUUID } from 'crypto';
+import { setupMapboxMock } from './mapbox-mock';
 
 /**
  * Generate a unique email address for testing
@@ -36,6 +37,9 @@ export async function register(
     email: string = 'test@example.com',
     password: string = 'password',
 ) {
+    // Setup Mapbox mocking before any navigation
+    await setupMapboxMock(page);
+    
     await page.goto('/register');
     
     // Fill registration form

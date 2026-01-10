@@ -1,6 +1,12 @@
 import { expect, test } from '@playwright/test';
+import { setupMapboxMock } from './helpers/mapbox-mock';
 
 test.describe('Smoke Tests', () => {
+    test.beforeEach(async ({ page }) => {
+        // Setup Mapbox mocking for all tests
+        await setupMapboxMock(page);
+    });
+
     test('welcome/home page loads correctly', async ({ page }) => {
         await page.goto('/');
 
