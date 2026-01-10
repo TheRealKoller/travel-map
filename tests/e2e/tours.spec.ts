@@ -9,7 +9,7 @@ test.describe('Tour Management', () => {
 
         // Navigate to map page
         await page.goto('/');
-        await page.waitForSelector('.leaflet-container', { timeout: 10000 });
+        await page.waitForSelector('.mapboxgl-map', { timeout: 10000 });
 
         // Open sidebar
         const sidebarTrigger = page.locator('[data-sidebar="trigger"]');

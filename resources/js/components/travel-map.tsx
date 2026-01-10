@@ -6,24 +6,18 @@ import TourPanel from '@/components/tour-panel';
 import { MarkerData, MarkerType } from '@/types/marker';
 import { Route } from '@/types/route';
 import { Tour } from '@/types/tour';
+import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
+import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 import axios from 'axios';
-import L from 'leaflet';
-import 'leaflet-control-geocoder';
-import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
-import 'leaflet.awesome-markers';
-import 'leaflet.awesome-markers/dist/leaflet.awesome-markers.css';
-import 'leaflet/dist/leaflet.css';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import { useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
-// Type definitions for Leaflet plugins
+// Type definitions for geocoder
 interface GeocodeResult {
-    center: L.LatLng;
-    name: string;
-}
-
-interface GeocodeEvent {
-    geocode: GeocodeResult;
+    center: [number, number];
+    place_name: string;
 }
 
 interface PlaceType {
@@ -51,36 +45,33 @@ interface SearchResult {
     };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type LeafletExtensions = any;
-
 // Helper function to get icon name based on marker type
 const getIconForType = (type: MarkerType): string => {
     switch (type) {
         case MarkerType.Restaurant:
-            return 'utensils';
+            return 'fa-utensils';
         case MarkerType.Hotel:
-            return 'bed';
+            return 'fa-bed';
         case MarkerType.Question:
-            return 'question';
+            return 'fa-question';
         case MarkerType.Tip:
-            return 'lightbulb';
+            return 'fa-lightbulb';
         case MarkerType.PointOfInterest:
-            return 'map-pin';
+            return 'fa-map-pin';
         case MarkerType.Museum:
-            return 'landmark';
+            return 'fa-landmark';
         case MarkerType.Ruin:
-            return 'monument';
+            return 'fa-monument';
         case MarkerType.TempleChurch:
-            return 'church';
+            return 'fa-church';
         case MarkerType.FestivalParty:
-            return 'champagne-glasses';
+            return 'fa-champagne-glasses';
         case MarkerType.Leisure:
-            return 'bicycle';
+            return 'fa-bicycle';
         case MarkerType.Sightseeing:
-            return 'camera';
+            return 'fa-camera';
         default:
-            return 'map-pin';
+            return 'fa-map-pin';
     }
 };
 
@@ -112,6 +103,41 @@ const getColorForType = (type: MarkerType): string => {
         default:
             return 'gray';
     }
+};
+
+// Helper function to create a custom marker element for Mapbox GL
+const createMarkerElement = (type: MarkerType, isHighlighted = false): HTMLDivElement => {
+    const el = document.createElement('div');
+    el.className = 'custom-marker';
+    const color = isHighlighted ? 'red' : getColorForType(type);
+    const icon = getIconForType(type);
+    
+    el.innerHTML = `
+        <div style="
+            background-color: ${color};
+            width: 35px;
+            height: 45px;
+            border-radius: 50% 50% 50% 0;
+            position: relative;
+            transform: rotate(-45deg);
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            cursor: pointer;
+        ">
+            <div style="
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(45deg);
+                color: white;
+                font-size: 16px;
+            ">
+                <i class="fa ${icon}"></i>
+            </div>
+        </div>
+    `;
+    
+    return el;
 };
 
 // Helper function to map OSM place type to MarkerType
@@ -230,12 +256,12 @@ export default function TravelMap({
     onDeleteTour,
 }: TravelMapProps) {
     const mapRef = useRef<HTMLDivElement>(null);
-    const mapInstanceRef = useRef<L.Map | null>(null);
+    const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
     const [markers, setMarkers] = useState<MarkerData[]>([]);
     const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(
         null,
     );
-    const searchMarkerRef = useRef<L.Marker | null>(null);
+    const searchMarkerRef = useRef<mapboxgl.Marker | null>(null);
     const previousSelectedMarkerRef = useRef<string | null>(null);
     const [isSearchMode, setIsSearchMode] = useState(false);
     const isSearchModeRef = useRef(false);
@@ -254,10 +280,10 @@ export default function TravelMap({
     const [selectedPlaceType, setSelectedPlaceType] = useState<string>('all');
     const selectedPlaceTypeRef = useRef<string>('all'); // Ref for use in event handlers
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-    const searchResultCirclesRef = useRef<L.Circle[]>([]);
-    const searchRadiusCircleRef = useRef<L.Circle | null>(null);
+    const searchResultMarkersRef = useRef<mapboxgl.Marker[]>([]);
+    const searchRadiusCircleLayerIdRef = useRef<string | null>(null);
     const [routes, setRoutes] = useState<Route[]>([]);
-    const routePolylinesRef = useRef<Map<number, L.Polyline>>(new Map());
+    const routeLayerIdsRef = useRef<Map<number, string>>(new Map());
 
     // Note: saveMarkerToDatabase is no longer needed as we save when user clicks Save button
 
@@ -265,13 +291,12 @@ export default function TravelMap({
     useEffect(() => {
         if (!mapInstanceRef.current) return;
 
-        const map = mapInstanceRef.current;
-
         if (selectedTourId === null) {
             // Show all markers when no tour is selected
             markers.forEach((marker) => {
-                if (!map.hasLayer(marker.marker)) {
-                    marker.marker.addTo(map);
+                const mapboxMarker = marker.marker;
+                if (mapboxMarker && mapInstanceRef.current) {
+                    mapboxMarker.addTo(mapInstanceRef.current);
                 }
             });
         } else {
@@ -285,23 +310,25 @@ export default function TravelMap({
 
                 // Show/hide markers based on whether they belong to the tour
                 markers.forEach((marker) => {
-                    if (tourMarkerIds.has(marker.id)) {
-                        // Show marker if it belongs to the tour
-                        if (!map.hasLayer(marker.marker)) {
-                            marker.marker.addTo(map);
-                        }
-                    } else {
-                        // Hide marker if it doesn't belong to the tour
-                        if (map.hasLayer(marker.marker)) {
-                            map.removeLayer(marker.marker);
+                    const mapboxMarker = marker.marker;
+                    if (mapboxMarker) {
+                        if (tourMarkerIds.has(marker.id)) {
+                            // Show marker if it belongs to the tour
+                            if (mapInstanceRef.current) {
+                                mapboxMarker.addTo(mapInstanceRef.current);
+                            }
+                        } else {
+                            // Hide marker if it doesn't belong to the tour
+                            mapboxMarker.remove();
                         }
                     }
                 });
             } else {
                 // Tour not found, hide all markers
                 markers.forEach((marker) => {
-                    if (map.hasLayer(marker.marker)) {
-                        map.removeLayer(marker.marker);
+                    const mapboxMarker = marker.marker;
+                    if (mapboxMarker) {
+                        mapboxMarker.remove();
                     }
                 });
             }
@@ -312,20 +339,34 @@ export default function TravelMap({
     useEffect(() => {
         if (!mapInstanceRef.current) return;
 
+        const map = mapInstanceRef.current;
+
         // Restore previous marker to its original appearance
         if (previousSelectedMarkerRef.current) {
             const prevMarker = markers.find(
                 (m) => m.id === previousSelectedMarkerRef.current,
             );
             if (prevMarker) {
-                const icon = (L as LeafletExtensions).AwesomeMarkers.icon({
-                    icon: getIconForType(prevMarker.type),
-                    markerColor: getColorForType(prevMarker.type),
-                    iconColor: 'white',
-                    prefix: 'fa',
-                    spin: false,
+                const mapboxMarker = prevMarker.marker;
+                const [lng, lat] = [prevMarker.lng, prevMarker.lat];
+                const el = createMarkerElement(prevMarker.type, false);
+                
+                // Remove and recreate marker with new element
+                mapboxMarker.remove();
+                const newMarker = new mapboxgl.Marker(el)
+                    .setLngLat([lng, lat])
+                    .addTo(map);
+                
+                const popup = new mapboxgl.Popup({ offset: 25 })
+                    .setText(prevMarker.name || 'Unnamed Location');
+                newMarker.setPopup(popup);
+                
+                el.addEventListener('click', () => {
+                    setSelectedMarkerId(prevMarker.id);
                 });
-                prevMarker.marker.setIcon(icon);
+                
+                // Update the marker reference
+                prevMarker.marker = newMarker;
             }
         }
 
@@ -335,16 +376,26 @@ export default function TravelMap({
                 (m) => m.id === selectedMarkerId,
             );
             if (selectedMarker) {
-                const highlightIcon = (
-                    L as LeafletExtensions
-                ).AwesomeMarkers.icon({
-                    icon: getIconForType(selectedMarker.type),
-                    markerColor: 'red',
-                    iconColor: 'white',
-                    prefix: 'fa',
-                    spin: false,
+                const mapboxMarker = selectedMarker.marker;
+                const [lng, lat] = [selectedMarker.lng, selectedMarker.lat];
+                const el = createMarkerElement(selectedMarker.type, true);
+                
+                // Remove and recreate marker with new element
+                mapboxMarker.remove();
+                const newMarker = new mapboxgl.Marker(el)
+                    .setLngLat([lng, lat])
+                    .addTo(map);
+                
+                const popup = new mapboxgl.Popup({ offset: 25 })
+                    .setText(selectedMarker.name || 'Unnamed Location');
+                newMarker.setPopup(popup);
+                
+                el.addEventListener('click', () => {
+                    setSelectedMarkerId(selectedMarker.id);
                 });
-                selectedMarker.marker.setIcon(highlightIcon);
+                
+                // Update the marker reference
+                selectedMarker.marker = newMarker;
             }
         }
 
@@ -362,10 +413,10 @@ export default function TravelMap({
 
         if (isSearchMode) {
             // Change cursor to magnifying glass (zoom-in) for search mode
-            map.getContainer().style.cursor = 'zoom-in';
+            map.getCanvas().style.cursor = 'zoom-in';
         } else {
             // Restore crosshair cursor for normal mode
-            map.getContainer().style.cursor = 'crosshair';
+            map.getCanvas().style.cursor = 'crosshair';
         }
     }, [isSearchMode]);
 
@@ -385,37 +436,43 @@ export default function TravelMap({
 
         const map = mapInstanceRef.current;
 
-        // Remove existing circles
-        searchResultCirclesRef.current.forEach((circle) => {
-            map.removeLayer(circle);
+        // Remove existing result markers
+        searchResultMarkersRef.current.forEach((marker) => {
+            marker.remove();
         });
-        searchResultCirclesRef.current = [];
+        searchResultMarkersRef.current = [];
 
-        // Add new circles for search results
+        // Add new markers for search results
         if (searchResults.length > 0) {
-            const circles = searchResults.map((result) => {
-                const circle = L.circle([result.lat, result.lon], {
-                    color: 'blue',
-                    fillColor: 'blue',
-                    fillOpacity: 0.3,
-                    radius: 150, // 150 meters radius for better visibility and clickability
-                }).addTo(map);
+            const resultMarkers = searchResults.map((result) => {
+                // Create a custom blue circle marker element
+                const el = document.createElement('div');
+                el.className = 'search-result-marker';
+                el.style.cssText = `
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
+                    background-color: blue;
+                    opacity: 0.6;
+                    border: 2px solid #3b82f6;
+                    cursor: pointer;
+                `;
+
+                // Create the marker
+                const marker = new mapboxgl.Marker(el)
+                    .setLngLat([result.lon, result.lat]);
 
                 // Add tooltip with priority: English name > International name > Local name
                 const displayName =
                     result.name_en || result.name_int || result.name;
                 if (displayName) {
-                    circle.bindTooltip(displayName, {
-                        permanent: false,
-                        direction: 'top',
-                    });
+                    const popup = new mapboxgl.Popup({ offset: 25 })
+                        .setText(displayName);
+                    marker.setPopup(popup);
                 }
 
                 // Add click handler to create a marker from search result
-                circle.on('click', (e: L.LeafletMouseEvent) => {
-                    // Prevent event from bubbling to the map's click handler
-                    L.DomEvent.stopPropagation(e);
-
+                el.addEventListener('click', () => {
                     // Get the name with priority: English > International > Local
                     const markerName =
                         result.name_en || result.name_int || result.name || '';
@@ -423,21 +480,13 @@ export default function TravelMap({
                     // Get the appropriate marker type based on OSM type
                     const markerType = getMarkerTypeFromOSMType(result.type);
 
-                    // Create a marker icon
-                    const awesomeMarker = (
-                        L as LeafletExtensions
-                    ).AwesomeMarkers.icon({
-                        icon: getIconForType(markerType),
-                        markerColor: getColorForType(markerType),
-                        iconColor: 'white',
-                        prefix: 'fa',
-                        spin: false,
-                    });
+                    // Create the marker element
+                    const markerEl = createMarkerElement(markerType);
 
                     // Create the marker
-                    const marker = L.marker([result.lat, result.lon], {
-                        icon: awesomeMarker,
-                    }).addTo(map);
+                    const newMarker = new mapboxgl.Marker(markerEl)
+                        .setLngLat([result.lon, result.lat])
+                        .addTo(map);
 
                     const markerId = uuidv4();
                     const markerData: MarkerData = {
@@ -449,18 +498,17 @@ export default function TravelMap({
                         notes: '',
                         url: '',
                         isUnesco: false,
-                        marker: marker,
+                        marker: newMarker,
                         isSaved: false, // Mark as unsaved
                     };
 
-                    // Add tooltip to marker
-                    marker.bindTooltip(markerName || 'Unnamed Location', {
-                        permanent: false,
-                        direction: 'top',
-                    });
+                    // Add popup to marker
+                    const popup = new mapboxgl.Popup({ offset: 25 })
+                        .setText(markerName || 'Unnamed Location');
+                    newMarker.setPopup(popup);
 
                     // Add click handler to marker
-                    marker.on('click', () => {
+                    markerEl.addEventListener('click', () => {
                         setSelectedMarkerId(markerId);
                     });
 
@@ -468,14 +516,15 @@ export default function TravelMap({
                     setMarkers((prev) => [...prev, markerData]);
                     setSelectedMarkerId(markerId);
 
-                    // Remove the blue circle since we've created a marker from it
-                    map.removeLayer(circle);
+                    // Remove the blue circle marker since we've created a marker from it
+                    marker.remove();
                 });
 
-                return circle;
+                marker.addTo(map);
+                return marker;
             });
 
-            searchResultCirclesRef.current = circles;
+            searchResultMarkersRef.current = resultMarkers;
         }
     }, [searchResults]);
 
@@ -485,28 +534,74 @@ export default function TravelMap({
 
         const map = mapInstanceRef.current;
 
-        // Remove existing search radius circle
-        if (searchRadiusCircleRef.current) {
-            map.removeLayer(searchRadiusCircleRef.current);
-            searchRadiusCircleRef.current = null;
+        // Remove existing search radius circle layer
+        if (searchRadiusCircleLayerIdRef.current) {
+            if (map.getLayer(searchRadiusCircleLayerIdRef.current)) {
+                map.removeLayer(searchRadiusCircleLayerIdRef.current);
+            }
+            if (map.getSource(searchRadiusCircleLayerIdRef.current)) {
+                map.removeSource(searchRadiusCircleLayerIdRef.current);
+            }
+            searchRadiusCircleLayerIdRef.current = null;
         }
 
         // Add new search radius circle when coordinates are available
         if (searchCoordinates) {
+            const layerId = `search-radius-${Date.now()}`;
             const radiusInMeters = searchRadius * 1000; // Convert km to meters
-            const circle = L.circle(
-                [searchCoordinates.lat, searchCoordinates.lng],
-                {
-                    color: 'gray',
-                    fillColor: 'gray',
-                    fillOpacity: 0.1,
-                    weight: 2,
-                    dashArray: '10, 10', // Dashed line pattern
-                    radius: radiusInMeters,
-                },
-            ).addTo(map);
+            
+            // Create a circle using turf-like approach (approximation with points)
+            const points = 64;
+            const coords: [number, number][] = [];
+            const distanceX = radiusInMeters / 111320; // degrees longitude
+            const distanceY = radiusInMeters / 110540; // degrees latitude
+            
+            for (let i = 0; i < points; i++) {
+                const angle = (i / points) * 2 * Math.PI;
+                const dx = distanceX * Math.cos(angle) / Math.cos(searchCoordinates.lat * Math.PI / 180);
+                const dy = distanceY * Math.sin(angle);
+                coords.push([
+                    searchCoordinates.lng + dx,
+                    searchCoordinates.lat + dy
+                ]);
+            }
+            coords.push(coords[0]); // Close the circle
 
-            searchRadiusCircleRef.current = circle;
+            map.addSource(layerId, {
+                type: 'geojson',
+                data: {
+                    type: 'Feature',
+                    properties: {},
+                    geometry: {
+                        type: 'Polygon',
+                        coordinates: [coords]
+                    }
+                }
+            });
+
+            map.addLayer({
+                id: layerId,
+                type: 'line',
+                source: layerId,
+                paint: {
+                    'line-color': 'gray',
+                    'line-width': 2,
+                    'line-dasharray': [2, 2],
+                    'line-opacity': 0.8
+                }
+            });
+
+            map.addLayer({
+                id: `${layerId}-fill`,
+                type: 'fill',
+                source: layerId,
+                paint: {
+                    'fill-color': 'gray',
+                    'fill-opacity': 0.1
+                }
+            });
+
+            searchRadiusCircleLayerIdRef.current = layerId;
         }
     }, [searchCoordinates, searchRadius]);
 
@@ -529,153 +624,147 @@ export default function TravelMap({
     useEffect(() => {
         if (!mapRef.current || mapInstanceRef.current) return;
 
+        // Get Mapbox access token from environment variable (vite exposes as import.meta.env)
+        const mapboxToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '';
+        
+        if (!mapboxToken) {
+            console.warn('Mapbox access token not found. Using public demo token (not for production).');
+        }
+        
+        mapboxgl.accessToken = mapboxToken || 'pk.eyJ1IjoidHJhdmVsLW1hcC1kZW1vIiwiYSI6ImNtMTBhYmMxMjAwMDAya3M0MXl2ZHFyZWEifQ.demo';
+
         // Initialize the map
-        const map = L.map(mapRef.current, {
-            zoomSnap: 0,
-            zoomDelta: 0.25,
-        }).setView(DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM);
+        const map = new mapboxgl.Map({
+            container: mapRef.current,
+            style: 'mapbox://styles/mapbox/streets-v12',
+            center: [DEFAULT_MAP_CENTER[1], DEFAULT_MAP_CENTER[0]], // [lng, lat]
+            zoom: DEFAULT_MAP_ZOOM,
+        });
         mapInstanceRef.current = map;
 
         // Set crosshair cursor
-        map.getContainer().style.cursor = 'crosshair';
+        map.getCanvas().style.cursor = 'crosshair';
 
-        // Add OpenStreetMap tiles
-        L.tileLayer('https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png', {
-            attribution:
-                '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            maxZoom: 19,
-        }).addTo(map);
+        // Add navigation controls
+        map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
         // Add geocoder search control
-        (L.Control as LeafletExtensions)
-            .geocoder({
-                defaultMarkGeocode: false,
-                placeholder: 'Search for places...',
-                errorMessage: 'Nothing found.',
-                collapsed: false,
-            })
-            .on('markgeocode', (e: GeocodeEvent) => {
-                const latlng = e.geocode.center;
-                const placeName = e.geocode.name || 'Searched Location';
+        const geocoder = new MapboxGeocoder({
+            accessToken: mapboxgl.accessToken || '',
+            mapboxgl: mapboxgl as never,
+            marker: false, // We'll handle markers ourselves
+            placeholder: 'Search for places...',
+        });
 
-                // Remove previous search marker if exists
-                if (searchMarkerRef.current) {
-                    map.removeLayer(searchMarkerRef.current);
-                }
+        map.addControl(geocoder, 'top-left');
 
-                // Center and zoom to the location
-                map.setView(latlng, 16);
+        // Handle geocoder result
+        geocoder.on('result', (e: { result: GeocodeResult }) => {
+            const [lng, lat] = e.result.center;
+            const placeName = e.result.place_name || 'Searched Location';
 
-                // Create a temporary highlight marker with yellow color
-                const highlightIcon = (
-                    L as LeafletExtensions
-                ).AwesomeMarkers.icon({
-                    icon: 'search',
-                    markerColor: 'yellow',
-                    iconColor: 'black',
-                    prefix: 'fa',
-                    spin: false,
-                });
+            // Remove previous search marker if exists
+            if (searchMarkerRef.current) {
+                searchMarkerRef.current.remove();
+            }
 
-                // Add temporary marker to highlight search result
-                const searchMarker = L.marker(latlng, {
-                    icon: highlightIcon,
-                }).addTo(map);
-                searchMarker
-                    .bindPopup(
-                        `<strong>${placeName}</strong><br><small>Click on this marker to add it permanently</small>`,
-                    )
-                    .openPopup();
+            // Create a temporary highlight marker with yellow color
+            const el = document.createElement('div');
+            el.innerHTML = `
+                <div style="
+                    background-color: yellow;
+                    width: 35px;
+                    height: 45px;
+                    border-radius: 50% 50% 50% 0;
+                    position: relative;
+                    transform: rotate(-45deg);
+                    border: 2px solid white;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                    cursor: pointer;
+                ">
+                    <div style="
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%) rotate(45deg);
+                        color: black;
+                        font-size: 16px;
+                    ">
+                        <i class="fa fa-search"></i>
+                    </div>
+                </div>
+            `;
 
-                // Add click handler to convert temporary marker to permanent
-                searchMarker.on('click', () => {
-                    // Remove the temporary marker
-                    map.removeLayer(searchMarker);
-                    searchMarkerRef.current = null;
+            // Add temporary marker to highlight search result
+            const searchMarker = new mapboxgl.Marker(el)
+                .setLngLat([lng, lat])
+                .addTo(map);
 
-                    // Create permanent marker
-                    const defaultType = MarkerType.PointOfInterest;
-                    const awesomeMarker = (
-                        L as LeafletExtensions
-                    ).AwesomeMarkers.icon({
-                        icon: getIconForType(defaultType),
-                        markerColor: getColorForType(defaultType),
-                        iconColor: 'white',
-                        prefix: 'fa',
-                        spin: false,
-                    });
+            const popup = new mapboxgl.Popup({ offset: 25 })
+                .setHTML(
+                    `<strong>${placeName}</strong><br><small>Click on this marker to add it permanently</small>`,
+                );
+            searchMarker.setPopup(popup);
+            popup.addTo(map);
 
-                    const marker = L.marker(latlng, {
-                        icon: awesomeMarker,
-                    }).addTo(map);
-                    const markerId = uuidv4();
-                    const markerData: MarkerData = {
-                        id: markerId,
-                        lat: latlng.lat,
-                        lng: latlng.lng,
-                        name: placeName,
-                        type: defaultType,
-                        notes: '',
-                        url: '',
-                        isUnesco: false,
-                        marker: marker,
-                        isSaved: false, // Mark as unsaved
-                    };
+            // Add click handler to convert temporary marker to permanent
+            el.addEventListener('click', () => {
+                // Remove the temporary marker
+                searchMarker.remove();
+                searchMarkerRef.current = null;
 
-                    // Add tooltip to marker
-                    marker.bindTooltip(placeName, {
-                        permanent: false,
-                        direction: 'top',
-                    });
+                // Create permanent marker
+                const defaultType = MarkerType.PointOfInterest;
+                const markerEl = createMarkerElement(defaultType);
 
-                    // Add click handler to permanent marker
-                    marker.on('click', () => {
-                        setSelectedMarkerId(markerId);
-                    });
+                const marker = new mapboxgl.Marker(markerEl)
+                    .setLngLat([lng, lat])
+                    .addTo(map);
+                    
+                const markerId = uuidv4();
+                const markerData: MarkerData = {
+                    id: markerId,
+                    lat: lat,
+                    lng: lng,
+                    name: placeName,
+                    type: defaultType,
+                    notes: '',
+                    url: '',
+                    isUnesco: false,
+                    marker: marker,
+                    isSaved: false, // Mark as unsaved
+                };
 
-                    setMarkers((prev) => [...prev, markerData]);
+                // Add popup to marker
+                const markerPopup = new mapboxgl.Popup({ offset: 25 })
+                    .setText(placeName);
+                marker.setPopup(markerPopup);
+
+                // Add click handler to permanent marker
+                markerEl.addEventListener('click', () => {
                     setSelectedMarkerId(markerId);
-
-                    // Do NOT save to database yet - wait for user to click Save button
                 });
 
-                searchMarkerRef.current = searchMarker;
-            })
-            .addTo(map);
+                setMarkers((prev) => [...prev, markerData]);
+                setSelectedMarkerId(markerId);
 
-        // Add click event to create markers with awesome-markers
-        map.on('click', async (e: L.LeafletMouseEvent) => {
+                // Do NOT save to database yet - wait for user to click Save button
+            });
+
+            searchMarkerRef.current = searchMarker;
+
+            // Center and zoom to the location
+            map.flyTo({ center: [lng, lat], zoom: 16 });
+        });
+
+        // Add click event to create markers
+        map.on('click', async (e) => {
+            const { lng, lat } = e.lngLat;
+
             // Check if we're in search mode
             if (isSearchModeRef.current) {
-                // In search mode, draw the search radius circle first
-                setSearchCoordinates({
-                    lat: e.latlng.lat,
-                    lng: e.latlng.lng,
-                });
-
-                // Remove previous search radius circle if it exists
-                if (searchRadiusCircleRef.current) {
-                    map.removeLayer(searchRadiusCircleRef.current);
-                }
-
-                // Draw the search radius circle (radius in meters = km * 1000)
-                const circle = L.circle(e.latlng, {
-                    color: '#3b82f6',
-                    fillColor: '#3b82f6',
-                    fillOpacity: 0.1,
-                    radius: searchRadiusRef.current * 1000,
-                }).addTo(map);
-
-                searchRadiusCircleRef.current = circle;
-
-                // Zoom to fit the circle bounds with asymmetric padding
-                // More padding on the right to keep the circle center-left,
-                // so the options menu doesn't cover the circle
-                const bounds = circle.getBounds();
-                map.fitBounds(bounds, {
-                    paddingTopLeft: [50, 50],
-                    paddingBottomRight: [350, 50],
-                });
+                // In search mode, perform proximity search
+                setSearchCoordinates({ lat, lng });
 
                 // Call the search API
                 setIsSearching(true);
@@ -687,8 +776,8 @@ export default function TravelMap({
                     const response = await axios.post(
                         '/markers/search-nearby',
                         {
-                            latitude: e.latlng.lat,
-                            longitude: e.latlng.lng,
+                            latitude: lat,
+                            longitude: lng,
                             radius_km: searchRadiusRef.current,
                             place_type: selectedPlaceTypeRef.current,
                         },
@@ -709,6 +798,20 @@ export default function TravelMap({
                             response.data.results,
                         );
                         console.log(`Found ${response.data.count} results`);
+
+                        // Zoom to fit the search radius
+                        const radiusInMeters = searchRadiusRef.current * 1000;
+                        const bounds = new mapboxgl.LngLatBounds();
+                        const points = 8;
+                        for (let i = 0; i < points; i++) {
+                            const angle = (i / points) * 2 * Math.PI;
+                            const dx = (radiusInMeters / 111320) * Math.cos(angle) / Math.cos(lat * Math.PI / 180);
+                            const dy = (radiusInMeters / 110540) * Math.sin(angle);
+                            bounds.extend([lng + dx, lat + dy]);
+                        }
+                        map.fitBounds(bounds, {
+                            padding: { top: 50, bottom: 50, left: 50, right: 350 },
+                        });
                     }
                 } catch (error) {
                     console.error('Failed to search nearby:', error);
@@ -726,22 +829,17 @@ export default function TravelMap({
 
             // Normal mode: create a marker
             const defaultType = MarkerType.PointOfInterest;
-            const awesomeMarker = (L as LeafletExtensions).AwesomeMarkers.icon({
-                icon: getIconForType(defaultType),
-                markerColor: getColorForType(defaultType),
-                iconColor: 'white',
-                prefix: 'fa',
-                spin: false,
-            });
+            const markerEl = createMarkerElement(defaultType);
 
-            const marker = L.marker(e.latlng, { icon: awesomeMarker }).addTo(
-                map,
-            );
+            const marker = new mapboxgl.Marker(markerEl)
+                .setLngLat([lng, lat])
+                .addTo(map);
+                
             const markerId = uuidv4();
             const markerData: MarkerData = {
                 id: markerId,
-                lat: e.latlng.lat,
-                lng: e.latlng.lng,
+                lat: lat,
+                lng: lng,
                 name: '',
                 type: defaultType,
                 notes: '',
@@ -751,14 +849,13 @@ export default function TravelMap({
                 isSaved: false, // Mark as unsaved
             };
 
-            // Add tooltip to marker
-            marker.bindTooltip('Unnamed Location', {
-                permanent: false,
-                direction: 'top',
-            });
+            // Add popup to marker
+            const popup = new mapboxgl.Popup({ offset: 25 })
+                .setText('Unnamed Location');
+            marker.setPopup(popup);
 
             // Add click handler to marker
-            marker.on('click', () => {
+            markerEl.addEventListener('click', () => {
                 setSelectedMarkerId(markerId);
             });
 
@@ -792,8 +889,9 @@ export default function TravelMap({
 
                 // Clear existing markers from map
                 markers.forEach((m) => {
-                    if (m.marker && map.hasLayer(m.marker)) {
-                        map.removeLayer(m.marker);
+                    const mapboxMarker = m.marker;
+                    if (mapboxMarker) {
+                        mapboxMarker.remove();
                     }
                 });
 
@@ -808,26 +906,17 @@ export default function TravelMap({
                         url: string;
                         is_unesco: boolean;
                     }) => {
-                        const icon = (
-                            L as LeafletExtensions
-                        ).AwesomeMarkers.icon({
-                            icon: getIconForType(dbMarker.type),
-                            markerColor: getColorForType(dbMarker.type),
-                            iconColor: 'white',
-                            prefix: 'fa',
-                            spin: false,
-                        });
+                        const el = createMarkerElement(dbMarker.type);
 
-                        const marker = L.marker(
-                            [dbMarker.latitude, dbMarker.longitude],
-                            { icon },
-                        ).addTo(map);
+                        const marker = new mapboxgl.Marker(el)
+                            .setLngLat([dbMarker.longitude, dbMarker.latitude])
+                            .addTo(map);
 
-                        marker.bindTooltip(
-                            dbMarker.name || 'Unnamed Location',
-                            { permanent: false, direction: 'top' },
-                        );
-                        marker.on('click', () => {
+                        const popup = new mapboxgl.Popup({ offset: 25 })
+                            .setText(dbMarker.name || 'Unnamed Location');
+                        marker.setPopup(popup);
+                        
+                        el.addEventListener('click', () => {
                             setSelectedMarkerId(dbMarker.id);
                         });
 
@@ -883,18 +972,20 @@ export default function TravelMap({
 
         const map = mapInstanceRef.current;
 
-        // Clear existing route polylines
-        routePolylinesRef.current.forEach((polyline) => {
-            map.removeLayer(polyline);
+        // Clear existing route layers
+        routeLayerIdsRef.current.forEach((layerId) => {
+            if (map.getLayer(layerId)) {
+                map.removeLayer(layerId);
+            }
+            if (map.getSource(layerId)) {
+                map.removeSource(layerId);
+            }
         });
-        routePolylinesRef.current.clear();
+        routeLayerIdsRef.current.clear();
 
-        // Render each route as a polyline
+        // Render each route as a line layer
         routes.forEach((route) => {
-            // Convert geometry to LatLng array (swap lng/lat to lat/lng for Leaflet)
-            const latLngs: L.LatLngExpression[] = route.geometry.map(
-                ([lng, lat]) => [lat, lng],
-            );
+            const layerId = `route-${route.id}`;
 
             // Determine color based on transport mode
             let color = '#3388ff'; // Default blue
@@ -908,23 +999,67 @@ export default function TravelMap({
                 color = '#3498db'; // Blue for public transport
             }
 
-            const polyline = L.polyline(latLngs, {
-                color,
-                weight: 4,
-                opacity: 0.7,
-            }).addTo(map);
+            // Add source for the route
+            map.addSource(layerId, {
+                type: 'geojson',
+                data: {
+                    type: 'Feature',
+                    properties: {
+                        startName: route.start_marker.name,
+                        endName: route.end_marker.name,
+                        mode: route.transport_mode.label,
+                        distance: route.distance.km.toFixed(2),
+                        duration: Math.round(route.duration.minutes),
+                    },
+                    geometry: {
+                        type: 'LineString',
+                        coordinates: route.geometry, // Already in [lng, lat] format
+                    },
+                },
+            });
 
-            // Add popup with route information
-            const distanceKm = route.distance.km.toFixed(2);
-            const durationMin = Math.round(route.duration.minutes);
-            polyline.bindPopup(
-                `<strong>${route.start_marker.name} → ${route.end_marker.name}</strong><br>` +
-                    `Mode: ${route.transport_mode.label}<br>` +
-                    `Distance: ${distanceKm} km<br>` +
-                    `Duration: ${durationMin} min`,
-            );
+            // Add layer for the route
+            map.addLayer({
+                id: layerId,
+                type: 'line',
+                source: layerId,
+                layout: {
+                    'line-join': 'round',
+                    'line-cap': 'round',
+                },
+                paint: {
+                    'line-color': color,
+                    'line-width': 4,
+                    'line-opacity': 0.7,
+                },
+            });
 
-            routePolylinesRef.current.set(route.id, polyline);
+            // Add popup on click
+            map.on('click', layerId, (e) => {
+                if (e.features && e.features[0] && e.features[0].properties) {
+                    const props = e.features[0].properties;
+                    new mapboxgl.Popup()
+                        .setLngLat(e.lngLat)
+                        .setHTML(
+                            `<strong>${props.startName} → ${props.endName}</strong><br>` +
+                            `Mode: ${props.mode}<br>` +
+                            `Distance: ${props.distance} km<br>` +
+                            `Duration: ${props.duration} min`,
+                        )
+                        .addTo(map);
+                }
+            });
+
+            // Change cursor on hover
+            map.on('mouseenter', layerId, () => {
+                map.getCanvas().style.cursor = 'pointer';
+            });
+
+            map.on('mouseleave', layerId, () => {
+                map.getCanvas().style.cursor = 'crosshair';
+            });
+
+            routeLayerIdsRef.current.set(route.id, layerId);
         });
     }, [routes]);
 
@@ -988,20 +1123,30 @@ export default function TravelMap({
                 ),
             );
 
-            // Update marker tooltip
+            // Update marker popup and icon
             const marker = markers.find((m) => m.id === id);
             if (marker) {
-                marker.marker.setTooltipContent(name || 'Unnamed Location');
+                const mapboxMarker = marker.marker;
+                const [lng, lat] = [marker.lng, marker.lat];
+                const popup = new mapboxgl.Popup({ offset: 25 })
+                    .setText(name || 'Unnamed Location');
+                mapboxMarker.setPopup(popup);
 
                 // Update marker icon if type changed
-                const icon = (L as LeafletExtensions).AwesomeMarkers.icon({
-                    icon: getIconForType(type),
-                    markerColor: getColorForType(type),
-                    iconColor: 'white',
-                    prefix: 'fa',
-                    spin: false,
+                const el = createMarkerElement(type);
+                el.addEventListener('click', () => {
+                    setSelectedMarkerId(id);
                 });
-                marker.marker.setIcon(icon);
+                
+                // Remove and recreate marker with new element
+                mapboxMarker.remove();
+                const newMarker = new mapboxgl.Marker(el)
+                    .setLngLat([lng, lat])
+                    .setPopup(popup)
+                    .addTo(mapInstanceRef.current!);
+                
+                // Update the marker reference
+                marker.marker = newMarker;
             }
 
             // Close the form
@@ -1018,8 +1163,9 @@ export default function TravelMap({
             const marker = markers.find((m) => m.id === selectedMarkerId);
             if (marker && !marker.isSaved) {
                 // Remove marker from map
-                if (mapInstanceRef.current) {
-                    mapInstanceRef.current.removeLayer(marker.marker);
+                const mapboxMarker = marker.marker;
+                if (mapboxMarker) {
+                    mapboxMarker.remove();
                 }
                 // Remove from state
                 setMarkers((prev) =>
@@ -1036,8 +1182,11 @@ export default function TravelMap({
 
             // Remove marker from map
             const marker = markers.find((m) => m.id === id);
-            if (marker && mapInstanceRef.current) {
-                mapInstanceRef.current.removeLayer(marker.marker);
+            if (marker) {
+                const mapboxMarker = marker.marker;
+                if (mapboxMarker) {
+                    mapboxMarker.remove();
+                }
             }
 
             // Remove from state

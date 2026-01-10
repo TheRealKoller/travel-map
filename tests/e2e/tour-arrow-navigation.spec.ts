@@ -9,7 +9,7 @@ test.describe('Arrow-Based Tour Management', () => {
 
         // Navigate to map page
         await page.goto('/');
-        const mapContainer = page.locator('.leaflet-container');
+        const mapContainer = page.locator('.mapboxgl-map');
         await expect(mapContainer).toBeVisible({ timeout: 10000 });
 
         // Open sidebar
@@ -67,7 +67,7 @@ test.describe('Arrow-Based Tour Management', () => {
         page,
     }) => {
         // Create a marker by clicking on the map
-        const mapContainer = page.locator('.leaflet-container').first();
+        const mapContainer = page.locator('.mapboxgl-map').first();
         await expect(mapContainer).toBeVisible({ timeout: 10000 });
         await mapContainer.click({ position: { x: 300, y: 300 } });
 
@@ -134,7 +134,7 @@ test.describe('Arrow-Based Tour Management', () => {
 
     test('user can add marker to tour using arrow button', async ({ page }) => {
         // Create a marker
-        const mapContainer = page.locator('.leaflet-container').first();
+        const mapContainer = page.locator('.mapboxgl-map').first();
         await expect(mapContainer).toBeVisible({ timeout: 10000 });
         await mapContainer.click({ position: { x: 300, y: 300 } });
 
@@ -222,7 +222,7 @@ test.describe('Arrow-Based Tour Management', () => {
         page,
     }) => {
         // Create two markers
-        const mapContainer = page.locator('.leaflet-container').first();
+        const mapContainer = page.locator('.mapboxgl-map').first();
         await expect(mapContainer).toBeVisible({ timeout: 10000 });
 
         // First marker
