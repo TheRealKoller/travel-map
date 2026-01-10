@@ -54,6 +54,9 @@ test.describe('Arrow-Based Tour Management', () => {
             timeout: 10000,
         });
 
+        // Wait for trip to be selected (important for marker creation!)
+        await page.waitForTimeout(2000);
+
         // Close the sidebar to remove any lingering overlays
         await expect(sidebarTrigger).toBeVisible({ timeout: 5000 });
         await sidebarTrigger.click({ force: true });
@@ -68,7 +71,14 @@ test.describe('Arrow-Based Tour Management', () => {
         await expect(mapContainer).toBeVisible({ timeout: 10000 });
         await mapContainer.click({ position: { x: 300, y: 300 } });
 
-        // Wait for the marker creation API call
+        // Wait for marker form to appear
+        await page.waitForTimeout(1000);
+
+        // Fill in marker name and save
+        const nameInput = page.locator('#marker-name');
+        await expect(nameInput).toBeVisible({ timeout: 5000 });
+        await nameInput.fill('Test Marker');
+
         const markerCreationPromise = page.waitForResponse(
             (response) =>
                 response.url().includes('/markers') &&
@@ -76,6 +86,10 @@ test.describe('Arrow-Based Tour Management', () => {
                 response.status() === 201,
             { timeout: 10000 },
         );
+
+        const saveButton = page.getByTestId('button-save-marker');
+        await expect(saveButton).toBeVisible({ timeout: 5000 });
+        await saveButton.click();
 
         await markerCreationPromise;
 
@@ -124,7 +138,14 @@ test.describe('Arrow-Based Tour Management', () => {
         await expect(mapContainer).toBeVisible({ timeout: 10000 });
         await mapContainer.click({ position: { x: 300, y: 300 } });
 
-        // Wait for the marker creation API call
+        // Wait for marker form to appear
+        await page.waitForTimeout(1000);
+
+        // Fill in marker name and save
+        const nameInput = page.locator('#marker-name');
+        await expect(nameInput).toBeVisible({ timeout: 5000 });
+        await nameInput.fill('Test Marker');
+
         const markerCreationPromise = page.waitForResponse(
             (response) =>
                 response.url().includes('/markers') &&
@@ -132,6 +153,10 @@ test.describe('Arrow-Based Tour Management', () => {
                 response.status() === 201,
             { timeout: 10000 },
         );
+
+        const saveButton = page.getByTestId('button-save-marker');
+        await expect(saveButton).toBeVisible({ timeout: 5000 });
+        await saveButton.click();
 
         await markerCreationPromise;
 
@@ -202,6 +227,11 @@ test.describe('Arrow-Based Tour Management', () => {
 
         // First marker
         await mapContainer.click({ position: { x: 300, y: 300 } });
+        await page.waitForTimeout(1000);
+
+        let nameInput = page.locator('#marker-name');
+        await expect(nameInput).toBeVisible({ timeout: 5000 });
+        await nameInput.fill('First Marker');
 
         let markerCreationPromise = page.waitForResponse(
             (response) =>
@@ -211,10 +241,19 @@ test.describe('Arrow-Based Tour Management', () => {
             { timeout: 10000 },
         );
 
+        let saveButton = page.getByTestId('button-save-marker');
+        await expect(saveButton).toBeVisible({ timeout: 5000 });
+        await saveButton.click();
         await markerCreationPromise;
+        await page.waitForTimeout(500);
 
         // Second marker
         await mapContainer.click({ position: { x: 400, y: 400 } });
+        await page.waitForTimeout(1000);
+
+        nameInput = page.locator('#marker-name');
+        await expect(nameInput).toBeVisible({ timeout: 5000 });
+        await nameInput.fill('Second Marker');
 
         markerCreationPromise = page.waitForResponse(
             (response) =>
@@ -224,7 +263,11 @@ test.describe('Arrow-Based Tour Management', () => {
             { timeout: 10000 },
         );
 
+        saveButton = page.getByTestId('button-save-marker');
+        await expect(saveButton).toBeVisible({ timeout: 5000 });
+        await saveButton.click();
         await markerCreationPromise;
+        await page.waitForTimeout(500);
 
         // Wait for markers to appear in list
         const markerList = page.getByTestId('marker-list');

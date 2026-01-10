@@ -338,6 +338,7 @@ export default function MarkerForm({
                         onClick={handleSave}
                         disabled={!name.trim()}
                         className="w-full rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:bg-gray-400"
+                        data-testid="button-save-marker"
                     >
                         Save
                     </button>
