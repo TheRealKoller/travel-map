@@ -41,7 +41,6 @@ jobs:
       - name: Set Test Environment Variables
         run: |
           echo "MAPBOX_ACCESS_TOKEN=test-token-for-ci" >> .env
-          echo "VITE_MAPBOX_ACCESS_TOKEN=\"${MAPBOX_ACCESS_TOKEN}\"" >> .env
 
       - name: Install Node Dependencies
         run: npm ci
