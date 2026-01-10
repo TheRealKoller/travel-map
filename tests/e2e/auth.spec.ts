@@ -10,16 +10,26 @@ test.describe('Authentication', () => {
     test('user can visit login page', async ({ page }) => {
         await page.goto('/login');
         await expect(page).toHaveTitle(/Log in/);
-        await expect(page.locator('input[name="email"]')).toBeVisible();
-        await expect(page.locator('input[name="password"]')).toBeVisible();
+        
+        const emailInput = page.locator('input[name="email"]');
+        await expect(emailInput).toBeVisible({ timeout: 5000 });
+        
+        const passwordInput = page.locator('input[name="password"]');
+        await expect(passwordInput).toBeVisible({ timeout: 5000 });
     });
 
     test('user can visit registration page', async ({ page }) => {
         await page.goto('/register');
         await expect(page).toHaveTitle(/Register|Sign up/);
-        await expect(page.locator('input[name="name"]')).toBeVisible();
-        await expect(page.locator('input[name="email"]')).toBeVisible();
-        await expect(page.locator('input[name="password"]')).toBeVisible();
+        
+        const nameInput = page.locator('input[name="name"]');
+        await expect(nameInput).toBeVisible({ timeout: 5000 });
+        
+        const emailInput = page.locator('input[name="email"]');
+        await expect(emailInput).toBeVisible({ timeout: 5000 });
+        
+        const passwordInput = page.locator('input[name="password"]');
+        await expect(passwordInput).toBeVisible({ timeout: 5000 });
     });
 
     test('guest is redirected to login when accessing protected pages', async ({
@@ -44,10 +54,14 @@ test.describe('Authentication', () => {
         await page.fill('input[name="email"]', 'invalid-email');
         await page.fill('input[name="password"]', 'password123');
         await page.fill('input[name="password_confirmation"]', 'password123');
-        await page.click('button[type="submit"]');
+        
+        const registerButton = page.getByTestId('register-user-button');
+        await expect(registerButton).toBeVisible({ timeout: 5000 });
+        await registerButton.click();
 
         // Should show validation error
-        await expect(page.locator('text=/email/i')).toBeVisible();
+        const errorMessage = page.locator('text=/email/i');
+        await expect(errorMessage).toBeVisible({ timeout: 5000 });
     });
 
     test('user cannot register with mismatched passwords', async ({
@@ -60,12 +74,14 @@ test.describe('Authentication', () => {
         await page.fill('input[name="email"]', email);
         await page.fill('input[name="password"]', 'password123');
         await page.fill('input[name="password_confirmation"]', 'different123');
-        await page.click('button[type="submit"]');
+        
+        const registerButton = page.getByTestId('register-user-button');
+        await expect(registerButton).toBeVisible({ timeout: 5000 });
+        await registerButton.click();
 
         // Should show validation error for password confirmation mismatch
-        await expect(
-            page.locator('text=/password.*confirmation|must match/i').first(),
-        ).toBeVisible();
+        const errorMessage = page.locator('text=/password.*confirmation|must match/i').first();
+        await expect(errorMessage).toBeVisible({ timeout: 5000 });
     });
 });
 
@@ -74,7 +90,10 @@ test.describe('Login and Logout', () => {
         await page.goto('/login');
         await page.fill('input[name="email"]', 'wrong@example.com');
         await page.fill('input[name="password"]', 'wrongpassword');
-        await page.click('button[type="submit"]');
+        
+        const loginButton = page.getByTestId('login-button');
+        await expect(loginButton).toBeVisible({ timeout: 5000 });
+        await loginButton.click();
 
         // Should stay on login page (not redirect to dashboard/home)
         await page.waitForTimeout(1000); // Wait for any redirect attempts
@@ -87,13 +106,6 @@ test.describe('Login and Logout', () => {
 
         // First register a user
         await register(page, 'Test User', email, password);
-
-        // If redirected to email verification, skip it for testing
-        const currentUrl = page.url();
-        if (currentUrl.includes('verify-email')) {
-            // Mark email as verified via direct database update
-            // For now, we'll try to proceed anyway
-        }
 
         // Logout
         await logout(page);

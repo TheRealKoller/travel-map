@@ -34,9 +34,15 @@ export default function TourTabs({
             className="w-full"
         >
             <TabsList className="mb-3 flex w-full justify-start overflow-x-auto">
-                <TabsTrigger value="all">All markers</TabsTrigger>
+                <TabsTrigger value="all" data-testid="tour-tab-all-markers">
+                    All markers
+                </TabsTrigger>
                 {tours.map((tour) => (
-                    <TabsTrigger key={tour.id} value={tour.id.toString()}>
+                    <TabsTrigger
+                        key={tour.id}
+                        value={tour.id.toString()}
+                        data-testid="tour-tab"
+                    >
                         {tour.name}
                     </TabsTrigger>
                 ))}
@@ -47,6 +53,7 @@ export default function TourTabs({
                         e.preventDefault();
                         onCreateTour();
                     }}
+                    data-testid="tour-tab-create-new"
                 >
                     <Plus className="h-4 w-4" />
                 </TabsTrigger>

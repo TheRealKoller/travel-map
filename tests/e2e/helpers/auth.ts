@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { expect, Page } from '@playwright/test';
 import { randomUUID } from 'crypto';
 
 /**
@@ -20,7 +20,9 @@ export async function login(
     await page.fill('input[name="password"]', password);
     
     // Click submit and wait for navigation away from login
-    await page.click('button[type="submit"]');
+    const loginButton = page.getByTestId('login-button');
+    await expect(loginButton).toBeVisible({ timeout: 5000 });
+    await loginButton.click();
     
     // Wait for successful login - should NOT be on login page anymore
     await page.waitForURL((url) => !url.pathname.includes('/login'), {
@@ -43,7 +45,9 @@ export async function register(
     await page.fill('input[name="password_confirmation"]', password);
     
     // Submit form and wait for navigation away from register
-    await page.click('button[type="submit"]');
+    const registerButton = page.getByTestId('register-user-button');
+    await expect(registerButton).toBeVisible({ timeout: 5000 });
+    await registerButton.click();
     
     // Wait for successful registration - should NOT be on register page anymore
     await page.waitForURL((url) => !url.pathname.includes('/register'), {
@@ -61,20 +65,20 @@ export async function logout(page: Page) {
     
     // First open the sidebar using the trigger button
     const sidebarTrigger = page.locator('[data-sidebar="trigger"]');
-    await sidebarTrigger.waitFor({ state: 'visible', timeout: 5000 });
+    await expect(sidebarTrigger).toBeVisible({ timeout: 5000 });
     await sidebarTrigger.click();
     
     // Wait a bit for sidebar animation
     await page.waitForTimeout(300);
     
     // Now click the menu button in the opened sidebar
-    const menuButton = page.locator('[data-test="sidebar-menu-button"]');
-    await menuButton.waitFor({ state: 'visible', timeout: 5000 });
+    const menuButton = page.getByTestId('sidebar-menu-button');
+    await expect(menuButton).toBeVisible({ timeout: 5000 });
     await menuButton.click();
     
     // Wait for dropdown to open and click logout
-    const logoutButton = page.locator('[data-test="logout-button"]');
-    await logoutButton.waitFor({ state: 'visible', timeout: 5000 });
+    const logoutButton = page.getByTestId('logout-button');
+    await expect(logoutButton).toBeVisible({ timeout: 5000 });
     await logoutButton.click();
     
     // Wait for redirect to login
