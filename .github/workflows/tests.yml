@@ -38,6 +38,10 @@ jobs:
       - name: Generate Application Key
         run: php artisan key:generate
 
+      - name: Set Test Environment Variables
+        run: |
+          echo "MAPBOX_ACCESS_TOKEN=test-token-for-ci" >> .env
+
       - name: Install Node Dependencies
         run: npm ci
 
@@ -84,6 +88,10 @@ jobs:
 
       - name: Generate Application Key
         run: php artisan key:generate
+
+      - name: Set Test Environment Variables
+        run: |
+          echo "MAPBOX_ACCESS_TOKEN=test-token-for-ci" >> .env
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
