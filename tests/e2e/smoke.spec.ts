@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures/request-logger';
 import { setupMapboxMock } from './helpers/mapbox-mock';
 
 test.describe('Smoke Tests', () => {

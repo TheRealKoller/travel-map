@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures/request-logger';
 import { generateUniqueEmail, login, logout, register } from './helpers/auth';
 import { setupMapboxMock } from './helpers/mapbox-mock';
 

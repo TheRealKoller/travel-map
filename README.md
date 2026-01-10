@@ -222,6 +222,34 @@ npm run test:e2e:debug
 - One test (user can navigate from dashboard to map) may occasionally fail when run in parallel due to database timing
 - One test (registered user can login and logout) is temporarily skipped pending fixes to the user menu dropdown interaction
 
+#### E2E Test Debugging with Request Logger
+
+All E2E tests automatically log HTTP requests, responses, console messages, and errors using a custom Playwright fixture. This helps debug issues in both local development and CI/CD pipelines.
+
+**Features:**
+- 📊 Automatic request/response tracking
+- ❌ Failed request detection
+- 🔴 Console error capture
+- 📎 Attachments in Playwright HTML reports (only on failures)
+
+**Logs are automatically attached when:**
+- ❌ Test fails
+- ❌ Any HTTP request fails
+- ❌ Console errors are detected
+
+**View logs:**
+```bash
+# Run tests
+npm run test:e2e
+
+# Open HTML report
+npx playwright show-report
+```
+
+In CI/CD, download the Playwright report artifact from GitHub Actions to view detailed logs.
+
+For more information, see [tests/e2e/fixtures/README.md](tests/e2e/fixtures/README.md)
+
 For more details on E2E testing, see [tests/e2e/README.md](tests/e2e/README.md)
 
 ## Contributing
