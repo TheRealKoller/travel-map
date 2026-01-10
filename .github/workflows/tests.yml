@@ -93,13 +93,24 @@ jobs:
       - name: Generate Application Key
         run: php artisan key:generate
 
-      - name: Copy E2E Environment File
-        run: cp .env.e2e .env.e2e || cp .env.example .env.e2e
+      - name: Setup E2E Environment File
+        run: |
+          if [ -f .env.e2e ]; then
+            cp .env.e2e .env.e2e.tmp
+          else
+            cp .env.example .env.e2e.tmp
+          fi
+          # Ensure E2E specific configuration
+          echo "" >> .env.e2e.tmp
+          echo "APP_ENV=testing" >> .env.e2e.tmp
+          echo "DB_CONNECTION=sqlite" >> .env.e2e.tmp
+          echo "DB_DATABASE=database/e2e.sqlite" >> .env.e2e.tmp
+          echo "VITE_MAPBOX_ACCESS_TOKEN=pk.test.mock-token-for-e2e-tests" >> .env.e2e.tmp
+          mv .env.e2e.tmp .env.e2e
 
       - name: Set Test Environment Variables
         run: |
           echo "MAPBOX_ACCESS_TOKEN=test-token-for-ci" >> .env
-          echo "VITE_MAPBOX_ACCESS_TOKEN=pk.test.mock-token-for-e2e-tests" >> .env.e2e
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
