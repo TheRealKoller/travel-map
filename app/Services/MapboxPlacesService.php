@@ -13,7 +13,7 @@ class MapboxPlacesService
     private const TIMEOUT_SECONDS = 30;
 
     public function __construct(
-        private readonly string $accessToken
+        private readonly ?string $accessToken = null
     ) {}
 
     /**
@@ -27,6 +27,17 @@ class MapboxPlacesService
      */
     public function searchNearby(float $latitude, float $longitude, int $radiusKm, ?PlaceType $placeType = null): array
     {
+        // Return empty results if no access token is configured
+        if (empty($this->accessToken)) {
+            Log::warning('Mapbox API called without access token configured');
+            
+            return [
+                'count' => 0,
+                'results' => [],
+                'error' => null,
+            ];
+        }
+
         try {
             // Additional validation for defense in depth
             if ($latitude < -90 || $latitude > 90) {
