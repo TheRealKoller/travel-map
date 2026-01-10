@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
     $this->user = User::factory()->withoutTwoFactor()->create();
-    
+
     // Ensure Mapbox access token is set for tests
     // This allows HTTP mocks to work correctly
     Config::set('services.mapbox.access_token', 'test-token');

@@ -106,12 +106,15 @@ const getColorForType = (type: MarkerType): string => {
 };
 
 // Helper function to create a custom marker element for Mapbox GL
-const createMarkerElement = (type: MarkerType, isHighlighted = false): HTMLDivElement => {
+const createMarkerElement = (
+    type: MarkerType,
+    isHighlighted = false,
+): HTMLDivElement => {
     const el = document.createElement('div');
     el.className = 'custom-marker';
     const color = isHighlighted ? 'red' : getColorForType(type);
     const icon = getIconForType(type);
-    
+
     el.innerHTML = `
         <div style="
             background-color: ${color};
@@ -136,7 +139,7 @@ const createMarkerElement = (type: MarkerType, isHighlighted = false): HTMLDivEl
             </div>
         </div>
     `;
-    
+
     return el;
 };
 
@@ -350,21 +353,22 @@ export default function TravelMap({
                 const mapboxMarker = prevMarker.marker;
                 const [lng, lat] = [prevMarker.lng, prevMarker.lat];
                 const el = createMarkerElement(prevMarker.type, false);
-                
+
                 // Remove and recreate marker with new element
                 mapboxMarker.remove();
                 const newMarker = new mapboxgl.Marker(el)
                     .setLngLat([lng, lat])
                     .addTo(map);
-                
-                const popup = new mapboxgl.Popup({ offset: 25 })
-                    .setText(prevMarker.name || 'Unnamed Location');
+
+                const popup = new mapboxgl.Popup({ offset: 25 }).setText(
+                    prevMarker.name || 'Unnamed Location',
+                );
                 newMarker.setPopup(popup);
-                
+
                 el.addEventListener('click', () => {
                     setSelectedMarkerId(prevMarker.id);
                 });
-                
+
                 // Update the marker reference
                 prevMarker.marker = newMarker;
             }
@@ -379,21 +383,22 @@ export default function TravelMap({
                 const mapboxMarker = selectedMarker.marker;
                 const [lng, lat] = [selectedMarker.lng, selectedMarker.lat];
                 const el = createMarkerElement(selectedMarker.type, true);
-                
+
                 // Remove and recreate marker with new element
                 mapboxMarker.remove();
                 const newMarker = new mapboxgl.Marker(el)
                     .setLngLat([lng, lat])
                     .addTo(map);
-                
-                const popup = new mapboxgl.Popup({ offset: 25 })
-                    .setText(selectedMarker.name || 'Unnamed Location');
+
+                const popup = new mapboxgl.Popup({ offset: 25 }).setText(
+                    selectedMarker.name || 'Unnamed Location',
+                );
                 newMarker.setPopup(popup);
-                
+
                 el.addEventListener('click', () => {
                     setSelectedMarkerId(selectedMarker.id);
                 });
-                
+
                 // Update the marker reference
                 selectedMarker.marker = newMarker;
             }
@@ -459,15 +464,18 @@ export default function TravelMap({
                 `;
 
                 // Create the marker
-                const marker = new mapboxgl.Marker(el)
-                    .setLngLat([result.lon, result.lat]);
+                const marker = new mapboxgl.Marker(el).setLngLat([
+                    result.lon,
+                    result.lat,
+                ]);
 
                 // Add tooltip with priority: English name > International name > Local name
                 const displayName =
                     result.name_en || result.name_int || result.name;
                 if (displayName) {
-                    const popup = new mapboxgl.Popup({ offset: 25 })
-                        .setText(displayName);
+                    const popup = new mapboxgl.Popup({ offset: 25 }).setText(
+                        displayName,
+                    );
                     marker.setPopup(popup);
                 }
 
@@ -503,8 +511,9 @@ export default function TravelMap({
                     };
 
                     // Add popup to marker
-                    const popup = new mapboxgl.Popup({ offset: 25 })
-                        .setText(markerName || 'Unnamed Location');
+                    const popup = new mapboxgl.Popup({ offset: 25 }).setText(
+                        markerName || 'Unnamed Location',
+                    );
                     newMarker.setPopup(popup);
 
                     // Add click handler to marker
@@ -549,20 +558,22 @@ export default function TravelMap({
         if (searchCoordinates) {
             const layerId = `search-radius-${Date.now()}`;
             const radiusInMeters = searchRadius * 1000; // Convert km to meters
-            
+
             // Create a circle using turf-like approach (approximation with points)
             const points = 64;
             const coords: [number, number][] = [];
             const distanceX = radiusInMeters / 111320; // degrees longitude
             const distanceY = radiusInMeters / 110540; // degrees latitude
-            
+
             for (let i = 0; i < points; i++) {
                 const angle = (i / points) * 2 * Math.PI;
-                const dx = distanceX * Math.cos(angle) / Math.cos(searchCoordinates.lat * Math.PI / 180);
+                const dx =
+                    (distanceX * Math.cos(angle)) /
+                    Math.cos((searchCoordinates.lat * Math.PI) / 180);
                 const dy = distanceY * Math.sin(angle);
                 coords.push([
                     searchCoordinates.lng + dx,
-                    searchCoordinates.lat + dy
+                    searchCoordinates.lat + dy,
                 ]);
             }
             coords.push(coords[0]); // Close the circle
@@ -574,9 +585,9 @@ export default function TravelMap({
                     properties: {},
                     geometry: {
                         type: 'Polygon',
-                        coordinates: [coords]
-                    }
-                }
+                        coordinates: [coords],
+                    },
+                },
             });
 
             map.addLayer({
@@ -587,8 +598,8 @@ export default function TravelMap({
                     'line-color': 'gray',
                     'line-width': 2,
                     'line-dasharray': [2, 2],
-                    'line-opacity': 0.8
-                }
+                    'line-opacity': 0.8,
+                },
             });
 
             map.addLayer({
@@ -597,8 +608,8 @@ export default function TravelMap({
                 source: layerId,
                 paint: {
                     'fill-color': 'gray',
-                    'fill-opacity': 0.1
-                }
+                    'fill-opacity': 0.1,
+                },
             });
 
             searchRadiusCircleLayerIdRef.current = layerId;
@@ -626,12 +637,16 @@ export default function TravelMap({
 
         // Get Mapbox access token from environment variable (vite exposes as import.meta.env)
         const mapboxToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '';
-        
+
         if (!mapboxToken) {
-            console.warn('Mapbox access token not found. Using public demo token (not for production).');
+            console.warn(
+                'Mapbox access token not found. Using public demo token (not for production).',
+            );
         }
-        
-        mapboxgl.accessToken = mapboxToken || 'pk.eyJ1IjoidHJhdmVsLW1hcC1kZW1vIiwiYSI6ImNtMTBhYmMxMjAwMDAya3M0MXl2ZHFyZWEifQ.demo';
+
+        mapboxgl.accessToken =
+            mapboxToken ||
+            'pk.eyJ1IjoidHJhdmVsLW1hcC1kZW1vIiwiYSI6ImNtMTBhYmMxMjAwMDAya3M0MXl2ZHFyZWEifQ.demo';
 
         // Initialize the map
         const map = new mapboxgl.Map({
@@ -700,10 +715,9 @@ export default function TravelMap({
                 .setLngLat([lng, lat])
                 .addTo(map);
 
-            const popup = new mapboxgl.Popup({ offset: 25 })
-                .setHTML(
-                    `<strong>${placeName}</strong><br><small>Click on this marker to add it permanently</small>`,
-                );
+            const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
+                `<strong>${placeName}</strong><br><small>Click on this marker to add it permanently</small>`,
+            );
             searchMarker.setPopup(popup);
             popup.addTo(map);
 
@@ -720,7 +734,7 @@ export default function TravelMap({
                 const marker = new mapboxgl.Marker(markerEl)
                     .setLngLat([lng, lat])
                     .addTo(map);
-                    
+
                 const markerId = uuidv4();
                 const markerData: MarkerData = {
                     id: markerId,
@@ -736,8 +750,9 @@ export default function TravelMap({
                 };
 
                 // Add popup to marker
-                const markerPopup = new mapboxgl.Popup({ offset: 25 })
-                    .setText(placeName);
+                const markerPopup = new mapboxgl.Popup({ offset: 25 }).setText(
+                    placeName,
+                );
                 marker.setPopup(markerPopup);
 
                 // Add click handler to permanent marker
@@ -805,12 +820,20 @@ export default function TravelMap({
                         const points = 8;
                         for (let i = 0; i < points; i++) {
                             const angle = (i / points) * 2 * Math.PI;
-                            const dx = (radiusInMeters / 111320) * Math.cos(angle) / Math.cos(lat * Math.PI / 180);
-                            const dy = (radiusInMeters / 110540) * Math.sin(angle);
+                            const dx =
+                                ((radiusInMeters / 111320) * Math.cos(angle)) /
+                                Math.cos((lat * Math.PI) / 180);
+                            const dy =
+                                (radiusInMeters / 110540) * Math.sin(angle);
                             bounds.extend([lng + dx, lat + dy]);
                         }
                         map.fitBounds(bounds, {
-                            padding: { top: 50, bottom: 50, left: 50, right: 350 },
+                            padding: {
+                                top: 50,
+                                bottom: 50,
+                                left: 50,
+                                right: 350,
+                            },
                         });
                     }
                 } catch (error) {
@@ -834,7 +857,7 @@ export default function TravelMap({
             const marker = new mapboxgl.Marker(markerEl)
                 .setLngLat([lng, lat])
                 .addTo(map);
-                
+
             const markerId = uuidv4();
             const markerData: MarkerData = {
                 id: markerId,
@@ -850,8 +873,9 @@ export default function TravelMap({
             };
 
             // Add popup to marker
-            const popup = new mapboxgl.Popup({ offset: 25 })
-                .setText('Unnamed Location');
+            const popup = new mapboxgl.Popup({ offset: 25 }).setText(
+                'Unnamed Location',
+            );
             marker.setPopup(popup);
 
             // Add click handler to marker
@@ -912,10 +936,11 @@ export default function TravelMap({
                             .setLngLat([dbMarker.longitude, dbMarker.latitude])
                             .addTo(map);
 
-                        const popup = new mapboxgl.Popup({ offset: 25 })
-                            .setText(dbMarker.name || 'Unnamed Location');
+                        const popup = new mapboxgl.Popup({
+                            offset: 25,
+                        }).setText(dbMarker.name || 'Unnamed Location');
                         marker.setPopup(popup);
-                        
+
                         el.addEventListener('click', () => {
                             setSelectedMarkerId(dbMarker.id);
                         });
@@ -1042,9 +1067,9 @@ export default function TravelMap({
                         .setLngLat(e.lngLat)
                         .setHTML(
                             `<strong>${props.startName} → ${props.endName}</strong><br>` +
-                            `Mode: ${props.mode}<br>` +
-                            `Distance: ${props.distance} km<br>` +
-                            `Duration: ${props.duration} min`,
+                                `Mode: ${props.mode}<br>` +
+                                `Distance: ${props.distance} km<br>` +
+                                `Duration: ${props.duration} min`,
                         )
                         .addTo(map);
                 }
@@ -1128,8 +1153,9 @@ export default function TravelMap({
             if (marker) {
                 const mapboxMarker = marker.marker;
                 const [lng, lat] = [marker.lng, marker.lat];
-                const popup = new mapboxgl.Popup({ offset: 25 })
-                    .setText(name || 'Unnamed Location');
+                const popup = new mapboxgl.Popup({ offset: 25 }).setText(
+                    name || 'Unnamed Location',
+                );
                 mapboxMarker.setPopup(popup);
 
                 // Update marker icon if type changed
@@ -1137,14 +1163,14 @@ export default function TravelMap({
                 el.addEventListener('click', () => {
                     setSelectedMarkerId(id);
                 });
-                
+
                 // Remove and recreate marker with new element
                 mapboxMarker.remove();
                 const newMarker = new mapboxgl.Marker(el)
                     .setLngLat([lng, lat])
                     .setPopup(popup)
                     .addTo(mapInstanceRef.current!);
-                
+
                 // Update the marker reference
                 marker.marker = newMarker;
             }

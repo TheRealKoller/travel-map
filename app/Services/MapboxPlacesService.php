@@ -30,7 +30,7 @@ class MapboxPlacesService
         // Return empty results if no access token is configured
         if (empty($this->accessToken)) {
             Log::warning('Mapbox API called without access token configured');
-            
+
             return [
                 'count' => 0,
                 'results' => [],
