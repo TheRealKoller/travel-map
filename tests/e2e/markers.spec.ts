@@ -110,7 +110,6 @@ test.describe('Marker Editing', () => {
         await page.waitForTimeout(1500);
 
         // Verify page is still functional
-        const mapContainer = page.locator('.mapboxgl-map');
         await expect(mapContainer).toBeVisible();
     });
 });
