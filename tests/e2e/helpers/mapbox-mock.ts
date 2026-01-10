@@ -9,23 +9,11 @@ export async function mockMapboxRequests(page: Page) {
     await page.route('**/*api.mapbox.com/**', async (route) => {
         const url = route.request().url();
 
-        // Mock tiles (raster and vector)
-        if (url.includes('/v4/') || url.includes('/styles/v1/')) {
-            // Return empty 1x1 transparent PNG for tiles
-            const emptyTile = Buffer.from(
-                'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
-                'base64',
-            );
-            await route.fulfill({
-                status: 200,
-                contentType: 'image/png',
-                body: emptyTile,
-            });
-            return;
-        }
-
-        // Mock style requests
-        if (url.includes('/styles/v1/') && url.includes('?access_token=')) {
+        // Mock style requests (must come BEFORE tile check since they share /styles/v1/ path)
+        if (
+            url.includes('/styles/v1/') &&
+            (url.includes('?access_token=') || url.includes('&access_token='))
+        ) {
             await route.fulfill({
                 status: 200,
                 contentType: 'application/json',
@@ -49,6 +37,21 @@ export async function mockMapboxRequests(page: Page) {
                     glyphs: 'http://localhost/fonts/{fontstack}/{range}.pbf',
                     sprite: 'http://localhost/sprite',
                 }),
+            });
+            return;
+        }
+
+        // Mock tiles (raster and vector) - now checked after styles
+        if (url.includes('/v4/') || url.includes('/tiles/')) {
+            // Return empty 1x1 transparent PNG for tiles
+            const emptyTile = Buffer.from(
+                'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+                'base64',
+            );
+            await route.fulfill({
+                status: 200,
+                contentType: 'image/png',
+                body: emptyTile,
             });
             return;
         }
@@ -103,7 +106,21 @@ export async function mockMapboxRequests(page: Page) {
             return;
         }
 
-        // Mock any other Mapbox API requests
+        // Mock any PNG requests (tiles, sprites, etc.) - must be PNG, not JSON
+        if (url.endsWith('.png') || url.includes('.png?')) {
+            const emptyPng = Buffer.from(
+                'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+                'base64',
+            );
+            await route.fulfill({
+                status: 200,
+                contentType: 'image/png',
+                body: emptyPng,
+            });
+            return;
+        }
+
+        // Mock any other Mapbox API requests with empty JSON
         await route.fulfill({
             status: 200,
             contentType: 'application/json',
