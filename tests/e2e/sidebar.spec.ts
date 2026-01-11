@@ -1,8 +1,12 @@
 import { expect, test } from './fixtures/request-logger';
 import { generateUniqueEmail, register } from './helpers/auth';
+import { setupMapboxMock } from './helpers/mapbox-mock';
 
 test.describe('Sidebar Navigation', () => {
     test.beforeEach(async ({ page }) => {
+        // Setup Mapbox mock before any navigation
+        await setupMapboxMock(page);
+        
         // Register and login a test user
         const email = generateUniqueEmail();
         await register(page, 'Test User', email, 'password123');

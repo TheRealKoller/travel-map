@@ -1,11 +1,15 @@
 import { expect, test } from './fixtures/request-logger';
 import { generateUniqueEmail, register } from './helpers/auth';
+import { setupMapboxMock } from './helpers/mapbox-mock';
 
 test.describe('Debug: Request Logging', () => {
     test('log all requests and responses after authentication', async ({
         page,
         requestLogger,
     }) => {
+        // Setup Mapbox mock before any navigation
+        await setupMapboxMock(page);
+        
         // Request logger fixture automatically tracks all requests, responses, 
         // console messages, and errors. No need to set up manual listeners.
 
