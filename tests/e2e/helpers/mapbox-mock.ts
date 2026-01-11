@@ -171,7 +171,7 @@ export async function setupMapboxMock(page: Page) {
     // This must happen before any script that uses mapboxgl runs
     await page.addInitScript(() => {
         // Create a properly formatted fake token (pk.xxx.yyy format)
-        const fakeToken = 'pk.eyJ1IjoidGVzdCIsImEiOiJ0ZXN0In0.test';
+        const fakeToken = 'pk.eyJ1IjoidGhlLWtvbGxlciIsImEiOiJjbWs5eHBobTMwcTUwM2dyMmdwMGVqenQ4In0.dSooQl188W3T2_dRLUsZMg';
         
         // Set window.mapboxgl.accessToken as soon as mapboxgl is defined
         Object.defineProperty(window, 'mapboxgl', {
