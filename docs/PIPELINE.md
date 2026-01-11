@@ -110,8 +110,7 @@ This document provides a visual overview of the CI/CD pipeline implemented for t
 - Runs after lint passes
 - Comprehensive test suite
 - **Backend:** Pest (41 unit & feature tests)
-- **Frontend:** Playwright E2E tests
-- Uploads test artifacts (Playwright report)
+- Uploads test artifacts
 
 #### Build Job
 - Runs after tests pass

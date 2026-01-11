@@ -111,7 +111,6 @@ All pull requests automatically trigger:
 - **Testing** - Comprehensive test suite
   - Unit tests (Pest)
   - Feature tests (Pest)
-  - E2E tests (Playwright)
 
 - **Build** - Asset compilation
   - Frontend assets (Vite)

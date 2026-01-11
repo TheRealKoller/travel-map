@@ -145,13 +145,10 @@ jobs:
             --exclude='.idea' \
             --exclude='.fleet' \
             --exclude='.nova' \
-            --exclude='playwright-report' \
-            --exclude='test-results' \
             --exclude='README.md' \
             --exclude='DEPLOYMENT*.md' \
             --exclude='docker-compose.yml' \
             --exclude='phpunit.xml' \
-            --exclude='playwright.config.ts' \
             --exclude='scripts' \
             ./ deploy/
           

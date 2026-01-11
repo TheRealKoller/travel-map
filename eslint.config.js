@@ -36,8 +36,6 @@ export default [
             'public',
             'bootstrap/ssr',
             'tailwind.config.js',
-            'playwright-report',
-            'test-results',
         ],
     },
     prettier, // Turn off all rules that might conflict with Prettier

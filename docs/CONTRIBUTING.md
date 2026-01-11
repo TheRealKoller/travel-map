@@ -163,8 +163,6 @@ npm run test:e2e         # Run E2E tests
   - Unit tests: `tests/Unit/`
   - Feature tests: `tests/Feature/`
 
-- **E2E tests**: Use Playwright in `tests/e2e/` directory
-
 Example PHP test:
 ```php
 test('user can create a marker', function () {

@@ -10,7 +10,7 @@ The Mapbox Geocoder for location search was **already implemented** in the codeb
 
 ### 1. **Testability Enhancement**
 - Added `data-testid="map-geocoder"` attribute to the geocoder control
-- Enables reliable E2E testing using Playwright
+- Enables reliable testing
 - Follows project testing best practices
 
 ### 2. **Comprehensive Test Suite**
