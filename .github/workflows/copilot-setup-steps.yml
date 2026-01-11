@@ -51,7 +51,7 @@ jobs:
       - name: Build Frontend Assets
         run: npm run build
         env:
-          VITE_MAPBOX_ACCESS_TOKEN: pk.test.mock-token-for-e2e-tests
+          VITE_MAPBOX_ACCESS_TOKEN: pk.eyJ1IjoidGhlLWtvbGxlciIsImEiOiJjbWs5eHBobTMwcTUwM2dyMmdwMGVqenQ4In0.dSooQl188W3T2_dRLUsZMg
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
