@@ -17,27 +17,9 @@ This generates a new application key and writes it to your `.env` file.
 
 ### For E2E Testing Environment (`.env.e2e`)
 
-The E2E testing environment uses a separate `.env.e2e` configuration file. The key is automatically generated when you run E2E tests:
+## Database Migrations
 
-**Locally:**
-```bash
-npm run test:e2e
-```
-
-The `playwright.config.ts` webServer command automatically runs `php artisan key:generate --force --env=e2e` before starting the test server.
-
-**In GitHub Actions:**
-The test workflow automatically generates the E2E key before running tests.
-
-### Manual E2E Key Generation
-
-If you need to manually generate an E2E application key:
-
-```bash
-php artisan key:generate --force --env=e2e
-```
-
-⚠️ **Important:** Never commit the generated `APP_KEY` to git. The `.env.e2e` file should have `APP_KEY=` (empty) in the repository.
+The project uses SQLite for development. Migrations are run automatically during setup.
 
 ### Verification
 

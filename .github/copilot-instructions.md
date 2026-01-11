@@ -122,7 +122,6 @@ php artisan test
 ### Test Structure
 - **Unit tests:** `tests/Unit/` - Pure unit tests
 - **Feature tests:** `tests/Feature/` - Integration tests with database
-- **E2E tests:** `tests/e2e/` - End-to-end tests with Playwright
 - Test configuration: `phpunit.xml` and `tests/Pest.php`
 - Tests automatically use `DB_CONNECTION=sqlite` and `DB_DATABASE=:memory:`
 
@@ -132,7 +131,7 @@ php artisan test
 
 ### General Testing Principles
 - **Mock ALL external services**: Mapbox, payment gateways, email services, etc.
-- **Intercept ALL HTTP requests**: Use Laravel's `Http::fake()` or Playwright's `page.route()` to intercept requests
+- **Intercept ALL HTTP requests**: Use Laravel's `Http::fake()` to intercept requests
 - **Provide fake responses**: All intercepted requests must return appropriate fake/mock responses
 - **Never use real API keys in tests**: Use fake tokens that follow the correct format but don't work with real APIs
 
@@ -148,37 +147,6 @@ php artisan test
   ```
 - Use `Http::preventStrayRequests()` to ensure no unmocked requests slip through
 - Mock external services using Laravel's service container or test doubles
-
-### E2E Tests (Playwright)
-- **ALWAYS call `setupMapboxMock(page)` before any page navigation** that uses Mapbox
-- The Mapbox mock intercepts ALL Mapbox API requests (tiles, styles, fonts, sprites, geocoding, events)
-- Add additional mocks for other 3rd-party services using `page.route()`:
-  ```typescript
-  await page.route('**/*api.stripe.com/**', async (route) => {
-      await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({ id: 'fake_payment_id' }),
-      });
-  });
-  ```
-- Check console for any failed network requests during test development
-- If you see real API requests in test output, immediately add mocking/interception
-
-### Example: Mapbox Mocking in E2E Tests
-```typescript
-import { setupMapboxMock } from './helpers/mapbox-mock';
-
-test.describe('Map Tests', () => {
-    test.beforeEach(async ({ page }) => {
-        // ALWAYS setup Mapbox mock BEFORE any navigation
-        await setupMapboxMock(page);
-        
-        // Now safe to navigate to pages with maps
-        await page.goto('/map');
-    });
-});
-```
 
 ### Why This Matters
 - **Speed**: Tests run faster without real API calls

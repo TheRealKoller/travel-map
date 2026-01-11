@@ -51,7 +51,7 @@ context: |
   - Backend: Laravel 12 (PHP 8.2+) with Inertia.js v2
   - Frontend: React 19, TypeScript, TailwindCSS v4, Vite 7
   - Database: SQLite (default), supports MySQL/PostgreSQL
-  - Testing: Pest (PHP), Playwright (E2E)
+  - Testing: Pest (PHP Unit & Feature Tests)
   - Maps: Leaflet.js
   
   Important commands:
