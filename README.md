@@ -23,6 +23,8 @@ This project follows the **GitHub Flow** branching strategy for a streamlined de
 - **[GitHub Actions](./docs/WORKFLOWS.md)** - Detailed CI/CD pipeline documentation
 - **[Workflow Diagrams](./docs/WORKFLOW_DIAGRAM.md)** - Visual workflow diagrams
 - **[Quick Reference](./docs/QUICK_REFERENCE.md)** - Common commands and troubleshooting
+- **[Mapbox Geocoder Feature](./docs/GEOCODER_FEATURE.md)** - Location search functionality documentation
+- **[Mapbox Migration Guide](./docs/MAPBOX_MIGRATION.md)** - Migration from Leaflet to Mapbox GL JS
 
 
 ### 🚀 Quick Start
@@ -57,10 +59,13 @@ When GitHub Copilot starts working on an issue, it will automatically:
 
 For detailed instructions and project conventions, see [`.github/copilot-instructions.md`](.github/copilot-instructions.md).
 
-## Some infos and links
-* icons https://fontawesome.com/search?o=r&ic=free&s=regular&ip=classic
-* marker icons: https://github.com/lennardv2/Leaflet.awesome-markers
-* map library: https://leafletjs.com/
+## Features & Technology
+
+* **Icons**: [FontAwesome](https://fontawesome.com/search?o=r&ic=free&s=regular&ip=classic)
+* **Map Library**: [Mapbox GL JS](https://docs.mapbox.com/mapbox-gl-js/) (migrated from Leaflet)
+* **Location Search**: [Mapbox Geocoder](https://github.com/mapbox/mapbox-gl-geocoder)
+* **Frontend**: React 19 with TypeScript and Inertia.js
+* **Backend**: Laravel 12 with PHP 8.2+
 
 ## Requirements
 
