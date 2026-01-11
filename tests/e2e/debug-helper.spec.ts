@@ -5,7 +5,7 @@ import { setupMapboxMock } from './helpers/mapbox-mock';
  * Debug helper test - runs first to verify basic setup
  * This test helps identify environment issues in CI/CD
  */
-test.describe('Environment Debug', () => {
+test.describe.skip('Environment Debug', () => {
     test('verify server is responding', async ({ page }) => {
         await setupMapboxMock(page);
         

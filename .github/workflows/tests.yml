@@ -48,7 +48,7 @@ jobs:
       - name: Build Assets
         run: npm run build
         env:
-          VITE_MAPBOX_ACCESS_TOKEN: pk.test.mock-token-for-e2e-tests
+          VITE_MAPBOX_ACCESS_TOKEN: pk.eyJ1IjoidGhlLWtvbGxlciIsImEiOiJjbWs5eHBobTMwcTUwM2dyMmdwMGVqenQ4In0.dSooQl188W3T2_dRLUsZMg
 
       - name: Run Database Migrations
         run: php artisan migrate --force
@@ -85,7 +85,7 @@ jobs:
       - name: Build Assets
         run: npm run build
         env:
-          VITE_MAPBOX_ACCESS_TOKEN: pk.test.mock-token-for-e2e-tests
+          VITE_MAPBOX_ACCESS_TOKEN: pk.eyJ1IjoidGhlLWtvbGxlciIsImEiOiJjbWs5eHBobTMwcTUwM2dyMmdwMGVqenQ4In0.dSooQl188W3T2_dRLUsZMg
 
       - name: Copy Environment File
         run: cp .env.example .env
@@ -110,8 +110,8 @@ jobs:
           echo "APP_DEBUG=true" >> .env.e2e
           echo "DB_CONNECTION=sqlite" >> .env.e2e
           echo "DB_DATABASE=database/e2e.sqlite" >> .env.e2e
-          echo "VITE_MAPBOX_ACCESS_TOKEN=pk.test.mock-token-for-e2e-tests" >> .env.e2e
-          echo "MAPBOX_ACCESS_TOKEN=pk.test.mock-token-for-e2e-tests" >> .env.e2e
+          echo "VITE_MAPBOX_ACCESS_TOKEN=pk.eyJ1IjoidGhlLWtvbGxlciIsImEiOiJjbWs5eHBobTMwcTUwM2dyMmdwMGVqenQ4In0.dSooQl188W3T2_dRLUsZMg" >> .env.e2e
+          echo "MAPBOX_ACCESS_TOKEN=pk.eyJ1IjoidGhlLWtvbGxlciIsImEiOiJjbWs5eHBobTMwcTUwM2dyMmdwMGVqenQ4In0.dSooQl188W3T2_dRLUsZMg" >> .env.e2e
           echo "LOG_CHANNEL=single" >> .env.e2e
           echo "LOG_LEVEL=debug" >> .env.e2e
 

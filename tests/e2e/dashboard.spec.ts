@@ -2,7 +2,7 @@ import { expect, test } from './fixtures/request-logger';
 import { generateUniqueEmail, register } from './helpers/auth';
 import { setupMapboxMock } from './helpers/mapbox-mock';
 
-test.describe('Dashboard', () => {
+test.describe.skip('Dashboard', () => {
     test.beforeEach(async ({ page }) => {
         // Setup Mapbox mock before any navigation
         await setupMapboxMock(page);

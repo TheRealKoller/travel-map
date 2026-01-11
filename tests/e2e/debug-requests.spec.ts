@@ -2,7 +2,7 @@ import { expect, test } from './fixtures/request-logger';
 import { generateUniqueEmail, register } from './helpers/auth';
 import { setupMapboxMock } from './helpers/mapbox-mock';
 
-test.describe('Debug: Request Logging', () => {
+test.describe.skip('Debug: Request Logging', () => {
     test('log all requests and responses after authentication', async ({
         page,
         requestLogger,

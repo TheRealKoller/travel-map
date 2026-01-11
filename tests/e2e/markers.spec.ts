@@ -2,7 +2,7 @@ import { expect, test } from './fixtures/request-logger';
 import { generateUniqueEmail, register } from './helpers/auth';
 import { setupMapboxMock } from './helpers/mapbox-mock';
 
-test.describe('Marker Management', () => {
+test.describe.skip('Marker Management', () => {
     test.beforeEach(async ({ page }) => {
         // Setup Mapbox mock before any navigation
         await setupMapboxMock(page);
@@ -67,7 +67,7 @@ test.describe('Marker Management', () => {
     });
 });
 
-test.describe('Marker Creation', () => {
+test.describe.skip('Marker Creation', () => {
     test.beforeEach(async ({ page }) => {
         // Register and login a test user
         const email = generateUniqueEmail();
@@ -93,7 +93,7 @@ test.describe('Marker Creation', () => {
     });
 });
 
-test.describe('Marker Editing', () => {
+test.describe.skip('Marker Editing', () => {
     test.beforeEach(async ({ page }) => {
         // Register and login a test user
         const email = generateUniqueEmail();

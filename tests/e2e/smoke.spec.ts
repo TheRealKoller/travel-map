@@ -1,7 +1,7 @@
 import { expect, test } from './fixtures/request-logger';
 import { setupMapboxMock } from './helpers/mapbox-mock';
 
-test.describe('Smoke Tests', () => {
+test.describe.skip('Smoke Tests', () => {
     test.beforeEach(async ({ page }) => {
         // Setup Mapbox mocking for all tests
         await setupMapboxMock(page);

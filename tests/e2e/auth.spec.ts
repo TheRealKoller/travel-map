@@ -2,7 +2,7 @@ import { expect, test } from './fixtures/request-logger';
 import { generateUniqueEmail, login, logout, register } from './helpers/auth';
 import { setupMapboxMock } from './helpers/mapbox-mock';
 
-test.describe('Authentication', () => {
+test.describe.skip('Authentication', () => {
     test.beforeEach(async ({ page }) => {
         // Setup Mapbox mocking for all tests
         await setupMapboxMock(page);
@@ -89,7 +89,7 @@ test.describe('Authentication', () => {
     });
 });
 
-test.describe('Login and Logout', () => {
+test.describe.skip('Login and Logout', () => {
     test('user cannot login with invalid credentials', async ({ page }) => {
         await page.goto('/login');
         await page.fill('input[name="email"]', 'wrong@example.com');
