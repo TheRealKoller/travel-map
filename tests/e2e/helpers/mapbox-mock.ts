@@ -163,11 +163,28 @@ export async function mockMapboxRequests(page: Page) {
  * This should be called before navigating to pages that use Mapbox
  */
 export async function setupMapboxMock(page: Page) {
+    // Block the real mapbox-gl library from loading
+    await page.route('**/node_modules/mapbox-gl/**', async (route) => {
+        await route.abort();
+    });
+    
+    await page.route('**/*mapbox-gl*.js', async (route) => {
+        await route.abort();
+    });
+
     // Setup request mocking FIRST, before any page loads
     await mockMapboxRequests(page);
 
     // Mock the entire mapboxgl library before page scripts run
     await page.addInitScript(() => {
+        // Intercept and replace mapboxgl BEFORE it loads
+        // This prevents the real library from validating tokens
+        Object.defineProperty(window, 'mapboxgl', {
+            value: undefined,
+            writable: true,
+            configurable: true
+        });
+        
         // Create a mock Map class that doesn't make any real API calls
         class MockMap {
             _listeners: Record<string, Array<(e: any) => void>> = {};
@@ -334,8 +351,8 @@ export async function setupMapboxMock(page: Page) {
             trigger() {}
         }
 
-        // Mock the mapboxgl global
-        (window as any).mapboxgl = {
+        // Mock the mapboxgl global - Override with force to prevent real library from taking over
+        const mockMapbox = {
             accessToken: 'pk.test.mock-token-for-e2e-tests',
             Map: MockMap,
             Marker: MockMarker,
@@ -343,5 +360,19 @@ export async function setupMapboxMock(page: Page) {
             GeolocateControl: MockGeolocateControl,
             supported: () => true,
         };
+        
+        // Set it first time
+        (window as any).mapboxgl = mockMapbox;
+        
+        // Aggressively maintain the mock - check every 10ms and restore if overridden
+        const maintainMock = setInterval(() => {
+            if ((window as any).mapboxgl !== mockMapbox) {
+                console.log('[MOCK] Restoring mapboxgl mock - it was overridden!');
+                (window as any).mapboxgl = mockMapbox;
+            }
+        }, 10);
+        
+        // Stop after 5 seconds (page should be loaded by then)
+        setTimeout(() => clearInterval(maintainMock), 5000);
     });
 }
