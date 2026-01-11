@@ -70,6 +70,14 @@ const getIconForType = (type: MarkerType): string => {
             return 'fa-bicycle';
         case MarkerType.Sightseeing:
             return 'fa-camera';
+        case MarkerType.NaturalAttraction:
+            return 'fa-mountain';
+        case MarkerType.City:
+            return 'fa-city';
+        case MarkerType.Village:
+            return 'fa-home';
+        case MarkerType.Region:
+            return 'fa-map';
         default:
             return 'fa-map-pin';
     }
