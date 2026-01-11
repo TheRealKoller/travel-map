@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\TransportMode;
+use App\Exceptions\MapboxQuotaExceededException;
 use App\Exceptions\RouteNotFoundException;
 use App\Exceptions\RoutingProviderException;
 use App\Models\Marker;
@@ -12,6 +13,10 @@ class RoutingService
 {
     private const MAPBOX_BASE_URL = 'https://api.mapbox.com';
 
+    public function __construct(
+        private readonly MapboxRequestLimiter $limiter = new MapboxRequestLimiter
+    ) {}
+
     /**
      * Calculate route between two markers using Mapbox Directions API.
      *
@@ -19,12 +24,16 @@ class RoutingService
      *
      * @throws RouteNotFoundException
      * @throws RoutingProviderException
+     * @throws MapboxQuotaExceededException
      */
     public function calculateRoute(
         Marker $startMarker,
         Marker $endMarker,
         TransportMode $transportMode = TransportMode::DrivingCar
     ): array {
+        // Check quota before making request
+        $this->limiter->checkQuota();
+
         $accessToken = config('services.mapbox.access_token');
 
         if (! $accessToken) {
@@ -53,6 +62,9 @@ class RoutingService
             'overview' => 'full',
             'geometries' => 'geojson',
         ]);
+
+        // Increment the request counter for successful API call
+        $this->limiter->incrementCount();
 
         if (! $response->successful()) {
             throw new RoutingProviderException('Failed to calculate route via Mapbox: '.$response->body());
