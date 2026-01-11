@@ -673,6 +673,16 @@ export default function TravelMap({
 
         map.addControl(geocoder, 'top-left');
 
+        // Add data-testid for E2E testing after a short delay to ensure DOM is ready
+        setTimeout(() => {
+            const geocoderElement = document.querySelector(
+                '.mapboxgl-ctrl-geocoder',
+            );
+            if (geocoderElement) {
+                geocoderElement.setAttribute('data-testid', 'map-geocoder');
+            }
+        }, 100);
+
         // Handle geocoder result
         geocoder.on('result', (e: { result: GeocodeResult }) => {
             const [lng, lat] = e.result.center;
