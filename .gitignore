@@ -27,11 +27,6 @@ yarn-error.log
 /.vscode
 /.zed
 
-# Playwright
-/test-results/
-/playwright-report/
-/playwright/.cache/
-
 # Code Coverage
 /coverage/
 /.nyc_output/
