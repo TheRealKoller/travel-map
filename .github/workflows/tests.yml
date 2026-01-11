@@ -93,6 +93,11 @@ jobs:
       - name: Generate Application Key
         run: php artisan key:generate
 
+      - name: Setup Main Database
+        run: |
+          mkdir -p database
+          touch database/database.sqlite
+
       - name: Setup E2E Environment File
         run: |
           cp .env.example .env.e2e
@@ -126,10 +131,9 @@ jobs:
         
       - name: Clear Laravel Caches
         run: |
-          php artisan config:clear
-          php artisan cache:clear
-          php artisan view:clear
+          php artisan config:clear --env=e2e
           php artisan route:clear
+          php artisan view:clear
         
       - name: Run E2E Database Migrations
         run: php artisan migrate:fresh --force --env=e2e
