@@ -126,6 +126,67 @@ php artisan test
 - Test configuration: `phpunit.xml` and `tests/Pest.php`
 - Tests automatically use `DB_CONNECTION=sqlite` and `DB_DATABASE=:memory:`
 
+## Testing Guidelines: No Real External API Calls
+
+**CRITICAL RULE: ALL tests (Unit, Feature, E2E) MUST NOT make real requests to 3rd-party APIs.**
+
+### General Testing Principles
+- **Mock ALL external services**: Mapbox, payment gateways, email services, etc.
+- **Intercept ALL HTTP requests**: Use Laravel's `Http::fake()` or Playwright's `page.route()` to intercept requests
+- **Provide fake responses**: All intercepted requests must return appropriate fake/mock responses
+- **Never use real API keys in tests**: Use fake tokens that follow the correct format but don't work with real APIs
+
+### PHP Tests (Unit & Feature)
+- Use Laravel's `Http::fake()` to mock HTTP clients:
+  ```php
+  use Illuminate\Support\Facades\Http;
+  
+  Http::fake([
+      'api.mapbox.com/*' => Http::response(['data' => 'mocked'], 200),
+      'api.stripe.com/*' => Http::response(['id' => 'fake_id'], 200),
+  ]);
+  ```
+- Use `Http::preventStrayRequests()` to ensure no unmocked requests slip through
+- Mock external services using Laravel's service container or test doubles
+
+### E2E Tests (Playwright)
+- **ALWAYS call `setupMapboxMock(page)` before any page navigation** that uses Mapbox
+- The Mapbox mock intercepts ALL Mapbox API requests (tiles, styles, fonts, sprites, geocoding, events)
+- Add additional mocks for other 3rd-party services using `page.route()`:
+  ```typescript
+  await page.route('**/*api.stripe.com/**', async (route) => {
+      await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ id: 'fake_payment_id' }),
+      });
+  });
+  ```
+- Check console for any failed network requests during test development
+- If you see real API requests in test output, immediately add mocking/interception
+
+### Example: Mapbox Mocking in E2E Tests
+```typescript
+import { setupMapboxMock } from './helpers/mapbox-mock';
+
+test.describe('Map Tests', () => {
+    test.beforeEach(async ({ page }) => {
+        // ALWAYS setup Mapbox mock BEFORE any navigation
+        await setupMapboxMock(page);
+        
+        // Now safe to navigate to pages with maps
+        await page.goto('/map');
+    });
+});
+```
+
+### Why This Matters
+- **Speed**: Tests run faster without real API calls
+- **Reliability**: Tests don't fail due to network issues or API rate limits
+- **Cost**: Avoid unnecessary API usage charges
+- **Isolation**: Tests remain independent and deterministic
+- **CI/CD**: Tests work in isolated environments without API keys
+
 ### E2E Testing Best Practices
 
 **Test Selectors:**
