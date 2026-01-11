@@ -167,33 +167,32 @@ export async function setupMapboxMock(page: Page) {
     // Intercept ALL Mapbox API requests BEFORE any page loads
     await mockMapboxRequests(page);
 
-    // Provide a valid-looking token via environment variable
-    // We use a properly formatted Mapbox token pattern: pk.xxxxx.yyyyy
+    // Set a valid-looking Mapbox token BEFORE the library loads
+    // This must happen before any script that uses mapboxgl runs
     await page.addInitScript(() => {
-        // Override import.meta.env to provide a fake token
-        const originalImportMeta = (window as any).importMeta || import.meta;
+        // Create a properly formatted fake token (pk.xxx.yyy format)
+        const fakeToken = 'pk.eyJ1IjoidGVzdCIsImEiOiJ0ZXN0In0.test';
         
-        // Create a proxy for import.meta.env
-        const envProxy = new Proxy(originalImportMeta.env || {}, {
-            get(target: any, prop: string) {
-                if (prop === 'VITE_MAPBOX_ACCESS_TOKEN') {
-                    return 'pk.eyJ1IjoidGVzdCIsImEiOiJ0ZXN0In0.test';
+        // Set window.mapboxgl.accessToken as soon as mapboxgl is defined
+        Object.defineProperty(window, 'mapboxgl', {
+            set(value) {
+                // Store the real mapboxgl object
+                (window as any)._mapboxgl = value;
+                
+                // Set the access token immediately
+                if (value && typeof value === 'object') {
+                    value.accessToken = fakeToken;
                 }
-                return target[prop];
-            }
+            },
+            get() {
+                const mapboxgl = (window as any)._mapboxgl;
+                // Ensure token is always set
+                if (mapboxgl && !mapboxgl.accessToken) {
+                    mapboxgl.accessToken = fakeToken;
+                }
+                return mapboxgl;
+            },
+            configurable: true
         });
-        
-        // Try to override import.meta.env
-        try {
-            Object.defineProperty(import.meta, 'env', {
-                get() {
-                    return envProxy;
-                },
-                configurable: true
-            });
-        } catch (e) {
-            // If that fails, store it on window for the app to access
-            (window as any).__VITE_ENV__ = envProxy;
-        }
     });
 }
