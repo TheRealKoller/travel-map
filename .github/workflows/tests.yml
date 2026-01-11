@@ -149,28 +149,50 @@ jobs:
           echo "=== Check database file ==="
           ls -la database/ || true
           echo ""
-          echo "=== App config ==="
-          php artisan config:show app --env=e2e || true
+          echo "=== Test Artisan Commands ==="
+          php artisan --version --env=e2e
+          php artisan route:list --env=e2e | head -20 || echo "Route list failed"
+          echo ""
+          echo "=== Check built assets ==="
+          ls -la public/build/ | head -10 || echo "No build directory"
+          test -f public/build/manifest.json && echo "✓ Vite manifest exists" || echo "✗ Vite manifest missing"
 
       - name: Check Server Can Start
         run: |
-          echo "Starting server..."
+          echo "=== Testing Laravel Setup ==="
+          php artisan about --env=e2e || echo "artisan about failed"
+          
+          echo ""
+          echo "=== Starting server ==="
           timeout 15 php artisan serve --env=e2e > server.log 2>&1 &
           SERVER_PID=$!
           sleep 8
           
           echo "Testing server response..."
-          if curl -f http://127.0.0.1:8000 2>&1; then
+          # Get full response including body
+          RESPONSE=$(curl -v http://127.0.0.1:8000 2>&1) || true
+          HTTP_CODE=$(echo "$RESPONSE" | grep "< HTTP" | awk '{print $3}')
+          
+          echo "HTTP Status: $HTTP_CODE"
+          
+          if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "302" ]; then
             echo "✓ Server responded successfully"
             kill $SERVER_PID || true
           else
-            echo "✗ Server returned error"
+            echo "✗ Server returned error: $HTTP_CODE"
+            echo ""
+            echo "=== Full Response ==="
+            echo "$RESPONSE"
             echo ""
             echo "=== Server Log ==="
             cat server.log
             echo ""
             echo "=== Laravel Log ==="
-            cat storage/logs/laravel.log 2>/dev/null || echo "No Laravel log found"
+            tail -100 storage/logs/laravel*.log 2>/dev/null || echo "No Laravel log found"
+            echo ""
+            echo "=== PHP Info ==="
+            php -v
+            php -m | grep -i sqlite
             kill $SERVER_PID || true
             exit 1
           fi
