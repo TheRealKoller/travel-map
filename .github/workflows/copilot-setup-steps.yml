@@ -53,9 +53,6 @@ jobs:
         env:
           VITE_MAPBOX_ACCESS_TOKEN: pk.eyJ1IjoidGhlLWtvbGxlciIsImEiOiJjbWs5eHBobTMwcTUwM2dyMmdwMGVqenQ4In0.dSooQl188W3T2_dRLUsZMg
 
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-
       - name: Add ShadCN Tabs Component
         run: npx shadcn@latest add tabs
 
@@ -72,4 +69,3 @@ jobs:
           echo "Node version: $(node -v)"
           echo "npm version: $(npm -v)"
           echo "Composer version: $(composer -V --no-ansi | head -n 1)"
-          echo "Playwright version: $(npx playwright --version)"

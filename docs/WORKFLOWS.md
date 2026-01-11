@@ -16,7 +16,7 @@ Lint → Tests → Build
 ```
 
 - **Lint**: Code-Style Checks (PHP Pint, ESLint, Prettier)
-- **Tests**: Unit, Feature und E2E Tests (Pest, Playwright)
+- **Tests**: Unit and Feature Tests (Pest)
 - **Build**: Kompiliert Assets (nur bei Push auf main)
 
 ### 🧹 Lint
@@ -34,7 +34,6 @@ Lint → Tests → Build
 
 **Tests:**
 - PHPUnit/Pest Tests (Unit + Feature)
-- Playwright E2E Tests
 - Code Coverage Reports
 
 ### 🚀 Deploy

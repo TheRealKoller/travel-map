@@ -63,8 +63,7 @@ graph LR
         
         subgraph "Test Job"
             TestJob[Start Tests] --> UnitTest[Unit & Feature Tests]
-            UnitTest --> E2ETest[E2E Tests - Playwright]
-            E2ETest --> Upload[Upload Test Reports]
+            UnitTest --> Upload[Upload Test Reports]
             Upload --> TestDone[Tests Complete]
         end
         

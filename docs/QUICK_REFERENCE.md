@@ -216,7 +216,7 @@ git push origin feature/your-branch
 1. Go to Actions tab
 2. Click on workflow run
 3. Scroll to "Artifacts" section
-4. Download (e.g., playwright-report)
+4. Download artifacts
 
 ## 🔐 Required Secrets
 
