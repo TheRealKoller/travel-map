@@ -17,6 +17,7 @@ import { Trip } from '@/types/trip';
 import { Link } from '@inertiajs/react';
 import { BookOpen, Folder, LayoutGrid, Map } from 'lucide-react';
 import AppLogo from './app-logo';
+import { MapboxUsageProgressBar } from './mapbox-usage-progress-bar';
 
 const mainNavItems: NavItem[] = [
     {
@@ -74,6 +75,7 @@ export function AppSidebar({
             </SidebarHeader>
 
             <SidebarContent>
+                <MapboxUsageProgressBar />
                 <NavMain items={mainNavItems} />
                 <TripSelector
                     trips={trips}
