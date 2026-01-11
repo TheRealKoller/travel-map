@@ -1,5 +1,6 @@
 import { expect, Page } from '@playwright/test';
 import { randomUUID } from 'crypto';
+import { setupMapboxMock } from './mapbox-mock';
 
 /**
  * Generate a unique email address for testing
@@ -36,6 +37,9 @@ export async function register(
     email: string = 'test@example.com',
     password: string = 'password',
 ) {
+    // Setup Mapbox mocking before any navigation
+    await setupMapboxMock(page);
+    
     await page.goto('/register');
     
     // Fill registration form
@@ -61,11 +65,10 @@ export async function register(
 export async function logout(page: Page) {
     // Navigate to home page where logout exists
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
     
-    // First open the sidebar using the trigger button
+    // Wait for sidebar trigger to be ready instead of networkidle
     const sidebarTrigger = page.locator('[data-sidebar="trigger"]');
-    await expect(sidebarTrigger).toBeVisible({ timeout: 5000 });
+    await expect(sidebarTrigger).toBeVisible({ timeout: 10000 });
     await sidebarTrigger.click();
     
     // Wait a bit for sidebar animation

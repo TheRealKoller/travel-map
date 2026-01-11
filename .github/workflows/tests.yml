@@ -47,6 +47,8 @@ jobs:
 
       - name: Build Assets
         run: npm run build
+        env:
+          VITE_MAPBOX_ACCESS_TOKEN: pk.eyJ1IjoidGhlLWtvbGxlciIsImEiOiJjbWs5eHBobTMwcTUwM2dyMmdwMGVqenQ4In0.dSooQl188W3T2_dRLUsZMg
 
       - name: Run Database Migrations
         run: php artisan migrate --force
@@ -82,12 +84,36 @@ jobs:
 
       - name: Build Assets
         run: npm run build
+        env:
+          VITE_MAPBOX_ACCESS_TOKEN: pk.eyJ1IjoidGhlLWtvbGxlciIsImEiOiJjbWs5eHBobTMwcTUwM2dyMmdwMGVqenQ4In0.dSooQl188W3T2_dRLUsZMg
 
       - name: Copy Environment File
         run: cp .env.example .env
 
       - name: Generate Application Key
         run: php artisan key:generate
+
+      - name: Setup Main Database
+        run: |
+          mkdir -p database
+          touch database/database.sqlite
+
+      - name: Run Main Database Migrations
+        run: php artisan migrate:fresh --force
+
+      - name: Setup E2E Environment File
+        run: |
+          cp .env.example .env.e2e
+          # Override with E2E specific configuration
+          echo "" >> .env.e2e
+          echo "APP_ENV=testing" >> .env.e2e
+          echo "APP_DEBUG=true" >> .env.e2e
+          echo "DB_CONNECTION=sqlite" >> .env.e2e
+          echo "DB_DATABASE=database/e2e.sqlite" >> .env.e2e
+          echo "VITE_MAPBOX_ACCESS_TOKEN=pk.eyJ1IjoidGhlLWtvbGxlciIsImEiOiJjbWs5eHBobTMwcTUwM2dyMmdwMGVqenQ4In0.dSooQl188W3T2_dRLUsZMg" >> .env.e2e
+          echo "MAPBOX_ACCESS_TOKEN=pk.eyJ1IjoidGhlLWtvbGxlciIsImEiOiJjbWs5eHBobTMwcTUwM2dyMmdwMGVqenQ4In0.dSooQl188W3T2_dRLUsZMg" >> .env.e2e
+          echo "LOG_CHANNEL=single" >> .env.e2e
+          echo "LOG_LEVEL=debug" >> .env.e2e
 
       - name: Set Test Environment Variables
         run: |
@@ -100,15 +126,86 @@ jobs:
         run: |
           mkdir -p database
           touch database/e2e.sqlite
+          mkdir -p storage/logs
+          chmod -R 777 storage bootstrap/cache
 
       - name: Generate E2E Application Key
         run: php artisan key:generate --env=e2e
+        
+      - name: Clear Laravel Caches
+        run: |
+          php artisan config:clear --env=e2e
+          php artisan route:clear
+          php artisan view:clear
+        
+      - name: Run E2E Database Migrations
+        run: php artisan migrate:fresh --force --env=e2e
+
+      - name: Debug Environment Configuration
+        run: |
+          echo "=== E2E Environment File ==="
+          cat .env.e2e || echo "No .env.e2e file found"
+          echo ""
+          echo "=== Main Environment File ==="
+          cat .env | grep -v "PASSWORD\|SECRET\|KEY" || true
+          echo ""
+          echo "=== Check database file ==="
+          ls -la database/ || true
+          echo ""
+          echo "=== Test Artisan Commands ==="
+          php artisan --version --env=e2e
+          php artisan route:list --env=e2e | head -20 || echo "Route list failed"
+          echo ""
+          echo "=== Check built assets ==="
+          ls -la public/build/ | head -10 || echo "No build directory"
+          test -f public/build/manifest.json && echo "✓ Vite manifest exists" || echo "✗ Vite manifest missing"
+
+      - name: Check Server Can Start
+        run: |
+          echo "=== Testing Laravel Setup ==="
+          php artisan about --env=e2e || echo "artisan about failed"
+          
+          echo ""
+          echo "=== Starting server ==="
+          timeout 15 php artisan serve --env=e2e > server.log 2>&1 &
+          SERVER_PID=$!
+          sleep 8
+          
+          echo "Testing server response..."
+          # Get full response including body
+          RESPONSE=$(curl -v http://127.0.0.1:8000 2>&1) || true
+          HTTP_CODE=$(echo "$RESPONSE" | grep "< HTTP" | awk '{print $3}')
+          
+          echo "HTTP Status: $HTTP_CODE"
+          
+          if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "302" ]; then
+            echo "✓ Server responded successfully"
+            kill $SERVER_PID || true
+          else
+            echo "✗ Server returned error: $HTTP_CODE"
+            echo ""
+            echo "=== Full Response ==="
+            echo "$RESPONSE"
+            echo ""
+            echo "=== Server Log ==="
+            cat server.log
+            echo ""
+            echo "=== Laravel Log ==="
+            tail -100 storage/logs/laravel*.log 2>/dev/null || echo "No Laravel log found"
+            echo ""
+            echo "=== PHP Info ==="
+            php -v
+            php -m | grep -i sqlite
+            kill $SERVER_PID || true
+            exit 1
+          fi
 
       - name: Run E2E Tests
         run: npm run test:e2e
         env:
           CI: true
           APP_URL: http://localhost:8000
+          DEBUG: pw:api
 
       - name: Upload Playwright Report
         uses: actions/upload-artifact@v4
@@ -117,3 +214,11 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 30
+
+      - name: Upload Test Screenshots
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-screenshots
+          path: test-results/
+          retention-days: 7

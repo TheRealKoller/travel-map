@@ -1,4 +1,4 @@
-import L from 'leaflet';
+import mapboxgl from 'mapbox-gl';
 
 export enum MarkerType {
     Restaurant = 'restaurant',
@@ -27,7 +27,7 @@ export interface MarkerData {
     notes: string;
     url: string;
     isUnesco: boolean;
-    marker: L.Marker;
+    marker: mapboxgl.Marker;
     isSaved: boolean; // Track if marker is persisted in database
     position?: number; // Position in tour (when part of a tour)
 }
