@@ -163,13 +163,185 @@ export async function mockMapboxRequests(page: Page) {
  * This should be called before navigating to pages that use Mapbox
  */
 export async function setupMapboxMock(page: Page) {
-    // Inject a fake token before the page loads
-    await page.addInitScript(() => {
-        // Mock environment variable for Mapbox token
-        (window as any).VITE_MAPBOX_ACCESS_TOKEN =
-            'pk.test.mock-token-for-e2e-tests';
-    });
-
-    // Setup request mocking
+    // Setup request mocking FIRST, before any page loads
     await mockMapboxRequests(page);
+
+    // Mock the entire mapboxgl library before page scripts run
+    await page.addInitScript(() => {
+        // Create a mock Map class that doesn't make any real API calls
+        class MockMap {
+            _listeners: Record<string, Array<(e: any) => void>> = {};
+            _sources: Record<string, any> = {};
+            _layers: Array<any> = [];
+            _center = [0, 0];
+            _zoom = 2;
+
+            constructor(options: any) {
+                // Simulate async load event
+                setTimeout(() => {
+                    this._trigger('load');
+                }, 0);
+            }
+
+            on(event: string, callback: (e: any) => void) {
+                if (!this._listeners[event]) {
+                    this._listeners[event] = [];
+                }
+                this._listeners[event].push(callback);
+                return this;
+            }
+
+            once(event: string, callback: (e: any) => void) {
+                const wrapper = (e: any) => {
+                    callback(e);
+                    this.off(event, wrapper);
+                };
+                return this.on(event, wrapper);
+            }
+
+            off(event: string, callback: (e: any) => void) {
+                if (this._listeners[event]) {
+                    this._listeners[event] = this._listeners[event].filter(
+                        (cb) => cb !== callback,
+                    );
+                }
+                return this;
+            }
+
+            _trigger(event: string, data?: any) {
+                if (this._listeners[event]) {
+                    this._listeners[event].forEach((cb) => cb(data || {}));
+                }
+            }
+
+            remove() {
+                this._listeners = {};
+            }
+
+            addControl() {
+                return this;
+            }
+
+            removeControl() {
+                return this;
+            }
+
+            addSource(id: string, source: any) {
+                this._sources[id] = source;
+            }
+
+            getSource(id: string) {
+                return this._sources[id];
+            }
+
+            removeSource(id: string) {
+                delete this._sources[id];
+            }
+
+            addLayer(layer: any) {
+                this._layers.push(layer);
+            }
+
+            removeLayer(id: string) {
+                this._layers = this._layers.filter((l) => l.id !== id);
+            }
+
+            setCenter(center: [number, number]) {
+                this._center = center;
+                return this;
+            }
+
+            getCenter() {
+                return { lng: this._center[0], lat: this._center[1] };
+            }
+
+            setZoom(zoom: number) {
+                this._zoom = zoom;
+                return this;
+            }
+
+            getZoom() {
+                return this._zoom;
+            }
+
+            flyTo(options: any) {
+                if (options.center) this._center = options.center;
+                if (options.zoom) this._zoom = options.zoom;
+                setTimeout(() => this._trigger('moveend'), 0);
+                return this;
+            }
+
+            getCanvas() {
+                const canvas = document.createElement('canvas');
+                canvas.width = 800;
+                canvas.height = 600;
+                return canvas;
+            }
+
+            getContainer() {
+                return document.createElement('div');
+            }
+
+            loaded() {
+                return true;
+            }
+
+            resize() {
+                return this;
+            }
+        }
+
+        class MockMarker {
+            _lngLat = [0, 0];
+            _element = document.createElement('div');
+
+            constructor(options?: any) {
+                if (options?.element) {
+                    this._element = options.element;
+                }
+            }
+
+            setLngLat(lngLat: [number, number]) {
+                this._lngLat = lngLat;
+                return this;
+            }
+
+            addTo(map: any) {
+                return this;
+            }
+
+            remove() {
+                return this;
+            }
+
+            getElement() {
+                return this._element;
+            }
+        }
+
+        class MockNavigationControl {
+            onAdd() {
+                return document.createElement('div');
+            }
+            onRemove() {}
+        }
+
+        class MockGeolocateControl {
+            onAdd() {
+                return document.createElement('div');
+            }
+            onRemove() {}
+            trigger() {}
+        }
+
+        // Mock the mapboxgl global
+        (window as any).mapboxgl = {
+            accessToken: 'pk.test.mock-token-for-e2e-tests',
+            Map: MockMap,
+            Marker: MockMarker,
+            NavigationControl: MockNavigationControl,
+            GeolocateControl: MockGeolocateControl,
+            supported: () => true,
+        };
+    });
 }
