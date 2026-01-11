@@ -95,18 +95,17 @@ jobs:
 
       - name: Setup E2E Environment File
         run: |
-          if [ -f .env.e2e ]; then
-            cp .env.e2e .env.e2e.tmp
-          else
-            cp .env.example .env.e2e.tmp
-          fi
-          # Ensure E2E specific configuration
-          echo "" >> .env.e2e.tmp
-          echo "APP_ENV=testing" >> .env.e2e.tmp
-          echo "DB_CONNECTION=sqlite" >> .env.e2e.tmp
-          echo "DB_DATABASE=database/e2e.sqlite" >> .env.e2e.tmp
-          echo "VITE_MAPBOX_ACCESS_TOKEN=pk.test.mock-token-for-e2e-tests" >> .env.e2e.tmp
-          mv .env.e2e.tmp .env.e2e
+          cp .env.example .env.e2e
+          # Override with E2E specific configuration
+          echo "" >> .env.e2e
+          echo "APP_ENV=testing" >> .env.e2e
+          echo "APP_DEBUG=true" >> .env.e2e
+          echo "DB_CONNECTION=sqlite" >> .env.e2e
+          echo "DB_DATABASE=database/e2e.sqlite" >> .env.e2e
+          echo "VITE_MAPBOX_ACCESS_TOKEN=pk.test.mock-token-for-e2e-tests" >> .env.e2e
+          echo "MAPBOX_ACCESS_TOKEN=pk.test.mock-token-for-e2e-tests" >> .env.e2e
+          echo "LOG_CHANNEL=single" >> .env.e2e
+          echo "LOG_LEVEL=debug" >> .env.e2e
 
       - name: Set Test Environment Variables
         run: |
@@ -119,20 +118,58 @@ jobs:
         run: |
           mkdir -p database
           touch database/e2e.sqlite
+          mkdir -p storage/logs
+          chmod -R 777 storage bootstrap/cache
 
       - name: Generate E2E Application Key
         run: php artisan key:generate --env=e2e
         
+      - name: Clear Laravel Caches
+        run: |
+          php artisan config:clear
+          php artisan cache:clear
+          php artisan view:clear
+          php artisan route:clear
+        
       - name: Run E2E Database Migrations
         run: php artisan migrate:fresh --force --env=e2e
 
+      - name: Debug Environment Configuration
+        run: |
+          echo "=== E2E Environment File ==="
+          cat .env.e2e || echo "No .env.e2e file found"
+          echo ""
+          echo "=== Main Environment File ==="
+          cat .env | grep -v "PASSWORD\|SECRET\|KEY" || true
+          echo ""
+          echo "=== Check database file ==="
+          ls -la database/ || true
+          echo ""
+          echo "=== App config ==="
+          php artisan config:show app --env=e2e || true
+
       - name: Check Server Can Start
         run: |
-          timeout 10 php artisan serve --env=e2e > server.log 2>&1 &
+          echo "Starting server..."
+          timeout 15 php artisan serve --env=e2e > server.log 2>&1 &
           SERVER_PID=$!
-          sleep 5
-          curl -f http://127.0.0.1:8000 || (cat server.log && exit 1)
-          kill $SERVER_PID || true
+          sleep 8
+          
+          echo "Testing server response..."
+          if curl -f http://127.0.0.1:8000 2>&1; then
+            echo "✓ Server responded successfully"
+            kill $SERVER_PID || true
+          else
+            echo "✗ Server returned error"
+            echo ""
+            echo "=== Server Log ==="
+            cat server.log
+            echo ""
+            echo "=== Laravel Log ==="
+            cat storage/logs/laravel.log 2>/dev/null || echo "No Laravel log found"
+            kill $SERVER_PID || true
+            exit 1
+          fi
 
       - name: Run E2E Tests
         run: npm run test:e2e
