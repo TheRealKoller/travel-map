@@ -2,7 +2,7 @@ import { Page } from '@playwright/test';
 
 /**
  * Mock all Mapbox API requests to avoid requiring a valid token
- * This intercepts and blocks all requests to Mapbox services
+ * This intercepts all requests to Mapbox services and returns fake responses
  */
 export async function mockMapboxRequests(page: Page) {
     // Mock Mapbox GL JS library requests
@@ -159,220 +159,41 @@ export async function mockMapboxRequests(page: Page) {
 }
 
 /**
- * Setup Mapbox mocking with a fake token injected into the page
- * This should be called before navigating to pages that use Mapbox
+ * Setup Mapbox mocking by intercepting all API requests
+ * This lets the real Mapbox library run but prevents any actual API calls
+ * All requests to Mapbox are intercepted and return fake responses
  */
 export async function setupMapboxMock(page: Page) {
-    // Block the real mapbox-gl library from loading
-    await page.route('**/node_modules/mapbox-gl/**', async (route) => {
-        await route.abort();
-    });
-    
-    await page.route('**/*mapbox-gl*.js', async (route) => {
-        await route.abort();
-    });
-
-    // Setup request mocking FIRST, before any page loads
+    // Intercept ALL Mapbox API requests BEFORE any page loads
     await mockMapboxRequests(page);
 
-    // Mock the entire mapboxgl library before page scripts run
+    // Provide a valid-looking token via environment variable
+    // We use a properly formatted Mapbox token pattern: pk.xxxxx.yyyyy
     await page.addInitScript(() => {
-        // Intercept and replace mapboxgl BEFORE it loads
-        // This prevents the real library from validating tokens
-        Object.defineProperty(window, 'mapboxgl', {
-            value: undefined,
-            writable: true,
-            configurable: true
+        // Override import.meta.env to provide a fake token
+        const originalImportMeta = (window as any).importMeta || import.meta;
+        
+        // Create a proxy for import.meta.env
+        const envProxy = new Proxy(originalImportMeta.env || {}, {
+            get(target: any, prop: string) {
+                if (prop === 'VITE_MAPBOX_ACCESS_TOKEN') {
+                    return 'pk.eyJ1IjoidGVzdCIsImEiOiJ0ZXN0In0.test';
+                }
+                return target[prop];
+            }
         });
         
-        // Create a mock Map class that doesn't make any real API calls
-        class MockMap {
-            _listeners: Record<string, Array<(e: any) => void>> = {};
-            _sources: Record<string, any> = {};
-            _layers: Array<any> = [];
-            _center = [0, 0];
-            _zoom = 2;
-
-            constructor(options: any) {
-                // Simulate async load event
-                setTimeout(() => {
-                    this._trigger('load');
-                }, 0);
-            }
-
-            on(event: string, callback: (e: any) => void) {
-                if (!this._listeners[event]) {
-                    this._listeners[event] = [];
-                }
-                this._listeners[event].push(callback);
-                return this;
-            }
-
-            once(event: string, callback: (e: any) => void) {
-                const wrapper = (e: any) => {
-                    callback(e);
-                    this.off(event, wrapper);
-                };
-                return this.on(event, wrapper);
-            }
-
-            off(event: string, callback: (e: any) => void) {
-                if (this._listeners[event]) {
-                    this._listeners[event] = this._listeners[event].filter(
-                        (cb) => cb !== callback,
-                    );
-                }
-                return this;
-            }
-
-            _trigger(event: string, data?: any) {
-                if (this._listeners[event]) {
-                    this._listeners[event].forEach((cb) => cb(data || {}));
-                }
-            }
-
-            remove() {
-                this._listeners = {};
-            }
-
-            addControl() {
-                return this;
-            }
-
-            removeControl() {
-                return this;
-            }
-
-            addSource(id: string, source: any) {
-                this._sources[id] = source;
-            }
-
-            getSource(id: string) {
-                return this._sources[id];
-            }
-
-            removeSource(id: string) {
-                delete this._sources[id];
-            }
-
-            addLayer(layer: any) {
-                this._layers.push(layer);
-            }
-
-            removeLayer(id: string) {
-                this._layers = this._layers.filter((l) => l.id !== id);
-            }
-
-            setCenter(center: [number, number]) {
-                this._center = center;
-                return this;
-            }
-
-            getCenter() {
-                return { lng: this._center[0], lat: this._center[1] };
-            }
-
-            setZoom(zoom: number) {
-                this._zoom = zoom;
-                return this;
-            }
-
-            getZoom() {
-                return this._zoom;
-            }
-
-            flyTo(options: any) {
-                if (options.center) this._center = options.center;
-                if (options.zoom) this._zoom = options.zoom;
-                setTimeout(() => this._trigger('moveend'), 0);
-                return this;
-            }
-
-            getCanvas() {
-                const canvas = document.createElement('canvas');
-                canvas.width = 800;
-                canvas.height = 600;
-                return canvas;
-            }
-
-            getContainer() {
-                return document.createElement('div');
-            }
-
-            loaded() {
-                return true;
-            }
-
-            resize() {
-                return this;
-            }
+        // Try to override import.meta.env
+        try {
+            Object.defineProperty(import.meta, 'env', {
+                get() {
+                    return envProxy;
+                },
+                configurable: true
+            });
+        } catch (e) {
+            // If that fails, store it on window for the app to access
+            (window as any).__VITE_ENV__ = envProxy;
         }
-
-        class MockMarker {
-            _lngLat = [0, 0];
-            _element = document.createElement('div');
-
-            constructor(options?: any) {
-                if (options?.element) {
-                    this._element = options.element;
-                }
-            }
-
-            setLngLat(lngLat: [number, number]) {
-                this._lngLat = lngLat;
-                return this;
-            }
-
-            addTo(map: any) {
-                return this;
-            }
-
-            remove() {
-                return this;
-            }
-
-            getElement() {
-                return this._element;
-            }
-        }
-
-        class MockNavigationControl {
-            onAdd() {
-                return document.createElement('div');
-            }
-            onRemove() {}
-        }
-
-        class MockGeolocateControl {
-            onAdd() {
-                return document.createElement('div');
-            }
-            onRemove() {}
-            trigger() {}
-        }
-
-        // Mock the mapboxgl global - Override with force to prevent real library from taking over
-        const mockMapbox = {
-            accessToken: 'pk.test.mock-token-for-e2e-tests',
-            Map: MockMap,
-            Marker: MockMarker,
-            NavigationControl: MockNavigationControl,
-            GeolocateControl: MockGeolocateControl,
-            supported: () => true,
-        };
-        
-        // Set it first time
-        (window as any).mapboxgl = mockMapbox;
-        
-        // Aggressively maintain the mock - check every 10ms and restore if overridden
-        const maintainMock = setInterval(() => {
-            if ((window as any).mapboxgl !== mockMapbox) {
-                console.log('[MOCK] Restoring mapboxgl mock - it was overridden!');
-                (window as any).mapboxgl = mockMapbox;
-            }
-        }, 10);
-        
-        // Stop after 5 seconds (page should be loaded by then)
-        setTimeout(() => clearInterval(maintainMock), 5000);
     });
 }
