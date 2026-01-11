@@ -1,4 +1,5 @@
 import MapOptionsMenu from '@/components/map-options-menu';
+import { MapboxUsageProgressBar } from '@/components/mapbox-usage-progress-bar';
 import MarkerForm from '@/components/marker-form';
 import MarkerList from '@/components/marker-list';
 import RoutePanel from '@/components/route-panel';
@@ -1456,6 +1457,7 @@ export default function TravelMap({
                         id="map"
                         className="z-10 h-[400px] w-full lg:h-[600px]"
                     />
+                    <MapboxUsageProgressBar />
                     <MapOptionsMenu
                         isSearchMode={isSearchMode}
                         onSearchModeChange={setIsSearchMode}

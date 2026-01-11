@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\MapboxController;
 use App\Http\Controllers\MarkerController;
 use App\Http\Controllers\RouteController;
 use App\Http\Controllers\TourController;
@@ -47,6 +48,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/routes', [RouteController::class, 'store'])->name('routes.store');
     Route::get('/routes/{route}', [RouteController::class, 'show'])->name('routes.show');
     Route::delete('/routes/{route}', [RouteController::class, 'destroy'])->name('routes.destroy');
+
+    // Mapbox routes
+    Route::get('/mapbox/usage', [MapboxController::class, 'usage'])->name('mapbox.usage');
 
     // Log Viewer - only accessible to authenticated and verified users
     Route::get('logs', [LogViewerController::class, 'index'])->name('logs');
