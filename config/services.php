@@ -37,6 +37,7 @@ return [
 
     'mapbox' => [
         'access_token' => env('MAPBOX_ACCESS_TOKEN'),
+        'monthly_request_limit' => env('MAPBOX_MONTHLY_REQUEST_LIMIT', 10000),
     ],
 
 ];

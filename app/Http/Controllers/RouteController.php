@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\TransportMode;
+use App\Exceptions\MapboxQuotaExceededException;
 use App\Exceptions\RouteNotFoundException;
 use App\Exceptions\RoutingProviderException;
 use App\Http\Requests\RouteIndexRequest;
@@ -72,6 +73,8 @@ class RouteController extends Controller
             return response()->json(new RouteResource($route), 201);
         } catch (RouteNotFoundException $e) {
             return response()->json(['error' => $e->getMessage()], 404);
+        } catch (MapboxQuotaExceededException $e) {
+            return response()->json(['error' => $e->getMessage()], 429);
         } catch (RoutingProviderException $e) {
             return response()->json(['error' => $e->getMessage()], 503);
         }

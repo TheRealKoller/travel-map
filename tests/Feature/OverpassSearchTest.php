@@ -1,10 +1,15 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
     $this->user = User::factory()->withoutTwoFactor()->create();
+
+    // Configure Mapbox for tests
+    Config::set('services.mapbox.access_token', 'test-token');
+    Config::set('services.mapbox.monthly_request_limit', 10000);
 });
 
 test('search nearby endpoint requires authentication', function () {

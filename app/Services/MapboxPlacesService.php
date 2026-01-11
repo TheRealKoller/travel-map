@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\PlaceType;
+use App\Exceptions\MapboxQuotaExceededException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -13,7 +14,8 @@ class MapboxPlacesService
     private const TIMEOUT_SECONDS = 30;
 
     public function __construct(
-        private readonly ?string $accessToken = null
+        private readonly ?string $accessToken = null,
+        private readonly MapboxRequestLimiter $limiter = new MapboxRequestLimiter
     ) {}
 
     /**
@@ -35,6 +37,17 @@ class MapboxPlacesService
                 'count' => 0,
                 'results' => [],
                 'error' => null,
+            ];
+        }
+
+        // Check quota before making any requests
+        try {
+            $this->limiter->checkQuota();
+        } catch (MapboxQuotaExceededException $e) {
+            return [
+                'count' => 0,
+                'results' => [],
+                'error' => $e->getMessage(),
             ];
         }
 
@@ -143,6 +156,9 @@ class MapboxPlacesService
                     'limit' => 25, // Maximum results per category (Mapbox API limit)
                     'language' => 'en,de', // Support both English and German
                 ]);
+
+            // Increment the request counter for successful API call
+            $this->limiter->incrementCount();
 
             if (! $response->successful()) {
                 Log::warning('Mapbox Search API category request failed', [
