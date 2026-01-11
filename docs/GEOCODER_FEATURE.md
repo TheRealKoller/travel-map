@@ -163,7 +163,7 @@ VITE_MAPBOX_ACCESS_TOKEN="${MAPBOX_ACCESS_TOKEN}"
 - **Service**: Mapbox Geocoding API
 - **Endpoint**: `https://api.mapbox.com/geocoding/v5/`
 - **Rate Limits**: Subject to your Mapbox plan's limits
-- **Free Tier**: 100,000 requests/month (as of 2026)
+- **Free Tier**: 100,000 requests/month
 
 ### Request Limiting
 The application includes built-in Mapbox request limiting to avoid exceeding quotas. See `docs/MAPBOX_REQUEST_LIMITING.md` for details.

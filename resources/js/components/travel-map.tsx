@@ -673,15 +673,35 @@ export default function TravelMap({
 
         map.addControl(geocoder, 'top-left');
 
-        // Add data-testid for E2E testing after a short delay to ensure DOM is ready
-        setTimeout(() => {
+        // Add data-testid for E2E testing
+        // Use MutationObserver to watch for when the geocoder is added to the DOM
+        const addTestIdToGeocoder = () => {
             const geocoderElement = document.querySelector(
                 '.mapboxgl-ctrl-geocoder',
             );
             if (geocoderElement) {
                 geocoderElement.setAttribute('data-testid', 'map-geocoder');
+                return true;
             }
-        }, 100);
+            return false;
+        };
+
+        // Try immediately first
+        if (!addTestIdToGeocoder()) {
+            // If not found, set up MutationObserver
+            const observer = new MutationObserver(() => {
+                if (addTestIdToGeocoder()) {
+                    observer.disconnect();
+                }
+            });
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true,
+            });
+
+            // Fallback timeout to disconnect observer after 5 seconds
+            setTimeout(() => observer.disconnect(), 5000);
+        }
 
         // Handle geocoder result
         geocoder.on('result', (e: { result: GeocodeResult }) => {
