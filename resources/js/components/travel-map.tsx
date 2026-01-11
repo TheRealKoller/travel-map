@@ -454,7 +454,8 @@ export default function TravelMap({
                 }
 
                 // Add click handler to create a marker from search result
-                el.addEventListener('click', () => {
+                el.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent map click event
                     // Get the name with priority: English > International > Local
                     const markerName =
                         result.name_en || result.name_int || result.name || '';
@@ -491,7 +492,8 @@ export default function TravelMap({
                     newMarker.setPopup(popup);
 
                     // Add click handler to marker
-                    markerEl.addEventListener('click', () => {
+                    markerEl.addEventListener('click', (e) => {
+                        e.stopPropagation(); // Prevent map click event
                         setSelectedMarkerId(markerId);
                     });
 
@@ -743,7 +745,8 @@ export default function TravelMap({
                 marker.setPopup(markerPopup);
 
                 // Add click handler to permanent marker
-                markerEl.addEventListener('click', () => {
+                markerEl.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent map click event
                     setSelectedMarkerId(markerId);
                 });
 
@@ -866,7 +869,8 @@ export default function TravelMap({
             marker.setPopup(popup);
 
             // Add click handler to marker
-            markerEl.addEventListener('click', () => {
+            markerEl.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent map click event
                 setSelectedMarkerId(markerId);
             });
 
@@ -928,7 +932,8 @@ export default function TravelMap({
                         }).setText(dbMarker.name || 'Unnamed Location');
                         marker.setPopup(popup);
 
-                        el.addEventListener('click', () => {
+                        el.addEventListener('click', (e) => {
+                            e.stopPropagation(); // Prevent map click event
                             setSelectedMarkerId(dbMarker.id);
                         });
 
