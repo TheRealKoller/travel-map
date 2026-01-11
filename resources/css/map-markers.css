@@ -1,0 +1,117 @@
+/* Mapbox marker styles */
+.mapbox-marker {
+    width: 35px;
+    height: 45px;
+    border-radius: 50% 50% 50% 0;
+    position: relative;
+    transform: rotate(-45deg);
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.mapbox-marker:hover {
+    transform: rotate(-45deg) scale(1.1);
+}
+
+.mapbox-marker__icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(45deg);
+    color: white;
+    font-size: 16px;
+}
+
+/* Marker colors based on type */
+.mapbox-marker--restaurant {
+    background-color: #ff8c00; /* orange */
+}
+
+.mapbox-marker--hotel {
+    background-color: #0000ff; /* blue */
+}
+
+.mapbox-marker--question {
+    background-color: #800080; /* purple */
+}
+
+.mapbox-marker--tip {
+    background-color: #008000; /* green */
+}
+
+.mapbox-marker--point-of-interest {
+    background-color: #5f9ea0; /* cadetblue */
+}
+
+.mapbox-marker--museum {
+    background-color: #00008b; /* darkblue */
+}
+
+.mapbox-marker--ruin {
+    background-color: #8b0000; /* darkred */
+}
+
+.mapbox-marker--temple-church {
+    background-color: #9932cc; /* darkpurple */
+}
+
+.mapbox-marker--festival-party {
+    background-color: #ffc0cb; /* pink */
+}
+
+.mapbox-marker--leisure {
+    background-color: #90ee90; /* lightgreen */
+}
+
+.mapbox-marker--sightseeing {
+    background-color: #add8e6; /* lightblue */
+}
+
+.mapbox-marker--natural-attraction {
+    background-color: #228b22; /* forestgreen */
+}
+
+.mapbox-marker--city {
+    background-color: #696969; /* dimgray */
+}
+
+.mapbox-marker--village {
+    background-color: #a0522d; /* sienna */
+}
+
+.mapbox-marker--region {
+    background-color: #808000; /* olive */
+}
+
+/* Highlighted marker (selected) */
+.mapbox-marker--highlighted {
+    background-color: #ff0000 !important; /* red */
+    transform: rotate(-45deg) scale(1.15);
+}
+
+/* Search marker (temporary from geocoder) */
+.mapbox-marker--search {
+    background-color: #ffff00; /* yellow */
+}
+
+.mapbox-marker--search .mapbox-marker__icon {
+    color: black;
+}
+
+/* Search result marker (blue circles) */
+.search-result-marker {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #0000ff;
+    opacity: 0.6;
+    border: 2px solid #3b82f6;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.search-result-marker:hover {
+    opacity: 0.9;
+}

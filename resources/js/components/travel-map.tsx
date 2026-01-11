@@ -70,39 +70,39 @@ const getIconForType = (type: MarkerType): string => {
             return 'fa-bicycle';
         case MarkerType.Sightseeing:
             return 'fa-camera';
+        case MarkerType.NaturalAttraction:
+            return 'fa-mountain';
+        case MarkerType.City:
+            return 'fa-city';
+        case MarkerType.Village:
+            return 'fa-home';
+        case MarkerType.Region:
+            return 'fa-map';
         default:
             return 'fa-map-pin';
     }
 };
 
-// Helper function to get color based on marker type
-const getColorForType = (type: MarkerType): string => {
-    switch (type) {
-        case MarkerType.Restaurant:
-            return 'orange';
-        case MarkerType.Hotel:
-            return 'blue';
-        case MarkerType.Question:
-            return 'purple';
-        case MarkerType.Tip:
-            return 'green';
-        case MarkerType.PointOfInterest:
-            return 'cadetblue';
-        case MarkerType.Museum:
-            return 'darkblue';
-        case MarkerType.Ruin:
-            return 'darkred';
-        case MarkerType.TempleChurch:
-            return 'darkpurple';
-        case MarkerType.FestivalParty:
-            return 'pink';
-        case MarkerType.Leisure:
-            return 'lightgreen';
-        case MarkerType.Sightseeing:
-            return 'lightblue';
-        default:
-            return 'gray';
-    }
+// Helper function to get CSS class for marker type
+const getMarkerTypeClass = (type: MarkerType): string => {
+    const typeMap: Record<MarkerType, string> = {
+        [MarkerType.Restaurant]: 'mapbox-marker--restaurant',
+        [MarkerType.Hotel]: 'mapbox-marker--hotel',
+        [MarkerType.Question]: 'mapbox-marker--question',
+        [MarkerType.Tip]: 'mapbox-marker--tip',
+        [MarkerType.PointOfInterest]: 'mapbox-marker--point-of-interest',
+        [MarkerType.Museum]: 'mapbox-marker--museum',
+        [MarkerType.Ruin]: 'mapbox-marker--ruin',
+        [MarkerType.TempleChurch]: 'mapbox-marker--temple-church',
+        [MarkerType.FestivalParty]: 'mapbox-marker--festival-party',
+        [MarkerType.Leisure]: 'mapbox-marker--leisure',
+        [MarkerType.Sightseeing]: 'mapbox-marker--sightseeing',
+        [MarkerType.NaturalAttraction]: 'mapbox-marker--natural-attraction',
+        [MarkerType.City]: 'mapbox-marker--city',
+        [MarkerType.Village]: 'mapbox-marker--village',
+        [MarkerType.Region]: 'mapbox-marker--region',
+    };
+    return typeMap[type] || 'mapbox-marker--point-of-interest';
 };
 
 // Helper function to create a custom marker element for Mapbox GL
@@ -111,30 +111,13 @@ const createMarkerElement = (
     isHighlighted = false,
 ): HTMLDivElement => {
     const el = document.createElement('div');
-    el.className = 'custom-marker';
-    const color = isHighlighted ? 'red' : getColorForType(type);
+    const typeClass = getMarkerTypeClass(type);
+    const highlightClass = isHighlighted ? 'mapbox-marker--highlighted' : '';
     const icon = getIconForType(type);
 
     el.innerHTML = `
-        <div style="
-            background-color: ${color};
-            width: 35px;
-            height: 45px;
-            border-radius: 50% 50% 50% 0;
-            position: relative;
-            transform: rotate(-45deg);
-            border: 2px solid white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            cursor: pointer;
-        ">
-            <div style="
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%) rotate(45deg);
-                color: white;
-                font-size: 16px;
-            ">
+        <div class="mapbox-marker ${typeClass} ${highlightClass}">
+            <div class="mapbox-marker__icon">
                 <i class="fa ${icon}"></i>
             </div>
         </div>
@@ -453,15 +436,6 @@ export default function TravelMap({
                 // Create a custom blue circle marker element
                 const el = document.createElement('div');
                 el.className = 'search-result-marker';
-                el.style.cssText = `
-                    width: 20px;
-                    height: 20px;
-                    border-radius: 50%;
-                    background-color: blue;
-                    opacity: 0.6;
-                    border: 2px solid #3b82f6;
-                    cursor: pointer;
-                `;
 
                 // Create the marker
                 const marker = new mapboxgl.Marker(el).setLngLat([
@@ -716,25 +690,8 @@ export default function TravelMap({
             // Create a temporary highlight marker with yellow color
             const el = document.createElement('div');
             el.innerHTML = `
-                <div style="
-                    background-color: yellow;
-                    width: 35px;
-                    height: 45px;
-                    border-radius: 50% 50% 50% 0;
-                    position: relative;
-                    transform: rotate(-45deg);
-                    border: 2px solid white;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-                    cursor: pointer;
-                ">
-                    <div style="
-                        position: absolute;
-                        top: 50%;
-                        left: 50%;
-                        transform: translate(-50%, -50%) rotate(45deg);
-                        color: black;
-                        font-size: 16px;
-                    ">
+                <div class="mapbox-marker mapbox-marker--search">
+                    <div class="mapbox-marker__icon">
                         <i class="fa fa-search"></i>
                     </div>
                 </div>
