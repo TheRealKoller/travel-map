@@ -98,6 +98,9 @@ jobs:
           mkdir -p database
           touch database/database.sqlite
 
+      - name: Run Main Database Migrations
+        run: php artisan migrate:fresh --force
+
       - name: Setup E2E Environment File
         run: |
           cp .env.example .env.e2e
