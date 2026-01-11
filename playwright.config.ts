@@ -15,8 +15,9 @@ export default defineConfig({
     ],
     use: {
         baseURL: process.env.APP_URL || 'http://localhost:8000',
-        trace: 'on-first-retry',
-        screenshot: 'only-on-failure',
+        trace: process.env.CI ? 'on' : 'on-first-retry',
+        screenshot: process.env.CI ? 'on' : 'only-on-failure',
+        video: process.env.CI ? 'retain-on-failure' : 'off',
         viewport: { width: 1920, height: 1080 },
         // Enable code coverage collection
         contextOptions: {
