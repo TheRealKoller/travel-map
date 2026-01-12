@@ -43,6 +43,9 @@ export default function MarkerForm({
     const [notes, setNotes] = useState(marker?.notes || '');
     const [url, setUrl] = useState(marker?.url || '');
     const [isUnesco, setIsUnesco] = useState(marker?.isUnesco || false);
+    const [isEnriching, setIsEnriching] = useState(false);
+    const [enrichmentError, setEnrichmentError] = useState<string | null>(null);
+
     // Define mdeOptions before any early returns to ensure hooks are called in consistent order
     const mdeOptions = useMemo(() => {
         // Configure marked to preserve line breaks
@@ -143,6 +146,95 @@ export default function MarkerForm({
         }
     };
 
+    const handleEnrichMarker = async () => {
+        if (!marker || !name.trim()) {
+            return;
+        }
+
+        setIsEnriching(true);
+        setEnrichmentError(null);
+
+        try {
+            const response = await fetch('/markers/enrich', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN':
+                        document
+                            .querySelector('meta[name="csrf-token"]')
+                            ?.getAttribute('content') || '',
+                },
+                body: JSON.stringify({
+                    name: name,
+                    latitude: marker.lat,
+                    longitude: marker.lng,
+                }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.error || 'Failed to enrich marker');
+            }
+
+            const data = result.data;
+
+            // Apply enriched data to form fields
+            if (data.type) {
+                // Map the API type to MarkerType enum
+                const typeMap: Record<string, MarkerType> = {
+                    restaurant: MarkerType.Restaurant,
+                    point_of_interest: MarkerType.PointOfInterest,
+                    hotel: MarkerType.Hotel,
+                    museum: MarkerType.Museum,
+                    ruin: MarkerType.Ruin,
+                    temple_church: MarkerType.TempleChurch,
+                    sightseeing: MarkerType.Sightseeing,
+                    natural_attraction: MarkerType.NaturalAttraction,
+                    city: MarkerType.City,
+                    village: MarkerType.Village,
+                    region: MarkerType.Region,
+                    question: MarkerType.Question,
+                    tip: MarkerType.Tip,
+                    festival_party: MarkerType.FestivalParty,
+                    leisure: MarkerType.Leisure,
+                };
+
+                const mappedType = typeMap[data.type];
+                if (mappedType) {
+                    setType(mappedType);
+                }
+            }
+
+            if (data.is_unesco !== undefined && data.is_unesco !== null) {
+                setIsUnesco(data.is_unesco);
+            }
+
+            if (data.notes) {
+                // Append to existing notes if any, otherwise set new notes
+                if (notes.trim()) {
+                    setNotes(notes + '\n\n' + data.notes);
+                } else {
+                    setNotes(data.notes);
+                }
+            }
+
+            if (data.url && !url.trim()) {
+                // Only set URL if it's currently empty
+                setUrl(data.url);
+            }
+        } catch (error) {
+            console.error('Failed to enrich marker:', error);
+            setEnrichmentError(
+                error instanceof Error
+                    ? error.message
+                    : 'Failed to enrich marker information',
+            );
+        } finally {
+            setIsEnriching(false);
+        }
+    };
+
     return (
         <div className="relative rounded-lg bg-white p-4 shadow">
             <button
@@ -164,6 +256,14 @@ export default function MarkerForm({
                 </svg>
             </button>
             <h2 className="mb-4 pr-8 text-xl font-semibold">Marker Details</h2>
+            {enrichmentError && (
+                <div
+                    className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-800"
+                    role="alert"
+                >
+                    <strong>Error:</strong> {enrichmentError}
+                </div>
+            )}
             <div className="space-y-4">
                 <div>
                     <label
@@ -235,6 +335,61 @@ export default function MarkerForm({
                             UNESCO World Heritage Site
                         </span>
                     </label>
+                </div>
+                <div>
+                    <button
+                        type="button"
+                        onClick={handleEnrichMarker}
+                        disabled={isEnriching || !name.trim()}
+                        className="w-full rounded-md border border-purple-600 bg-white px-3 py-2 text-sm font-medium text-purple-600 transition-colors hover:bg-purple-50 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:border-gray-300 disabled:bg-gray-100 disabled:text-gray-400"
+                        data-testid="button-enrich-marker"
+                    >
+                        {isEnriching ? (
+                            <span className="flex items-center justify-center gap-2">
+                                <svg
+                                    className="h-4 w-4 animate-spin"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <circle
+                                        className="opacity-25"
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="currentColor"
+                                        strokeWidth="4"
+                                    ></circle>
+                                    <path
+                                        className="opacity-75"
+                                        fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                    ></path>
+                                </svg>
+                                Enriching with AI...
+                            </span>
+                        ) : (
+                            <span className="flex items-center justify-center gap-2">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-4 w-4"
+                                    viewBox="0 0 20 20"
+                                    fill="currentColor"
+                                >
+                                    <path
+                                        fillRule="evenodd"
+                                        d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
+                                        clipRule="evenodd"
+                                    />
+                                </svg>
+                                Enrich with AI
+                            </span>
+                        )}
+                    </button>
+                    <p className="mt-1 text-xs text-gray-500">
+                        Use AI to automatically determine the marker type,
+                        UNESCO status, and add additional information
+                    </p>
                 </div>
                 <div>
                     <label

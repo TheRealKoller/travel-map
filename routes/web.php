@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\LeChatAgentController;
+use App\Http\Controllers\LogViewerController;
 use App\Http\Controllers\MapboxController;
 use App\Http\Controllers\MarkerController;
 use App\Http\Controllers\RouteController;
@@ -7,7 +9,6 @@ use App\Http\Controllers\TourController;
 use App\Http\Controllers\TripController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use Rap2hpoutre\LaravelLogViewer\LogViewerController;
 
 Route::get('/', function () {
     return Inertia::render('map');
@@ -42,6 +43,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/markers/{marker}', [MarkerController::class, 'destroy'])->name('markers.destroy');
     Route::post('/markers/search-nearby', [MarkerController::class, 'searchNearby'])->name('markers.search-nearby');
     Route::get('/markers/place-types', [MarkerController::class, 'placeTypes'])->name('markers.place-types');
+    Route::post('/markers/enrich', [LeChatAgentController::class, 'enrichMarker'])->name('markers.enrich');
 
     // Route routes
     Route::get('/routes', [RouteController::class, 'index'])->name('routes.index');

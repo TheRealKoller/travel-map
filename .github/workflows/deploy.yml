@@ -115,6 +115,9 @@ jobs:
           
           MAPBOX_ACCESS_TOKEN="${{ secrets.MAPBOX_ACCESS_TOKEN }}"
           
+          LECHAT_API_KEY="${{ secrets.LECHAT_API_KEY }}"
+          LECHAT_AGENT_ID="${{ secrets.LECHAT_AGENT_ID }}"
+          
           VITE_APP_NAME="${{ vars.VITE_APP_NAME }}"
           VITE_MAPBOX_ACCESS_TOKEN="${{ secrets.MAPBOX_ACCESS_TOKEN }}"
           EOF

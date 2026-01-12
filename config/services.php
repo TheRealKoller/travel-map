@@ -40,4 +40,9 @@ return [
         'monthly_request_limit' => env('MAPBOX_MONTHLY_REQUEST_LIMIT', 10000),
     ],
 
+    'lechat' => [
+        'api_key' => env('LECHAT_API_KEY'),
+        'agent_id' => env('LECHAT_AGENT_ID'),
+    ],
+
 ];
