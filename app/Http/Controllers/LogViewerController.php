@@ -20,6 +20,7 @@ class LogViewerController extends Controller
         if (! File::exists($logPath)) {
             return Inertia::render('Logs/Index', [
                 'logs' => [],
+                'totalLines' => 0,
                 'message' => 'Log file not found.',
             ]);
         }
