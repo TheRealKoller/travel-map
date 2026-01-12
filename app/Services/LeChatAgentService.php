@@ -106,16 +106,18 @@ Please provide the following information in valid JSON format:
 {
   "type": "one of: restaurant, point_of_interest, hotel, museum, ruin, temple_church, sightseeing, natural_attraction, city, village, region, question, tip, festival_party, leisure",
   "is_unesco": true or false (whether this is a UNESCO World Heritage Site),
-  "notes": "Interesting facts, historical context, and useful information about this location",
-  "url": "Official website or relevant link (Wikipedia, official tourism site, etc.)"
+  "notes": "Interesting facts, historical context, and useful information about this location IN GERMAN LANGUAGE",
+  "url": "Official website or relevant link (prefer German language websites if available, otherwise international sites)"
 }
 
 Rules:
 - Return ONLY valid JSON, no additional text
 - If a field cannot be determined, use null
 - For type, choose the most appropriate category
-- For notes, provide 2-3 sentences of relevant information
-- For url, prefer official websites over Wikipedia when available
+- For notes, provide 2-3 sentences of relevant information IN GERMAN (Deutsch)
+- Write natural, fluent German text in the notes field
+- For url, prefer German language official websites when available, otherwise international sites
+- If a German Wikipedia page exists, prefer it over the English version
 
 PROMPT;
     }

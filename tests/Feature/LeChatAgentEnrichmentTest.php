@@ -50,7 +50,7 @@ it('validates latitude and longitude ranges', function () {
 it('successfully enriches marker with valid data', function () {
     actingAs($this->user);
 
-    // Mock the HTTP response from Le Chat API
+    // Mock the HTTP response from Le Chat API with German text
     Http::fake([
         'api.mistral.ai/v1/agents/completions' => Http::response([
             'choices' => [
@@ -59,8 +59,8 @@ it('successfully enriches marker with valid data', function () {
                         'content' => json_encode([
                             'type' => 'sightseeing',
                             'is_unesco' => false,
-                            'notes' => 'The Eiffel Tower is an iconic iron lattice tower.',
-                            'url' => 'https://www.toureiffel.paris',
+                            'notes' => 'Der Eiffelturm ist ein ikonisches Eisenfachwerkgerüst in Paris.',
+                            'url' => 'https://www.toureiffel.paris/de',
                         ]),
                     ],
                 ],
@@ -80,8 +80,8 @@ it('successfully enriches marker with valid data', function () {
         'data' => [
             'type' => 'sightseeing',
             'is_unesco' => false,
-            'notes' => 'The Eiffel Tower is an iconic iron lattice tower.',
-            'url' => 'https://www.toureiffel.paris',
+            'notes' => 'Der Eiffelturm ist ein ikonisches Eisenfachwerkgerüst in Paris.',
+            'url' => 'https://www.toureiffel.paris/de',
         ],
     ]);
 
@@ -145,7 +145,7 @@ it('handles invalid JSON responses from the agent', function () {
 it('extracts JSON from markdown code blocks', function () {
     actingAs($this->user);
 
-    // Mock API response with JSON wrapped in markdown
+    // Mock API response with JSON wrapped in markdown with German text
     Http::fake([
         'api.mistral.ai/v1/agents/completions' => Http::response([
             'choices' => [
@@ -154,8 +154,8 @@ it('extracts JSON from markdown code blocks', function () {
                         'content' => "```json\n".json_encode([
                             'type' => 'museum',
                             'is_unesco' => true,
-                            'notes' => 'The Louvre is the world\'s largest art museum.',
-                            'url' => 'https://www.louvre.fr',
+                            'notes' => 'Der Louvre ist das größte Kunstmuseum der Welt.',
+                            'url' => 'https://www.louvre.fr/de',
                         ])."\n```",
                     ],
                 ],

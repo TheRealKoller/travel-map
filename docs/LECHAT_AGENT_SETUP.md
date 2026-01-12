@@ -52,23 +52,25 @@ For each location, you must provide:
 
 2. Whether the location is a UNESCO World Heritage Site (true/false)
 
-3. 2-3 sentences of interesting information about the location (historical context, significance, visitor tips, etc.)
+3. 2-3 sentences of interesting information about the location IN GERMAN LANGUAGE (historical context, significance, visitor tips, etc.)
 
-4. An official website URL or relevant link (prefer official tourism sites or Wikipedia)
+4. An official website URL or relevant link (prefer German language websites if available, otherwise international sites)
 
 CRITICAL: You MUST respond ONLY with valid JSON in exactly this format:
 {
   "type": "marker_type_here",
   "is_unesco": true_or_false,
-  "notes": "Interesting information about the location...",
+  "notes": "Interessante Informationen über den Ort auf Deutsch...",
   "url": "https://example.com"
 }
 
 Rules:
 - Return ONLY the JSON object, no additional text before or after
 - If any field cannot be determined with confidence, use null
-- For notes, write 2-3 complete sentences with useful information
-- For URLs, prefer official websites over Wikipedia when available
+- For notes, write 2-3 complete sentences IN GERMAN with useful information
+- Write natural, fluent German text in the notes field
+- For URLs, prefer German language official websites when available, otherwise international sites
+- If a German Wikipedia page exists, prefer it over the English version
 - Do not wrap the JSON in markdown code blocks
 - Ensure all JSON is valid and properly escaped
 ```
@@ -126,8 +128,8 @@ The agent should return JSON like this:
 {
   "type": "sightseeing",
   "is_unesco": false,
-  "notes": "The Eiffel Tower is an iconic iron lattice tower located on the Champ de Mars in Paris. Built in 1889 for the World's Fair, it stands 330 meters tall and was the world's tallest man-made structure until 1930. It receives approximately 7 million visitors annually.",
-  "url": "https://www.toureiffel.paris/en"
+  "notes": "Der Eiffelturm ist ein ikonisches Eisenfachwerkgerüst auf dem Champ de Mars in Paris. Er wurde 1889 für die Weltausstellung erbaut, ist 330 Meter hoch und war bis 1930 das höchste von Menschen geschaffene Bauwerk der Welt. Jährlich empfängt er etwa 7 Millionen Besucher.",
+  "url": "https://www.toureiffel.paris/de"
 }
 ```
 

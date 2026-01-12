@@ -6,8 +6,8 @@ Die Travel Map Application wurde um einen Le Chat AI Agent erweitert, der automa
 
 - **Marker-Typ**: Automatische Kategorisierung (Restaurant, Museum, UNESCO-Stätte, etc.)
 - **UNESCO-Status**: Erkennung von UNESCO-Weltkulturerbestätten
-- **Notizen**: 2-3 Sätze mit interessanten Fakten und historischem Kontext
-- **URL**: Offizielle Webseite oder relevanter Link
+- **Notizen**: 2-3 Sätze mit interessanten Fakten und historischem Kontext **auf Deutsch**
+- **URL**: Offizielle Webseite oder relevanter Link (bevorzugt deutsche Seiten)
 
 ## Implementierte Features
 
@@ -111,23 +111,25 @@ For each location, you must provide:
 
 2. Whether the location is a UNESCO World Heritage Site (true/false)
 
-3. 2-3 sentences of interesting information about the location
+3. 2-3 sentences of interesting information about the location IN GERMAN LANGUAGE
 
-4. An official website URL or relevant link
+4. An official website URL or relevant link (prefer German language websites if available)
 
 CRITICAL: You MUST respond ONLY with valid JSON in exactly this format:
 {
   "type": "marker_type_here",
   "is_unesco": true_or_false,
-  "notes": "Interesting information...",
+  "notes": "Interessante Informationen auf Deutsch...",
   "url": "https://example.com"
 }
 
 Rules:
 - Return ONLY the JSON object, no additional text
 - If any field cannot be determined, use null
-- For notes, write 2-3 complete sentences
-- For URLs, prefer official websites over Wikipedia
+- For notes, write 2-3 complete sentences IN GERMAN
+- Write natural, fluent German text in the notes field
+- For URLs, prefer German language official websites when available
+- If a German Wikipedia page exists, prefer it over the English version
 - Do not wrap JSON in markdown code blocks
 - Ensure all JSON is valid and properly escaped
 ```
@@ -154,8 +156,8 @@ POST /markers/enrich
   "data": {
     "type": "sightseeing",
     "is_unesco": false,
-    "notes": "The Eiffel Tower is an iconic iron lattice tower...",
-    "url": "https://www.toureiffel.paris/en"
+    "notes": "Der Eiffelturm ist ein ikonisches Eisenfachwerkgerüst in Paris. Er wurde 1889 für die Weltausstellung erbaut und ist mit 330 Metern Höhe eines der bekanntesten Wahrzeichen der Welt. Jährlich besuchen etwa 7 Millionen Menschen dieses architektonische Meisterwerk.",
+    "url": "https://www.toureiffel.paris/de"
   }
 }
 ```

@@ -23,7 +23,9 @@ it('builds the correct prompt with location data', function () {
         ->toContain('48.8584')
         ->toContain('2.2945')
         ->toContain('JSON format')
-        ->toContain('is_unesco');
+        ->toContain('is_unesco')
+        ->toContain('IN GERMAN')
+        ->toContain('GERMAN LANGUAGE');
 });
 
 it('successfully enriches marker info with valid API response', function () {
@@ -35,8 +37,8 @@ it('successfully enriches marker info with valid API response', function () {
                         'content' => json_encode([
                             'type' => 'museum',
                             'is_unesco' => true,
-                            'notes' => 'Test notes',
-                            'url' => 'https://example.com',
+                            'notes' => 'Testnotizen auf Deutsch',
+                            'url' => 'https://example.com/de',
                         ]),
                     ],
                 ],
@@ -51,8 +53,8 @@ it('successfully enriches marker info with valid API response', function () {
         'data' => [
             'type' => 'museum',
             'is_unesco' => true,
-            'notes' => 'Test notes',
-            'url' => 'https://example.com',
+            'notes' => 'Testnotizen auf Deutsch',
+            'url' => 'https://example.com/de',
         ],
     ]);
 });
@@ -65,8 +67,8 @@ it('parses JSON wrapped in markdown code blocks', function () {
     $content = "```json\n".json_encode([
         'type' => 'hotel',
         'is_unesco' => false,
-        'notes' => 'Test',
-        'url' => 'https://test.com',
+        'notes' => 'Deutschsprachige Testnotizen',
+        'url' => 'https://test.com/de',
     ])."\n```";
 
     $result = $method->invoke($this->service, $content);
@@ -74,8 +76,8 @@ it('parses JSON wrapped in markdown code blocks', function () {
     expect($result)->toBe([
         'type' => 'hotel',
         'is_unesco' => false,
-        'notes' => 'Test',
-        'url' => 'https://test.com',
+        'notes' => 'Deutschsprachige Testnotizen',
+        'url' => 'https://test.com/de',
     ]);
 });
 
