@@ -18,6 +18,14 @@ class AppServiceProvider extends ServiceProvider
                 accessToken: config('services.mapbox.access_token')
             );
         });
+
+        // Register LeChatAgentService with API credentials from config
+        $this->app->singleton(\App\Services\LeChatAgentService::class, function ($app) {
+            return new \App\Services\LeChatAgentService(
+                apiKey: config('services.lechat.api_key'),
+                agentId: config('services.lechat.agent_id')
+            );
+        });
     }
 
     /**
