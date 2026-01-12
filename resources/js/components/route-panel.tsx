@@ -197,7 +197,8 @@ export default function RoutePanel({
         distanceKm: number,
         durationMinutes: number,
     ): string => {
-        if (durationMinutes === 0) return '0 km/h';
+        // Validate inputs
+        if (durationMinutes <= 0 || distanceKm < 0) return '0 km/h';
         const durationHours = durationMinutes / 60;
         const speed = distanceKm / durationHours;
         return `${speed.toFixed(1)} km/h`;
