@@ -20,6 +20,8 @@ class Route extends Model
         'distance',
         'duration',
         'geometry',
+        'transit_details',
+        'alternatives',
         'warning',
     ];
 
@@ -28,6 +30,8 @@ class Route extends Model
         return [
             'transport_mode' => TransportMode::class,
             'geometry' => 'array',
+            'transit_details' => 'array',
+            'alternatives' => 'array',
             'distance' => 'integer',
             'duration' => 'integer',
         ];

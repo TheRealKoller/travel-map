@@ -1,5 +1,10 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { Label } from '@/components/ui/label';
 import {
     Select,
@@ -11,7 +16,15 @@ import {
 import { MarkerData } from '@/types/marker';
 import { Route, TransportMode } from '@/types/route';
 import axios from 'axios';
-import { Bike, Car, PersonStanding, Train, Trash2 } from 'lucide-react';
+import {
+    Bike,
+    Car,
+    ChevronDown,
+    ChevronUp,
+    PersonStanding,
+    Train,
+    Trash2,
+} from 'lucide-react';
 import { useState } from 'react';
 
 interface RoutePanelProps {
@@ -33,6 +46,9 @@ export default function RoutePanel({
         useState<TransportMode>('driving-car');
     const [isCreating, setIsCreating] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [expandedRoutes, setExpandedRoutes] = useState<Set<number>>(
+        new Set(),
+    );
 
     const handleCreateRoute = async () => {
         if (!startMarkerId || !endMarkerId) {
@@ -177,6 +193,29 @@ export default function RoutePanel({
         return `${totalMinutes} min`;
     };
 
+    const calculateAverageSpeed = (
+        distanceKm: number,
+        durationMinutes: number,
+    ): string => {
+        // Validate inputs
+        if (durationMinutes <= 0 || distanceKm < 0) return '0 km/h';
+        const durationHours = durationMinutes / 60;
+        const speed = distanceKm / durationHours;
+        return `${speed.toFixed(1)} km/h`;
+    };
+
+    const toggleRouteExpansion = (routeId: number) => {
+        setExpandedRoutes((prev) => {
+            const newSet = new Set(prev);
+            if (newSet.has(routeId)) {
+                newSet.delete(routeId);
+            } else {
+                newSet.add(routeId);
+            }
+            return newSet;
+        });
+    };
+
     return (
         <div className="space-y-4">
             <Card className="p-4">
@@ -294,48 +333,207 @@ export default function RoutePanel({
                     </h3>
 
                     <div className="space-y-3">
-                        {routes.map((route) => (
-                            <div
-                                key={route.id}
-                                className="flex items-start justify-between rounded-lg border p-3"
-                            >
-                                <div className="flex-1 space-y-1">
-                                    <div className="flex items-center gap-2 font-medium">
-                                        <span
-                                            className={getTransportColor(
-                                                route.transport_mode.value,
-                                            )}
-                                        >
-                                            {getTransportIcon(
-                                                route.transport_mode.value,
-                                            )}
-                                        </span>
-                                        <span className="text-sm">
-                                            {route.start_marker.name} →{' '}
-                                            {route.end_marker.name}
-                                        </span>
-                                    </div>
-                                    <div className="text-xs text-muted-foreground">
-                                        {route.distance.km.toFixed(2)} km •{' '}
-                                        {formatDuration(route.duration.minutes)}{' '}
-                                        • {route.transport_mode.label}
-                                    </div>
-                                    {route.warning && (
-                                        <div className="mt-2 rounded border-l-4 border-yellow-500 bg-yellow-50 p-2 text-xs text-yellow-800 dark:border-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400">
-                                            ⚠️ {route.warning}
-                                        </div>
-                                    )}
-                                </div>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleDeleteRoute(route.id)}
-                                    className="h-8 w-8 text-red-600 hover:bg-red-50 hover:text-red-700"
+                        {routes.map((route) => {
+                            const isExpanded = expandedRoutes.has(route.id);
+                            return (
+                                <Collapsible
+                                    key={route.id}
+                                    open={isExpanded}
+                                    onOpenChange={() =>
+                                        toggleRouteExpansion(route.id)
+                                    }
                                 >
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        ))}
+                                    <div className="rounded-lg border">
+                                        {/* Route header - always visible */}
+                                        <div className="flex items-start justify-between p-3">
+                                            <CollapsibleTrigger
+                                                className="flex flex-1 cursor-pointer items-start gap-2"
+                                                data-testid={`route-${route.id}-trigger`}
+                                            >
+                                                <div className="flex-1 space-y-1">
+                                                    <div className="flex items-center gap-2 font-medium">
+                                                        <span
+                                                            className={getTransportColor(
+                                                                route
+                                                                    .transport_mode
+                                                                    .value,
+                                                            )}
+                                                        >
+                                                            {getTransportIcon(
+                                                                route
+                                                                    .transport_mode
+                                                                    .value,
+                                                            )}
+                                                        </span>
+                                                        <span className="text-sm">
+                                                            {
+                                                                route
+                                                                    .start_marker
+                                                                    .name
+                                                            }{' '}
+                                                            →{' '}
+                                                            {
+                                                                route.end_marker
+                                                                    .name
+                                                            }
+                                                        </span>
+                                                    </div>
+                                                    <div className="text-xs text-muted-foreground">
+                                                        {route.distance.km.toFixed(
+                                                            2,
+                                                        )}{' '}
+                                                        km •{' '}
+                                                        {formatDuration(
+                                                            route.duration
+                                                                .minutes,
+                                                        )}{' '}
+                                                        •{' '}
+                                                        {
+                                                            route.transport_mode
+                                                                .label
+                                                        }
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center">
+                                                    {isExpanded ? (
+                                                        <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                                                    ) : (
+                                                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                                    )}
+                                                </div>
+                                            </CollapsibleTrigger>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() =>
+                                                    handleDeleteRoute(route.id)
+                                                }
+                                                className="ml-2 h-8 w-8 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                                data-testid={`route-${route.id}-delete`}
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+
+                                        {/* Collapsible route details */}
+                                        <CollapsibleContent>
+                                            <div className="space-y-3 border-t px-3 pt-3 pb-3">
+                                                <div className="space-y-2">
+                                                    <h4 className="text-sm font-semibold">
+                                                        Route details
+                                                    </h4>
+
+                                                    {/* Distance and Duration */}
+                                                    <div className="grid grid-cols-2 gap-2 text-xs">
+                                                        <div>
+                                                            <span className="font-medium text-muted-foreground">
+                                                                Distance:
+                                                            </span>
+                                                            <div className="mt-1">
+                                                                {route.distance.km.toFixed(
+                                                                    2,
+                                                                )}{' '}
+                                                                km
+                                                                <span className="ml-1 text-muted-foreground">
+                                                                    (
+                                                                    {route.distance.meters.toLocaleString()}{' '}
+                                                                    m)
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <span className="font-medium text-muted-foreground">
+                                                                Duration:
+                                                            </span>
+                                                            <div className="mt-1">
+                                                                {formatDuration(
+                                                                    route
+                                                                        .duration
+                                                                        .minutes,
+                                                                )}
+                                                                <span className="ml-1 text-muted-foreground">
+                                                                    (
+                                                                    {route.duration.seconds.toLocaleString()}{' '}
+                                                                    sec)
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Average Speed */}
+                                                    <div className="text-xs">
+                                                        <span className="font-medium text-muted-foreground">
+                                                            Average speed:
+                                                        </span>
+                                                        <div className="mt-1">
+                                                            {calculateAverageSpeed(
+                                                                route.distance
+                                                                    .km,
+                                                                route.duration
+                                                                    .minutes,
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Route Complexity */}
+                                                    <div className="text-xs">
+                                                        <span className="font-medium text-muted-foreground">
+                                                            Route points:
+                                                        </span>
+                                                        <div className="mt-1">
+                                                            {
+                                                                route.geometry
+                                                                    .length
+                                                            }{' '}
+                                                            coordinates
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Transport Mode Specific Info */}
+                                                    {route.transport_mode
+                                                        .value ===
+                                                        'public-transport' && (
+                                                        <div className="mt-3 rounded bg-blue-50 p-2 text-xs dark:bg-blue-900/20">
+                                                            <div className="font-medium text-blue-900 dark:text-blue-300">
+                                                                ℹ️ Public
+                                                                transport
+                                                                information
+                                                            </div>
+                                                            <div className="mt-1 text-blue-800 dark:text-blue-400">
+                                                                This route uses
+                                                                public transport
+                                                                mode. Detailed
+                                                                information
+                                                                about specific
+                                                                transport types,
+                                                                transfers, and
+                                                                schedules may
+                                                                not be available
+                                                                through the
+                                                                current routing
+                                                                provider.
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Warning */}
+                                                {route.warning && (
+                                                    <div className="rounded border-l-4 border-yellow-500 bg-yellow-50 p-2 text-xs text-yellow-800 dark:border-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400">
+                                                        <div className="font-medium">
+                                                            ⚠️ Warning
+                                                        </div>
+                                                        <div className="mt-1">
+                                                            {route.warning}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </CollapsibleContent>
+                                    </div>
+                                </Collapsible>
+                            );
+                        })}
                     </div>
                 </Card>
             )}

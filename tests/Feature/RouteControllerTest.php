@@ -161,18 +161,64 @@ it('requires valid transport mode', function () {
     $response->assertStatus(422);
 });
 
-it('can create route with public transport via Mapbox', function () {
-    // Mock Mapbox API response
+it('can create route with public transport via Google Maps', function () {
+    // Mock Google Routes API v2 response
     Http::fake([
-        'api.mapbox.com/*' => Http::response([
+        'routes.googleapis.com/*' => Http::response([
             'routes' => [
                 [
-                    'distance' => 25000, // 25km
-                    'duration' => 1800, // 30 minutes
-                    'geometry' => [
-                        'coordinates' => [
-                            [$this->startMarker->longitude, $this->startMarker->latitude],
-                            [$this->endMarker->longitude, $this->endMarker->latitude],
+                    'distanceMeters' => 25000,
+                    'duration' => '1800s',
+                    'polyline' => [
+                        'encodedPolyline' => 'u{~vFvyys@',
+                    ],
+                    'legs' => [
+                        [
+                            'localizedValues' => [
+                                'departure' => ['time' => ['text' => '14:00']],
+                                'arrival' => ['time' => ['text' => '14:30']],
+                            ],
+                            'steps' => [
+                                [
+                                    'travelMode' => 'WALK',
+                                    'distanceMeters' => 500,
+                                    'staticDuration' => '360s',
+                                ],
+                                [
+                                    'travelMode' => 'TRANSIT',
+                                    'distanceMeters' => 24000,
+                                    'staticDuration' => '1200s',
+                                    'transitDetails' => [
+                                        'stopDetails' => [
+                                            'departureStop' => [
+                                                'name' => 'Main Station',
+                                                'location' => ['latitude' => 52.52, 'longitude' => 13.405],
+                                            ],
+                                            'arrivalStop' => [
+                                                'name' => 'Central Square',
+                                                'location' => ['latitude' => 52.53, 'longitude' => 13.42],
+                                            ],
+                                            'departureTime' => '2026-01-12T14:06:00Z',
+                                            'arrivalTime' => '2026-01-12T14:26:00Z',
+                                        ],
+                                        'transitLine' => [
+                                            'name' => 'Bus Line 100',
+                                            'nameShort' => '100',
+                                            'color' => '#FF0000',
+                                            'vehicle' => [
+                                                'name' => ['text' => 'BUS'],
+                                            ],
+                                        ],
+                                        'stopCount' => 12,
+                                        'headsign' => 'City Center',
+                                    ],
+                                ],
+                                [
+                                    'travelMode' => 'WALK',
+                                    'distanceMeters' => 500,
+                                    'staticDuration' => '240s',
+                                ],
+                            ],
                         ],
                     ],
                 ],
@@ -180,8 +226,8 @@ it('can create route with public transport via Mapbox', function () {
         ], 200),
     ]);
 
-    // Set Mapbox token for test
-    config(['services.mapbox.access_token' => 'test-token']);
+    // Set Google Maps API key for test
+    config(['services.google_maps.api_key' => 'test-google-key']);
 
     $response = $this->postJson('/routes', [
         'trip_id' => $this->trip->id,
@@ -200,8 +246,14 @@ it('can create route with public transport via Mapbox', function () {
             'distance',
             'duration',
             'geometry',
+            'transit_details',
             'warning',
         ]);
+
+    expect($response->json('transit_details'))->toBeArray()
+        ->and($response->json('transit_details.steps'))->toHaveCount(3)
+        ->and($response->json('transit_details.steps.1.transit'))->toHaveKey('departure_stop')
+        ->and($response->json('transit_details.steps.1.transit.line.short_name'))->toBe('100');
 
     $this->assertDatabaseHas('routes', [
         'trip_id' => $this->trip->id,
@@ -312,13 +364,13 @@ it('returns 503 when Mapbox API fails', function () {
         ->assertJsonStructure(['error']);
 });
 
-it('returns 404 when Mapbox finds no route', function () {
-    // Set Mapbox token for test
-    config(['services.mapbox.access_token' => 'test-token']);
+it('returns 404 when Google Maps finds no transit route', function () {
+    // Set Google Maps API key for test
+    config(['services.google_maps.api_key' => 'test-google-key']);
 
-    // Mock Mapbox API response with no routes
+    // Mock Google Routes API v2 response with no routes
     Http::fake([
-        'api.mapbox.com/*' => Http::response([
+        'routes.googleapis.com/*' => Http::response([
             'routes' => [],
         ], 200),
     ]);
@@ -331,5 +383,5 @@ it('returns 404 when Mapbox finds no route', function () {
     ]);
 
     $response->assertStatus(404)
-        ->assertJson(['error' => 'No route found between the markers']);
+        ->assertJson(['error' => 'No public transport route found between the markers']);
 });
