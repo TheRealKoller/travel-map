@@ -65,7 +65,9 @@ class RouteController extends Controller
                 'distance' => $routeData['distance'],
                 'duration' => $routeData['duration'],
                 'geometry' => $routeData['geometry'],
-                'warning' => $routeData['warning'],
+                'transit_details' => $routeData['transit_details'] ?? null,
+                'alternatives' => $routeData['alternatives'] ?? null,
+                'warning' => $routeData['warning'] ?? null,
             ]);
 
             $route->load(['startMarker', 'endMarker']);
