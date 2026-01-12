@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\LeChatAgentController;
+use App\Http\Controllers\LogViewerController;
 use App\Http\Controllers\MapboxController;
 use App\Http\Controllers\MarkerController;
 use App\Http\Controllers\RouteController;
@@ -8,7 +9,6 @@ use App\Http\Controllers\TourController;
 use App\Http\Controllers\TripController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use Rap2hpoutre\LaravelLogViewer\LogViewerController;
 
 Route::get('/', function () {
     return Inertia::render('map');
