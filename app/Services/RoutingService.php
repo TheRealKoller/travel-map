@@ -94,6 +94,7 @@ class RoutingService
         }
 
         $response = Http::withHeaders([
+            'Referer' => config('app.url'),
             'X-Goog-Api-Key' => $apiKey,
             'X-Goog-FieldMask' => 'routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline,routes.legs.steps,routes.legs.localizedValues',
         ])->post(self::GOOGLE_DIRECTIONS_BASE_URL, $requestBody);
