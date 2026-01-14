@@ -788,8 +788,10 @@ export default function TravelMap({
                 if (!feature || !lngLat) return;
 
                 // Extract information from the feature
-                const properties = feature.properties || {};
-                const name = ''+(properties.name_de || properties.name_en || properties.name || 'POI');
+                // Try to access _vectorTileFeature for more complete data
+                const vectorTileProps = (feature as any)._vectorTileFeature?.properties || {};
+                const properties = { ...feature.properties, ...vectorTileProps } ;
+                const name = ''+(properties.name_en || properties.name_de || properties.name || 'POI');
                 const mapboxClass = ''+(properties.class || properties.type);
                 const markerType = getMarkerTypeFromMapboxClass(mapboxClass);
 
@@ -859,8 +861,66 @@ export default function TravelMap({
         map.addInteraction('place-labels-click', {
             type: 'click',
             target: { featuresetId: 'place-labels', importId: 'basemap' },
-            handler: ({ feature }) => {
+            handler: ({ feature, lngLat }) => {
                 console.log('place-labels clicked:', feature);
+                
+                if (!feature || !lngLat) return;
+
+                // Extract information from the feature
+                // Try to access _vectorTileFeature for more complete data
+                const vectorTileProps = (feature as any)._vectorTileFeature?.properties || {};
+                const properties = { ...feature.properties, ...vectorTileProps };
+                const name = ''+(properties.name_en || properties.name_de || properties.name || 'Place');
+                
+                // Determine marker type based on place type
+                let markerType = MarkerType.PointOfInterest;
+                const placeClass = ''+(properties.class);
+                if (placeClass === 'city') {
+                    markerType = MarkerType.City;
+                } else if (placeClass === 'town' || placeClass === 'village') {
+                    markerType = MarkerType.Village;
+                }
+
+                // Get coordinates from the click event
+                const [lng, lat] = [lngLat.lng, lngLat.lat];
+
+                // Create the marker element
+                const markerEl = createMarkerElement(markerType);
+
+                // Create the marker
+                const newMarker = new mapboxgl.Marker(markerEl)
+                    .setLngLat([lng, lat])
+                    .addTo(map);
+
+                const markerId = uuidv4();
+                const markerData: MarkerData = {
+                    id: markerId,
+                    lat: lat,
+                    lng: lng,
+                    name: name,
+                    type: markerType,
+                    notes: '',
+                    url: '',
+                    isUnesco: false,
+                    marker: newMarker,
+                    isSaved: false, // Mark as unsaved
+                };
+
+                // Add popup to marker
+                const popup = new mapboxgl.Popup({ offset: 25 }).setText(
+                    name,
+                );
+                newMarker.setPopup(popup);
+
+                // Add click handler to marker
+                markerEl.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent map click event
+                    setSelectedMarkerId(markerId);
+                });
+
+                // Add marker to state
+                setMarkers((prev) => [...prev, markerData]);
+                setSelectedMarkerId(markerId);
             }
         });
         map.addInteraction('place-labels-mouseenter', {
@@ -907,8 +967,10 @@ export default function TravelMap({
                 if (!feature || !lngLat) return;
 
                 // Extract information from the feature
-                const properties = feature.properties || {};
-                const name = ''+(properties.name_de || properties.name_en || properties.name || 'Landmark');
+                // Try to access _vectorTileFeature for more complete data
+                const vectorTileProps = (feature as any)._vectorTileFeature?.properties || {};
+                const properties = { ...feature.properties, ...vectorTileProps } ;
+                const name = ''+(properties.name_en || properties.name_de || properties.name || 'Landmark');
                 const mapboxClass = ''+(properties.class || properties.type);
                 const markerType = getMarkerTypeFromMapboxClass(mapboxClass);
 
