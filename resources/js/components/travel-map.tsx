@@ -1703,7 +1703,7 @@ export default function TravelMap({
             </div>
 
             {/* Part 2: Tour panel with collapse button */}
-            <div className="relative w-full lg:max-w-[min(25%,300px)]" data-testid="tour-panel">
+            <div className={`relative w-full ${isTourPanelCollapsed ? 'lg:w-auto' : 'lg:max-w-[min(25%,300px)]'}`} data-testid="tour-panel">
                 {!isTourPanelCollapsed && (
                     <div className="h-full">
                         <TourPanel
@@ -1738,7 +1738,7 @@ export default function TravelMap({
 
             {/* Part 3: Route panel with collapse button */}
             {selectedTripId && (
-                <div className="relative w-full lg:max-w-[min(25%,300px)]" data-testid="route-panel">
+                <div className={`relative w-full ${isRoutePanelCollapsed ? 'lg:w-auto' : 'lg:max-w-[min(25%,300px)]'}`} data-testid="route-panel">
                     {!isRoutePanelCollapsed && (
                         <div className="h-full">
                             <RoutePanel
