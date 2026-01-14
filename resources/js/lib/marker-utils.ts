@@ -77,6 +77,8 @@ export const getMarkerTypeClass = (type: MarkerType): string => {
  * @param type - The marker type
  * @param isHighlighted - Whether the marker should be highlighted
  * @returns HTML div element configured as a marker
+ * @note All variables (typeClass, highlightClass, icon) are derived from controlled enums
+ *       and internal functions, ensuring no XSS vulnerability from user input
  */
 export const createMarkerElement = (
     type: MarkerType,
