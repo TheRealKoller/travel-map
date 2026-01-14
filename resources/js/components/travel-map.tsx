@@ -3,6 +3,13 @@ import MarkerForm from '@/components/marker-form';
 import MarkerList from '@/components/marker-list';
 import RoutePanel from '@/components/route-panel';
 import TourPanel from '@/components/tour-panel';
+import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from '@/lib/map-constants';
+import {
+    createMarkerElement,
+    getMarkerTypeFromMapboxClass,
+    getMarkerTypeFromOSMType,
+} from '@/lib/marker-utils';
+import { GeocodeResult, PlaceType, SearchResult } from '@/types/geocoder';
 import { MarkerData, MarkerType } from '@/types/marker';
 import { Route } from '@/types/route';
 import { Tour } from '@/types/tour';
@@ -18,224 +25,6 @@ import mapboxgl, {
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-
-// Type definitions for geocoder
-interface GeocodeResult {
-    center: [number, number];
-    place_name: string;
-}
-
-interface PlaceType {
-    value: string;
-    label: string;
-}
-
-interface SearchResult {
-    lat: number;
-    lon: number;
-    name?: string;
-    name_en?: string;
-    name_int?: string;
-    type?: string;
-    website?: string;
-    description?: string;
-    fee?: string;
-    opening_hours?: string;
-    address?: {
-        street?: string;
-        housenumber?: string;
-        postcode?: string;
-        city?: string;
-        country?: string;
-    };
-}
-
-// Helper function to get icon name based on marker type
-const getIconForType = (type: MarkerType): string => {
-    switch (type) {
-        case MarkerType.Restaurant:
-            return 'fa-utensils';
-        case MarkerType.Hotel:
-            return 'fa-bed';
-        case MarkerType.Question:
-            return 'fa-question';
-        case MarkerType.Tip:
-            return 'fa-lightbulb';
-        case MarkerType.PointOfInterest:
-            return 'fa-map-pin';
-        case MarkerType.Museum:
-            return 'fa-landmark';
-        case MarkerType.Ruin:
-            return 'fa-monument';
-        case MarkerType.TempleChurch:
-            return 'fa-church';
-        case MarkerType.FestivalParty:
-            return 'fa-champagne-glasses';
-        case MarkerType.Leisure:
-            return 'fa-bicycle';
-        case MarkerType.Sightseeing:
-            return 'fa-camera';
-        case MarkerType.NaturalAttraction:
-            return 'fa-mountain';
-        case MarkerType.City:
-            return 'fa-city';
-        case MarkerType.Village:
-            return 'fa-home';
-        case MarkerType.Region:
-            return 'fa-map';
-        default:
-            return 'fa-map-pin';
-    }
-};
-
-// Helper function to get CSS class for marker type
-const getMarkerTypeClass = (type: MarkerType): string => {
-    const typeMap: Record<MarkerType, string> = {
-        [MarkerType.Restaurant]: 'mapbox-marker--restaurant',
-        [MarkerType.Hotel]: 'mapbox-marker--hotel',
-        [MarkerType.Question]: 'mapbox-marker--question',
-        [MarkerType.Tip]: 'mapbox-marker--tip',
-        [MarkerType.PointOfInterest]: 'mapbox-marker--point-of-interest',
-        [MarkerType.Museum]: 'mapbox-marker--museum',
-        [MarkerType.Ruin]: 'mapbox-marker--ruin',
-        [MarkerType.TempleChurch]: 'mapbox-marker--temple-church',
-        [MarkerType.FestivalParty]: 'mapbox-marker--festival-party',
-        [MarkerType.Leisure]: 'mapbox-marker--leisure',
-        [MarkerType.Sightseeing]: 'mapbox-marker--sightseeing',
-        [MarkerType.NaturalAttraction]: 'mapbox-marker--natural-attraction',
-        [MarkerType.City]: 'mapbox-marker--city',
-        [MarkerType.Village]: 'mapbox-marker--village',
-        [MarkerType.Region]: 'mapbox-marker--region',
-    };
-    return typeMap[type] || 'mapbox-marker--point-of-interest';
-};
-
-// Helper function to create a custom marker element for Mapbox GL
-const createMarkerElement = (
-    type: MarkerType,
-    isHighlighted = false,
-): HTMLDivElement => {
-    const el = document.createElement('div');
-    const typeClass = getMarkerTypeClass(type);
-    const highlightClass = isHighlighted ? 'mapbox-marker--highlighted' : '';
-    const icon = getIconForType(type);
-
-    el.innerHTML = `
-        <div class="mapbox-marker ${typeClass} ${highlightClass}">
-            <div class="mapbox-marker__icon">
-                <i class="fa ${icon}"></i>
-            </div>
-        </div>
-    `;
-
-    return el;
-};
-
-// Helper function to map OSM place type to MarkerType
-const getMarkerTypeFromOSMType = (osmType?: string): MarkerType => {
-    if (!osmType) {
-        return MarkerType.PointOfInterest;
-    }
-
-    // Convert to lowercase for case-insensitive matching
-    const type = osmType.toLowerCase();
-
-    // Restaurant category
-    if (
-        type === 'restaurant' ||
-        type === 'cafe' ||
-        type === 'bar' ||
-        type === 'pub' ||
-        type === 'fast_food'
-    ) {
-        return MarkerType.Restaurant;
-    }
-
-    // Hotel category
-    if (
-        type === 'hotel' ||
-        type === 'guest_house' ||
-        type === 'hostel' ||
-        type === 'motel'
-    ) {
-        return MarkerType.Hotel;
-    }
-
-    // Museum category
-    if (type === 'museum' || type === 'gallery') {
-        return MarkerType.Museum;
-    }
-
-    // Ruin category
-    if (type === 'ruins' || type === 'archaeological_site') {
-        return MarkerType.Ruin;
-    }
-
-    // Temple/Church category
-    if (
-        type === 'place_of_worship' ||
-        type === 'church' ||
-        type === 'temple' ||
-        type === 'mosque' ||
-        type === 'shrine'
-    ) {
-        return MarkerType.TempleChurch;
-    }
-
-    // Festival/Party category
-    if (
-        type === 'nightclub' ||
-        type === 'theatre' ||
-        type === 'cinema' ||
-        type === 'arts_centre'
-    ) {
-        return MarkerType.FestivalParty;
-    }
-
-    // Leisure category
-    if (
-        type === 'park' ||
-        type === 'garden' ||
-        type === 'playground' ||
-        type === 'sports_centre' ||
-        type === 'swimming_pool' ||
-        type === 'beach' ||
-        type === 'marina'
-    ) {
-        return MarkerType.Leisure;
-    }
-
-    // Sightseeing category
-    if (
-        type === 'attraction' ||
-        type === 'viewpoint' ||
-        type === 'monument' ||
-        type === 'memorial' ||
-        type === 'castle' ||
-        type === 'artwork' ||
-        type === 'zoo' ||
-        type === 'theme_park'
-    ) {
-        return MarkerType.Sightseeing;
-    }
-
-    // Default to Point of Interest for anything else
-    return MarkerType.PointOfInterest;
-};
-
-// Helper function to map Mapbox POI class to MarkerType
-const getMarkerTypeFromMapboxClass = (mapboxClass?: string): MarkerType => {
-    if (!mapboxClass) {
-        return MarkerType.PointOfInterest;
-    }
-
-    // Use the same logic as OSM types
-    return getMarkerTypeFromOSMType(mapboxClass);
-};
-
-// Constants
-const DEFAULT_MAP_CENTER: [number, number] = [36.2048, 138.2529]; // Japan
-const DEFAULT_MAP_ZOOM = 6;
 
 interface TravelMapProps {
     selectedTripId: number | null;
@@ -1690,7 +1479,10 @@ export default function TravelMap({
     return (
         <div className="flex h-full flex-col lg:flex-row">
             {/* Part 1: Marker list or form */}
-            <div className="w-full lg:max-w-[25%] rounded-lg border border-gray-200 bg-white shadow-sm" data-testid="marker-panel">
+            <div
+                className="w-full rounded-lg border border-gray-200 bg-white shadow-sm lg:max-w-[25%]"
+                data-testid="marker-panel"
+            >
                 {selectedMarkerId ? (
                     <MarkerForm
                         key={selectedMarkerId}
@@ -1713,9 +1505,12 @@ export default function TravelMap({
             </div>
 
             {/* Part 2: Tour panel with collapse button */}
-            <div className={`flex w-full rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden ${isTourPanelCollapsed ? 'lg:w-auto' : 'lg:max-w-[min(25%,300px)]'}`} data-testid="tour-panel">
+            <div
+                className={`flex w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm ${isTourPanelCollapsed ? 'lg:w-auto' : 'lg:max-w-[min(25%,300px)]'}`}
+                data-testid="tour-panel"
+            >
                 {!isTourPanelCollapsed && (
-                    <div className="h-full flex-1 rounded-l-lg overflow-hidden">
+                    <div className="h-full flex-1 overflow-hidden rounded-l-lg">
                         <TourPanel
                             tours={tours}
                             selectedTourId={selectedTourId}
@@ -1732,7 +1527,7 @@ export default function TravelMap({
                     onClick={() =>
                         setIsTourPanelCollapsed(!isTourPanelCollapsed)
                     }
-                    className={`bg-white px-1 shadow-md hover:bg-gray-100 flex items-center ${isTourPanelCollapsed ? 'rounded-lg' : 'rounded-r-lg'}`}
+                    className={`flex items-center bg-white px-1 shadow-md hover:bg-gray-100 ${isTourPanelCollapsed ? 'rounded-lg' : 'rounded-r-lg'}`}
                     title={
                         isTourPanelCollapsed ? 'Expand Tours' : 'Collapse Tours'
                     }
@@ -1748,9 +1543,12 @@ export default function TravelMap({
 
             {/* Part 3: Route panel with collapse button */}
             {selectedTripId && (
-                <div className={`flex w-full rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden ${isRoutePanelCollapsed ? 'lg:w-auto' : 'lg:max-w-[min(25%,300px)]'}`} data-testid="route-panel">
+                <div
+                    className={`flex w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm ${isRoutePanelCollapsed ? 'lg:w-auto' : 'lg:max-w-[min(25%,300px)]'}`}
+                    data-testid="route-panel"
+                >
                     {!isRoutePanelCollapsed && (
-                        <div className="h-full flex-1 rounded-l-lg overflow-hidden">
+                        <div className="h-full flex-1 overflow-hidden rounded-l-lg">
                             <RoutePanel
                                 tripId={selectedTripId}
                                 markers={markers}
@@ -1763,7 +1561,7 @@ export default function TravelMap({
                         onClick={() =>
                             setIsRoutePanelCollapsed(!isRoutePanelCollapsed)
                         }
-                        className={`bg-white px-1 shadow-md hover:bg-gray-100 flex items-center ${isRoutePanelCollapsed ? 'rounded-lg' : 'rounded-r-lg'}`}
+                        className={`flex items-center bg-white px-1 shadow-md hover:bg-gray-100 ${isRoutePanelCollapsed ? 'rounded-lg' : 'rounded-r-lg'}`}
                         title={
                             isRoutePanelCollapsed
                                 ? 'Expand Routes'
@@ -1781,7 +1579,10 @@ export default function TravelMap({
             )}
 
             {/* Part 4: Map with top control area */}
-            <div className="flex w-full flex-1 flex-col lg:ml-4 rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden" data-testid="map-panel">
+            <div
+                className="flex w-full flex-1 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm lg:ml-4"
+                data-testid="map-panel"
+            >
                 {/* Top area for future buttons/controls */}
                 <div
                     className="mb-2 min-h-[40px] rounded-lg bg-white p-2 shadow"
