@@ -791,7 +791,7 @@ export default function TravelMap({
                 // Try to access _vectorTileFeature for more complete data
                 const vectorTileProps = (feature as any)._vectorTileFeature?.properties || {};
                 const properties = { ...feature.properties, ...vectorTileProps } ;
-                const name = ''+(properties.name_en || properties.name_de || properties.name || 'POI');
+                const name = ''+(properties.name_de || properties.name_en || properties.name || 'POI');
                 const mapboxClass = ''+(properties.class || properties.type);
                 const markerType = getMarkerTypeFromMapboxClass(mapboxClass);
 
@@ -870,7 +870,7 @@ export default function TravelMap({
                 // Try to access _vectorTileFeature for more complete data
                 const vectorTileProps = (feature as any)._vectorTileFeature?.properties || {};
                 const properties = { ...feature.properties, ...vectorTileProps };
-                const name = ''+(properties.name_en || properties.name_de || properties.name || 'Place');
+                const name = ''+(properties.name_de || properties.name_en || properties.name || 'Place');
                 
                 // Determine marker type based on place type
                 let markerType = MarkerType.PointOfInterest;
@@ -970,7 +970,7 @@ export default function TravelMap({
                 // Try to access _vectorTileFeature for more complete data
                 const vectorTileProps = (feature as any)._vectorTileFeature?.properties || {};
                 const properties = { ...feature.properties, ...vectorTileProps } ;
-                const name = ''+(properties.name_en || properties.name_de || properties.name || 'Landmark');
+                const name = ''+(properties.name_de || properties.name_en || properties.name || 'Landmark');
                 const mapboxClass = ''+(properties.class || properties.type);
                 const markerType = getMarkerTypeFromMapboxClass(mapboxClass);
 
