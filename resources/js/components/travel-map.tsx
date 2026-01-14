@@ -9,7 +9,11 @@ import { Tour } from '@/types/tour';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 import axios from 'axios';
-import mapboxgl, { FeatureSelector, GeoJSONFeature, TargetFeature } from 'mapbox-gl';
+import mapboxgl, {
+    FeatureSelector,
+    GeoJSONFeature,
+    TargetFeature,
+} from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
@@ -261,21 +265,21 @@ export default function TravelMap({
     const previousSelectedMarkerRef = useRef<string | null>(null);
     const [isSearchMode, setIsSearchMode] = useState(false);
     const isSearchModeRef = useRef(false);
-    const [searchCoordinates, setSearchCoordinates] = useState<{
+    const [searchCoordinates] = useState<{
         lat: number;
         lng: number;
     } | null>(null);
     const [searchRadius, setSearchRadius] = useState<number>(5); // Default 5 km
     const searchRadiusRef = useRef<number>(10); // Ref for use in event handlers
-    const [searchResultCount, setSearchResultCount] = useState<number | null>(
+    const [searchResultCount] = useState<number | null>(
         null,
     );
-    const [isSearching, setIsSearching] = useState(false);
-    const [searchError, setSearchError] = useState<string | null>(null);
+    const [isSearching] = useState(false);
+    const [searchError] = useState<string | null>(null);
     const [placeTypes, setPlaceTypes] = useState<PlaceType[]>([]);
     const [selectedPlaceType, setSelectedPlaceType] = useState<string>('all');
     const selectedPlaceTypeRef = useRef<string>('all'); // Ref for use in event handlers
-    const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+    const [searchResults] = useState<SearchResult[]>([]);
     const searchResultMarkersRef = useRef<mapboxgl.Marker[]>([]);
     const searchRadiusCircleLayerIdRef = useRef<string | null>(null);
     const [routes, setRoutes] = useState<Route[]>([]);
@@ -641,11 +645,11 @@ export default function TravelMap({
             center: [DEFAULT_MAP_CENTER[1], DEFAULT_MAP_CENTER[0]], // [lng, lat]
             zoom: DEFAULT_MAP_ZOOM,
             config: {
-                'basemap': {
-                    'colorPlaceLabelHighlight': 'red',
-                    'colorPlaceLabelSelect': 'blue'
-                }
-            }
+                basemap: {
+                    colorPlaceLabelHighlight: 'red',
+                    colorPlaceLabelSelect: 'blue',
+                },
+            },
         });
         mapInstanceRef.current = map;
 
@@ -778,7 +782,12 @@ export default function TravelMap({
             map.flyTo({ center: [lng, lat], zoom: 16 });
         });
 
-        var hoveredPlace: TargetFeature | FeatureSelector | GeoJSONFeature | null | undefined = null;
+        let hoveredPlace:
+            | TargetFeature
+            | FeatureSelector
+            | GeoJSONFeature
+            | null
+            | undefined = null;
         map.addInteraction('poi-click', {
             type: 'click',
             target: { featuresetId: 'poi', importId: 'basemap' },
@@ -790,9 +799,18 @@ export default function TravelMap({
 
                 // Extract information from the feature
                 // Try to access _vectorTileFeature for more complete data
-                const vectorTileProps = (feature as any)._vectorTileFeature?.properties || {};
-                const properties = { ...feature.properties, ...vectorTileProps };
-                const name = '' + (properties.name_de || properties.name_en || properties.name || 'POI');
+                const vectorTileProps =
+                    (feature as unknown as { _vectorTileFeature?: { properties?: Record<string, unknown> } })._vectorTileFeature?.properties || {};
+                const properties = {
+                    ...feature.properties,
+                    ...vectorTileProps,
+                };
+                const name =
+                    '' +
+                    (properties.name_de ||
+                        properties.name_en ||
+                        properties.name ||
+                        'POI');
                 const mapboxClass = '' + (properties.class || properties.type);
                 const markerType = getMarkerTypeFromMapboxClass(mapboxClass);
 
@@ -822,9 +840,7 @@ export default function TravelMap({
                 };
 
                 // Add popup to marker
-                const popup = new mapboxgl.Popup({ offset: 25 }).setText(
-                    name,
-                );
+                const popup = new mapboxgl.Popup({ offset: 25 }).setText(name);
                 newMarker.setPopup(popup);
 
                 // Add click handler to marker
@@ -836,14 +852,14 @@ export default function TravelMap({
                 // Add marker to state
                 setMarkers((prev) => [...prev, markerData]);
                 setSelectedMarkerId(markerId);
-            }
+            },
         });
         map.addInteraction('poi-mouseenter', {
             type: 'mouseenter',
             target: { featuresetId: 'poi', importId: 'basemap' },
             handler: () => {
                 map.getCanvas().style.cursor = 'pointer';
-            }
+            },
         });
         map.addInteraction('poi-mouseleave', {
             type: 'mouseleave',
@@ -856,7 +872,7 @@ export default function TravelMap({
                     map.getCanvas().style.cursor = 'crosshair';
                 }
                 return false;
-            }
+            },
         });
 
         map.addInteraction('place-labels-click', {
@@ -870,13 +886,22 @@ export default function TravelMap({
 
                 // Extract information from the feature
                 // Try to access _vectorTileFeature for more complete data
-                const vectorTileProps = (feature as any)._vectorTileFeature?.properties || {};
-                const properties = { ...feature.properties, ...vectorTileProps };
-                const name = '' + (properties.name_de || properties.name_en || properties.name || 'Place');
+                const vectorTileProps =
+                    (feature as unknown as { _vectorTileFeature?: { properties?: Record<string, unknown> } })._vectorTileFeature?.properties || {};
+                const properties = {
+                    ...feature.properties,
+                    ...vectorTileProps,
+                };
+                const name =
+                    '' +
+                    (properties.name_de ||
+                        properties.name_en ||
+                        properties.name ||
+                        'Place');
 
                 // Determine marker type based on place type
                 let markerType = MarkerType.PointOfInterest;
-                const placeClass = '' + (properties.class);
+                const placeClass = '' + properties.class;
                 if (placeClass === 'city') {
                     markerType = MarkerType.City;
                 } else if (placeClass === 'town' || placeClass === 'village') {
@@ -909,9 +934,7 @@ export default function TravelMap({
                 };
 
                 // Add popup to marker
-                const popup = new mapboxgl.Popup({ offset: 25 }).setText(
-                    name,
-                );
+                const popup = new mapboxgl.Popup({ offset: 25 }).setText(name);
                 newMarker.setPopup(popup);
 
                 // Add click handler to marker
@@ -923,7 +946,7 @@ export default function TravelMap({
                 // Add marker to state
                 setMarkers((prev) => [...prev, markerData]);
                 setSelectedMarkerId(markerId);
-            }
+            },
         });
         map.addInteraction('place-labels-mouseenter', {
             type: 'mouseenter',
@@ -939,7 +962,7 @@ export default function TravelMap({
                 hoveredPlace = feature;
                 map.setFeatureState(feature, { highlight: true });
                 map.getCanvas().style.cursor = 'pointer';
-            }
+            },
         });
         map.addInteraction('place-labels-mouseleave', {
             type: 'mouseleave',
@@ -956,9 +979,8 @@ export default function TravelMap({
                     map.getCanvas().style.cursor = 'crosshair';
                 }
                 return false;
-            }
+            },
         });
-
 
         map.addInteraction('landmark-icons-click', {
             type: 'click',
@@ -971,9 +993,18 @@ export default function TravelMap({
 
                 // Extract information from the feature
                 // Try to access _vectorTileFeature for more complete data
-                const vectorTileProps = (feature as any)._vectorTileFeature?.properties || {};
-                const properties = { ...feature.properties, ...vectorTileProps };
-                const name = '' + (properties.name_de || properties.name_en || properties.name || 'Landmark');
+                const vectorTileProps =
+                    (feature as unknown as { _vectorTileFeature?: { properties?: Record<string, unknown> } })._vectorTileFeature?.properties || {};
+                const properties = {
+                    ...feature.properties,
+                    ...vectorTileProps,
+                };
+                const name =
+                    '' +
+                    (properties.name_de ||
+                        properties.name_en ||
+                        properties.name ||
+                        'Landmark');
                 const mapboxClass = '' + (properties.class || properties.type);
                 const markerType = getMarkerTypeFromMapboxClass(mapboxClass);
 
@@ -1003,9 +1034,7 @@ export default function TravelMap({
                 };
 
                 // Add popup to marker
-                const popup = new mapboxgl.Popup({ offset: 25 }).setText(
-                    name,
-                );
+                const popup = new mapboxgl.Popup({ offset: 25 }).setText(name);
                 newMarker.setPopup(popup);
 
                 // Add click handler to marker
@@ -1017,14 +1046,14 @@ export default function TravelMap({
                 // Add marker to state
                 setMarkers((prev) => [...prev, markerData]);
                 setSelectedMarkerId(markerId);
-            }
+            },
         });
         map.addInteraction('landmark-icons-mouseenter', {
             type: 'mouseenter',
             target: { featuresetId: 'landmark-icons', importId: 'basemap' },
             handler: () => {
                 map.getCanvas().style.cursor = 'pointer';
-            }
+            },
         });
         map.addInteraction('landmark-icons-mouseleave', {
             type: 'mouseleave',
@@ -1037,24 +1066,22 @@ export default function TravelMap({
                     map.getCanvas().style.cursor = 'crosshair';
                 }
                 return false;
-            }
+            },
         });
 
         // Handle clicks on empty map areas (not on POIs or markers)
         map.on('click', (e) => {
             // Check if any POI, place-label or landmark features were clicked
             // If yes, the interaction handlers will take care of it
-            map.queryRenderedFeatures
             const features = map.queryRenderedFeatures(e.point);
             const hasInteractiveFeature = features.some((f) => {
-                let feat = f as TargetFeature;
+                const feat = f as TargetFeature;
                 return (
                     feat.target?.featuresetId === 'poi' ||
                     feat.target?.featuresetId === 'place_label' ||
                     feat.target?.featuresetId === 'landmark'
-                )
-            }
-            );
+                );
+            });
 
             if (hasInteractiveFeature) {
                 return; // Let the interaction handlers handle it
@@ -1277,9 +1304,9 @@ export default function TravelMap({
                         .setLngLat(e.lngLat)
                         .setHTML(
                             `<strong>${props.startName} → ${props.endName}</strong><br>` +
-                            `Mode: ${props.mode}<br>` +
-                            `Distance: ${props.distance} km<br>` +
-                            `Duration: ${props.duration} min`,
+                                `Mode: ${props.mode}<br>` +
+                                `Distance: ${props.distance} km<br>` +
+                                `Duration: ${props.duration} min`,
                         )
                         .addTo(map);
                 }
@@ -1346,14 +1373,14 @@ export default function TravelMap({
                 prev.map((m) =>
                     m.id === id
                         ? {
-                            ...m,
-                            name,
-                            type,
-                            notes,
-                            url,
-                            isUnesco,
-                            isSaved: true,
-                        }
+                              ...m,
+                              name,
+                              type,
+                              notes,
+                              url,
+                              isUnesco,
+                              isSaved: true,
+                          }
                         : m,
                 ),
             );
@@ -1440,7 +1467,7 @@ export default function TravelMap({
         } catch (error) {
             console.error('Failed to delete marker:', error);
             alert('Failed to delete marker. Please try again.');
-            
+
             // Re-add marker to map if deletion failed
             const marker = markers.find((m) => m.id === id);
             if (marker && mapInstanceRef.current) {
