@@ -286,6 +286,16 @@ export default function TravelMap({
     const [isTourPanelCollapsed, setIsTourPanelCollapsed] = useState(true);
     const [isRoutePanelCollapsed, setIsRoutePanelCollapsed] = useState(true);
 
+    // Resize map when panels are collapsed/expanded
+    useEffect(() => {
+        if (mapInstanceRef.current) {
+            // Use setTimeout to ensure the DOM has updated before resizing
+            setTimeout(() => {
+                mapInstanceRef.current?.resize();
+            }, 100);
+        }
+    }, [isTourPanelCollapsed, isRoutePanelCollapsed]);
+
     // Note: saveMarkerToDatabase is no longer needed as we save when user clicks Save button
 
     // Filter markers visibility based on selected tour
