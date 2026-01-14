@@ -779,16 +779,7 @@ export default function TravelMap({
         map.addInteraction('poi-mouseenter', {
             type: 'mouseenter',
             target: { featuresetId: 'poi', importId: 'basemap' },
-            handler: ({ feature }) => {
-                if (feature == undefined) return;
-                if (hoveredPlace && hoveredPlace.id === feature.id) return;
-
-                if (hoveredPlace) {
-                    map.setFeatureState(hoveredPlace, { highlight: false });
-                }
-
-                hoveredPlace = feature;
-                map.setFeatureState(feature, { highlight: true });
+            handler: () => {
                 map.getCanvas().style.cursor = 'pointer';
             }
         });
@@ -796,10 +787,6 @@ export default function TravelMap({
             type: 'mouseleave',
             target: { featuresetId: 'poi', importId: 'basemap' },
             handler: () => {
-                if (hoveredPlace) {
-                    map.setFeatureState(hoveredPlace, { highlight: false });
-                    hoveredPlace = null;
-                }
                 // Reset to crosshair or zoom-in depending on search mode
                 if (isSearchModeRef.current) {
                     map.getCanvas().style.cursor = 'zoom-in';
@@ -862,16 +849,7 @@ export default function TravelMap({
         map.addInteraction('landmark-icons-mouseenter', {
             type: 'mouseenter',
             target: { featuresetId: 'landmark-icons', importId: 'basemap' },
-            handler: ({ feature }) => {
-                if (feature == undefined) return;
-                if (hoveredPlace && hoveredPlace.id === feature.id) return;
-
-                if (hoveredPlace) {
-                    map.setFeatureState(hoveredPlace, { highlight: false });
-                }
-
-                hoveredPlace = feature;
-                map.setFeatureState(feature, { highlight: true });
+            handler: () => {
                 map.getCanvas().style.cursor = 'pointer';
             }
         });
@@ -879,10 +857,6 @@ export default function TravelMap({
             type: 'mouseleave',
             target: { featuresetId: 'landmark-icons', importId: 'basemap' },
             handler: () => {
-                if (hoveredPlace) {
-                    map.setFeatureState(hoveredPlace, { highlight: false });
-                    hoveredPlace = null;
-                }
                 // Reset to crosshair or zoom-in depending on search mode
                 if (isSearchModeRef.current) {
                     map.getCanvas().style.cursor = 'zoom-in';
