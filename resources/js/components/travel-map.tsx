@@ -1678,7 +1678,7 @@ export default function TravelMap({
         markers.find((m) => m.id === selectedMarkerId) || null;
 
     return (
-        <div className="flex h-full flex-col gap-4 lg:flex-row">
+        <div className="flex h-full flex-col lg:flex-row">
             {/* Part 1: Marker list or form */}
             <div className="w-full lg:max-w-[25%]" data-testid="marker-panel">
                 {selectedMarkerId ? (
@@ -1771,7 +1771,7 @@ export default function TravelMap({
             )}
 
             {/* Part 4: Map with top control area */}
-            <div className="flex w-full flex-1 flex-col" data-testid="map-panel">
+            <div className="flex w-full flex-1 flex-col lg:ml-4" data-testid="map-panel">
                 {/* Top area for future buttons/controls */}
                 <div
                     className="mb-2 min-h-[40px] rounded-lg bg-white p-2 shadow"
