@@ -1381,8 +1381,12 @@ export default function TravelMap({
                     .setPopup(popup)
                     .addTo(mapInstanceRef.current!);
 
-                // Update the marker reference
-                marker.marker = newMarker;
+                // Update the marker reference in state
+                setMarkers((prev) =>
+                    prev.map((m) =>
+                        m.id === id ? { ...m, marker: newMarker } : m,
+                    ),
+                );
             }
 
             // Close the form
@@ -1414,9 +1418,7 @@ export default function TravelMap({
 
     const handleDeleteMarker = async (id: string) => {
         try {
-            await axios.delete(`/markers/${id}`);
-
-            // Remove marker from map
+            // First, get the marker and remove it from map before API call
             const marker = markers.find((m) => m.id === id);
             if (marker) {
                 const mapboxMarker = marker.marker;
@@ -1424,6 +1426,9 @@ export default function TravelMap({
                     mapboxMarker.remove();
                 }
             }
+
+            // Then call API
+            await axios.delete(`/markers/${id}`);
 
             // Remove from state
             setMarkers((prev) => prev.filter((m) => m.id !== id));
@@ -1435,6 +1440,12 @@ export default function TravelMap({
         } catch (error) {
             console.error('Failed to delete marker:', error);
             alert('Failed to delete marker. Please try again.');
+            
+            // Re-add marker to map if deletion failed
+            const marker = markers.find((m) => m.id === id);
+            if (marker && mapInstanceRef.current) {
+                marker.marker.addTo(mapInstanceRef.current);
+            }
         }
     };
 
