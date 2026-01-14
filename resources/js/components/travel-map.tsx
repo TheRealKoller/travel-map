@@ -1703,12 +1703,7 @@ export default function TravelMap({
             </div>
 
             {/* Part 2: Tour panel with collapse button */}
-            <div
-                className="relative w-full lg:max-w-[min(25%,300px)]"
-                style={{
-                    width: isTourPanelCollapsed ? 'auto' : undefined,
-                }}
-            >
+            <div className="relative w-full lg:max-w-[min(25%,300px)]">
                 {!isTourPanelCollapsed && (
                     <div className="h-full">
                         <TourPanel
@@ -1743,12 +1738,7 @@ export default function TravelMap({
 
             {/* Part 3: Route panel with collapse button */}
             {selectedTripId && (
-                <div
-                    className="relative w-full lg:max-w-[min(25%,300px)]"
-                    style={{
-                        width: isRoutePanelCollapsed ? 'auto' : undefined,
-                    }}
-                >
+                <div className="relative w-full lg:max-w-[min(25%,300px)]">
                     {!isRoutePanelCollapsed && (
                         <div className="h-full">
                             <RoutePanel
@@ -1783,7 +1773,10 @@ export default function TravelMap({
             {/* Part 4: Map with top control area */}
             <div className="flex w-full flex-1 flex-col">
                 {/* Top area for future buttons/controls */}
-                <div className="mb-2 min-h-[40px] rounded-lg bg-white p-2 shadow">
+                <div
+                    className="mb-2 min-h-[40px] rounded-lg bg-white p-2 shadow"
+                    aria-hidden="true"
+                >
                     {/* Empty for now - placeholder for future controls */}
                 </div>
 
