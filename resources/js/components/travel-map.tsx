@@ -1680,7 +1680,7 @@ export default function TravelMap({
     return (
         <div className="flex h-full flex-col lg:flex-row">
             {/* Part 1: Marker list or form */}
-            <div className="w-full lg:max-w-[25%]" data-testid="marker-panel">
+            <div className="w-full lg:max-w-[25%] rounded-lg border border-gray-200 bg-white shadow-sm" data-testid="marker-panel">
                 {selectedMarkerId ? (
                     <MarkerForm
                         key={selectedMarkerId}
@@ -1703,7 +1703,7 @@ export default function TravelMap({
             </div>
 
             {/* Part 2: Tour panel with collapse button */}
-            <div className={`flex w-full ${isTourPanelCollapsed ? 'lg:w-auto' : 'lg:max-w-[min(25%,300px)]'}`} data-testid="tour-panel">
+            <div className={`flex w-full rounded-lg border border-gray-200 bg-white shadow-sm ${isTourPanelCollapsed ? 'lg:w-auto' : 'lg:max-w-[min(25%,300px)]'}`} data-testid="tour-panel">
                 {!isTourPanelCollapsed && (
                     <div className="h-full flex-1">
                         <TourPanel
@@ -1738,7 +1738,7 @@ export default function TravelMap({
 
             {/* Part 3: Route panel with collapse button */}
             {selectedTripId && (
-                <div className={`flex w-full ${isRoutePanelCollapsed ? 'lg:w-auto' : 'lg:max-w-[min(25%,300px)]'}`} data-testid="route-panel">
+                <div className={`flex w-full rounded-lg border border-gray-200 bg-white shadow-sm ${isRoutePanelCollapsed ? 'lg:w-auto' : 'lg:max-w-[min(25%,300px)]'}`} data-testid="route-panel">
                     {!isRoutePanelCollapsed && (
                         <div className="h-full flex-1">
                             <RoutePanel
@@ -1771,7 +1771,7 @@ export default function TravelMap({
             )}
 
             {/* Part 4: Map with top control area */}
-            <div className="flex w-full flex-1 flex-col lg:ml-4" data-testid="map-panel">
+            <div className="flex w-full flex-1 flex-col lg:ml-4 rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden" data-testid="map-panel">
                 {/* Top area for future buttons/controls */}
                 <div
                     className="mb-2 min-h-[40px] rounded-lg bg-white p-2 shadow"
