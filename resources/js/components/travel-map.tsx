@@ -782,17 +782,18 @@ export default function TravelMap({
         map.addInteraction('poi-click', {
             type: 'click',
             target: { featuresetId: 'poi', importId: 'basemap' },
-            handler: ({ feature, lngLat }) => {
+            handler: ({ feature, lngLat, preventDefault }) => {
                 console.log('POI clicked:', feature);
-                
+                preventDefault(); // Prevent map click event from firing
+
                 if (!feature || !lngLat) return;
 
                 // Extract information from the feature
                 // Try to access _vectorTileFeature for more complete data
                 const vectorTileProps = (feature as any)._vectorTileFeature?.properties || {};
-                const properties = { ...feature.properties, ...vectorTileProps } ;
-                const name = ''+(properties.name_de || properties.name_en || properties.name || 'POI');
-                const mapboxClass = ''+(properties.class || properties.type);
+                const properties = { ...feature.properties, ...vectorTileProps };
+                const name = '' + (properties.name_de || properties.name_en || properties.name || 'POI');
+                const mapboxClass = '' + (properties.class || properties.type);
                 const markerType = getMarkerTypeFromMapboxClass(mapboxClass);
 
                 // Get coordinates from the click event
@@ -861,20 +862,21 @@ export default function TravelMap({
         map.addInteraction('place-labels-click', {
             type: 'click',
             target: { featuresetId: 'place-labels', importId: 'basemap' },
-            handler: ({ feature, lngLat }) => {
+            handler: ({ feature, lngLat, preventDefault }) => {
                 console.log('place-labels clicked:', feature);
-                
+                preventDefault(); // Prevent map click event from firing
+
                 if (!feature || !lngLat) return;
 
                 // Extract information from the feature
                 // Try to access _vectorTileFeature for more complete data
                 const vectorTileProps = (feature as any)._vectorTileFeature?.properties || {};
                 const properties = { ...feature.properties, ...vectorTileProps };
-                const name = ''+(properties.name_de || properties.name_en || properties.name || 'Place');
-                
+                const name = '' + (properties.name_de || properties.name_en || properties.name || 'Place');
+
                 // Determine marker type based on place type
                 let markerType = MarkerType.PointOfInterest;
-                const placeClass = ''+(properties.class);
+                const placeClass = '' + (properties.class);
                 if (placeClass === 'city') {
                     markerType = MarkerType.City;
                 } else if (placeClass === 'town' || placeClass === 'village') {
@@ -961,17 +963,18 @@ export default function TravelMap({
         map.addInteraction('landmark-icons-click', {
             type: 'click',
             target: { featuresetId: 'landmark-icons', importId: 'basemap' },
-            handler: ({ feature, lngLat }) => {
+            handler: ({ feature, lngLat, preventDefault }) => {
                 console.log('landmark-icons clicked:', feature);
-                
+                preventDefault(); // Prevent map click event from firing
+
                 if (!feature || !lngLat) return;
 
                 // Extract information from the feature
                 // Try to access _vectorTileFeature for more complete data
                 const vectorTileProps = (feature as any)._vectorTileFeature?.properties || {};
-                const properties = { ...feature.properties, ...vectorTileProps } ;
-                const name = ''+(properties.name_de || properties.name_en || properties.name || 'Landmark');
-                const mapboxClass = ''+(properties.class || properties.type);
+                const properties = { ...feature.properties, ...vectorTileProps };
+                const name = '' + (properties.name_de || properties.name_en || properties.name || 'Landmark');
+                const mapboxClass = '' + (properties.class || properties.type);
                 const markerType = getMarkerTypeFromMapboxClass(mapboxClass);
 
                 // Get coordinates from the click event
@@ -1035,6 +1038,64 @@ export default function TravelMap({
                 }
                 return false;
             }
+        });
+
+        // Handle clicks on empty map areas (not on POIs or markers)
+        map.on('click', (e) => {
+            // Check if any POI, place-label or landmark features were clicked
+            // If yes, the interaction handlers will take care of it
+            map.queryRenderedFeatures
+            const features = map.queryRenderedFeatures(e.point);
+            const hasInteractiveFeature = features.some((f) => {
+                let feat = f as TargetFeature;
+                return (
+                    feat.target?.featuresetId === 'poi' ||
+                    feat.target?.featuresetId === 'place_label' ||
+                    feat.target?.featuresetId === 'landmark'
+                )
+            }
+            );
+
+            if (hasInteractiveFeature) {
+                return; // Let the interaction handlers handle it
+            }
+
+            // Create a marker at the clicked location
+            const defaultType = MarkerType.PointOfInterest;
+            const markerEl = createMarkerElement(defaultType);
+
+            const marker = new mapboxgl.Marker(markerEl)
+                .setLngLat(e.lngLat)
+                .addTo(map);
+
+            const markerId = uuidv4();
+            const markerData: MarkerData = {
+                id: markerId,
+                lat: e.lngLat.lat,
+                lng: e.lngLat.lng,
+                name: '', // Empty name for manual map clicks
+                type: defaultType,
+                notes: '',
+                url: '',
+                isUnesco: false,
+                marker: marker,
+                isSaved: false, // Mark as unsaved
+            };
+
+            // Add popup to marker
+            const popup = new mapboxgl.Popup({ offset: 25 }).setText(
+                'New Location',
+            );
+            marker.setPopup(popup);
+
+            // Add click handler to marker
+            markerEl.addEventListener('click', (clickEvent) => {
+                clickEvent.stopPropagation(); // Prevent map click event
+                setSelectedMarkerId(markerId);
+            });
+
+            setMarkers((prev) => [...prev, markerData]);
+            setSelectedMarkerId(markerId);
         });
 
         // Cleanup on unmount
