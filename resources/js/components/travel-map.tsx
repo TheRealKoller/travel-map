@@ -218,6 +218,16 @@ const getMarkerTypeFromOSMType = (osmType?: string): MarkerType => {
     return MarkerType.PointOfInterest;
 };
 
+// Helper function to map Mapbox POI class to MarkerType
+const getMarkerTypeFromMapboxClass = (mapboxClass?: string): MarkerType => {
+    if (!mapboxClass) {
+        return MarkerType.PointOfInterest;
+    }
+
+    // Use the same logic as OSM types
+    return getMarkerTypeFromOSMType(mapboxClass);
+};
+
 // Constants
 const DEFAULT_MAP_CENTER: [number, number] = [36.2048, 138.2529]; // Japan
 const DEFAULT_MAP_ZOOM = 6;
@@ -772,8 +782,57 @@ export default function TravelMap({
         map.addInteraction('poi-click', {
             type: 'click',
             target: { featuresetId: 'poi', importId: 'basemap' },
-            handler: ({ feature }) => {
+            handler: ({ feature, lngLat }) => {
                 console.log('POI clicked:', feature);
+                
+                if (!feature || !lngLat) return;
+
+                // Extract information from the feature
+                const properties = feature.properties || {};
+                const name = ''+(properties.name_de || properties.name_en || properties.name || 'POI');
+                const mapboxClass = ''+(properties.class || properties.type);
+                const markerType = getMarkerTypeFromMapboxClass(mapboxClass);
+
+                // Get coordinates from the click event
+                const [lng, lat] = [lngLat.lng, lngLat.lat];
+
+                // Create the marker element
+                const markerEl = createMarkerElement(markerType);
+
+                // Create the marker
+                const newMarker = new mapboxgl.Marker(markerEl)
+                    .setLngLat([lng, lat])
+                    .addTo(map);
+
+                const markerId = uuidv4();
+                const markerData: MarkerData = {
+                    id: markerId,
+                    lat: lat,
+                    lng: lng,
+                    name: name,
+                    type: markerType,
+                    notes: '',
+                    url: '',
+                    isUnesco: false,
+                    marker: newMarker,
+                    isSaved: false, // Mark as unsaved
+                };
+
+                // Add popup to marker
+                const popup = new mapboxgl.Popup({ offset: 25 }).setText(
+                    name,
+                );
+                newMarker.setPopup(popup);
+
+                // Add click handler to marker
+                markerEl.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent map click event
+                    setSelectedMarkerId(markerId);
+                });
+
+                // Add marker to state
+                setMarkers((prev) => [...prev, markerData]);
+                setSelectedMarkerId(markerId);
             }
         });
         map.addInteraction('poi-mouseenter', {
@@ -842,8 +901,57 @@ export default function TravelMap({
         map.addInteraction('landmark-icons-click', {
             type: 'click',
             target: { featuresetId: 'landmark-icons', importId: 'basemap' },
-            handler: ({ feature }) => {
+            handler: ({ feature, lngLat }) => {
                 console.log('landmark-icons clicked:', feature);
+                
+                if (!feature || !lngLat) return;
+
+                // Extract information from the feature
+                const properties = feature.properties || {};
+                const name = ''+(properties.name_de || properties.name_en || properties.name || 'Landmark');
+                const mapboxClass = ''+(properties.class || properties.type);
+                const markerType = getMarkerTypeFromMapboxClass(mapboxClass);
+
+                // Get coordinates from the click event
+                const [lng, lat] = [lngLat.lng, lngLat.lat];
+
+                // Create the marker element
+                const markerEl = createMarkerElement(markerType);
+
+                // Create the marker
+                const newMarker = new mapboxgl.Marker(markerEl)
+                    .setLngLat([lng, lat])
+                    .addTo(map);
+
+                const markerId = uuidv4();
+                const markerData: MarkerData = {
+                    id: markerId,
+                    lat: lat,
+                    lng: lng,
+                    name: name,
+                    type: markerType,
+                    notes: '',
+                    url: '',
+                    isUnesco: false,
+                    marker: newMarker,
+                    isSaved: false, // Mark as unsaved
+                };
+
+                // Add popup to marker
+                const popup = new mapboxgl.Popup({ offset: 25 }).setText(
+                    name,
+                );
+                newMarker.setPopup(popup);
+
+                // Add click handler to marker
+                markerEl.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent map click event
+                    setSelectedMarkerId(markerId);
+                });
+
+                // Add marker to state
+                setMarkers((prev) => [...prev, markerData]);
+                setSelectedMarkerId(markerId);
             }
         });
         map.addInteraction('landmark-icons-mouseenter', {
