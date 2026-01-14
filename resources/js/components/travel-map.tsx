@@ -800,7 +800,12 @@ export default function TravelMap({
                     map.setFeatureState(hoveredPlace, { highlight: false });
                     hoveredPlace = null;
                 }
-                map.getCanvas().style.cursor = '';
+                // Reset to crosshair or zoom-in depending on search mode
+                if (isSearchModeRef.current) {
+                    map.getCanvas().style.cursor = 'zoom-in';
+                } else {
+                    map.getCanvas().style.cursor = 'crosshair';
+                }
                 return false;
             }
         });
@@ -836,7 +841,12 @@ export default function TravelMap({
                     map.setFeatureState(hoveredPlace, { highlight: false });
                     hoveredPlace = null;
                 }
-                map.getCanvas().style.cursor = '';
+                // Reset to crosshair or zoom-in depending on search mode
+                if (isSearchModeRef.current) {
+                    map.getCanvas().style.cursor = 'zoom-in';
+                } else {
+                    map.getCanvas().style.cursor = 'crosshair';
+                }
                 return false;
             }
         });
@@ -849,35 +859,39 @@ export default function TravelMap({
                 console.log('landmark-icons clicked:', feature);
             }
         });
+        map.addInteraction('landmark-icons-mouseenter', {
+            type: 'mouseenter',
+            target: { featuresetId: 'landmark-icons', importId: 'basemap' },
+            handler: ({ feature }) => {
+                if (feature == undefined) return;
+                if (hoveredPlace && hoveredPlace.id === feature.id) return;
 
-        // Change cursor to pointer when hovering over POI features
-        map.on(
-            'mouseenter',
-            [
-                'poi-label',
-                'transit-label',
-                'airport-label',
-                'settlement-label',
-                'settlement-subdivision-label',
-            ],
-            () => {
+                if (hoveredPlace) {
+                    map.setFeatureState(hoveredPlace, { highlight: false });
+                }
+
+                hoveredPlace = feature;
+                map.setFeatureState(feature, { highlight: true });
                 map.getCanvas().style.cursor = 'pointer';
-            },
-        );
-
-        map.on(
-            'mouseleave',
-            [
-                'poi-label',
-                'transit-label',
-                'airport-label',
-                'settlement-label',
-                'settlement-subdivision-label',
-            ],
-            () => {
-                map.getCanvas().style.cursor = 'crosshair';
-            },
-        );
+            }
+        });
+        map.addInteraction('landmark-icons-mouseleave', {
+            type: 'mouseleave',
+            target: { featuresetId: 'landmark-icons', importId: 'basemap' },
+            handler: () => {
+                if (hoveredPlace) {
+                    map.setFeatureState(hoveredPlace, { highlight: false });
+                    hoveredPlace = null;
+                }
+                // Reset to crosshair or zoom-in depending on search mode
+                if (isSearchModeRef.current) {
+                    map.getCanvas().style.cursor = 'zoom-in';
+                } else {
+                    map.getCanvas().style.cursor = 'crosshair';
+                }
+                return false;
+            }
+        });
 
         // Cleanup on unmount
         return () => {
