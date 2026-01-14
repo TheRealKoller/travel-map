@@ -38,7 +38,10 @@ export function useTourMarkers({
                     onToursUpdate(response.data);
                 }
             } catch (error) {
-                console.error('Failed to update marker tour assignment:', error);
+                console.error(
+                    'Failed to update marker tour assignment:',
+                    error,
+                );
                 if (axios.isAxiosError(error) && error.response) {
                     alert(
                         `Failed to update marker tour assignment: ${error.response.data.error || error.response.data.message || 'Unknown error'}`,
@@ -136,7 +139,9 @@ export function useTourMarkers({
                 }
             } catch (error) {
                 console.error('Failed to reorder markers:', error);
-                alert('Failed to reorder markers. The order has been reverted.');
+                alert(
+                    'Failed to reorder markers. The order has been reverted.',
+                );
                 // Revert the optimistic update on error
                 if (selectedTripId) {
                     const response = await axios.get('/tours', {
@@ -199,7 +204,9 @@ export function useTourMarkers({
                 }
             } catch (error) {
                 console.error('Failed to reorder markers:', error);
-                alert('Failed to reorder markers. The order has been reverted.');
+                alert(
+                    'Failed to reorder markers. The order has been reverted.',
+                );
                 // Revert the optimistic update on error
                 if (selectedTripId) {
                     const response = await axios.get('/tours', {

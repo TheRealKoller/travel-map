@@ -1,5 +1,4 @@
-import { useEffect, useRef } from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface UsePanelCollapseOptions {
     mapInstance: mapboxgl.Map | null;

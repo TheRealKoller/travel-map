@@ -1,10 +1,11 @@
 import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from '@/lib/map-constants';
 import mapboxgl from 'mapbox-gl';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export function useMapInstance() {
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
+    const [, setMapInitialized] = useState(false);
 
     useEffect(() => {
         if (!mapRef.current || mapInstanceRef.current) return;
@@ -36,6 +37,7 @@ export function useMapInstance() {
             },
         });
         mapInstanceRef.current = map;
+        setMapInitialized(true);
 
         // Set crosshair cursor
         map.getCanvas().style.cursor = 'crosshair';
@@ -54,6 +56,7 @@ export function useMapInstance() {
 
     return {
         mapRef,
+        // eslint-disable-next-line react-hooks/refs
         mapInstance: mapInstanceRef.current,
     } as const;
 }

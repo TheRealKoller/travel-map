@@ -1,6 +1,7 @@
 import { createMarkerElement } from '@/lib/marker-utils';
 import { GeocodeResult } from '@/types/geocoder';
 import { MarkerData, MarkerType } from '@/types/marker';
+// @ts-expect-error - No type definitions available for @mapbox/mapbox-gl-geocoder
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 import mapboxgl from 'mapbox-gl';

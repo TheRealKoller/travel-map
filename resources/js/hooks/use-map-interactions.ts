@@ -322,10 +322,11 @@ export function useMapInteractions({
             const features = mapInstance.queryRenderedFeatures(e.point);
             const hasInteractiveFeature = features.some((f) => {
                 const feat = f as TargetFeature;
+                const target = feat.target as { featuresetId?: string };
                 return (
-                    feat.target?.featuresetId === 'poi' ||
-                    feat.target?.featuresetId === 'place_label' ||
-                    feat.target?.featuresetId === 'landmark'
+                    target?.featuresetId === 'poi' ||
+                    target?.featuresetId === 'place_label' ||
+                    target?.featuresetId === 'landmark'
                 );
             });
 

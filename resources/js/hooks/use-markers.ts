@@ -253,7 +253,9 @@ export function useMarkers({
     const updateMarkerReference = useCallback(
         (markerId: string, newMarker: mapboxgl.Marker) => {
             setMarkers((prev) =>
-                prev.map((m) => (m.id === markerId ? { ...m, marker: newMarker } : m)),
+                prev.map((m) =>
+                    m.id === markerId ? { ...m, marker: newMarker } : m,
+                ),
             );
         },
         [],
