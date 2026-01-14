@@ -9,7 +9,7 @@ import { Tour } from '@/types/tour';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 import axios from 'axios';
-import mapboxgl from 'mapbox-gl';
+import mapboxgl, { FeatureSelector, GeoJSONFeature, TargetFeature } from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
@@ -627,9 +627,15 @@ export default function TravelMap({
         // Initialize the map
         const map = new mapboxgl.Map({
             container: mapRef.current,
-            style: 'mapbox://styles/mapbox/streets-v12',
+            style: 'mapbox://styles/mapbox/standard',
             center: [DEFAULT_MAP_CENTER[1], DEFAULT_MAP_CENTER[0]], // [lng, lat]
             zoom: DEFAULT_MAP_ZOOM,
+            config: {
+                'basemap': {
+                    'colorPlaceLabelHighlight': 'red',
+                    'colorPlaceLabelSelect': 'blue'
+                }
+            }
         });
         mapInstanceRef.current = map;
 
@@ -762,123 +768,116 @@ export default function TravelMap({
             map.flyTo({ center: [lng, lat], zoom: 16 });
         });
 
-        // Add click event to create markers
-        map.on('click', async (e) => {
-            const { lng, lat } = e.lngLat;
+        var hoveredPlace: TargetFeature | FeatureSelector | GeoJSONFeature | null | undefined = null;
+        map.addInteraction('poi-click', {
+            type: 'click',
+            target: { featuresetId: 'poi', importId: 'basemap' },
+            handler: ({ feature }) => {
+                console.log('POI clicked:', feature);
+            }
+        });
+        map.addInteraction('poi-mouseenter', {
+            type: 'mouseenter',
+            target: { featuresetId: 'poi', importId: 'basemap' },
+            handler: ({ feature }) => {
+                if (feature == undefined) return;
+                if (hoveredPlace && hoveredPlace.id === feature.id) return;
 
-            // Check if we're in search mode
-            if (isSearchModeRef.current) {
-                // In search mode, perform proximity search
-                setSearchCoordinates({ lat, lng });
-
-                // Call the search API
-                setIsSearching(true);
-                setSearchError(null);
-                setSearchResultCount(null);
-                setSearchResults([]); // Clear previous results
-
-                try {
-                    const response = await axios.post(
-                        '/markers/search-nearby',
-                        {
-                            latitude: lat,
-                            longitude: lng,
-                            radius_km: searchRadiusRef.current,
-                            place_type: selectedPlaceTypeRef.current,
-                        },
-                    );
-
-                    if (response.data.error) {
-                        setSearchError(response.data.error);
-                        setSearchResultCount(null);
-                        setSearchResults([]);
-                    } else {
-                        setSearchResultCount(response.data.count);
-                        setSearchResults(response.data.results || []);
-                        setSearchError(null);
-
-                        // Log search results to console for debugging
-                        console.log(
-                            'Proximity search results:',
-                            response.data.results,
-                        );
-                        console.log(`Found ${response.data.count} results`);
-
-                        // Zoom to fit the search radius
-                        const radiusInMeters = searchRadiusRef.current * 1000;
-                        const bounds = new mapboxgl.LngLatBounds();
-                        const points = 8;
-                        for (let i = 0; i < points; i++) {
-                            const angle = (i / points) * 2 * Math.PI;
-                            const dx =
-                                ((radiusInMeters / 111320) * Math.cos(angle)) /
-                                Math.cos((lat * Math.PI) / 180);
-                            const dy =
-                                (radiusInMeters / 110540) * Math.sin(angle);
-                            bounds.extend([lng + dx, lat + dy]);
-                        }
-                        map.fitBounds(bounds, {
-                            padding: {
-                                top: 50,
-                                bottom: 50,
-                                left: 50,
-                                right: 350,
-                            },
-                        });
-                    }
-                } catch (error) {
-                    console.error('Failed to search nearby:', error);
-                    setSearchError('Failed to search nearby locations');
-                    setSearchResultCount(null);
-                    setSearchResults([]);
-                } finally {
-                    setIsSearching(false);
-                    // Deactivate search mode after search is executed
-                    setIsSearchMode(false);
+                if (hoveredPlace) {
+                    map.setFeatureState(hoveredPlace, { highlight: false });
                 }
 
-                return;
+                hoveredPlace = feature;
+                map.setFeatureState(feature, { highlight: true });
+                map.getCanvas().style.cursor = 'pointer';
             }
-
-            // Normal mode: create a marker
-            const defaultType = MarkerType.PointOfInterest;
-            const markerEl = createMarkerElement(defaultType);
-
-            const marker = new mapboxgl.Marker(markerEl)
-                .setLngLat([lng, lat])
-                .addTo(map);
-
-            const markerId = uuidv4();
-            const markerData: MarkerData = {
-                id: markerId,
-                lat: lat,
-                lng: lng,
-                name: '',
-                type: defaultType,
-                notes: '',
-                url: '',
-                isUnesco: false,
-                marker: marker,
-                isSaved: false, // Mark as unsaved
-            };
-
-            // Add popup to marker
-            const popup = new mapboxgl.Popup({ offset: 25 }).setText(
-                'Unnamed Location',
-            );
-            marker.setPopup(popup);
-
-            // Add click handler to marker
-            markerEl.addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent map click event
-                setSelectedMarkerId(markerId);
-            });
-
-            setMarkers((prev) => [...prev, markerData]);
-            setSelectedMarkerId(markerId);
-
-            // Do NOT save to database yet - wait for user to click Save button
         });
+        map.addInteraction('poi-mouseleave', {
+            type: 'mouseleave',
+            target: { featuresetId: 'poi', importId: 'basemap' },
+            handler: () => {
+                if (hoveredPlace) {
+                    map.setFeatureState(hoveredPlace, { highlight: false });
+                    hoveredPlace = null;
+                }
+                map.getCanvas().style.cursor = '';
+                return false;
+            }
+        });
+
+        map.addInteraction('place-labels-click', {
+            type: 'click',
+            target: { featuresetId: 'place-labels', importId: 'basemap' },
+            handler: ({ feature }) => {
+                console.log('place-labels clicked:', feature);
+            }
+        });
+        map.addInteraction('place-labels-mouseenter', {
+            type: 'mouseenter',
+            target: { featuresetId: 'place-labels', importId: 'basemap' },
+            handler: ({ feature }) => {
+                if (feature == undefined) return;
+                if (hoveredPlace && hoveredPlace.id === feature.id) return;
+
+                if (hoveredPlace) {
+                    map.setFeatureState(hoveredPlace, { highlight: false });
+                }
+
+                hoveredPlace = feature;
+                map.setFeatureState(feature, { highlight: true });
+                map.getCanvas().style.cursor = 'pointer';
+            }
+        });
+        map.addInteraction('place-labels-mouseleave', {
+            type: 'mouseleave',
+            target: { featuresetId: 'place-labels', importId: 'basemap' },
+            handler: () => {
+                if (hoveredPlace) {
+                    map.setFeatureState(hoveredPlace, { highlight: false });
+                    hoveredPlace = null;
+                }
+                map.getCanvas().style.cursor = '';
+                return false;
+            }
+        });
+
+
+        map.addInteraction('landmark-icons-click', {
+            type: 'click',
+            target: { featuresetId: 'landmark-icons', importId: 'basemap' },
+            handler: ({ feature }) => {
+                console.log('landmark-icons clicked:', feature);
+            }
+        });
+
+        // Change cursor to pointer when hovering over POI features
+        map.on(
+            'mouseenter',
+            [
+                'poi-label',
+                'transit-label',
+                'airport-label',
+                'settlement-label',
+                'settlement-subdivision-label',
+            ],
+            () => {
+                map.getCanvas().style.cursor = 'pointer';
+            },
+        );
+
+        map.on(
+            'mouseleave',
+            [
+                'poi-label',
+                'transit-label',
+                'airport-label',
+                'settlement-label',
+                'settlement-subdivision-label',
+            ],
+            () => {
+                map.getCanvas().style.cursor = 'crosshair';
+            },
+        );
 
         // Cleanup on unmount
         return () => {
@@ -1059,9 +1058,9 @@ export default function TravelMap({
                         .setLngLat(e.lngLat)
                         .setHTML(
                             `<strong>${props.startName} → ${props.endName}</strong><br>` +
-                                `Mode: ${props.mode}<br>` +
-                                `Distance: ${props.distance} km<br>` +
-                                `Duration: ${props.duration} min`,
+                            `Mode: ${props.mode}<br>` +
+                            `Distance: ${props.distance} km<br>` +
+                            `Duration: ${props.duration} min`,
                         )
                         .addTo(map);
                 }
@@ -1128,14 +1127,14 @@ export default function TravelMap({
                 prev.map((m) =>
                     m.id === id
                         ? {
-                              ...m,
-                              name,
-                              type,
-                              notes,
-                              url,
-                              isUnesco,
-                              isSaved: true,
-                          }
+                            ...m,
+                            name,
+                            type,
+                            notes,
+                            url,
+                            isUnesco,
+                            isSaved: true,
+                        }
                         : m,
                 ),
             );
