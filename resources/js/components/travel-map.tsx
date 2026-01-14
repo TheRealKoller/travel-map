@@ -9,6 +9,7 @@ import { Tour } from '@/types/tour';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 import axios from 'axios';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import mapboxgl, {
     FeatureSelector,
     GeoJSONFeature,
@@ -271,9 +272,7 @@ export default function TravelMap({
     } | null>(null);
     const [searchRadius, setSearchRadius] = useState<number>(5); // Default 5 km
     const searchRadiusRef = useRef<number>(10); // Ref for use in event handlers
-    const [searchResultCount] = useState<number | null>(
-        null,
-    );
+    const [searchResultCount] = useState<number | null>(null);
     const [isSearching] = useState(false);
     const [searchError] = useState<string | null>(null);
     const [placeTypes, setPlaceTypes] = useState<PlaceType[]>([]);
@@ -284,6 +283,8 @@ export default function TravelMap({
     const searchRadiusCircleLayerIdRef = useRef<string | null>(null);
     const [routes, setRoutes] = useState<Route[]>([]);
     const routeLayerIdsRef = useRef<Map<number, string>>(new Map());
+    const [isTourPanelCollapsed, setIsTourPanelCollapsed] = useState(true);
+    const [isRoutePanelCollapsed, setIsRoutePanelCollapsed] = useState(true);
 
     // Note: saveMarkerToDatabase is no longer needed as we save when user clicks Save button
 
@@ -800,7 +801,13 @@ export default function TravelMap({
                 // Extract information from the feature
                 // Try to access _vectorTileFeature for more complete data
                 const vectorTileProps =
-                    (feature as unknown as { _vectorTileFeature?: { properties?: Record<string, unknown> } })._vectorTileFeature?.properties || {};
+                    (
+                        feature as unknown as {
+                            _vectorTileFeature?: {
+                                properties?: Record<string, unknown>;
+                            };
+                        }
+                    )._vectorTileFeature?.properties || {};
                 const properties = {
                     ...feature.properties,
                     ...vectorTileProps,
@@ -887,7 +894,13 @@ export default function TravelMap({
                 // Extract information from the feature
                 // Try to access _vectorTileFeature for more complete data
                 const vectorTileProps =
-                    (feature as unknown as { _vectorTileFeature?: { properties?: Record<string, unknown> } })._vectorTileFeature?.properties || {};
+                    (
+                        feature as unknown as {
+                            _vectorTileFeature?: {
+                                properties?: Record<string, unknown>;
+                            };
+                        }
+                    )._vectorTileFeature?.properties || {};
                 const properties = {
                     ...feature.properties,
                     ...vectorTileProps,
@@ -994,7 +1007,13 @@ export default function TravelMap({
                 // Extract information from the feature
                 // Try to access _vectorTileFeature for more complete data
                 const vectorTileProps =
-                    (feature as unknown as { _vectorTileFeature?: { properties?: Record<string, unknown> } })._vectorTileFeature?.properties || {};
+                    (
+                        feature as unknown as {
+                            _vectorTileFeature?: {
+                                properties?: Record<string, unknown>;
+                            };
+                        }
+                    )._vectorTileFeature?.properties || {};
                 const properties = {
                     ...feature.properties,
                     ...vectorTileProps,
@@ -1661,7 +1680,7 @@ export default function TravelMap({
     return (
         <div className="flex h-full flex-col gap-4 lg:flex-row">
             {/* Part 1: Marker list or form */}
-            <div className="w-full lg:w-1/5">
+            <div className="w-full lg:max-w-[25%]">
                 {selectedMarkerId ? (
                     <MarkerForm
                         key={selectedMarkerId}
@@ -1683,40 +1702,94 @@ export default function TravelMap({
                 )}
             </div>
 
-            {/* Part 2: Tour panel */}
-            <div className="w-full lg:w-1/5">
-                <TourPanel
-                    tours={tours}
-                    selectedTourId={selectedTourId}
-                    onSelectTour={onSelectTour}
-                    onCreateTour={onCreateTour}
-                    onDeleteTour={onDeleteTour}
-                    markers={markers}
-                    onMoveMarkerUp={handleMoveMarkerUp}
-                    onMoveMarkerDown={handleMoveMarkerDown}
-                />
+            {/* Part 2: Tour panel with collapse button */}
+            <div
+                className="relative w-full lg:max-w-[min(25%,300px)]"
+                style={{
+                    width: isTourPanelCollapsed ? 'auto' : undefined,
+                }}
+            >
+                {!isTourPanelCollapsed && (
+                    <div className="h-full">
+                        <TourPanel
+                            tours={tours}
+                            selectedTourId={selectedTourId}
+                            onSelectTour={onSelectTour}
+                            onCreateTour={onCreateTour}
+                            onDeleteTour={onDeleteTour}
+                            markers={markers}
+                            onMoveMarkerUp={handleMoveMarkerUp}
+                            onMoveMarkerDown={handleMoveMarkerDown}
+                        />
+                    </div>
+                )}
+                <button
+                    onClick={() =>
+                        setIsTourPanelCollapsed(!isTourPanelCollapsed)
+                    }
+                    className="absolute top-1/2 right-0 z-20 -translate-y-1/2 rounded-l-md bg-white px-1 py-4 shadow-md hover:bg-gray-100"
+                    title={
+                        isTourPanelCollapsed ? 'Expand Tours' : 'Collapse Tours'
+                    }
+                    data-testid="tour-panel-toggle"
+                >
+                    {isTourPanelCollapsed ? (
+                        <ChevronRight className="h-5 w-5 text-gray-600" />
+                    ) : (
+                        <ChevronLeft className="h-5 w-5 text-gray-600" />
+                    )}
+                </button>
             </div>
 
-            {/* Part 3: Route panel */}
+            {/* Part 3: Route panel with collapse button */}
             {selectedTripId && (
-                <div className="w-full lg:w-1/5">
-                    <RoutePanel
-                        tripId={selectedTripId}
-                        markers={markers}
-                        routes={routes}
-                        onRoutesUpdate={setRoutes}
-                    />
+                <div
+                    className="relative w-full lg:max-w-[min(25%,300px)]"
+                    style={{
+                        width: isRoutePanelCollapsed ? 'auto' : undefined,
+                    }}
+                >
+                    {!isRoutePanelCollapsed && (
+                        <div className="h-full">
+                            <RoutePanel
+                                tripId={selectedTripId}
+                                markers={markers}
+                                routes={routes}
+                                onRoutesUpdate={setRoutes}
+                            />
+                        </div>
+                    )}
+                    <button
+                        onClick={() =>
+                            setIsRoutePanelCollapsed(!isRoutePanelCollapsed)
+                        }
+                        className="absolute top-1/2 right-0 z-20 -translate-y-1/2 rounded-l-md bg-white px-1 py-4 shadow-md hover:bg-gray-100"
+                        title={
+                            isRoutePanelCollapsed
+                                ? 'Expand Routes'
+                                : 'Collapse Routes'
+                        }
+                        data-testid="route-panel-toggle"
+                    >
+                        {isRoutePanelCollapsed ? (
+                            <ChevronRight className="h-5 w-5 text-gray-600" />
+                        ) : (
+                            <ChevronLeft className="h-5 w-5 text-gray-600" />
+                        )}
+                    </button>
                 </div>
             )}
 
-            {/* Part 4: Map */}
-            <div className="w-full flex-1">
-                <div className="relative">
-                    <div
-                        ref={mapRef}
-                        id="map"
-                        className="z-10 h-[400px] w-full lg:h-[600px]"
-                    />
+            {/* Part 4: Map with top control area */}
+            <div className="flex w-full flex-1 flex-col">
+                {/* Top area for future buttons/controls */}
+                <div className="mb-2 min-h-[40px] rounded-lg bg-white p-2 shadow">
+                    {/* Empty for now - placeholder for future controls */}
+                </div>
+
+                {/* Map area */}
+                <div className="relative flex-1">
+                    <div ref={mapRef} id="map" className="z-10 h-full w-full" />
                     <MapOptionsMenu
                         isSearchMode={isSearchMode}
                         onSearchModeChange={setIsSearchMode}
