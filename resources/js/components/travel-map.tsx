@@ -1703,9 +1703,9 @@ export default function TravelMap({
             </div>
 
             {/* Part 2: Tour panel with collapse button */}
-            <div className={`relative w-full ${isTourPanelCollapsed ? 'lg:w-auto' : 'lg:max-w-[min(25%,300px)]'}`} data-testid="tour-panel">
+            <div className={`flex w-full ${isTourPanelCollapsed ? 'lg:w-auto' : 'lg:max-w-[min(25%,300px)]'}`} data-testid="tour-panel">
                 {!isTourPanelCollapsed && (
-                    <div className="h-full">
+                    <div className="h-full flex-1">
                         <TourPanel
                             tours={tours}
                             selectedTourId={selectedTourId}
@@ -1722,7 +1722,7 @@ export default function TravelMap({
                     onClick={() =>
                         setIsTourPanelCollapsed(!isTourPanelCollapsed)
                     }
-                    className="absolute top-1/2 right-0 z-20 -translate-y-1/2 rounded-l-md bg-white px-1 py-4 shadow-md hover:bg-gray-100"
+                    className="rounded-l-md bg-white px-1 shadow-md hover:bg-gray-100 flex items-center"
                     title={
                         isTourPanelCollapsed ? 'Expand Tours' : 'Collapse Tours'
                     }
@@ -1738,9 +1738,9 @@ export default function TravelMap({
 
             {/* Part 3: Route panel with collapse button */}
             {selectedTripId && (
-                <div className={`relative w-full ${isRoutePanelCollapsed ? 'lg:w-auto' : 'lg:max-w-[min(25%,300px)]'}`} data-testid="route-panel">
+                <div className={`flex w-full ${isRoutePanelCollapsed ? 'lg:w-auto' : 'lg:max-w-[min(25%,300px)]'}`} data-testid="route-panel">
                     {!isRoutePanelCollapsed && (
-                        <div className="h-full">
+                        <div className="h-full flex-1">
                             <RoutePanel
                                 tripId={selectedTripId}
                                 markers={markers}
@@ -1753,7 +1753,7 @@ export default function TravelMap({
                         onClick={() =>
                             setIsRoutePanelCollapsed(!isRoutePanelCollapsed)
                         }
-                        className="absolute top-1/2 right-0 z-20 -translate-y-1/2 rounded-l-md bg-white px-1 py-4 shadow-md hover:bg-gray-100"
+                        className="rounded-l-md bg-white px-1 shadow-md hover:bg-gray-100 flex items-center"
                         title={
                             isRoutePanelCollapsed
                                 ? 'Expand Routes'
