@@ -4,7 +4,8 @@ import { Spinner } from '@/components/ui/spinner';
 import { MarkerData } from '@/types/marker';
 import { Tour } from '@/types/tour';
 import { Bot, Map, MapPin, Route } from 'lucide-react';
-import { useState } from 'react';
+import { marked } from 'marked';
+import { useEffect, useMemo, useState } from 'react';
 
 interface MapBounds {
     north: number;
@@ -33,6 +34,20 @@ export function AiRecommendationsPanel({
     const [recommendation, setRecommendation] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Configure marked for secure rendering
+    useEffect(() => {
+        marked.setOptions({
+            breaks: true, // Convert line breaks to <br>
+            gfm: true, // GitHub Flavored Markdown
+        });
+    }, []);
+
+    // Parse markdown to HTML
+    const renderedRecommendation = useMemo(() => {
+        if (!recommendation) return null;
+        return marked.parse(recommendation) as string;
+    }, [recommendation]);
 
     const handleGetRecommendation = async (context: string) => {
         if (!tripId || !tripName) {
@@ -168,7 +183,7 @@ export function AiRecommendationsPanel({
                 </div>
 
                 <div
-                    className="min-h-[200px] rounded-lg border bg-gray-50 p-4"
+                    className="min-h-[200px] max-h-[250px] overflow-y-auto rounded-lg border bg-gray-50 p-4"
                     data-testid="recommendation-output"
                 >
                     {isLoading && (
@@ -191,11 +206,12 @@ export function AiRecommendationsPanel({
 
                     {recommendation && !isLoading && (
                         <div
-                            className="prose prose-sm max-w-none whitespace-pre-wrap"
+                            className="markdown-output"
                             data-testid="recommendation-text"
-                        >
-                            {recommendation}
-                        </div>
+                            dangerouslySetInnerHTML={{
+                                __html: renderedRecommendation || '',
+                            }}
+                        />
                     )}
 
                     {!isLoading && !error && !recommendation && (
