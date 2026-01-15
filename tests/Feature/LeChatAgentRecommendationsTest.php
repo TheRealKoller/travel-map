@@ -10,9 +10,10 @@ use function Pest\Laravel\postJson;
 beforeEach(function () {
     $this->user = User::factory()->create();
 
-    // Set test configuration for Le Chat service
+    // Set test configuration for Travel Recommendation Agent
     Config::set('services.lechat.api_key', 'test-api-key');
-    Config::set('services.lechat.agent_id', 'test-agent-id');
+    Config::set('services.lechat.marker_enrichment_agent_id', 'test-marker-agent-id');
+    Config::set('services.lechat.travel_recommendation_agent_id', 'test-travel-agent-id');
 });
 
 it('requires authentication to get recommendations', function () {

@@ -1,35 +1,54 @@
-# Le Chat Agent Integration
+# Le Chat Agents Integration
 
 ## Übersicht
 
-Die Travel Map Application wurde um einen Le Chat AI Agent erweitert, der automatisch Marker-Informationen anreichert. Benutzer können mit einem Klick auf einen Button im Marker-Formular folgende Informationen automatisch ergänzen lassen:
+Die Travel Map Application nutzt **zwei spezialisierte Le Chat AI Agents** von Mistral AI:
 
+### 1. Marker Enrichment Agent
+Reichert automatisch Marker-Informationen an:
 - **Marker-Typ**: Automatische Kategorisierung (Restaurant, Museum, UNESCO-Stätte, etc.)
 - **UNESCO-Status**: Erkennung von UNESCO-Weltkulturerbestätten
 - **Notizen**: 2-3 Sätze mit interessanten Fakten und historischem Kontext **auf Deutsch**
 - **URL**: Offizielle Webseite oder relevanter Link (bevorzugt deutsche Seiten)
 
+### 2. Travel Recommendation Agent
+Gibt allgemeine Reiseempfehlungen:
+- **Sehenswürdigkeiten**: Interessante Orte und Attraktionen
+- **Praktische Tipps**: Öffnungszeiten, beste Besuchszeiten
+- **Kulinarik**: Lokale Spezialitäten und Restaurant-Empfehlungen
+- **Kultur**: Besonderheiten und Traditionen
+- **Ton**: Freundlich, informell auf Deutsch
+
 ## Implementierte Features
 
 ### Backend
 
-1. **`LeChatAgentService`** (`app/Services/LeChatAgentService.php`)
-   - Kommunikation mit der Mistral AI Le Chat API
+1. **`MarkerEnrichmentAgentService`** (`app/Services/MarkerEnrichmentAgentService.php`)
+   - Kommunikation mit Mistral AI Le Chat API für Marker-Anreicherung
    - JSON-Parsing mit Fallback für Markdown-Codeblöcke
    - Umfangreiche Fehlerbehandlung
    - Timeout-Handling (30 Sekunden)
 
-2. **`LeChatAgentController`** (`app/Http/Controllers/Api/LeChatAgentController.php`)
-   - API-Endpoint `/markers/enrich` (POST)
+2. **`TravelRecommendationAgentService`** (`app/Services/TravelRecommendationAgentService.php`)
+   - Kommunikation mit Mistral AI Le Chat API für Reiseempfehlungen
+   - Unterstützt drei Kontexte: Trip, Tour, Map View
+   - Dynamische Prompt-Generierung basierend auf Kontext
+   - Fehlerbehandlung und Logging
+
+3. **`LeChatAgentController`** (`app/Http/Controllers/Api/LeChatAgentController.php`)
+   - API-Endpoint `/markers/enrich` (POST) für Marker-Anreicherung
+   - API-Endpoint `/recommendations` (POST) für Reiseempfehlungen
    - Validierung von Eingabedaten
    - Authentifizierung erforderlich
 
-3. **Konfiguration**
-   - `config/services.php`: Le Chat API-Credentials
-   - `AppServiceProvider`: Service-Registrierung als Singleton
+4. **Konfiguration**
+   - `config/services.php`: Separate Agent-IDs und API-Key
+   - `AppServiceProvider`: Registrierung beider Services als Singletons
 
-4. **Routing**
-   - `routes/web.php`: Neue Route `markers.enrich`
+5. **Routing**
+   - `routes/web.php`: 
+     - `markers.enrich` - Marker-Anreicherung
+     - `recommendations.get` - Reiseempfehlungen
 
 ### Frontend
 
@@ -45,28 +64,32 @@ Die Travel Map Application wurde um einen Le Chat AI Agent erweitert, der automa
 
 ### Tests
 
-1. **Feature Tests** (18 Tests, alle bestanden)
-   - `LeChatAgentEnrichmentTest.php`: API-Endpoint-Tests
-   - `LeChatAgentServiceTest.php`: Service-Logic-Tests
+1. **Feature Tests** (30 Tests, alle bestanden)
+   - `LeChatAgentEnrichmentTest.php`: Marker-Anreicherung Endpoint-Tests
+   - `LeChatAgentRecommendationsTest.php`: Reiseempfehlungen Endpoint-Tests
+   - `LeChatAgentServiceTest.php`: Marker Enrichment Service Unit-Tests
    
 2. **Test Coverage**
-   - Authentifizierung
-   - Validierung
+   - Authentifizierung für beide Endpoints
+   - Validierung aller Eingabedaten
    - API-Fehlerbehandlung
    - JSON-Parsing (inkl. Markdown-Codeblöcke)
    - Timeout-Handling
    - Type-Casting und Sanitization
+   - Kontext-spezifische Validierung (trip, tour, map_view)
 
 ## Setup
 
-### 1. Le Chat Agent erstellen
+### 1. Le Chat Agents erstellen
 
-Siehe ausführliche Anleitung in [`docs/LECHAT_AGENT_SETUP.md`](docs/LECHAT_AGENT_SETUP.md)
+Siehe ausführliche Anleitung in [`docs/LECHAT_AGENT_SETUP.md`](LECHAT_AGENT_SETUP.md)
 
 **Kurz:**
 1. Gehe zu [Mistral AI Le Chat](https://chat.mistral.ai/)
-2. Erstelle einen neuen Agent mit dem bereitgestellten System-Prompt
-3. Kopiere die Agent-ID
+2. Erstelle **zwei separate Agents**:
+   - **Marker Enrichment Agent**: Strukturierte JSON-Antworten für Marker-Daten
+   - **Travel Recommendation Agent**: Freundliche Reiseempfehlungen auf Deutsch
+3. Kopiere beide Agent-IDs
 4. Erstelle einen API-Key im [Mistral AI Platform](https://console.mistral.ai/)
 
 ### 2. Umgebungsvariablen setzen
@@ -75,16 +98,24 @@ Füge folgende Variablen zu deiner `.env` hinzu:
 
 ```env
 LECHAT_API_KEY=dein_mistral_api_key
-LECHAT_AGENT_ID=ag:xxxxxxxx:xxxxxxxx
+LECHAT_MARKER_ENRICHMENT_AGENT_ID=ag:xxxxxxxx:xxxxxxxx
+LECHAT_TRAVEL_RECOMMENDATION_AGENT_ID=ag:yyyyyyyy:yyyyyyyy
 ```
 
 ### 3. Testen
 
 ```bash
+# Alle Le Chat Agent Tests
 php artisan test --filter="LeChatAgent"
+
+# Spezifische Tests
+php artisan test tests/Feature/LeChatAgentEnrichmentTest.php
+php artisan test tests/Feature/LeChatAgentRecommendationsTest.php
 ```
 
 ## Verwendung
+
+### Marker-Anreicherung
 
 1. Öffne oder erstelle einen Marker auf der Karte
 2. Gib einen Namen ein (z.B. "Eiffelturm")
@@ -96,48 +127,43 @@ php artisan test --filter="LeChatAgent"
    - Notizen werden hinzugefügt (bestehende Notizen bleiben erhalten)
    - URL wird gesetzt (wenn Feld leer ist)
 
-## Agent-Prompt
+### Reiseempfehlungen (wenn implementiert)
 
-Der Agent verwendet folgenden System-Prompt:
+1. Navigiere zur Reise-/Tour-Ansicht
+2. Klicke auf "Empfehlungen anzeigen"
+3. Wähle Kontext (gesamte Reise, Tour oder Kartenausschnitt)
+4. Erhalte personalisierte Empfehlungen auf Deutsch
 
-```
-You are a travel location information expert. Your task is to analyze location names and coordinates, then provide structured information about these places.
+## Agent System-Prompts
 
-For each location, you must provide:
-1. The most appropriate marker type from this list:
-   - restaurant, point_of_interest, hotel, museum, ruin, temple_church, 
-     sightseeing, natural_attraction, city, village, region, question, 
-     tip, festival_party, leisure
+Die vollständigen System-Prompts für beide Agents findest du in [`docs/LECHAT_AGENT_SETUP.md`](LECHAT_AGENT_SETUP.md).
 
-2. Whether the location is a UNESCO World Heritage Site (true/false)
+### Marker Enrichment Agent (Zusammenfassung)
 
-3. 2-3 sentences of interesting information about the location IN GERMAN LANGUAGE
+Analysiert Orte und gibt strukturierte JSON-Antworten zurück mit:
+- Marker-Typ aus vordefinierter Liste
+- UNESCO-Status (true/false/null)
+- 2-3 Sätze interessante Informationen auf Deutsch
+- Offizielle URL (bevorzugt deutsch)
 
-4. An official website URL or relevant link (prefer German language websites if available)
+**Temperatur**: 0.3 (konsistente, faktische Antworten)
 
-CRITICAL: You MUST respond ONLY with valid JSON in exactly this format:
-{
-  "type": "marker_type_here",
-  "is_unesco": true_or_false,
-  "notes": "Interessante Informationen auf Deutsch...",
-  "url": "https://example.com"
-}
+### Travel Recommendation Agent (Zusammenfassung)
 
-Rules:
-- Return ONLY the JSON object, no additional text
-- If any field cannot be determined, use null
-- For notes, write 2-3 complete sentences IN GERMAN
-- Write natural, fluent German text in the notes field
-- For URLs, prefer German language official websites when available
-- If a German Wikipedia page exists, prefer it over the English version
-- Do not wrap JSON in markdown code blocks
-- Ensure all JSON is valid and properly escaped
-```
+Gibt freundliche Reiseempfehlungen auf Deutsch:
+- Sehenswürdigkeiten und Attraktionen
+- Praktische Tipps und Insider-Informationen
+- Kulinarische Empfehlungen
+- Kulturelle Besonderheiten
+- Informeller, enthusiastischer Ton
+
+**Temperatur**: 0.7 (kreative, konversationelle Antworten)
 
 ## Technische Details
 
-### API-Request
+### Marker Enrichment API
 
+**Request:**
 ```typescript
 POST /markers/enrich
 
@@ -148,8 +174,7 @@ POST /markers/enrich
 }
 ```
 
-### API-Response (Success)
-
+**Response (Success):**
 ```json
 {
   "success": true,
@@ -162,7 +187,41 @@ POST /markers/enrich
 }
 ```
 
-### API-Response (Error)
+### Travel Recommendations API
+
+**Request:**
+```typescript
+POST /recommendations
+
+{
+  "context": "trip",
+  "data": {
+    "trip_name": "Deutschland Rundreise",
+    "markers": [
+      {
+        "name": "Kölner Dom",
+        "latitude": 50.9413,
+        "longitude": 6.9583
+      }
+    ]
+  }
+}
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "recommendation": "Das ist eine tolle Reise! Der Kölner Dom ist absolut beeindruckend – plane mindestens 2-3 Stunden ein. Die Turmbesteigung lohnt sich besonders bei gutem Wetter..."
+}
+```
+
+**Supported Contexts:**
+- `trip` - Gesamte Reise (benötigt: trip_name, markers)
+- `tour` - Spezifische Tour (benötigt: trip_name, tour_name, markers)  
+- `map_view` - Kartenausschnitt (benötigt: trip_name, bounds, markers)
+
+### Error Response (beide APIs)
 
 ```json
 {
@@ -175,14 +234,14 @@ POST /markers/enrich
 
 - **Authentifizierung**: 401 wenn nicht eingeloggt
 - **Validierung**: 422 bei ungültigen Eingabedaten
-- **API-Fehler**: 500 bei Problemen mit Le Chat API
+- **API-Fehler**: 500 bei Problemen mit Mistral AI API
 - **Timeout**: 30 Sekunden maximale Wartezeit
-- **JSON-Parsing**: Automatische Extraktion aus Markdown-Codeblöcken
+- **JSON-Parsing**: Automatische Extraktion aus Markdown-Codeblöcken (nur Marker Enrichment)
 
 Alle Fehler werden:
 - Im Laravel-Log protokolliert (`storage/logs/laravel.log`)
-- Dem Benutzer in der UI angezeigt
-- Für Debugging erfasst
+- Dem Benutzer in der UI angezeigt (wenn implementiert)
+- Mit spezifischen Fehlermeldungen versehen
 
 ## Sicherheit
 
@@ -191,50 +250,96 @@ Alle Fehler werden:
 - ✅ Alle Eingaben werden validiert
 - ✅ Fehler-Messages enthalten keine sensiblen Informationen
 - ✅ CSRF-Protection aktiviert
+- ✅ Getrennte Agents für verschiedene Zwecke
 
 ## Kosten
 
-Pro Marker-Anreicherung:
+### Token-Verbrauch
+
+**Marker-Anreicherung:**
 - Request: ~500 Tokens (Prompt + Location)
 - Response: ~200 Tokens (JSON)
-- **Gesamt: ~700 Tokens**
+- **Gesamt: ~700 Tokens pro Request**
+
+**Reiseempfehlungen:**
+- Request: ~300-600 Tokens (Kontext-abhängig)
+- Response: ~300-500 Tokens (Text)
+- **Gesamt: ~600-1100 Tokens pro Request**
 
 Überwache die Nutzung in der [Mistral AI Platform](https://console.mistral.ai/).
 
 ## Zukünftige Erweiterungen
 
-- [ ] Caching von Anreicherungen
+- [ ] Caching von Marker-Anreicherungen
+- [ ] Frontend-Integration für Reiseempfehlungen
 - [ ] Batch-Processing für mehrere Marker
 - [ ] Offline-Modus mit häufigen Orten
 - [ ] Benutzer-Feedback-System
 - [ ] Mehrsprachige Unterstützung
 - [ ] Anpassbare Prompts pro Benutzer
+- [ ] Kontext-basierte Empfehlungen direkt in der Karte
 
 ## Dateien
 
-### Backend
-- `app/Services/LeChatAgentService.php`
-- `app/Http/Controllers/Api/LeChatAgentController.php`
-- `app/Providers/AppServiceProvider.php`
-- `routes/web.php`
-- `config/services.php`
-- `.env.example`
-
-### Frontend
-- `resources/js/components/marker-form.tsx`
+### Backend Services
+- `app/Services/MarkerEnrichmentAgentService.php` - Marker-Anreicherung Service
+- `app/Services/TravelRecommendationAgentService.php` - Reiseempfehlungen Service
+- `app/Http/Controllers/Api/LeChatAgentController.php` - API Controller
+- `app/Providers/AppServiceProvider.php` - Service-Registrierung
+- `routes/web.php` - Route-Definitionen
+- `config/services.php` - Konfiguration
+- `.env.example` - Environment-Template
 
 ### Tests
-- `tests/Feature/LeChatAgentEnrichmentTest.php`
-- `tests/Feature/LeChatAgentServiceTest.php`
+- `tests/Feature/LeChatAgentEnrichmentTest.php` - Marker-Anreicherung Endpoint-Tests
+- `tests/Feature/LeChatAgentRecommendationsTest.php` - Reiseempfehlungen Endpoint-Tests
+- `tests/Feature/LeChatAgentServiceTest.php` - Marker Enrichment Service Unit-Tests
+
+### Frontend (wenn implementiert)
+- `resources/js/components/marker-form.tsx` - Marker-Formular mit AI-Anreicherung
+- `resources/js/hooks/use-lechat-enrichment.ts` - React Hook (optional)
 
 ### Dokumentation
-- `docs/LECHAT_AGENT_SETUP.md`
-- `docs/LECHAT_INTEGRATION.md` (diese Datei)
+- `docs/LECHAT_AGENT_SETUP.md` - Vollständige Setup-Anleitung mit System-Prompts
+- `docs/LECHAT_INTEGRATION.md` - Diese Datei (Integrations-Übersicht)
+
+## Service-Architektur
+
+```
+┌──────────────────────────────────────────┐
+│  LeChatAgentController                   │
+│  - enrichMarker()                        │
+│  - getRecommendations()                  │
+└──────────┬──────────────────┬────────────┘
+           │                  │
+           ▼                  ▼
+┌──────────────────┐  ┌──────────────────────────┐
+│ MarkerEnrichment │  │ TravelRecommendation     │
+│ AgentService     │  │ AgentService             │
+│                  │  │                          │
+│ - enrichMarker   │  │ - getTravelRecommendations│
+│   Info()         │  │                          │
+│ - buildPrompt()  │  │ - buildRecommendation    │
+│ - parseResponse()│  │   Prompt()               │
+└──────────────────┘  └──────────────────────────┘
+           │                  │
+           └────────┬─────────┘
+                    ▼
+        ┌───────────────────────┐
+        │ Mistral AI API        │
+        │ api.mistral.ai        │
+        │ /v1/agents/completions│
+        └───────────────────────┘
+```
 
 ## Support
 
 Bei Problemen:
 1. Prüfe Laravel-Logs: `tail -f storage/logs/laravel.log`
 2. Prüfe Browser-Console für Frontend-Fehler
-3. Verifiziere API-Credentials in `.env`
-4. Siehe [Le Chat Agent Setup Guide](docs/LECHAT_AGENT_SETUP.md)
+3. Verifiziere API-Credentials in `.env`:
+   - `LECHAT_API_KEY`
+   - `LECHAT_MARKER_ENRICHMENT_AGENT_ID`
+   - `LECHAT_TRAVEL_RECOMMENDATION_AGENT_ID`
+4. Teste Services manuell mit `php artisan tinker`
+5. Siehe [Le Chat Agent Setup Guide](LECHAT_AGENT_SETUP.md) für Details

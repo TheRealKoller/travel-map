@@ -3,7 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Services\LeChatAgentService;
+use App\Services\MarkerEnrichmentAgentService;
+use App\Services\TravelRecommendationAgentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -11,7 +12,8 @@ use Illuminate\Support\Facades\Validator;
 class LeChatAgentController extends Controller
 {
     public function __construct(
-        private readonly LeChatAgentService $leChatService,
+        private readonly MarkerEnrichmentAgentService $markerEnrichmentService,
+        private readonly TravelRecommendationAgentService $travelRecommendationService,
     ) {}
 
     /**
@@ -33,7 +35,7 @@ class LeChatAgentController extends Controller
             ], 422);
         }
 
-        $result = $this->leChatService->enrichMarkerInfo(
+        $result = $this->markerEnrichmentService->enrichMarkerInfo(
             $request->input('name'),
             $request->input('latitude'),
             $request->input('longitude')
@@ -87,7 +89,7 @@ class LeChatAgentController extends Controller
             ], 422);
         }
 
-        $result = $this->leChatService->getTravelRecommendations($context, $data);
+        $result = $this->travelRecommendationService->getTravelRecommendations($context, $data);
 
         if (! $result['success']) {
             return response()->json($result, 500);
