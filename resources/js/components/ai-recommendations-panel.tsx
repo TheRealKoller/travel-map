@@ -148,8 +148,8 @@ export function AiRecommendationsPanel({
                     AI-Empfehlungen
                 </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="flex flex-wrap gap-2">
+            <CardContent className="space-y-2">
+                <div className="flex flex-wrap gap-1">
                     <Button
                         onClick={() => handleGetRecommendation('trip')}
                         disabled={isLoading || !tripId}
@@ -183,7 +183,7 @@ export function AiRecommendationsPanel({
                 </div>
 
                 <div
-                    className="min-h-[200px] max-h-[250px] overflow-y-auto rounded-lg border bg-gray-50 p-4"
+                    className="min-h-[160px] max-h-[250px] overflow-y-auto rounded-lg border bg-gray-50 p-2"
                     data-testid="recommendation-output"
                 >
                     {isLoading && (
