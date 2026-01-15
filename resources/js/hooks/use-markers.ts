@@ -49,6 +49,7 @@ export function useMarkers({
                         notes: string;
                         url: string;
                         is_unesco: boolean;
+                        ai_enriched: boolean;
                     }) => {
                         const el = createMarkerElement(dbMarker.type);
 
@@ -75,6 +76,7 @@ export function useMarkers({
                             notes: dbMarker.notes || '',
                             url: dbMarker.url || '',
                             isUnesco: dbMarker.is_unesco || false,
+                            aiEnriched: dbMarker.ai_enriched || false,
                             marker: marker,
                             isSaved: true,
                         };
@@ -101,6 +103,7 @@ export function useMarkers({
             notes: string,
             url: string,
             isUnesco: boolean,
+            aiEnriched: boolean,
         ) => {
             try {
                 const markerToSave = markers.find((m) => m.id === id);
@@ -117,6 +120,7 @@ export function useMarkers({
                         notes,
                         url,
                         is_unesco: isUnesco,
+                        ai_enriched: aiEnriched,
                     });
                 } else {
                     // Create new marker in database
@@ -130,6 +134,7 @@ export function useMarkers({
                         longitude: markerToSave.lng,
                         trip_id: selectedTripId,
                         is_unesco: isUnesco,
+                        ai_enriched: aiEnriched,
                     });
                 }
 
@@ -144,6 +149,7 @@ export function useMarkers({
                                   notes,
                                   url,
                                   isUnesco,
+                                  aiEnriched,
                                   isSaved: true,
                               }
                             : m,

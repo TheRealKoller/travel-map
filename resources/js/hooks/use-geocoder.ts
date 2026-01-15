@@ -119,6 +119,7 @@ export function useGeocoder({
                     notes: '',
                     url: '',
                     isUnesco: false,
+                    aiEnriched: false,
                     marker: marker,
                     isSaved: false, // Mark as unsaved
                 };

@@ -83,6 +83,7 @@ export function useSearchResults({
                         notes: '',
                         url: '',
                         isUnesco: false,
+                        aiEnriched: false,
                         marker: newMarker,
                         isSaved: false,
                     };
