@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Enriched Marker Feature Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 40px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .demo-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #333;
+        }
+        
+        /* Marker Form Demo */
+        .marker-form-header {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ai-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #f3e8ff;
+            color: #7c3aed;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .ai-icon {
+            width: 12px;
+            height: 12px;
+        }
+        
+        /* Marker List Demo */
+        .marker-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .marker-item {
+            display: flex;
+            align-items: start;
+            gap: 4px;
+            background: #f9fafb;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 6px;
+        }
+        .marker-item.enriched {
+            border: 2px solid #e9d5ff;
+        }
+        .marker-content {
+            flex: 1;
+        }
+        .marker-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #111827;
+            margin-bottom: 2px;
+        }
+        .marker-coords {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .marker-icons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .icon {
+            width: 16px;
+            height: 16px;
+            color: #6b7280;
+        }
+        .icon.ai {
+            color: #7c3aed;
+        }
+        .icon.unesco {
+            color: #2563eb;
+        }
+        
+        .description {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI-Enriched Marker Feature Demo</h1>
+        
+        <div class="description">
+            <strong>Feature:</strong> Markers that have been enriched using AI (Le Chat) are now marked with a purple lightning bolt icon ⚡ to indicate they contain AI-generated information.
+        </div>
+
+        <div class="demo-section">
+            <h2>1. Marker Form (Edit Dialog)</h2>
+            <p style="color: #666; font-size: 14px; margin-bottom: 16px;">
+                When viewing an AI-enriched marker in the edit dialog, you'll see an "AI enriched" badge next to the title:
+            </p>
+            <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; background: white;">
+                <div class="marker-form-header">
+                    Marker Details
+                    <span class="ai-badge">
+                        <svg class="ai-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
+                        </svg>
+                        AI enriched
+                    </span>
+                </div>
+                <div style="color: #666; font-size: 14px;">
+                    This badge appears when a marker has been enriched using the "Enrich with AI" button, which automatically fills in type, UNESCO status, notes, and URL information.
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h2>2. Marker List</h2>
+            <p style="color: #666; font-size: 14px; margin-bottom: 16px;">
+                In the marker list on the left side, AI-enriched markers show a purple lightning bolt icon:
+            </p>
+            <ul class="marker-list">
+                <li class="marker-item enriched">
+                    <div class="marker-content">
+                        <div class="marker-name">Eiffel Tower</div>
+                        <div class="marker-coords">
+                            <span style="font-weight: 500;">Lat:</span> 48.858400,
+                            <span style="font-weight: 500; margin-left: 8px;">Lng:</span> 2.294500
+                        </div>
+                    </div>
+                    <div class="marker-icons">
+                        <span class="icon ai" title="AI enriched marker">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
+                            </svg>
+                        </span>
+                        <span class="icon" title="Sightseeing">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                            </svg>
+                        </span>
+                        <span class="icon unesco" title="UNESCO World Heritage Site">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5"/>
+                            </svg>
+                        </span>
+                    </div>
+                </li>
+                
+                <li class="marker-item">
+                    <div class="marker-content">
+                        <div class="marker-name">Local Restaurant</div>
+                        <div class="marker-coords">
+                            <span style="font-weight: 500;">Lat:</span> 48.860100,
+                            <span style="font-weight: 500; margin-left: 8px;">Lng:</span> 2.337600
+                        </div>
+                    </div>
+                    <div class="marker-icons">
+                        <span class="icon" title="Restaurant">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                            </svg>
+                        </span>
+                    </div>
+                </li>
+                
+                <li class="marker-item enriched">
+                    <div class="marker-content">
+                        <div class="marker-name">Louvre Museum</div>
+                        <div class="marker-coords">
+                            <span style="font-weight: 500;">Lat:</span> 48.860600,
+                            <span style="font-weight: 500; margin-left: 8px;">Lng:</span> 2.337600
+                        </div>
+                    </div>
+                    <div class="marker-icons">
+                        <span class="icon ai" title="AI enriched marker">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
+                            </svg>
+                        </span>
+                        <span class="icon" title="Museum">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                            </svg>
+                        </span>
+                        <span class="icon unesco" title="UNESCO World Heritage Site">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5"/>
+                            </svg>
+                        </span>
+                    </div>
+                </li>
+            </ul>
+            <p style="color: #666; font-size: 13px; margin-top: 16px; font-style: italic;">
+                Notice: Markers with AI-enriched data (Eiffel Tower, Louvre Museum) have a purple lightning bolt ⚡ icon, while regular markers (Local Restaurant) do not.
+            </p>
+        </div>
+
+        <div class="demo-section">
+            <h2>3. Implementation Details</h2>
+            <ul style="color: #666; font-size: 14px; line-height: 1.6;">
+                <li><strong>Database:</strong> New <code>ai_enriched</code> boolean column added to markers table (defaults to false)</li>
+                <li><strong>Backend:</strong> Flag is automatically set to true when user clicks "Enrich with AI" button</li>
+                <li><strong>Frontend:</strong> Purple lightning bolt icon displays in both marker list and edit form</li>
+                <li><strong>Tests:</strong> 7 new tests verify the functionality works correctly</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
