@@ -19,11 +19,19 @@ class AppServiceProvider extends ServiceProvider
             );
         });
 
-        // Register LeChatAgentService with API credentials from config
-        $this->app->singleton(\App\Services\LeChatAgentService::class, function ($app) {
-            return new \App\Services\LeChatAgentService(
+        // Register MarkerEnrichmentAgentService with API credentials from config
+        $this->app->singleton(\App\Services\MarkerEnrichmentAgentService::class, function ($app) {
+            return new \App\Services\MarkerEnrichmentAgentService(
                 apiKey: config('services.lechat.api_key'),
-                agentId: config('services.lechat.agent_id')
+                agentId: config('services.lechat.marker_enrichment_agent_id')
+            );
+        });
+
+        // Register TravelRecommendationAgentService with API credentials from config
+        $this->app->singleton(\App\Services\TravelRecommendationAgentService::class, function ($app) {
+            return new \App\Services\TravelRecommendationAgentService(
+                apiKey: config('services.lechat.api_key'),
+                agentId: config('services.lechat.travel_recommendation_agent_id')
             );
         });
     }

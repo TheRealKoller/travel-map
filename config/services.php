@@ -46,7 +46,8 @@ return [
 
     'lechat' => [
         'api_key' => env('LECHAT_API_KEY'),
-        'agent_id' => env('LECHAT_AGENT_ID'),
+        'marker_enrichment_agent_id' => env('LECHAT_MARKER_ENRICHMENT_AGENT_ID'),
+        'travel_recommendation_agent_id' => env('LECHAT_TRAVEL_RECOMMENDATION_AGENT_ID'),
     ],
 
 ];

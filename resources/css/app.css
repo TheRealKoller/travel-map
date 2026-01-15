@@ -143,3 +143,52 @@
         @apply bg-background text-foreground;
     }
 }
+
+/* Compact markdown rendering for AI recommendations */
+.markdown-output {
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.markdown-output p,
+.markdown-output ul,
+.markdown-output ol,
+.markdown-output pre,
+.markdown-output blockquote {
+    margin: 0.25rem 0;
+}
+
+.markdown-output h1,
+.markdown-output h2,
+.markdown-output h3,
+.markdown-output h4,
+.markdown-output h5,
+.markdown-output h6 {
+    margin: 0.25rem 0;
+    font-weight: 600;
+    font-size: 1em;
+}
+
+.markdown-output ul {
+    list-style: disc;
+    list-style-position: outside;
+    padding-left: 1rem;
+}
+
+.markdown-output ol {
+    list-style: decimal;
+    list-style-position: outside;
+    padding-left: 1rem;
+}
+
+.markdown-output code {
+    font-size: 0.9em;
+}
+
+.markdown-output a {
+    text-decoration: underline;
+}
+
+.dark .markdown-output {
+    color: var(--color-foreground);
+}

@@ -1,11 +1,11 @@
 <?php
 
-use App\Services\LeChatAgentService;
+use App\Services\MarkerEnrichmentAgentService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 beforeEach(function () {
-    $this->service = new LeChatAgentService(
+    $this->service = new MarkerEnrichmentAgentService(
         apiKey: 'test-api-key',
         agentId: 'test-agent-id'
     );
@@ -126,7 +126,7 @@ it('handles API connection failures', function () {
 
     expect($result)->toMatchArray([
         'success' => false,
-        'error' => 'Failed to connect to Le Chat Agent API',
+        'error' => 'Failed to connect to Marker Enrichment Agent API',
     ]);
 });
 
