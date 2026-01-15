@@ -88,7 +88,6 @@ export function useMarkerHighlight({
         previousSelectedMarkerRef.current = selectedMarkerId;
     }, [
         selectedMarkerId,
-        markers,
         mapInstance,
         onMarkerUpdated,
         onMarkerClick,
