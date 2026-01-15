@@ -141,14 +141,12 @@ export function AiRecommendationsPanel({
     };
 
     return (
-        <Card className="w-full" data-testid="ai-recommendations-panel">
-            <CardHeader>
+        <Card className="w-full gap-2 py-2" data-testid="ai-recommendations-panel">
+            <CardHeader className="flex flex-row items-center justify-between gap-2 px-3 py-0">
                 <CardTitle className="flex items-center gap-2">
                     <Bot className="h-5 w-5" />
                     AI-Empfehlungen
                 </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
                 <div className="flex flex-wrap gap-1">
                     <Button
                         onClick={() => handleGetRecommendation('trip')}
@@ -181,6 +179,8 @@ export function AiRecommendationsPanel({
                         Empfehlungen für Kartenausschnitt
                     </Button>
                 </div>
+            </CardHeader>
+            <CardContent className="space-y-2">
 
                 <div
                     className="min-h-[160px] max-h-[250px] overflow-y-auto rounded-lg border bg-gray-50 p-2"
