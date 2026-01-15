@@ -1,10 +1,12 @@
 import TravelMap from '@/components/travel-map';
 import { Tour } from '@/types/tour';
+import { Trip } from '@/types/trip';
 
 interface MapContainerProps {
     selectedTripId: number | null;
     selectedTourId: number | null;
     tours: Tour[];
+    trips: Trip[];
     onToursUpdate: (tours: Tour[]) => void;
     onSelectTour: (tourId: number | null) => void;
     onCreateTour: () => void;
@@ -15,6 +17,7 @@ export function MapContainer({
     selectedTripId,
     selectedTourId,
     tours,
+    trips,
     onToursUpdate,
     onSelectTour,
     onCreateTour,
@@ -26,6 +29,7 @@ export function MapContainer({
                 selectedTripId={selectedTripId}
                 selectedTourId={selectedTourId}
                 tours={tours}
+                trips={trips}
                 onToursUpdate={onToursUpdate}
                 onSelectTour={onSelectTour}
                 onCreateTour={onCreateTour}

@@ -44,6 +44,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/markers/search-nearby', [MarkerController::class, 'searchNearby'])->name('markers.search-nearby');
     Route::get('/markers/place-types', [MarkerController::class, 'placeTypes'])->name('markers.place-types');
     Route::post('/markers/enrich', [LeChatAgentController::class, 'enrichMarker'])->name('markers.enrich');
+    Route::post('/recommendations', [LeChatAgentController::class, 'getRecommendations'])->name('recommendations.get');
 
     // Route routes
     Route::get('/routes', [RouteController::class, 'index'])->name('routes.index');

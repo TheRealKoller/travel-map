@@ -45,4 +45,54 @@ class LeChatAgentController extends Controller
 
         return response()->json($result);
     }
+
+    /**
+     * Get travel recommendations using Le Chat Agent.
+     */
+    public function getRecommendations(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'context' => 'required|string|in:trip,tour,map_view',
+            'data' => 'required|array',
+            'data.trip_name' => 'required|string',
+            'data.markers' => 'required|array',
+            'data.markers.*.name' => 'required|string',
+            'data.markers.*.latitude' => 'required|numeric|between:-90,90',
+            'data.markers.*.longitude' => 'required|numeric|between:-180,180',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $context = $request->input('context');
+        $data = $request->input('data');
+
+        // Validate context-specific fields
+        if ($context === 'tour' && ! isset($data['tour_name'])) {
+            return response()->json([
+                'success' => false,
+                'error' => 'tour_name is required for tour context',
+            ], 422);
+        }
+
+        if ($context === 'map_view' && ! isset($data['bounds'])) {
+            return response()->json([
+                'success' => false,
+                'error' => 'bounds is required for map_view context',
+            ], 422);
+        }
+
+        $result = $this->leChatService->getTravelRecommendations($context, $data);
+
+        if (! $result['success']) {
+            return response()->json($result, 500);
+        }
+
+        return response()->json($result);
+    }
 }

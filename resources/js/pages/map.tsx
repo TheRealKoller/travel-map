@@ -89,6 +89,7 @@ export default function MapPage() {
                 selectedTripId={selectedTripId}
                 selectedTourId={selectedTourId}
                 tours={tours}
+                trips={trips}
                 onToursUpdate={setTours}
                 onSelectTour={setSelectedTourId}
                 onCreateTour={openCreateTourModal}
