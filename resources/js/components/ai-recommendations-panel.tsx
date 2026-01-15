@@ -107,8 +107,21 @@ export function AiRecommendationsPanel({
                 }
 
                 requestData.bounds = mapBounds;
-                // For map view, we'll need to filter markers based on bounds
-                // For now, we'll send all markers, but this could be optimized
+                // Filter markers to only include those within the current map bounds
+                requestData.markers = markers
+                    .filter((m) => {
+                        const isWithinBounds =
+                            m.lat >= mapBounds.south &&
+                            m.lat <= mapBounds.north &&
+                            m.lng >= mapBounds.west &&
+                            m.lng <= mapBounds.east;
+                        return isWithinBounds;
+                    })
+                    .map((m) => ({
+                        name: m.name,
+                        latitude: m.lat,
+                        longitude: m.lng,
+                    }));
             }
 
             const response = await fetch('/recommendations', {
