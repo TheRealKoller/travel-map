@@ -62,7 +62,11 @@ export function AiRecommendationsPanel({
         try {
             const requestData: {
                 trip_name: string;
-                markers: Array<{ name: string; latitude: number; longitude: number }>;
+                markers: Array<{
+                    name: string;
+                    latitude: number;
+                    longitude: number;
+                }>;
                 tour_name?: string;
                 bounds?: MapBounds;
             } = {
@@ -154,7 +158,10 @@ export function AiRecommendationsPanel({
     };
 
     return (
-        <Card className="w-full gap-2 py-2" data-testid="ai-recommendations-panel">
+        <Card
+            className="w-full gap-2 py-2"
+            data-testid="ai-recommendations-panel"
+        >
             <CardHeader className="flex flex-row items-center justify-between gap-2 px-3 py-0">
                 <CardTitle className="flex items-center gap-2">
                     <Bot className="h-5 w-5" />
@@ -194,9 +201,8 @@ export function AiRecommendationsPanel({
                 </div>
             </CardHeader>
             <CardContent className="space-y-2">
-
                 <div
-                    className="min-h-[160px] max-h-[250px] overflow-y-auto rounded-lg border bg-gray-50 p-2"
+                    className="max-h-[250px] min-h-[160px] overflow-y-auto rounded-lg border bg-gray-50 p-2"
                     data-testid="recommendation-output"
                 >
                     {isLoading && (
