@@ -308,8 +308,12 @@ export default function TravelMap({
                                     markers={markers}
                                     routes={routes}
                                     onRoutesUpdate={setRoutes}
-                                    initialStartMarkerId={routeRequest?.startMarkerId}
-                                    initialEndMarkerId={routeRequest?.endMarkerId}
+                                    initialStartMarkerId={
+                                        routeRequest?.startMarkerId
+                                    }
+                                    initialEndMarkerId={
+                                        routeRequest?.endMarkerId
+                                    }
                                 />
                             </div>
                         )}

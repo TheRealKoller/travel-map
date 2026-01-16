@@ -5,7 +5,13 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getMarkerTypeIcon, UnescoIcon } from '@/lib/marker-icons';
 import { MarkerData } from '@/types/marker';
 import { Tour } from '@/types/tour';
-import { ArrowDown, ArrowUp, Plus, Route as RouteIcon, Trash2 } from 'lucide-react';
+import {
+    ArrowDown,
+    ArrowUp,
+    Plus,
+    Route as RouteIcon,
+    Trash2,
+} from 'lucide-react';
 
 interface TourPanelProps {
     tours: Tour[];

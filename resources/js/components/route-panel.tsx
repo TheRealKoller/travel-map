@@ -46,7 +46,8 @@ export default function RoutePanel({
     initialStartMarkerId = '',
     initialEndMarkerId = '',
 }: RoutePanelProps) {
-    const [startMarkerId, setStartMarkerId] = useState<string>(initialStartMarkerId);
+    const [startMarkerId, setStartMarkerId] =
+        useState<string>(initialStartMarkerId);
     const [endMarkerId, setEndMarkerId] = useState<string>(initialEndMarkerId);
     const [transportMode, setTransportMode] =
         useState<TransportMode>('driving-car');

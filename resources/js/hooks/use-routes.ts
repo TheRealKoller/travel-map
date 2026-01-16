@@ -9,7 +9,11 @@ interface UseRoutesOptions {
     selectedTourId: number | null;
 }
 
-export function useRoutes({ mapInstance, selectedTripId, selectedTourId }: UseRoutesOptions) {
+export function useRoutes({
+    mapInstance,
+    selectedTripId,
+    selectedTourId,
+}: UseRoutesOptions) {
     const [routes, setRoutes] = useState<Route[]>([]);
     const routeLayerIdsRef = useRef<Map<number, string>>(new Map());
 
@@ -48,9 +52,10 @@ export function useRoutes({ mapInstance, selectedTripId, selectedTourId }: UseRo
         routeLayerIdsRef.current.clear();
 
         // Filter routes by selected tour (if a tour is selected)
-        const visibleRoutes = selectedTourId !== null
-            ? routes.filter((route) => route.tour_id === selectedTourId)
-            : routes;
+        const visibleRoutes =
+            selectedTourId !== null
+                ? routes.filter((route) => route.tour_id === selectedTourId)
+                : routes;
 
         // Render each route as a line layer
         visibleRoutes.forEach((route) => {
