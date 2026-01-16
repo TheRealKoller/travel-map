@@ -71,6 +71,7 @@ export function useTourLines({
         if (!mapInstance) return;
 
         // Clean up existing tour line layers
+        // Note: Mapbox GL JS automatically removes event listeners when layers are removed
         lineLayerIdsRef.current.forEach((layerId) => {
             if (mapInstance.getLayer(layerId)) {
                 mapInstance.removeLayer(layerId);
