@@ -24,8 +24,17 @@ it('cannot access logs page when not authenticated', function () {
 it('parses log entries correctly', function () {
     $user = User::factory()->create();
 
-    // Create a test log file with sample entries
-    $logPath = storage_path('logs/laravel.log');
+    // Create test log files with sample entries (both default and dated filenames)
+    $logsDir = storage_path('logs');
+    if (! is_dir($logsDir)) {
+        mkdir($logsDir, 0777, true);
+    }
+
+    $logPaths = [
+        storage_path('logs/laravel.log'),
+        storage_path('logs/laravel-2999-01-01.log'),
+    ];
+
     $logContent = <<<'LOG'
 [2026-01-12 09:00:00] local.INFO: Test info message
 [2026-01-12 10:00:00] local.ERROR: Test error message
@@ -34,22 +43,22 @@ Stack trace:
 #1 {main}
 LOG;
 
-    // Backup existing log
-    $backup = null;
-    if (file_exists($logPath)) {
-        $backup = file_get_contents($logPath);
+    // Backup existing logs and write test content to both possible filenames
+    $backups = [];
+    foreach ($logPaths as $logPath) {
+        $backups[$logPath] = file_exists($logPath) ? file_get_contents($logPath) : null;
+        file_put_contents($logPath, $logContent);
     }
-
-    // Write test log
-    file_put_contents($logPath, $logContent);
 
     $response = $this->actingAs($user)->get(route('logs'));
 
-    // Restore backup
-    if ($backup !== null) {
-        file_put_contents($logPath, $backup);
-    } else {
-        unlink($logPath);
+    // Restore backups (or remove created files)
+    foreach ($logPaths as $logPath) {
+        if ($backups[$logPath] !== null) {
+            file_put_contents($logPath, $backups[$logPath]);
+        } elseif (file_exists($logPath)) {
+            unlink($logPath);
+        }
     }
 
     $response->assertOk();
