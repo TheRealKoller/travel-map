@@ -38,6 +38,8 @@ interface RoutePanelProps {
     initialEndMarkerId?: string;
     tours?: Tour[];
     highlightedRouteId?: number | null;
+    expandedRoutes: Set<number>;
+    onExpandedRoutesChange: (expandedRoutes: Set<number>) => void;
 }
 
 export default function RoutePanel({
@@ -50,6 +52,8 @@ export default function RoutePanel({
     initialEndMarkerId = '',
     tours = [],
     highlightedRouteId = null,
+    expandedRoutes,
+    onExpandedRoutesChange,
 }: RoutePanelProps) {
     const [startMarkerId, setStartMarkerId] =
         useState<string>(initialStartMarkerId);
@@ -58,9 +62,6 @@ export default function RoutePanel({
         useState<TransportMode>('driving-car');
     const [isCreating, setIsCreating] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [expandedRoutes, setExpandedRoutes] = useState<Set<number>>(
-        new Set(),
-    );
 
     // Update marker IDs when initialStartMarkerId or initialEndMarkerId changes
     useEffect(() => {
@@ -228,15 +229,13 @@ export default function RoutePanel({
     };
 
     const toggleRouteExpansion = (routeId: number) => {
-        setExpandedRoutes((prev) => {
-            const newSet = new Set(prev);
-            if (newSet.has(routeId)) {
-                newSet.delete(routeId);
-            } else {
-                newSet.add(routeId);
-            }
-            return newSet;
-        });
+        const newSet = new Set(expandedRoutes);
+        if (newSet.has(routeId)) {
+            newSet.delete(routeId);
+        } else {
+            newSet.add(routeId);
+        }
+        onExpandedRoutesChange(newSet);
     };
 
     /**

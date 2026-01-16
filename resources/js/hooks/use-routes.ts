@@ -7,12 +7,14 @@ interface UseRoutesOptions {
     mapInstance: mapboxgl.Map | null;
     selectedTripId: number | null;
     selectedTourId: number | null;
+    expandedRoutes: Set<number>;
 }
 
 export function useRoutes({
     mapInstance,
     selectedTripId,
     selectedTourId,
+    expandedRoutes,
 }: UseRoutesOptions) {
     const [routes, setRoutes] = useState<Route[]>([]);
     const routeLayerIdsRef = useRef<Map<number, string>>(new Map());
@@ -52,10 +54,11 @@ export function useRoutes({
         routeLayerIdsRef.current.clear();
 
         // Filter routes by selected tour (if a tour is selected)
+        // If no tour is selected, only show expanded routes
         const visibleRoutes =
             selectedTourId !== null
                 ? routes.filter((route) => route.tour_id === selectedTourId)
-                : routes;
+                : routes.filter((route) => expandedRoutes.has(route.id));
 
         // Render each route as a line layer
         visibleRoutes.forEach((route) => {
@@ -135,7 +138,7 @@ export function useRoutes({
 
             routeLayerIdsRef.current.set(route.id, layerId);
         });
-    }, [routes, mapInstance, selectedTourId]);
+    }, [routes, mapInstance, selectedTourId, expandedRoutes]);
 
     return {
         routes,

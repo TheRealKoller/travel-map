@@ -76,13 +76,6 @@ export default function TravelMap({
         setIsRoutePanelCollapsed,
     } = usePanelCollapse({ mapInstance });
 
-    // Routes management
-    const { routes, setRoutes } = useRoutes({
-        mapInstance,
-        selectedTripId,
-        selectedTourId,
-    });
-
     // State for pre-filling route form from tour view
     const [routeRequest, setRouteRequest] = useState<{
         startMarkerId: string;
@@ -93,6 +86,19 @@ export default function TravelMap({
     const [highlightedRouteId, setHighlightedRouteId] = useState<number | null>(
         null,
     );
+
+    // State for tracking which routes are expanded in the route panel
+    const [expandedRoutes, setExpandedRoutes] = useState<Set<number>>(
+        new Set(),
+    );
+
+    // Routes management
+    const { routes, setRoutes } = useRoutes({
+        mapInstance,
+        selectedTripId,
+        selectedTourId,
+        expandedRoutes,
+    });
 
     // Handler for route request from tour panel
     const handleRequestRoute = (startMarkerId: string, endMarkerId: string) => {
@@ -338,6 +344,8 @@ export default function TravelMap({
                                     }
                                     tours={tours}
                                     highlightedRouteId={highlightedRouteId}
+                                    expandedRoutes={expandedRoutes}
+                                    onExpandedRoutesChange={setExpandedRoutes}
                                 />
                             </div>
                         )}
