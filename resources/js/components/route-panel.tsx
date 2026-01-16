@@ -40,6 +40,7 @@ interface RoutePanelProps {
     highlightedRouteId?: number | null;
     expandedRoutes: Set<number>;
     onExpandedRoutesChange: (expandedRoutes: Set<number>) => void;
+    onHighlightedRouteIdChange?: (routeId: number | null) => void;
 }
 
 export default function RoutePanel({
@@ -54,6 +55,7 @@ export default function RoutePanel({
     highlightedRouteId = null,
     expandedRoutes,
     onExpandedRoutesChange,
+    onHighlightedRouteIdChange,
 }: RoutePanelProps) {
     const [startMarkerId, setStartMarkerId] =
         useState<string>(initialStartMarkerId);
@@ -229,13 +231,20 @@ export default function RoutePanel({
     };
 
     const toggleRouteExpansion = (routeId: number) => {
-        const newSet = new Set(expandedRoutes);
-        if (newSet.has(routeId)) {
-            newSet.delete(routeId);
-        } else {
+        const isCurrentlyExpanded = expandedRoutes.has(routeId);
+        
+        // If expanding, close all others and open only this one
+        // If collapsing, just close this one
+        const newSet = new Set<number>();
+        if (!isCurrentlyExpanded) {
             newSet.add(routeId);
         }
         onExpandedRoutesChange(newSet);
+
+        // When expanding a route, highlight it. When collapsing, remove highlight
+        if (onHighlightedRouteIdChange) {
+            onHighlightedRouteIdChange(!isCurrentlyExpanded ? routeId : null);
+        }
     };
 
     /**

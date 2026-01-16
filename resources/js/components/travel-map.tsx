@@ -103,6 +103,7 @@ export default function TravelMap({
         selectedTripId,
         selectedTourId,
         expandedRoutes,
+        highlightedRouteId,
         onRouteClick: (routeId: number) => {
             if (handleRouteClickRef.current) {
                 handleRouteClickRef.current(routeId);
@@ -379,6 +380,7 @@ export default function TravelMap({
                                     highlightedRouteId={highlightedRouteId}
                                     expandedRoutes={expandedRoutes}
                                     onExpandedRoutesChange={setExpandedRoutes}
+                                    onHighlightedRouteIdChange={setHighlightedRouteId}
                                 />
                             </div>
                         )}

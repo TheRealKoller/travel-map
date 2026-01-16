@@ -8,6 +8,7 @@ interface UseRoutesOptions {
     selectedTripId: number | null;
     selectedTourId: number | null;
     expandedRoutes: Set<number>;
+    highlightedRouteId?: number | null;
     onRouteClick?: (routeId: number) => void;
 }
 
@@ -16,6 +17,7 @@ export function useRoutes({
     selectedTripId,
     selectedTourId,
     expandedRoutes,
+    highlightedRouteId,
     onRouteClick,
 }: UseRoutesOptions) {
     const [routes, setRoutes] = useState<Route[]>([]);
@@ -108,6 +110,9 @@ export function useRoutes({
                 },
             });
 
+            // Check if this route is highlighted
+            const isHighlighted = highlightedRouteId === route.id;
+
             // Add base layer for the route
             mapInstance.addLayer({
                 id: layerId,
@@ -119,8 +124,8 @@ export function useRoutes({
                 },
                 paint: {
                     'line-color': color,
-                    'line-width': 3,
-                    'line-opacity': 0.6,
+                    'line-width': isHighlighted ? 5 : 3,
+                    'line-opacity': isHighlighted ? 0.9 : 0.6,
                 },
             });
 
@@ -188,7 +193,7 @@ export function useRoutes({
 
             routeLayerIdsRef.current.set(route.id, layerId);
         });
-    }, [routes, mapInstance, selectedTourId, expandedRoutes]);
+    }, [routes, mapInstance, selectedTourId, expandedRoutes, highlightedRouteId]);
 
     return {
         routes,
