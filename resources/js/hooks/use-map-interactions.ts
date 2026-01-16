@@ -338,9 +338,14 @@ export function useMapInteractions({
                 return f.layer?.id?.startsWith('route-');
             });
 
-            if (hasInteractiveFeature || hasRouteLayer) {
+            // Check if a tour line was clicked
+            const hasTourLineLayer = features.some((f) => {
+                return f.layer?.id?.startsWith('tour-line-');
+            });
+
+            if (hasInteractiveFeature || hasRouteLayer || hasTourLineLayer) {
                 console.log(
-                    'handleMapClick: Interactive feature or route layer clicked, ignoring',
+                    'handleMapClick: Interactive feature, route layer, or tour line clicked, ignoring',
                 );
                 return;
             }

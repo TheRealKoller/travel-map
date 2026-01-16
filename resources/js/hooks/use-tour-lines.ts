@@ -10,6 +10,7 @@ interface UseTourLinesOptions {
     tours: Tour[];
     markers: MarkerData[];
     routes: Route[];
+    onTourLineClick?: (startMarkerId: string, endMarkerId: string) => void;
 }
 
 /**
@@ -67,8 +68,15 @@ export function useTourLines({
     tours,
     markers,
     routes,
+    onTourLineClick,
 }: UseTourLinesOptions) {
     const lineLayerIdsRef = useRef<Set<string>>(new Set());
+    const onTourLineClickRef = useRef(onTourLineClick);
+
+    // Update ref when callback changes
+    useEffect(() => {
+        onTourLineClickRef.current = onTourLineClick;
+    }, [onTourLineClick]);
 
     useEffect(() => {
         if (!mapInstance) return;
@@ -199,9 +207,23 @@ export function useTourLines({
                 );
             });
 
+            // Add click interaction
+            mapInstance.on('click', lineId, (e) => {
+                // Prevent event from propagating to map click handler
+                e.originalEvent.stopPropagation();
+
+                // Call the callback if provided
+                if (onTourLineClickRef.current) {
+                    onTourLineClickRef.current(
+                        startMarker.id,
+                        endMarker.id,
+                    );
+                }
+            });
+
             lineLayerIdsRef.current.add(lineId);
         }
-    }, [mapInstance, selectedTourId, tours, markers, routes]);
+    }, [mapInstance, selectedTourId, tours, markers, routes, onTourLineClick]);
 
     return null;
 }

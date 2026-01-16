@@ -234,6 +234,7 @@ export default function TravelMap({
         tours,
         markers,
         routes,
+        onTourLineClick: handleRequestRoute,
     });
 
     // Update map bounds when map moves
