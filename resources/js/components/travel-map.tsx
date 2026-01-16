@@ -16,6 +16,7 @@ import { useRoutes } from '@/hooks/use-routes';
 import { useSearchMode } from '@/hooks/use-search-mode';
 import { useSearchRadius } from '@/hooks/use-search-radius';
 import { useSearchResults } from '@/hooks/use-search-results';
+import { useTourLines } from '@/hooks/use-tour-lines';
 import { useTourMarkers } from '@/hooks/use-tour-markers';
 import { Tour } from '@/types/tour';
 import { Trip } from '@/types/trip';
@@ -150,6 +151,14 @@ export default function TravelMap({
         selectedTourId,
         tours,
         onToursUpdate,
+    });
+
+    // Tour lines - draw curved lines between markers in selected tour
+    useTourLines({
+        mapInstance,
+        selectedTourId,
+        tours,
+        markers,
     });
 
     // Update map bounds when map moves
