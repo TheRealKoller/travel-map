@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { getMarkerTypeIcon, UnescoIcon } from '@/lib/marker-icons';
 import { MarkerData } from '@/types/marker';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Image } from 'lucide-react';
 import { marked } from 'marked';
 import { useEffect } from 'react';
 
@@ -47,13 +47,26 @@ function MarkerItem({
 
     return (
         <li
-            className={`flex items-start gap-1 rounded p-2 transition ${
+            className={`flex items-start gap-2 rounded p-2 transition ${
                 isSelected
                     ? 'border-2 border-blue-500 bg-blue-100'
                     : 'bg-gray-50 hover:bg-gray-100'
             }`}
             data-testid="marker-list-item"
         >
+            {markerData.imageUrl && (
+                <img
+                    src={markerData.imageUrl}
+                    alt={markerData.name || 'Marker'}
+                    className="h-16 w-16 flex-shrink-0 rounded object-cover"
+                    loading="lazy"
+                />
+            )}
+            {!markerData.imageUrl && (
+                <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded bg-gray-200">
+                    <Image className="h-6 w-6 text-gray-400" />
+                </div>
+            )}
             <div
                 className="flex-1 cursor-pointer"
                 onClick={() => onSelect(markerData.id)}

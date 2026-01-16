@@ -13,7 +13,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Trip } from '@/types/trip';
-import { MoreHorizontal, Pencil, Plus } from 'lucide-react';
+import { Image, MoreHorizontal, Pencil, Plus } from 'lucide-react';
 
 interface TripSelectorProps {
     trips: Trip[];
@@ -53,7 +53,21 @@ export default function TripSelector({
                                 key={trip.id}
                                 value={trip.id.toString()}
                             >
-                                {trip.name}
+                                <div className="flex items-center gap-2">
+                                    {trip.image_url ? (
+                                        <img
+                                            src={trip.image_url}
+                                            alt={trip.name}
+                                            className="h-8 w-8 rounded object-cover"
+                                            loading="lazy"
+                                        />
+                                    ) : (
+                                        <div className="flex h-8 w-8 items-center justify-center rounded bg-gray-200">
+                                            <Image className="h-4 w-4 text-gray-400" />
+                                        </div>
+                                    )}
+                                    <span>{trip.name}</span>
+                                </div>
                             </SelectItem>
                         ))}
                     </SelectContent>
