@@ -83,6 +83,7 @@ export function useMapInteractions({
                     notes: '',
                     url: '',
                     isUnesco: false,
+                    aiEnriched: false,
                     marker: newMarker,
                     isSaved: false,
                 };
@@ -175,6 +176,7 @@ export function useMapInteractions({
                     notes: '',
                     url: '',
                     isUnesco: false,
+                    aiEnriched: false,
                     marker: newMarker,
                     isSaved: false,
                 };
@@ -278,6 +280,7 @@ export function useMapInteractions({
                     notes: '',
                     url: '',
                     isUnesco: false,
+                    aiEnriched: false,
                     marker: newMarker,
                     isSaved: false,
                 };
@@ -352,6 +355,7 @@ export function useMapInteractions({
                 notes: '',
                 url: '',
                 isUnesco: false,
+                aiEnriched: false,
                 marker: marker,
                 isSaved: false,
             };

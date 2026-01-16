@@ -27,6 +27,7 @@ export interface MarkerData {
     notes: string;
     url: string;
     isUnesco: boolean;
+    aiEnriched: boolean;
     marker: mapboxgl.Marker;
     isSaved: boolean; // Track if marker is persisted in database
     position?: number; // Position in tour (when part of a tour)

@@ -31,6 +31,7 @@ class StoreMarkerRequest extends FormRequest
             'longitude' => 'required|numeric|between:-180,180',
             'trip_id' => 'nullable|integer|exists:trips,id',
             'is_unesco' => 'boolean',
+            'ai_enriched' => 'boolean',
         ];
     }
 }

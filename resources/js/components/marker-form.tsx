@@ -15,6 +15,7 @@ interface MarkerFormProps {
         notes: string,
         url: string,
         isUnesco: boolean,
+        aiEnriched: boolean,
     ) => void;
     onDeleteMarker: (id: string) => void;
     onClose: () => void;
@@ -43,6 +44,7 @@ export default function MarkerForm({
     const [notes, setNotes] = useState(marker?.notes || '');
     const [url, setUrl] = useState(marker?.url || '');
     const [isUnesco, setIsUnesco] = useState(marker?.isUnesco || false);
+    const [aiEnriched, setAiEnriched] = useState(marker?.aiEnriched || false);
     const [isEnriching, setIsEnriching] = useState(false);
     const [enrichmentError, setEnrichmentError] = useState<string | null>(null);
 
@@ -132,7 +134,7 @@ export default function MarkerForm({
 
     const handleSave = () => {
         if (marker) {
-            onSave(marker.id, name, type, notes, url, isUnesco);
+            onSave(marker.id, name, type, notes, url, isUnesco, aiEnriched);
         }
     };
 
@@ -223,6 +225,9 @@ export default function MarkerForm({
                 // Only set URL if it's currently empty
                 setUrl(data.url);
             }
+
+            // Mark this marker as AI enriched
+            setAiEnriched(true);
         } catch (error) {
             console.error('Failed to enrich marker:', error);
             setEnrichmentError(
@@ -255,7 +260,29 @@ export default function MarkerForm({
                     />
                 </svg>
             </button>
-            <h2 className="mb-4 pr-8 text-xl font-semibold">Marker Details</h2>
+            <h2 className="mb-4 pr-8 text-xl font-semibold">
+                Marker Details
+                {aiEnriched && (
+                    <span
+                        className="ml-2 inline-flex items-center gap-1 rounded bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700"
+                        title="This marker has been enriched with AI"
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-3 w-3"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                        >
+                            <path
+                                fillRule="evenodd"
+                                d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
+                                clipRule="evenodd"
+                            />
+                        </svg>
+                        AI enriched
+                    </span>
+                )}
+            </h2>
             {enrichmentError && (
                 <div
                     className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-800"
