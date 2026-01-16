@@ -72,16 +72,6 @@ export default function RoutePanel({
         }
     }, [initialStartMarkerId, initialEndMarkerId]);
 
-    // Auto-expand highlighted route when it changes
-    useEffect(() => {
-        if (highlightedRouteId) {
-            setExpandedRoutes(
-                (prev) =>
-                    new Set([...prev, highlightedRouteId])
-            );
-        }
-    }, [highlightedRouteId]);
-
     const handleCreateRoute = async () => {
         if (!startMarkerId || !endMarkerId) {
             setError('Please select both start and end markers');
