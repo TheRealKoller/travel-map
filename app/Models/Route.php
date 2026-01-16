@@ -14,6 +14,7 @@ class Route extends Model
 
     protected $fillable = [
         'trip_id',
+        'tour_id',
         'start_marker_id',
         'end_marker_id',
         'transport_mode',
@@ -40,6 +41,11 @@ class Route extends Model
     public function trip(): BelongsTo
     {
         return $this->belongsTo(Trip::class);
+    }
+
+    public function tour(): BelongsTo
+    {
+        return $this->belongsTo(Tour::class);
     }
 
     public function startMarker(): BelongsTo

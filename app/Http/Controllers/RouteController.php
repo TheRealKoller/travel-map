@@ -59,6 +59,7 @@ class RouteController extends Controller
 
             $route = Route::create([
                 'trip_id' => $trip->id,
+                'tour_id' => $validated['tour_id'] ?? null,
                 'start_marker_id' => $startMarker->id,
                 'end_marker_id' => $endMarker->id,
                 'transport_mode' => $transportMode,

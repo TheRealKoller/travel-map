@@ -14,6 +14,7 @@ export interface RouteMarker {
 export interface Route {
     id: number;
     trip_id: number;
+    tour_id: number | null;
     start_marker: RouteMarker;
     end_marker: RouteMarker;
     transport_mode: {
