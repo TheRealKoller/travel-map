@@ -37,6 +37,7 @@ interface RoutePanelProps {
     initialStartMarkerId?: string;
     initialEndMarkerId?: string;
     tours?: Tour[];
+    highlightedRouteId?: number | null;
 }
 
 export default function RoutePanel({
@@ -48,6 +49,7 @@ export default function RoutePanel({
     initialStartMarkerId = '',
     initialEndMarkerId = '',
     tours = [],
+    highlightedRouteId = null,
 }: RoutePanelProps) {
     const [startMarkerId, setStartMarkerId] =
         useState<string>(initialStartMarkerId);
@@ -69,6 +71,16 @@ export default function RoutePanel({
             setEndMarkerId(initialEndMarkerId);
         }
     }, [initialStartMarkerId, initialEndMarkerId]);
+
+    // Auto-expand highlighted route when it changes
+    useEffect(() => {
+        if (highlightedRouteId) {
+            setExpandedRoutes(
+                (prev) =>
+                    new Set([...prev, highlightedRouteId])
+            );
+        }
+    }, [highlightedRouteId]);
 
     const handleCreateRoute = async () => {
         if (!startMarkerId || !endMarkerId) {
@@ -396,6 +408,7 @@ export default function RoutePanel({
                     <div className="space-y-3">
                         {filteredRoutes.map((route) => {
                             const isExpanded = expandedRoutes.has(route.id);
+                            const isHighlighted = highlightedRouteId === route.id;
                             return (
                                 <Collapsible
                                     key={route.id}
@@ -404,7 +417,11 @@ export default function RoutePanel({
                                         toggleRouteExpansion(route.id)
                                     }
                                 >
-                                    <div className="rounded-lg border">
+                                    <div className={`rounded-lg border ${
+                                        isHighlighted
+                                            ? 'border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950/30'
+                                            : ''
+                                    }`}>
                                         {/* Route header - always visible */}
                                         <div className="flex items-start justify-between p-3">
                                             <CollapsibleTrigger

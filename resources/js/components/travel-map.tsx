@@ -89,9 +89,31 @@ export default function TravelMap({
         endMarkerId: string;
     } | null>(null);
 
+    // State for highlighting a route in the route panel
+    const [highlightedRouteId, setHighlightedRouteId] = useState<number | null>(
+        null,
+    );
+
     // Handler for route request from tour panel
     const handleRequestRoute = (startMarkerId: string, endMarkerId: string) => {
         setRouteRequest({ startMarkerId, endMarkerId });
+
+        // Find if a route already exists between these markers
+        const existingRoute = routes.find(
+            (route) =>
+                (route.start_marker.id === startMarkerId &&
+                    route.end_marker.id === endMarkerId) ||
+                (route.start_marker.id === endMarkerId &&
+                    route.end_marker.id === startMarkerId),
+        );
+
+        // Highlight the route if it exists
+        if (existingRoute) {
+            setHighlightedRouteId(existingRoute.id);
+        } else {
+            setHighlightedRouteId(null);
+        }
+
         // Expand route panel if collapsed
         setIsRoutePanelCollapsed(false);
     };
@@ -315,6 +337,7 @@ export default function TravelMap({
                                         routeRequest?.endMarkerId
                                     }
                                     tours={tours}
+                                    highlightedRouteId={highlightedRouteId}
                                 />
                             </div>
                         )}
