@@ -57,6 +57,9 @@ export function useRoutes({
             if (mapInstance.getLayer(layerId)) {
                 mapInstance.removeLayer(layerId);
             }
+            if (mapInstance.getLayer(`${layerId}-hover`)) {
+                mapInstance.removeLayer(`${layerId}-hover`);
+            }
             if (mapInstance.getSource(layerId)) {
                 mapInstance.removeSource(layerId);
             }
@@ -105,7 +108,7 @@ export function useRoutes({
                 },
             });
 
-            // Add layer for the route
+            // Add base layer for the route
             mapInstance.addLayer({
                 id: layerId,
                 type: 'line',
@@ -116,8 +119,24 @@ export function useRoutes({
                 },
                 paint: {
                     'line-color': color,
-                    'line-width': 4,
-                    'line-opacity': 0.7,
+                    'line-width': 3,
+                    'line-opacity': 0.6,
+                },
+            });
+
+            // Add hover highlight layer
+            mapInstance.addLayer({
+                id: `${layerId}-hover`,
+                type: 'line',
+                source: layerId,
+                layout: {
+                    'line-join': 'round',
+                    'line-cap': 'round',
+                },
+                paint: {
+                    'line-color': color,
+                    'line-width': 5,
+                    'line-opacity': 0,
                 },
             });
 
@@ -146,13 +165,25 @@ export function useRoutes({
                 }
             });
 
-            // Change cursor on hover
+            // Add hover interactions
             mapInstance.on('mouseenter', layerId, () => {
                 mapInstance.getCanvas().style.cursor = 'pointer';
+                // Show the hover layer
+                mapInstance.setPaintProperty(
+                    `${layerId}-hover`,
+                    'line-opacity',
+                    0.8,
+                );
             });
 
             mapInstance.on('mouseleave', layerId, () => {
                 mapInstance.getCanvas().style.cursor = 'crosshair';
+                // Hide the hover layer
+                mapInstance.setPaintProperty(
+                    `${layerId}-hover`,
+                    'line-opacity',
+                    0,
+                );
             });
 
             routeLayerIdsRef.current.set(route.id, layerId);

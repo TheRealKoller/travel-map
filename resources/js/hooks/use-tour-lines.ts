@@ -164,7 +164,7 @@ export function useTourLines({
                     'line-cap': 'round',
                 },
                 paint: {
-                    'line-color': '#2563eb', // Blue color
+                    'line-color': '#3b82f6', // Blue color
                     'line-width': 3,
                     'line-opacity': 0.6,
                 },
@@ -180,7 +180,7 @@ export function useTourLines({
                     'line-cap': 'round',
                 },
                 paint: {
-                    'line-color': '#1d4ed8', // Darker blue for hover
+                    'line-color': '#3b82f6', // Same blue for hover
                     'line-width': 5,
                     'line-opacity': 0,
                 },
