@@ -61,6 +61,8 @@ class UnsplashService
     public function searchPhoto(string $query, string $orientation = 'landscape'): ?array
     {
         if (! $this->initialized) {
+            Log::warning('Unsplash API not initialized - missing access key or UTM source');
+
             return null;
         }
 
@@ -70,15 +72,25 @@ class UnsplashService
         // Try to get from cache first
         $cachedPhoto = Cache::get($cacheKey);
         if ($cachedPhoto !== null) {
+            Log::info('Unsplash photo found in cache', ['query' => $query, 'orientation' => $orientation]);
+
             return $cachedPhoto;
         }
+
+        Log::info('Calling Unsplash API', ['query' => $query, 'orientation' => $orientation]);
 
         try {
             $searchResults = Search::photos($query, 1, 1, $orientation);
             $results = $searchResults->getResults();
 
+            Log::debug('Unsplash API response received', [
+                'query' => $query,
+                'result_count' => count($results),
+                'results_data' => $results,
+            ]);
+
             if (empty($results)) {
-                Log::info('No Unsplash photos found for query', ['query' => $query]);
+                Log::info('No Unsplash photos found for query', ['query' => $query, 'orientation' => $orientation]);
 
                 return null;
             }
@@ -108,11 +120,19 @@ class UnsplashService
             // Cache the result for 30 days
             Cache::put($cacheKey, $photoData, now()->addDays(self::CACHE_TTL_DAYS));
 
+            Log::info('Unsplash photo retrieved and cached', [
+                'query' => $query,
+                'orientation' => $orientation,
+                'photo_id' => $photoData['id'],
+                'has_url' => ! empty($photoData['urls']['regular']),
+            ]);
+
             return $photoData;
         } catch (\Exception $e) {
             Log::error('Unsplash API exception', [
                 'message' => $e->getMessage(),
                 'query' => $query,
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return null;

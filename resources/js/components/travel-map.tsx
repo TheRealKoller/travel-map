@@ -160,6 +160,7 @@ export default function TravelMap({
     // Marker management - defined here so we can use setSelectedMarkerId in other hooks
     const {
         markers,
+        setMarkers,
         selectedMarkerId,
         setSelectedMarkerId,
         handleSaveMarker,
@@ -312,6 +313,16 @@ export default function TravelMap({
                             onSelectMarker={setSelectedMarkerId}
                             selectedTourId={selectedTourId}
                             onAddMarkerToTour={handleAddMarkerToTour}
+                            onMarkerImageFetched={(markerId, imageUrl) => {
+                                // Update markers state directly with the new imageUrl
+                                const updatedMarkers = markers.map(m => 
+                                    m.id === markerId 
+                                        ? { ...m, imageUrl } 
+                                        : m
+                                );
+                                // Force update by creating a new array reference
+                                setMarkers([...updatedMarkers]);
+                            }}
                         />
                     )}
                 </div>
