@@ -23,6 +23,7 @@ class StoreRouteRequest extends FormRequest
     {
         return [
             'trip_id' => 'required|integer|exists:trips,id',
+            'tour_id' => 'nullable|integer|exists:tours,id',
             'start_marker_id' => 'required|uuid|exists:markers,id',
             'end_marker_id' => 'required|uuid|exists:markers,id|different:start_marker_id',
             'transport_mode' => 'required|string|in:driving-car,cycling-regular,foot-walking,public-transport',

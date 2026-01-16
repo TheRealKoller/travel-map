@@ -5,7 +5,13 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getMarkerTypeIcon, UnescoIcon } from '@/lib/marker-icons';
 import { MarkerData } from '@/types/marker';
 import { Tour } from '@/types/tour';
-import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
+import {
+    ArrowDown,
+    ArrowUp,
+    Plus,
+    Route as RouteIcon,
+    Trash2,
+} from 'lucide-react';
 
 interface TourPanelProps {
     tours: Tour[];
@@ -16,6 +22,7 @@ interface TourPanelProps {
     markers: MarkerData[];
     onMoveMarkerUp?: (markerId: string) => void;
     onMoveMarkerDown?: (markerId: string) => void;
+    onRequestRoute?: (startMarkerId: string, endMarkerId: string) => void;
 }
 
 interface TourTabProps {
@@ -56,7 +63,7 @@ function MarkerItem({
     onMoveDown,
 }: MarkerItemProps) {
     return (
-        <li className="rounded bg-gray-50 p-2 text-sm">
+        <div className="rounded bg-gray-50 p-2 text-sm">
             <div className="flex items-start gap-2">
                 <div className="flex flex-col gap-0.5">
                     <Button
@@ -104,7 +111,7 @@ function MarkerItem({
                     )}
                 </div>
             </div>
-        </li>
+        </div>
     );
 }
 
@@ -114,6 +121,7 @@ interface TourCardProps {
     onDeleteTour: (tourId: number) => void;
     onMoveMarkerUp?: (markerId: string) => void;
     onMoveMarkerDown?: (markerId: string) => void;
+    onRequestRoute?: (startMarkerId: string, endMarkerId: string) => void;
 }
 
 function TourCard({
@@ -122,6 +130,7 @@ function TourCard({
     onDeleteTour,
     onMoveMarkerUp,
     onMoveMarkerDown,
+    onRequestRoute,
 }: TourCardProps) {
     return (
         <Card className="flex-1 overflow-auto p-4">
@@ -142,25 +151,47 @@ function TourCard({
                     Click the arrow next to a marker to add it to this tour
                 </p>
             ) : (
-                <ul className="space-y-2">
+                <ul className="space-y-1">
                     {markers.map((marker, index) => (
-                        <MarkerItem
-                            key={marker.id}
-                            marker={marker}
-                            index={index}
-                            isFirst={index === 0}
-                            isLast={index === markers.length - 1}
-                            onMoveUp={
-                                onMoveMarkerUp
-                                    ? () => onMoveMarkerUp(marker.id)
-                                    : undefined
-                            }
-                            onMoveDown={
-                                onMoveMarkerDown
-                                    ? () => onMoveMarkerDown(marker.id)
-                                    : undefined
-                            }
-                        />
+                        <li key={marker.id}>
+                            <MarkerItem
+                                marker={marker}
+                                index={index}
+                                isFirst={index === 0}
+                                isLast={index === markers.length - 1}
+                                onMoveUp={
+                                    onMoveMarkerUp
+                                        ? () => onMoveMarkerUp(marker.id)
+                                        : undefined
+                                }
+                                onMoveDown={
+                                    onMoveMarkerDown
+                                        ? () => onMoveMarkerDown(marker.id)
+                                        : undefined
+                                }
+                            />
+                            {/* Route button between consecutive markers */}
+                            {index < markers.length - 1 && onRequestRoute && (
+                                <div className="my-1 flex justify-center">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() =>
+                                            onRequestRoute(
+                                                marker.id,
+                                                markers[index + 1].id,
+                                            )
+                                        }
+                                        className="h-6 gap-1 px-2 text-xs text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                                        title="Calculate route"
+                                        data-testid={`route-button-${index}`}
+                                    >
+                                        <RouteIcon className="h-3 w-3" />
+                                        <span>Route</span>
+                                    </Button>
+                                </div>
+                            )}
+                        </li>
                     ))}
                 </ul>
             )}
@@ -177,6 +208,7 @@ export default function TourPanel({
     markers,
     onMoveMarkerUp,
     onMoveMarkerDown,
+    onRequestRoute,
 }: TourPanelProps) {
     const handleTabChange = (value: string) => {
         if (value === 'all') {
@@ -249,6 +281,7 @@ export default function TourPanel({
                     onDeleteTour={onDeleteTour}
                     onMoveMarkerUp={onMoveMarkerUp}
                     onMoveMarkerDown={onMoveMarkerDown}
+                    onRequestRoute={onRequestRoute}
                 />
             )}
         </div>

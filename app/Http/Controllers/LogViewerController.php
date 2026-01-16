@@ -52,7 +52,7 @@ class LogViewerController extends Controller
         }
 
         // Get all Laravel log files (exclude browser.log and other non-Laravel logs)
-        $files = glob($logsDirectory . DIRECTORY_SEPARATOR . 'laravel*.log');
+        $files = glob($logsDirectory.DIRECTORY_SEPARATOR.'laravel*.log');
 
         if (empty($files)) {
             return null;

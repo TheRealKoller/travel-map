@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import { MarkerData } from '@/types/marker';
 import { Route, TransportMode } from '@/types/route';
+import { Tour } from '@/types/tour';
 import axios from 'axios';
 import {
     Bike,
@@ -25,30 +26,54 @@ import {
     Train,
     Trash2,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface RoutePanelProps {
     tripId: number;
+    tourId?: number | null;
     markers: MarkerData[];
     routes: Route[];
     onRoutesUpdate: (routes: Route[]) => void;
+    initialStartMarkerId?: string;
+    initialEndMarkerId?: string;
+    tours?: Tour[];
+    highlightedRouteId?: number | null;
+    expandedRoutes: Set<number>;
+    onExpandedRoutesChange: (expandedRoutes: Set<number>) => void;
+    onHighlightedRouteIdChange?: (routeId: number | null) => void;
 }
 
 export default function RoutePanel({
     tripId,
+    tourId,
     markers,
     routes,
     onRoutesUpdate,
+    initialStartMarkerId = '',
+    initialEndMarkerId = '',
+    tours = [],
+    highlightedRouteId = null,
+    expandedRoutes,
+    onExpandedRoutesChange,
+    onHighlightedRouteIdChange,
 }: RoutePanelProps) {
-    const [startMarkerId, setStartMarkerId] = useState<string>('');
-    const [endMarkerId, setEndMarkerId] = useState<string>('');
+    const [startMarkerId, setStartMarkerId] =
+        useState<string>(initialStartMarkerId);
+    const [endMarkerId, setEndMarkerId] = useState<string>(initialEndMarkerId);
     const [transportMode, setTransportMode] =
         useState<TransportMode>('driving-car');
     const [isCreating, setIsCreating] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [expandedRoutes, setExpandedRoutes] = useState<Set<number>>(
-        new Set(),
-    );
+
+    // Update marker IDs when initialStartMarkerId or initialEndMarkerId changes
+    useEffect(() => {
+        if (initialStartMarkerId) {
+            setStartMarkerId(initialStartMarkerId);
+        }
+        if (initialEndMarkerId) {
+            setEndMarkerId(initialEndMarkerId);
+        }
+    }, [initialStartMarkerId, initialEndMarkerId]);
 
     const handleCreateRoute = async () => {
         if (!startMarkerId || !endMarkerId) {
@@ -69,6 +94,7 @@ export default function RoutePanel({
                 '/routes',
                 {
                     trip_id: tripId,
+                    tour_id: tourId,
                     start_marker_id: startMarkerId,
                     end_marker_id: endMarkerId,
                     transport_mode: transportMode,
@@ -205,16 +231,61 @@ export default function RoutePanel({
     };
 
     const toggleRouteExpansion = (routeId: number) => {
-        setExpandedRoutes((prev) => {
-            const newSet = new Set(prev);
-            if (newSet.has(routeId)) {
-                newSet.delete(routeId);
-            } else {
-                newSet.add(routeId);
+        const isCurrentlyExpanded = expandedRoutes.has(routeId);
+
+        // If expanding, close all others and open only this one
+        // If collapsing, just close this one
+        const newSet = new Set<number>();
+        if (!isCurrentlyExpanded) {
+            newSet.add(routeId);
+        }
+        onExpandedRoutesChange(newSet);
+
+        // When expanding a route, highlight it. When collapsing, remove highlight
+        if (onHighlightedRouteIdChange) {
+            onHighlightedRouteIdChange(!isCurrentlyExpanded ? routeId : null);
+        }
+    };
+
+    /**
+     * Filter routes to only show those that match consecutive markers in the tour order.
+     * If no tour is selected, show all routes.
+     * If a tour is selected, only show routes where the start and end markers are consecutive in the tour.
+     */
+    const getFilteredRoutes = (): Route[] => {
+        if (!tourId) {
+            // No tour selected, show all routes
+            return routes;
+        }
+
+        // Find the tour and get its markers in order
+        const tour = tours?.find((t) => t.id === tourId);
+        if (!tour || !tour.markers || tour.markers.length < 2) {
+            // Tour doesn't have enough markers to form routes
+            return [];
+        }
+
+        // Create a map of marker id to position for quick lookup
+        const markerPositions = new Map(
+            tour.markers.map((marker, index) => [marker.id, index]),
+        );
+
+        // Filter routes to only include those where markers are consecutive in the tour
+        return routes.filter((route) => {
+            const startPos = markerPositions.get(route.start_marker.id);
+            const endPos = markerPositions.get(route.end_marker.id);
+
+            // Both markers must be in the tour
+            if (startPos === undefined || endPos === undefined) {
+                return false;
             }
-            return newSet;
+
+            // They must be consecutive (either startPos + 1 = endPos or endPos + 1 = startPos)
+            return Math.abs(startPos - endPos) === 1;
         });
     };
+
+    const filteredRoutes = getFilteredRoutes();
 
     return (
         <div className="space-y-4">
@@ -326,15 +397,17 @@ export default function RoutePanel({
                 </div>
             </Card>
 
-            {routes.length > 0 && (
+            {filteredRoutes.length > 0 && (
                 <Card className="p-4">
                     <h3 className="mb-4 text-lg font-semibold">
-                        Routes ({routes.length})
+                        Routes ({filteredRoutes.length})
                     </h3>
 
                     <div className="space-y-3">
-                        {routes.map((route) => {
+                        {filteredRoutes.map((route) => {
                             const isExpanded = expandedRoutes.has(route.id);
+                            const isHighlighted =
+                                highlightedRouteId === route.id;
                             return (
                                 <Collapsible
                                     key={route.id}
@@ -343,7 +416,13 @@ export default function RoutePanel({
                                         toggleRouteExpansion(route.id)
                                     }
                                 >
-                                    <div className="rounded-lg border">
+                                    <div
+                                        className={`rounded-lg border ${
+                                            isHighlighted
+                                                ? 'border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950/30'
+                                                : ''
+                                        }`}
+                                    >
                                         {/* Route header - always visible */}
                                         <div className="flex items-start justify-between p-3">
                                             <CollapsibleTrigger

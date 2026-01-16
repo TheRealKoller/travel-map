@@ -6,11 +6,28 @@ import { useEffect, useRef, useState } from 'react';
 interface UseRoutesOptions {
     mapInstance: mapboxgl.Map | null;
     selectedTripId: number | null;
+    selectedTourId: number | null;
+    expandedRoutes: Set<number>;
+    highlightedRouteId?: number | null;
+    onRouteClick?: (routeId: number) => void;
 }
 
-export function useRoutes({ mapInstance, selectedTripId }: UseRoutesOptions) {
+export function useRoutes({
+    mapInstance,
+    selectedTripId,
+    selectedTourId,
+    expandedRoutes,
+    highlightedRouteId,
+    onRouteClick,
+}: UseRoutesOptions) {
     const [routes, setRoutes] = useState<Route[]>([]);
     const routeLayerIdsRef = useRef<Map<number, string>>(new Map());
+    const onRouteClickRef = useRef(onRouteClick); // Store callback in ref to avoid re-rendering
+
+    // Update ref when callback changes
+    useEffect(() => {
+        onRouteClickRef.current = onRouteClick;
+    }, [onRouteClick]);
 
     // Load routes from database when trip changes
     useEffect(() => {
@@ -31,14 +48,19 @@ export function useRoutes({ mapInstance, selectedTripId }: UseRoutesOptions) {
         loadRoutes();
     }, [selectedTripId, mapInstance]);
 
-    // Render routes on map
+    // Render routes on map - filter by tour if one is selected
     useEffect(() => {
-        if (!mapInstance) return;
+        if (!mapInstance) {
+            return;
+        }
 
         // Clear existing route layers
         routeLayerIdsRef.current.forEach((layerId) => {
             if (mapInstance.getLayer(layerId)) {
                 mapInstance.removeLayer(layerId);
+            }
+            if (mapInstance.getLayer(`${layerId}-hover`)) {
+                mapInstance.removeLayer(`${layerId}-hover`);
             }
             if (mapInstance.getSource(layerId)) {
                 mapInstance.removeSource(layerId);
@@ -46,8 +68,15 @@ export function useRoutes({ mapInstance, selectedTripId }: UseRoutesOptions) {
         });
         routeLayerIdsRef.current.clear();
 
+        // Filter routes by selected tour (if a tour is selected)
+        // If no tour is selected, only show expanded routes
+        const visibleRoutes =
+            selectedTourId !== null
+                ? routes.filter((route) => route.tour_id === selectedTourId)
+                : routes.filter((route) => expandedRoutes.has(route.id));
+
         // Render each route as a line layer
-        routes.forEach((route) => {
+        visibleRoutes.forEach((route) => {
             const layerId = `route-${route.id}`;
 
             // Determine color based on transport mode
@@ -81,7 +110,10 @@ export function useRoutes({ mapInstance, selectedTripId }: UseRoutesOptions) {
                 },
             });
 
-            // Add layer for the route
+            // Check if this route is highlighted
+            const isHighlighted = highlightedRouteId === route.id;
+
+            // Add base layer for the route
             mapInstance.addLayer({
                 id: layerId,
                 type: 'line',
@@ -92,13 +124,38 @@ export function useRoutes({ mapInstance, selectedTripId }: UseRoutesOptions) {
                 },
                 paint: {
                     'line-color': color,
-                    'line-width': 4,
-                    'line-opacity': 0.7,
+                    'line-width': isHighlighted ? 5 : 3,
+                    'line-opacity': isHighlighted ? 0.9 : 0.6,
+                },
+            });
+
+            // Add hover highlight layer
+            mapInstance.addLayer({
+                id: `${layerId}-hover`,
+                type: 'line',
+                source: layerId,
+                layout: {
+                    'line-join': 'round',
+                    'line-cap': 'round',
+                },
+                paint: {
+                    'line-color': color,
+                    'line-width': 5,
+                    'line-opacity': 0,
                 },
             });
 
             // Add popup on click
             mapInstance.on('click', layerId, (e) => {
+                // Prevent event from propagating to map click handler
+                e.originalEvent.stopPropagation();
+
+                // Call the onRouteClick callback via ref if provided
+                if (onRouteClickRef.current) {
+                    onRouteClickRef.current(route.id);
+                }
+
+                // Show popup with route information
                 if (e.features && e.features[0] && e.features[0].properties) {
                     const props = e.features[0].properties;
                     new mapboxgl.Popup()
@@ -113,18 +170,36 @@ export function useRoutes({ mapInstance, selectedTripId }: UseRoutesOptions) {
                 }
             });
 
-            // Change cursor on hover
+            // Add hover interactions
             mapInstance.on('mouseenter', layerId, () => {
                 mapInstance.getCanvas().style.cursor = 'pointer';
+                // Show the hover layer
+                mapInstance.setPaintProperty(
+                    `${layerId}-hover`,
+                    'line-opacity',
+                    0.8,
+                );
             });
 
             mapInstance.on('mouseleave', layerId, () => {
                 mapInstance.getCanvas().style.cursor = 'crosshair';
+                // Hide the hover layer
+                mapInstance.setPaintProperty(
+                    `${layerId}-hover`,
+                    'line-opacity',
+                    0,
+                );
             });
 
             routeLayerIdsRef.current.set(route.id, layerId);
         });
-    }, [routes, mapInstance]);
+    }, [
+        routes,
+        mapInstance,
+        selectedTourId,
+        expandedRoutes,
+        highlightedRouteId,
+    ]);
 
     return {
         routes,

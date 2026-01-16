@@ -1,4 +1,5 @@
 import { MarkerData } from '@/types/marker';
+import { Route } from '@/types/route';
 import { Tour } from '@/types/tour';
 import mapboxgl from 'mapbox-gl';
 import { useEffect, useRef } from 'react';
@@ -8,6 +9,8 @@ interface UseTourLinesOptions {
     selectedTourId: number | null;
     tours: Tour[];
     markers: MarkerData[];
+    routes: Route[];
+    onTourLineClick?: (startMarkerId: string, endMarkerId: string) => void;
 }
 
 /**
@@ -64,8 +67,16 @@ export function useTourLines({
     selectedTourId,
     tours,
     markers,
+    routes,
+    onTourLineClick,
 }: UseTourLinesOptions) {
     const lineLayerIdsRef = useRef<Set<string>>(new Set());
+    const onTourLineClickRef = useRef(onTourLineClick);
+
+    // Update ref when callback changes
+    useEffect(() => {
+        onTourLineClickRef.current = onTourLineClick;
+    }, [onTourLineClick]);
 
     useEffect(() => {
         if (!mapInstance) return;
@@ -104,6 +115,19 @@ export function useTourLines({
             const startMarker = tourMarkers[i];
             const endMarker = tourMarkers[i + 1];
 
+            // Check if a route exists between these markers for this tour
+            const existingRoute = routes.find(
+                (route) =>
+                    route.tour_id === selectedTourId &&
+                    route.start_marker.id === startMarker.id &&
+                    route.end_marker.id === endMarker.id,
+            );
+
+            // Skip drawing a line if a route already exists (the route will be displayed by use-routes hook)
+            if (existingRoute) {
+                continue;
+            }
+
             const lineId = `tour-line-${selectedTourId}-${i}`;
 
             // Create curved line coordinates
@@ -140,7 +164,7 @@ export function useTourLines({
                     'line-cap': 'round',
                 },
                 paint: {
-                    'line-color': '#2563eb', // Blue color
+                    'line-color': '#3b82f6', // Blue color
                     'line-width': 3,
                     'line-opacity': 0.6,
                 },
@@ -156,7 +180,7 @@ export function useTourLines({
                     'line-cap': 'round',
                 },
                 paint: {
-                    'line-color': '#1d4ed8', // Darker blue for hover
+                    'line-color': '#3b82f6', // Same blue for hover
                     'line-width': 5,
                     'line-opacity': 0,
                 },
@@ -183,9 +207,20 @@ export function useTourLines({
                 );
             });
 
+            // Add click interaction
+            mapInstance.on('click', lineId, (e) => {
+                // Prevent event from propagating to map click handler
+                e.originalEvent.stopPropagation();
+
+                // Call the callback if provided
+                if (onTourLineClickRef.current) {
+                    onTourLineClickRef.current(startMarker.id, endMarker.id);
+                }
+            });
+
             lineLayerIdsRef.current.add(lineId);
         }
-    }, [mapInstance, selectedTourId, tours, markers]);
+    }, [mapInstance, selectedTourId, tours, markers, routes, onTourLineClick]);
 
     return null;
 }

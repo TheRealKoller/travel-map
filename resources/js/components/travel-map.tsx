@@ -22,7 +22,7 @@ import { Tour } from '@/types/tour';
 import { Trip } from '@/types/trip';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface TravelMapProps {
     selectedTripId: number | null;
@@ -76,11 +76,86 @@ export default function TravelMap({
         setIsRoutePanelCollapsed,
     } = usePanelCollapse({ mapInstance });
 
-    // Routes management
-    const { routes, setRoutes } = useRoutes({
+    // State for pre-filling route form from tour view
+    const [routeRequest, setRouteRequest] = useState<{
+        startMarkerId: string;
+        endMarkerId: string;
+    } | null>(null);
+
+    // State for highlighting a route in the route panel
+    const [highlightedRouteId, setHighlightedRouteId] = useState<number | null>(
+        null,
+    );
+
+    // State for tracking which routes are expanded in the route panel
+    const [expandedRoutes, setExpandedRoutes] = useState<Set<number>>(
+        new Set(),
+    );
+
+    // Ref to store the handleRouteClick callback for use in useRoutes
+    const handleRouteClickRef = useRef<((routeId: number) => void) | null>(
+        null,
+    );
+
+    // Routes management - define FIRST before callbacks
+    const { routes: routesFromHook, setRoutes } = useRoutes({
         mapInstance,
         selectedTripId,
+        selectedTourId,
+        expandedRoutes,
+        highlightedRouteId,
+        onRouteClick: (routeId: number) => {
+            if (handleRouteClickRef.current) {
+                handleRouteClickRef.current(routeId);
+            }
+        },
     });
+
+    const routes = routesFromHook;
+
+    // Handler for route request from tour panel
+    const handleRequestRoute = useCallback(
+        (startMarkerId: string, endMarkerId: string) => {
+            setRouteRequest({ startMarkerId, endMarkerId });
+
+            // Find if a route already exists between these markers
+            const existingRoute = routes.find(
+                (route) =>
+                    (route.start_marker.id === startMarkerId &&
+                        route.end_marker.id === endMarkerId) ||
+                    (route.start_marker.id === endMarkerId &&
+                        route.end_marker.id === startMarkerId),
+            );
+
+            // Highlight the route if it exists
+            if (existingRoute) {
+                setHighlightedRouteId(existingRoute.id);
+            } else {
+                setHighlightedRouteId(null);
+            }
+
+            // Expand route panel if collapsed
+            setIsRoutePanelCollapsed(false);
+        },
+        [routes, setIsRoutePanelCollapsed],
+    );
+
+    // Handler for route click on map - uses useCallback to ensure stable reference
+    const handleRouteClick = useCallback(
+        (routeId: number) => {
+            const route = routes.find((r) => r.id === routeId);
+            if (!route) return;
+
+            // Use the same logic as handleRequestRoute to ensure consistent behavior
+            handleRequestRoute(route.start_marker.id, route.end_marker.id);
+        },
+        [routes, handleRequestRoute],
+    );
+
+    // Update the ref with the current handleRouteClick
+    useEffect(() => {
+        handleRouteClickRef.current = handleRouteClick;
+    }, [handleRouteClick]);
 
     // Marker management - defined here so we can use setSelectedMarkerId in other hooks
     const {
@@ -159,6 +234,8 @@ export default function TravelMap({
         selectedTourId,
         tours,
         markers,
+        routes,
+        onTourLineClick: handleRequestRoute,
     });
 
     // Update map bounds when map moves
@@ -255,6 +332,7 @@ export default function TravelMap({
                                 markers={markers}
                                 onMoveMarkerUp={handleMoveMarkerUp}
                                 onMoveMarkerDown={handleMoveMarkerDown}
+                                onRequestRoute={handleRequestRoute}
                             />
                         </div>
                     )}
@@ -288,9 +366,23 @@ export default function TravelMap({
                             <div className="h-full flex-1 overflow-hidden rounded-l-lg">
                                 <RoutePanel
                                     tripId={selectedTripId}
+                                    tourId={selectedTourId}
                                     markers={markers}
                                     routes={routes}
                                     onRoutesUpdate={setRoutes}
+                                    initialStartMarkerId={
+                                        routeRequest?.startMarkerId
+                                    }
+                                    initialEndMarkerId={
+                                        routeRequest?.endMarkerId
+                                    }
+                                    tours={tours}
+                                    highlightedRouteId={highlightedRouteId}
+                                    expandedRoutes={expandedRoutes}
+                                    onExpandedRoutesChange={setExpandedRoutes}
+                                    onHighlightedRouteIdChange={
+                                        setHighlightedRouteId
+                                    }
                                 />
                             </div>
                         )}

@@ -136,6 +136,7 @@ it('maintains complete route structure with all fields', function () {
     expect($array)->toHaveKeys([
         'id',
         'trip_id',
+        'tour_id',
         'start_marker',
         'end_marker',
         'transport_mode',

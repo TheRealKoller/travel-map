@@ -333,7 +333,20 @@ export function useMapInteractions({
                 );
             });
 
-            if (hasInteractiveFeature) {
+            // Check if a route line was clicked
+            const hasRouteLayer = features.some((f) => {
+                return f.layer?.id?.startsWith('route-');
+            });
+
+            // Check if a tour line was clicked
+            const hasTourLineLayer = features.some((f) => {
+                return f.layer?.id?.startsWith('tour-line-');
+            });
+
+            if (hasInteractiveFeature || hasRouteLayer || hasTourLineLayer) {
+                console.log(
+                    'handleMapClick: Interactive feature, route layer, or tour line clicked, ignoring',
+                );
                 return;
             }
 
