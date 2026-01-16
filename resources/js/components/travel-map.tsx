@@ -314,6 +314,7 @@ export default function TravelMap({
                                     initialEndMarkerId={
                                         routeRequest?.endMarkerId
                                     }
+                                    tours={tours}
                                 />
                             </div>
                         )}

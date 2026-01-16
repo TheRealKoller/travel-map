@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import { MarkerData } from '@/types/marker';
 import { Route, TransportMode } from '@/types/route';
+import { Tour } from '@/types/tour';
 import axios from 'axios';
 import {
     Bike,
@@ -35,6 +36,7 @@ interface RoutePanelProps {
     onRoutesUpdate: (routes: Route[]) => void;
     initialStartMarkerId?: string;
     initialEndMarkerId?: string;
+    tours?: Tour[];
 }
 
 export default function RoutePanel({
@@ -45,6 +47,7 @@ export default function RoutePanel({
     onRoutesUpdate,
     initialStartMarkerId = '',
     initialEndMarkerId = '',
+    tours = [],
 }: RoutePanelProps) {
     const [startMarkerId, setStartMarkerId] =
         useState<string>(initialStartMarkerId);
@@ -234,6 +237,46 @@ export default function RoutePanel({
         });
     };
 
+    /**
+     * Filter routes to only show those that match consecutive markers in the tour order.
+     * If no tour is selected, show all routes.
+     * If a tour is selected, only show routes where the start and end markers are consecutive in the tour.
+     */
+    const getFilteredRoutes = (): Route[] => {
+        if (!tourId) {
+            // No tour selected, show all routes
+            return routes;
+        }
+
+        // Find the tour and get its markers in order
+        const tour = tours?.find((t) => t.id === tourId);
+        if (!tour || !tour.markers || tour.markers.length < 2) {
+            // Tour doesn't have enough markers to form routes
+            return [];
+        }
+
+        // Create a map of marker id to position for quick lookup
+        const markerPositions = new Map(
+            tour.markers.map((marker, index) => [marker.id, index]),
+        );
+
+        // Filter routes to only include those where markers are consecutive in the tour
+        return routes.filter((route) => {
+            const startPos = markerPositions.get(route.start_marker.id);
+            const endPos = markerPositions.get(route.end_marker.id);
+
+            // Both markers must be in the tour
+            if (startPos === undefined || endPos === undefined) {
+                return false;
+            }
+
+            // They must be consecutive (either startPos + 1 = endPos or endPos + 1 = startPos)
+            return Math.abs(startPos - endPos) === 1;
+        });
+    };
+
+    const filteredRoutes = getFilteredRoutes();
+
     return (
         <div className="space-y-4">
             <Card className="p-4">
@@ -344,14 +387,14 @@ export default function RoutePanel({
                 </div>
             </Card>
 
-            {routes.length > 0 && (
+            {filteredRoutes.length > 0 && (
                 <Card className="p-4">
                     <h3 className="mb-4 text-lg font-semibold">
-                        Routes ({routes.length})
+                        Routes ({filteredRoutes.length})
                     </h3>
 
                     <div className="space-y-3">
-                        {routes.map((route) => {
+                        {filteredRoutes.map((route) => {
                             const isExpanded = expandedRoutes.has(route.id);
                             return (
                                 <Collapsible
