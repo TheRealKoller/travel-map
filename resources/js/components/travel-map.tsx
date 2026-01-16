@@ -137,7 +137,7 @@ export default function TravelMap({
             // Expand route panel if collapsed
             setIsRoutePanelCollapsed(false);
         },
-        [routes],
+        [routes, setIsRoutePanelCollapsed],
     );
 
     // Handler for route click on map - uses useCallback to ensure stable reference
@@ -380,7 +380,9 @@ export default function TravelMap({
                                     highlightedRouteId={highlightedRouteId}
                                     expandedRoutes={expandedRoutes}
                                     onExpandedRoutesChange={setExpandedRoutes}
-                                    onHighlightedRouteIdChange={setHighlightedRouteId}
+                                    onHighlightedRouteIdChange={
+                                        setHighlightedRouteId
+                                    }
                                 />
                             </div>
                         )}

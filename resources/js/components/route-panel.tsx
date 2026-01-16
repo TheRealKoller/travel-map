@@ -232,7 +232,7 @@ export default function RoutePanel({
 
     const toggleRouteExpansion = (routeId: number) => {
         const isCurrentlyExpanded = expandedRoutes.has(routeId);
-        
+
         // If expanding, close all others and open only this one
         // If collapsing, just close this one
         const newSet = new Set<number>();

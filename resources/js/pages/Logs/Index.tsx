@@ -80,7 +80,7 @@ function LogEntryItem({ log }: { log: LogEntry }) {
             case 'error':
                 return 'destructive';
             case 'warning':
-                return 'warning';
+                return 'secondary';
             case 'info':
                 return 'default';
             case 'debug':

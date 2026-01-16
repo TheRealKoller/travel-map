@@ -193,7 +193,13 @@ export function useRoutes({
 
             routeLayerIdsRef.current.set(route.id, layerId);
         });
-    }, [routes, mapInstance, selectedTourId, expandedRoutes, highlightedRouteId]);
+    }, [
+        routes,
+        mapInstance,
+        selectedTourId,
+        expandedRoutes,
+        highlightedRouteId,
+    ]);
 
     return {
         routes,

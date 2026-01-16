@@ -214,10 +214,7 @@ export function useTourLines({
 
                 // Call the callback if provided
                 if (onTourLineClickRef.current) {
-                    onTourLineClickRef.current(
-                        startMarker.id,
-                        endMarker.id,
-                    );
+                    onTourLineClickRef.current(startMarker.id, endMarker.id);
                 }
             });
 
