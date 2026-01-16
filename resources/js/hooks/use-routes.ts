@@ -6,9 +6,10 @@ import { useEffect, useRef, useState } from 'react';
 interface UseRoutesOptions {
     mapInstance: mapboxgl.Map | null;
     selectedTripId: number | null;
+    selectedTourId: number | null;
 }
 
-export function useRoutes({ mapInstance, selectedTripId }: UseRoutesOptions) {
+export function useRoutes({ mapInstance, selectedTripId, selectedTourId }: UseRoutesOptions) {
     const [routes, setRoutes] = useState<Route[]>([]);
     const routeLayerIdsRef = useRef<Map<number, string>>(new Map());
 
@@ -31,7 +32,7 @@ export function useRoutes({ mapInstance, selectedTripId }: UseRoutesOptions) {
         loadRoutes();
     }, [selectedTripId, mapInstance]);
 
-    // Render routes on map
+    // Render routes on map - filter by tour if one is selected
     useEffect(() => {
         if (!mapInstance) return;
 
@@ -46,8 +47,13 @@ export function useRoutes({ mapInstance, selectedTripId }: UseRoutesOptions) {
         });
         routeLayerIdsRef.current.clear();
 
+        // Filter routes by selected tour (if a tour is selected)
+        const visibleRoutes = selectedTourId !== null
+            ? routes.filter((route) => route.tour_id === selectedTourId)
+            : routes;
+
         // Render each route as a line layer
-        routes.forEach((route) => {
+        visibleRoutes.forEach((route) => {
             const layerId = `route-${route.id}`;
 
             // Determine color based on transport mode
@@ -124,7 +130,7 @@ export function useRoutes({ mapInstance, selectedTripId }: UseRoutesOptions) {
 
             routeLayerIdsRef.current.set(route.id, layerId);
         });
-    }, [routes, mapInstance]);
+    }, [routes, mapInstance, selectedTourId]);
 
     return {
         routes,

@@ -25,23 +25,29 @@ import {
     Train,
     Trash2,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface RoutePanelProps {
     tripId: number;
+    tourId?: number | null;
     markers: MarkerData[];
     routes: Route[];
     onRoutesUpdate: (routes: Route[]) => void;
+    initialStartMarkerId?: string;
+    initialEndMarkerId?: string;
 }
 
 export default function RoutePanel({
     tripId,
+    tourId,
     markers,
     routes,
     onRoutesUpdate,
+    initialStartMarkerId = '',
+    initialEndMarkerId = '',
 }: RoutePanelProps) {
-    const [startMarkerId, setStartMarkerId] = useState<string>('');
-    const [endMarkerId, setEndMarkerId] = useState<string>('');
+    const [startMarkerId, setStartMarkerId] = useState<string>(initialStartMarkerId);
+    const [endMarkerId, setEndMarkerId] = useState<string>(initialEndMarkerId);
     const [transportMode, setTransportMode] =
         useState<TransportMode>('driving-car');
     const [isCreating, setIsCreating] = useState(false);
@@ -49,6 +55,16 @@ export default function RoutePanel({
     const [expandedRoutes, setExpandedRoutes] = useState<Set<number>>(
         new Set(),
     );
+
+    // Update marker IDs when initialStartMarkerId or initialEndMarkerId changes
+    useEffect(() => {
+        if (initialStartMarkerId) {
+            setStartMarkerId(initialStartMarkerId);
+        }
+        if (initialEndMarkerId) {
+            setEndMarkerId(initialEndMarkerId);
+        }
+    }, [initialStartMarkerId, initialEndMarkerId]);
 
     const handleCreateRoute = async () => {
         if (!startMarkerId || !endMarkerId) {
@@ -69,6 +85,7 @@ export default function RoutePanel({
                 '/routes',
                 {
                     trip_id: tripId,
+                    tour_id: tourId,
                     start_marker_id: startMarkerId,
                     end_marker_id: endMarkerId,
                     transport_mode: transportMode,

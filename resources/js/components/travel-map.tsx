@@ -80,7 +80,21 @@ export default function TravelMap({
     const { routes, setRoutes } = useRoutes({
         mapInstance,
         selectedTripId,
+        selectedTourId,
     });
+
+    // State for pre-filling route form from tour view
+    const [routeRequest, setRouteRequest] = useState<{
+        startMarkerId: string;
+        endMarkerId: string;
+    } | null>(null);
+
+    // Handler for route request from tour panel
+    const handleRequestRoute = (startMarkerId: string, endMarkerId: string) => {
+        setRouteRequest({ startMarkerId, endMarkerId });
+        // Expand route panel if collapsed
+        setIsRoutePanelCollapsed(false);
+    };
 
     // Marker management - defined here so we can use setSelectedMarkerId in other hooks
     const {
@@ -159,6 +173,7 @@ export default function TravelMap({
         selectedTourId,
         tours,
         markers,
+        routes,
     });
 
     // Update map bounds when map moves
@@ -255,6 +270,7 @@ export default function TravelMap({
                                 markers={markers}
                                 onMoveMarkerUp={handleMoveMarkerUp}
                                 onMoveMarkerDown={handleMoveMarkerDown}
+                                onRequestRoute={handleRequestRoute}
                             />
                         </div>
                     )}
@@ -288,9 +304,12 @@ export default function TravelMap({
                             <div className="h-full flex-1 overflow-hidden rounded-l-lg">
                                 <RoutePanel
                                     tripId={selectedTripId}
+                                    tourId={selectedTourId}
                                     markers={markers}
                                     routes={routes}
                                     onRoutesUpdate={setRoutes}
+                                    initialStartMarkerId={routeRequest?.startMarkerId}
+                                    initialEndMarkerId={routeRequest?.endMarkerId}
                                 />
                             </div>
                         )}

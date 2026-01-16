@@ -1,4 +1,5 @@
 import { MarkerData } from '@/types/marker';
+import { Route } from '@/types/route';
 import { Tour } from '@/types/tour';
 import mapboxgl from 'mapbox-gl';
 import { useEffect, useRef } from 'react';
@@ -8,6 +9,7 @@ interface UseTourLinesOptions {
     selectedTourId: number | null;
     tours: Tour[];
     markers: MarkerData[];
+    routes: Route[];
 }
 
 /**
@@ -64,6 +66,7 @@ export function useTourLines({
     selectedTourId,
     tours,
     markers,
+    routes,
 }: UseTourLinesOptions) {
     const lineLayerIdsRef = useRef<Set<string>>(new Set());
 
@@ -103,6 +106,19 @@ export function useTourLines({
         for (let i = 0; i < tourMarkers.length - 1; i++) {
             const startMarker = tourMarkers[i];
             const endMarker = tourMarkers[i + 1];
+
+            // Check if a route exists between these markers for this tour
+            const existingRoute = routes.find(
+                (route) =>
+                    route.tour_id === selectedTourId &&
+                    route.start_marker.id === startMarker.id &&
+                    route.end_marker.id === endMarker.id,
+            );
+
+            // Skip drawing a line if a route already exists (the route will be displayed by use-routes hook)
+            if (existingRoute) {
+                continue;
+            }
 
             const lineId = `tour-line-${selectedTourId}-${i}`;
 
@@ -185,7 +201,7 @@ export function useTourLines({
 
             lineLayerIdsRef.current.add(lineId);
         }
-    }, [mapInstance, selectedTourId, tours, markers]);
+    }, [mapInstance, selectedTourId, tours, markers, routes]);
 
     return null;
 }
