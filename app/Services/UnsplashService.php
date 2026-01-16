@@ -86,22 +86,23 @@ class UnsplashService
             $photo = $results[0];
 
             // Extract photo data as per Unsplash API guidelines
+            // Handle both object and array responses
             $photoData = [
-                'id' => $photo->id,
+                'id' => $photo['id'] ?? $photo->id ?? null,
                 'urls' => [
-                    'raw' => $photo->urls['raw'] ?? null,
-                    'full' => $photo->urls['full'] ?? null,
-                    'regular' => $photo->urls['regular'] ?? null,
-                    'small' => $photo->urls['small'] ?? null,
-                    'thumb' => $photo->urls['thumb'] ?? null,
+                    'raw' => $photo['urls']['raw'] ?? $photo->urls['raw'] ?? null,
+                    'full' => $photo['urls']['full'] ?? $photo->urls['full'] ?? null,
+                    'regular' => $photo['urls']['regular'] ?? $photo->urls['regular'] ?? null,
+                    'small' => $photo['urls']['small'] ?? $photo->urls['small'] ?? null,
+                    'thumb' => $photo['urls']['thumb'] ?? $photo->urls['thumb'] ?? null,
                 ],
-                'download_location' => $photo->links['download_location'] ?? null,
+                'download_location' => $photo['links']['download_location'] ?? $photo->links['download_location'] ?? null,
                 'user' => [
-                    'name' => $photo->user['name'] ?? null,
-                    'username' => $photo->user['username'] ?? null,
-                    'profile_link' => $photo->user['links']['html'] ?? null,
+                    'name' => $photo['user']['name'] ?? $photo->user['name'] ?? null,
+                    'username' => $photo['user']['username'] ?? $photo->user['username'] ?? null,
+                    'profile_link' => $photo['user']['links']['html'] ?? $photo->user['links']['html'] ?? null,
                 ],
-                'alt_description' => $photo->alt_description ?? $photo->description ?? null,
+                'alt_description' => $photo['alt_description'] ?? $photo->alt_description ?? $photo['description'] ?? $photo->description ?? null,
             ];
 
             // Cache the result for 30 days
