@@ -14,14 +14,14 @@ class LogViewerController extends Controller
      */
     public function index(Request $request): Response
     {
-        $logPath = storage_path('logs/laravel.log');
+        $logPath = $this->getLatestLogFile();
 
         // Check if log file exists
-        if (! File::exists($logPath)) {
+        if (! $logPath || ! File::exists($logPath)) {
             return Inertia::render('Logs/Index', [
                 'logs' => [],
                 'totalLines' => 0,
-                'message' => 'Log file not found.',
+                'message' => 'No log files found in storage/logs/',
             ]);
         }
 
@@ -38,6 +38,31 @@ class LogViewerController extends Controller
             'logs' => $logs,
             'totalLines' => count($logs),
         ]);
+    }
+
+    /**
+     * Get the latest log file (supports daily logging with date-based filenames).
+     */
+    private function getLatestLogFile(): ?string
+    {
+        $logsDirectory = storage_path('logs');
+
+        if (! is_dir($logsDirectory)) {
+            return null;
+        }
+
+        // Get all log files
+        $files = array_filter(
+            scandir($logsDirectory, SCANDIR_SORT_DESCENDING) ?: [],
+            fn ($file) => str_ends_with($file, '.log') && $file !== '.' && $file !== '..'
+        );
+
+        if (empty($files)) {
+            return null;
+        }
+
+        // Return the first file (most recent due to SCANDIR_SORT_DESCENDING)
+        return $logsDirectory . DIRECTORY_SEPARATOR . reset($files);
     }
 
     /**
