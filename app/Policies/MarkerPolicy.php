@@ -18,11 +18,10 @@ class MarkerPolicy
 
     /**
      * Determine whether the user can view the model.
-     * Disabled as markers are fetched directly through user relationship.
      */
     public function view(User $user, Marker $marker): bool
     {
-        return false;
+        return $user->id === $marker->user_id;
     }
 
     /**
