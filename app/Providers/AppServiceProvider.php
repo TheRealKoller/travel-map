@@ -34,6 +34,14 @@ class AppServiceProvider extends ServiceProvider
                 agentId: config('services.lechat.travel_recommendation_agent_id')
             );
         });
+
+        // Register UnsplashService with API credentials from config
+        $this->app->singleton(\App\Services\UnsplashService::class, function ($app) {
+            return new \App\Services\UnsplashService(
+                accessKey: config('services.unsplash.access_key'),
+                utmSource: config('services.unsplash.utm_source')
+            );
+        });
     }
 
     /**
