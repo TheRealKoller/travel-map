@@ -17,7 +17,8 @@ class MarkerController extends Controller
 
     public function __construct(
         private readonly TripService $tripService,
-        private readonly MapboxPlacesService $mapboxPlacesService
+        private readonly MapboxPlacesService $mapboxPlacesService,
+        private readonly \App\Services\UnsplashService $unsplashService
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -106,5 +107,37 @@ class MarkerController extends Controller
         );
 
         return response()->json($result);
+    }
+
+    /**
+     * Fetch an Unsplash image for a marker.
+     * This endpoint is called when the user clicks on the image placeholder.
+     */
+    public function fetchImage(Request $request, Marker $marker): JsonResponse
+    {
+        $this->authorize('view', $marker);
+
+        $photoData = $this->unsplashService->getPhotoForMarker($marker->name, $marker->type);
+
+        if (! $photoData) {
+            return response()->json([
+                'error' => 'No image found for this marker',
+            ], 404);
+        }
+
+        // Track the download to increment view count
+        if (isset($photoData['download_location'])) {
+            $this->unsplashService->trackDownload($photoData['download_location']);
+        }
+
+        // Update the marker with the image URL (hotlinked from Unsplash)
+        $marker->update([
+            'image_url' => $photoData['urls']['regular'] ?? null,
+        ]);
+
+        return response()->json([
+            'photo' => $photoData,
+            'marker' => $marker->fresh(),
+        ]);
     }
 }

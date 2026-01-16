@@ -3,34 +3,64 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Unsplash\HttpClient;
+use Unsplash\Photo;
+use Unsplash\Search;
 
 class UnsplashService
 {
-    private const UNSPLASH_API_BASE_URL = 'https://api.unsplash.com';
-
     private const CACHE_TTL_DAYS = 30;
 
-    private const TIMEOUT_SECONDS = 10;
+    private bool $initialized = false;
 
     public function __construct(
-        private readonly ?string $accessKey = null
-    ) {}
+        private readonly ?string $accessKey = null,
+        private readonly ?string $utmSource = null
+    ) {
+        $this->initializeClient();
+    }
 
     /**
-     * Search for a photo by query and return the URL.
+     * Initialize the Unsplash HTTP client with credentials.
+     */
+    private function initializeClient(): void
+    {
+        if (empty($this->accessKey)) {
+            Log::warning('Unsplash API accessed without access key configured');
+
+            return;
+        }
+
+        if (empty($this->utmSource)) {
+            Log::warning('Unsplash API accessed without UTM source configured');
+
+            return;
+        }
+
+        try {
+            HttpClient::init([
+                'applicationId' => $this->accessKey,
+                'utmSource' => $this->utmSource,
+            ]);
+            $this->initialized = true;
+        } catch (\Exception $e) {
+            Log::error('Failed to initialize Unsplash client', [
+                'message' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Search for photos and return photo data including URLs and download location.
      *
      * @param  string  $query  Search query (e.g., "New York skyline", "Statue of Liberty")
      * @param  string  $orientation  Optional orientation filter (landscape, portrait, squarish)
-     * @return string|null The URL of the photo, or null if not found
+     * @return array|null Array with photo data or null if not found
      */
-    public function searchPhoto(string $query, string $orientation = 'landscape'): ?string
+    public function searchPhoto(string $query, string $orientation = 'landscape'): ?array
     {
-        // Return null if no access key is configured
-        if (empty($this->accessKey)) {
-            Log::warning('Unsplash API called without access key configured');
-
+        if (! $this->initialized) {
             return null;
         }
 
@@ -38,51 +68,46 @@ class UnsplashService
         $cacheKey = 'unsplash_photo_'.md5($query.'_'.$orientation);
 
         // Try to get from cache first
-        $cachedUrl = Cache::get($cacheKey);
-        if ($cachedUrl !== null) {
-            return $cachedUrl;
+        $cachedPhoto = Cache::get($cacheKey);
+        if ($cachedPhoto !== null) {
+            return $cachedPhoto;
         }
 
         try {
-            $response = Http::timeout(self::TIMEOUT_SECONDS)
-                ->withHeaders([
-                    'Authorization' => 'Client-ID '.$this->accessKey,
-                    'Accept-Version' => 'v1',
-                ])
-                ->get(self::UNSPLASH_API_BASE_URL.'/search/photos', [
-                    'query' => $query,
-                    'per_page' => 1,
-                    'orientation' => $orientation,
-                    'order_by' => 'relevant',
-                ]);
+            $searchResults = Search::photos($query, 1, 1, $orientation);
+            $results = $searchResults->getResults();
 
-            if (! $response->successful()) {
-                Log::warning('Unsplash API request failed', [
-                    'status' => $response->status(),
-                    'query' => $query,
-                ]);
-
-                return null;
-            }
-
-            $data = $response->json();
-
-            // Check if we have results
-            if (empty($data['results']) || count($data['results']) === 0) {
+            if (empty($results)) {
                 Log::info('No Unsplash photos found for query', ['query' => $query]);
 
                 return null;
             }
 
-            // Get the first result's regular-sized image URL
-            $photoUrl = $data['results'][0]['urls']['regular'] ?? null;
+            $photo = $results[0];
 
-            if ($photoUrl) {
-                // Cache the result for 30 days
-                Cache::put($cacheKey, $photoUrl, now()->addDays(self::CACHE_TTL_DAYS));
-            }
+            // Extract photo data as per Unsplash API guidelines
+            $photoData = [
+                'id' => $photo->id,
+                'urls' => [
+                    'raw' => $photo->urls['raw'] ?? null,
+                    'full' => $photo->urls['full'] ?? null,
+                    'regular' => $photo->urls['regular'] ?? null,
+                    'small' => $photo->urls['small'] ?? null,
+                    'thumb' => $photo->urls['thumb'] ?? null,
+                ],
+                'download_location' => $photo->links['download_location'] ?? null,
+                'user' => [
+                    'name' => $photo->user['name'] ?? null,
+                    'username' => $photo->user['username'] ?? null,
+                    'profile_link' => $photo->user['links']['html'] ?? null,
+                ],
+                'alt_description' => $photo->alt_description ?? $photo->description ?? null,
+            ];
 
-            return $photoUrl;
+            // Cache the result for 30 days
+            Cache::put($cacheKey, $photoData, now()->addDays(self::CACHE_TTL_DAYS));
+
+            return $photoData;
         } catch (\Exception $e) {
             Log::error('Unsplash API exception', [
                 'message' => $e->getMessage(),
@@ -94,12 +119,62 @@ class UnsplashService
     }
 
     /**
-     * Get a photo URL for a trip by name.
+     * Track a photo download to increment view count.
+     * This should be called when the user "uses" the photo (e.g., clicks to load it).
+     *
+     * @param  string  $downloadLocation  The download_location URL from the photo data
+     * @return bool Success status
+     */
+    public function trackDownload(string $downloadLocation): bool
+    {
+        if (! $this->initialized) {
+            return false;
+        }
+
+        try {
+            // The download location is already a full URL with query parameters
+            // We need to extract the photo ID and call the download endpoint
+            $photoId = $this->extractPhotoIdFromDownloadLocation($downloadLocation);
+            if ($photoId) {
+                Photo::find($photoId)->download();
+
+                return true;
+            }
+
+            return false;
+        } catch (\Exception $e) {
+            Log::error('Failed to track Unsplash download', [
+                'message' => $e->getMessage(),
+                'download_location' => $downloadLocation,
+            ]);
+
+            return false;
+        }
+    }
+
+    /**
+     * Extract photo ID from download location URL.
+     *
+     * @param  string  $downloadLocation  The download location URL
+     * @return string|null The photo ID or null
+     */
+    private function extractPhotoIdFromDownloadLocation(string $downloadLocation): ?string
+    {
+        // Download location format: https://api.unsplash.com/photos/{id}/download?ixid=...
+        if (preg_match('/\/photos\/([^\/\?]+)\/download/', $downloadLocation, $matches)) {
+            return $matches[1];
+        }
+
+        return null;
+    }
+
+    /**
+     * Get photo data for a trip by name.
      *
      * @param  string  $tripName  Name of the trip
-     * @return string|null The URL of the photo, or null if not found
+     * @return array|null Photo data or null if not found
      */
-    public function getPhotoForTrip(string $tripName): ?string
+    public function getPhotoForTrip(string $tripName): ?array
     {
         // Enhance query with travel-related terms for better results
         $query = $tripName.' travel destination';
@@ -108,13 +183,13 @@ class UnsplashService
     }
 
     /**
-     * Get a photo URL for a marker by name and type.
+     * Get photo data for a marker by name and type.
      *
      * @param  string  $markerName  Name of the marker
      * @param  string|null  $markerType  Type of the marker (optional)
-     * @return string|null The URL of the photo, or null if not found
+     * @return array|null Photo data or null if not found
      */
-    public function getPhotoForMarker(string $markerName, ?string $markerType = null): ?string
+    public function getPhotoForMarker(string $markerName, ?string $markerType = null): ?array
     {
         // Build query with marker name and optional type
         $query = $markerName;

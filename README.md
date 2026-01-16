@@ -130,22 +130,32 @@ Get your Mapbox access token from [Mapbox Account](https://account.mapbox.com/):
 MAPBOX_ACCESS_TOKEN=your_mapbox_token_here
 ```
 
-#### Unsplash (Optional - for automatic trip and marker images)
+#### Unsplash (Optional - for on-demand trip and marker images)
 
 Get your Unsplash access key from [Unsplash Developers](https://unsplash.com/developers):
 
 ```
 UNSPLASH_ACCESS_KEY=your_unsplash_access_key_here
+UNSPLASH_UTM_SOURCE="${APP_NAME}"
 ```
 
 **Features:**
 
-- Automatically fetches high-quality images for trips and markers
+- On-demand image fetching for trips and markers (click placeholder to load)
+- Uses official Unsplash PHP wrapper for proper API compliance
 - Images are cached for 30 days to minimize API calls
+- Properly tracks downloads to increment photo views
+- Hotlinks images directly from Unsplash (as per API guidelines)
 - **Rate Limit:** 50 requests/hour (free tier)
 - Falls back to placeholder images if API is unavailable
 
-**Note:** If you don't configure an Unsplash API key, the application will still work but will display placeholder images instead of real photos.
+**Usage:**
+1. Click on the image placeholder icon for any trip or marker
+2. The application fetches a relevant image from Unsplash
+3. Image is displayed and cached for future use
+4. Photo views are tracked to benefit photographers
+
+**Note:** If you don't configure an Unsplash API key, the application will display clickable placeholder images. Configure the `UNSPLASH_UTM_SOURCE` to attribute traffic to your application (defaults to `APP_NAME`).
 
 #### Le Chat Agent (Optional - for AI-powered marker enrichment)
 

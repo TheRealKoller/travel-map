@@ -168,9 +168,9 @@ export function useMarkers({
                     if (marker && mapInstance) {
                         const mapboxMarker = marker.marker;
                         const [lng, lat] = [marker.lng, marker.lat];
-                        const popup = new mapboxgl.Popup({ offset: 25 }).setText(
-                            name || 'Unnamed Location',
-                        );
+                        const popup = new mapboxgl.Popup({
+                            offset: 25,
+                        }).setText(name || 'Unnamed Location');
                         mapboxMarker.setPopup(popup);
 
                         // Update marker icon if type changed
