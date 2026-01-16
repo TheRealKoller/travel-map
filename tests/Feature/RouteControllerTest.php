@@ -385,3 +385,48 @@ it('returns 404 when Google Maps finds no transit route', function () {
     $response->assertStatus(404)
         ->assertJson(['error' => 'No public transport route found between the markers']);
 });
+
+it('can create a route with tour_id', function () {
+    // Create a tour for this trip
+    $tour = \App\Models\Tour::factory()->create(['trip_id' => $this->trip->id]);
+
+    // Set Mapbox token for test
+    config(['services.mapbox.access_token' => 'test-token']);
+
+    // Mock Mapbox API response
+    Http::fake([
+        'api.mapbox.com/*' => Http::response([
+            'routes' => [
+                [
+                    'distance' => 15000,
+                    'duration' => 1200,
+                    'geometry' => [
+                        'type' => 'LineString',
+                        'coordinates' => [
+                            [13.388860, 52.517037],
+                            [13.397634, 52.529407],
+                        ],
+                    ],
+                ],
+            ],
+        ], 200),
+    ]);
+
+    $response = $this->postJson('/routes', [
+        'trip_id' => $this->trip->id,
+        'tour_id' => $tour->id,
+        'start_marker_id' => $this->startMarker->id,
+        'end_marker_id' => $this->endMarker->id,
+        'transport_mode' => 'driving-car',
+    ]);
+
+    $response->assertCreated()
+        ->assertJsonPath('tour_id', $tour->id);
+
+    $this->assertDatabaseHas('routes', [
+        'trip_id' => $this->trip->id,
+        'tour_id' => $tour->id,
+        'start_marker_id' => $this->startMarker->id,
+        'end_marker_id' => $this->endMarker->id,
+    ]);
+});
