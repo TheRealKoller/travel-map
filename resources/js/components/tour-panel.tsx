@@ -63,7 +63,7 @@ function MarkerItem({
     onMoveDown,
 }: MarkerItemProps) {
     return (
-        <li className="rounded bg-gray-50 p-2 text-sm">
+        <div className="rounded bg-gray-50 p-2 text-sm">
             <div className="flex items-start gap-2">
                 <div className="flex flex-col gap-0.5">
                     <Button
@@ -111,7 +111,7 @@ function MarkerItem({
                     )}
                 </div>
             </div>
-        </li>
+        </div>
     );
 }
 

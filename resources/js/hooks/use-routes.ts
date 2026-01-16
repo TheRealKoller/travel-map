@@ -8,6 +8,7 @@ interface UseRoutesOptions {
     selectedTripId: number | null;
     selectedTourId: number | null;
     expandedRoutes: Set<number>;
+    onRouteClick?: (routeId: number) => void;
 }
 
 export function useRoutes({
@@ -15,9 +16,16 @@ export function useRoutes({
     selectedTripId,
     selectedTourId,
     expandedRoutes,
+    onRouteClick,
 }: UseRoutesOptions) {
     const [routes, setRoutes] = useState<Route[]>([]);
     const routeLayerIdsRef = useRef<Map<number, string>>(new Map());
+    const onRouteClickRef = useRef(onRouteClick); // Store callback in ref to avoid re-rendering
+
+    // Update ref when callback changes
+    useEffect(() => {
+        onRouteClickRef.current = onRouteClick;
+    }, [onRouteClick]);
 
     // Load routes from database when trip changes
     useEffect(() => {
@@ -40,7 +48,9 @@ export function useRoutes({
 
     // Render routes on map - filter by tour if one is selected
     useEffect(() => {
-        if (!mapInstance) return;
+        if (!mapInstance) {
+            return;
+        }
 
         // Clear existing route layers
         routeLayerIdsRef.current.forEach((layerId) => {
@@ -113,6 +123,15 @@ export function useRoutes({
 
             // Add popup on click
             mapInstance.on('click', layerId, (e) => {
+                // Prevent event from propagating to map click handler
+                e.originalEvent.stopPropagation();
+
+                // Call the onRouteClick callback via ref if provided
+                if (onRouteClickRef.current) {
+                    onRouteClickRef.current(route.id);
+                }
+
+                // Show popup with route information
                 if (e.features && e.features[0] && e.features[0].properties) {
                     const props = e.features[0].properties;
                     new mapboxgl.Popup()

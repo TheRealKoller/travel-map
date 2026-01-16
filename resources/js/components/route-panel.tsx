@@ -397,7 +397,8 @@ export default function RoutePanel({
                     <div className="space-y-3">
                         {filteredRoutes.map((route) => {
                             const isExpanded = expandedRoutes.has(route.id);
-                            const isHighlighted = highlightedRouteId === route.id;
+                            const isHighlighted =
+                                highlightedRouteId === route.id;
                             return (
                                 <Collapsible
                                     key={route.id}
@@ -406,11 +407,13 @@ export default function RoutePanel({
                                         toggleRouteExpansion(route.id)
                                     }
                                 >
-                                    <div className={`rounded-lg border ${
-                                        isHighlighted
-                                            ? 'border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950/30'
-                                            : ''
-                                    }`}>
+                                    <div
+                                        className={`rounded-lg border ${
+                                            isHighlighted
+                                                ? 'border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950/30'
+                                                : ''
+                                        }`}
+                                    >
                                         {/* Route header - always visible */}
                                         <div className="flex items-start justify-between p-3">
                                             <CollapsibleTrigger

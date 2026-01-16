@@ -333,7 +333,15 @@ export function useMapInteractions({
                 );
             });
 
-            if (hasInteractiveFeature) {
+            // Check if a route line was clicked
+            const hasRouteLayer = features.some((f) => {
+                return f.layer?.id?.startsWith('route-');
+            });
+
+            if (hasInteractiveFeature || hasRouteLayer) {
+                console.log(
+                    'handleMapClick: Interactive feature or route layer clicked, ignoring',
+                );
                 return;
             }
 
