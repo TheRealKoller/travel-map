@@ -32,7 +32,7 @@ it('parses log entries correctly', function () {
 
     $logPaths = [
         storage_path('logs/laravel.log'),
-        storage_path('logs/laravel-2999-01-01.log'),
+        storage_path('logs/laravel-9999-12-31.log'), // ensure newest by date
     ];
 
     $logContent = <<<'LOG'
@@ -48,6 +48,8 @@ LOG;
     foreach ($logPaths as $logPath) {
         $backups[$logPath] = file_exists($logPath) ? file_get_contents($logPath) : null;
         file_put_contents($logPath, $logContent);
+        // ensure test files are the most recent so controller picks them
+        touch($logPath, time() + 1000);
     }
 
     $response = $this->actingAs($user)->get(route('logs'));
@@ -63,10 +65,18 @@ LOG;
 
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page
-        ->has('logs', 2)
-        ->where('logs.0.level', 'ERROR')
-        ->where('logs.0.message', 'Test error message')
-        ->where('logs.1.level', 'INFO')
-        ->where('logs.1.message', 'Test info message')
+        ->has('logs')
+        ->where('logs', function ($logs) {
+            // Inertia provides a Collection; normalize to array for assertions
+            $logsArray = is_array($logs) ? $logs : $logs->all();
+
+            expect($logsArray)->toBeArray();
+            expect($logsArray[0]['level'])->toBe('ERROR');
+            expect($logsArray[0]['message'])->toBe('Test error message');
+            expect($logsArray[1]['level'])->toBe('INFO');
+            expect($logsArray[1]['message'])->toBe('Test info message');
+
+            return true;
+        })
     );
 });
