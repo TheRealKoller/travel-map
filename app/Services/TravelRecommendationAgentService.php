@@ -41,8 +41,10 @@ class TravelRecommendationAgentService
 
             if (! $response->successful()) {
                 Log::error('Travel Recommendation Agent API error', [
+                    'context' => $context,
                     'status' => $response->status(),
                     'body' => $response->body(),
+                    'data_marker_count' => count($data['markers'] ?? []),
                 ]);
 
                 return [
@@ -57,6 +59,12 @@ class TravelRecommendationAgentService
             $content = $result['choices'][0]['message']['content'] ?? null;
 
             if (! $content) {
+                Log::warning('No content received from Travel Recommendation Agent', [
+                    'context' => $context,
+                    'data_marker_count' => count($data['markers'] ?? []),
+                    'response' => $result,
+                ]);
+
                 return [
                     'success' => false,
                     'error' => 'No content received from agent',
@@ -70,7 +78,9 @@ class TravelRecommendationAgentService
         } catch (\Exception $e) {
             Log::error('Travel Recommendation Agent recommendation failed', [
                 'context' => $context,
+                'data_marker_count' => count($data['markers'] ?? []),
                 'error' => $e->getMessage(),
+                'exception' => $e,
             ]);
 
             return [

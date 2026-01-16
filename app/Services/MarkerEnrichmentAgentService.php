@@ -42,6 +42,9 @@ class MarkerEnrichmentAgentService
 
             if (! $response->successful()) {
                 Log::error('Marker Enrichment Agent API error', [
+                    'marker_name' => $markerName,
+                    'latitude' => $latitude,
+                    'longitude' => $longitude,
                     'status' => $response->status(),
                     'body' => $response->body(),
                 ]);
@@ -58,6 +61,13 @@ class MarkerEnrichmentAgentService
             $content = $result['choices'][0]['message']['content'] ?? null;
 
             if (! $content) {
+                Log::warning('No content received from Marker Enrichment Agent', [
+                    'marker_name' => $markerName,
+                    'latitude' => $latitude,
+                    'longitude' => $longitude,
+                    'response' => $result,
+                ]);
+
                 return [
                     'success' => false,
                     'error' => 'No content received from agent',
@@ -68,6 +78,13 @@ class MarkerEnrichmentAgentService
             $enrichedData = $this->parseAgentResponse($content);
 
             if (! $enrichedData) {
+                Log::error('Failed to parse Marker Enrichment Agent response', [
+                    'marker_name' => $markerName,
+                    'latitude' => $latitude,
+                    'longitude' => $longitude,
+                    'content' => $content,
+                ]);
+
                 return [
                     'success' => false,
                     'error' => 'Failed to parse agent response',
@@ -81,7 +98,10 @@ class MarkerEnrichmentAgentService
         } catch (\Exception $e) {
             Log::error('Marker Enrichment Agent enrichment failed', [
                 'marker_name' => $markerName,
+                'latitude' => $latitude,
+                'longitude' => $longitude,
                 'error' => $e->getMessage(),
+                'exception' => $e,
             ]);
 
             return [

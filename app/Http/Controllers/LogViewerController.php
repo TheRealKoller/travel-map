@@ -51,18 +51,20 @@ class LogViewerController extends Controller
             return null;
         }
 
-        // Get all log files
-        $files = array_filter(
-            scandir($logsDirectory, SCANDIR_SORT_DESCENDING) ?: [],
-            fn ($file) => str_ends_with($file, '.log') && $file !== '.' && $file !== '..'
-        );
+        // Get all Laravel log files (exclude browser.log and other non-Laravel logs)
+        $files = glob($logsDirectory . DIRECTORY_SEPARATOR . 'laravel*.log');
 
         if (empty($files)) {
             return null;
         }
 
-        // Return the first file (most recent due to SCANDIR_SORT_DESCENDING)
-        return $logsDirectory . DIRECTORY_SEPARATOR . reset($files);
+        // Sort by modification time (newest first)
+        usort($files, function ($a, $b) {
+            return filemtime($b) - filemtime($a);
+        });
+
+        // Return the most recently modified file
+        return $files[0];
     }
 
     /**
