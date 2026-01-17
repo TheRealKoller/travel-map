@@ -78,8 +78,12 @@ export default function TripSelector({
         <div className="flex flex-col gap-2 px-2 py-2">
             <div className="flex items-center gap-2">
                 <Select
-                    value={selectedTripId?.toString()}
-                    onValueChange={(value) => onSelectTrip(Number(value))}
+                    value={
+                        selectedTripId !== null ? String(selectedTripId) : ''
+                    }
+                    onValueChange={(value) => {
+                        if (value) onSelectTrip(Number(value));
+                    }}
                     disabled={trips.length === 0}
                 >
                     <SelectTrigger className="flex-1">

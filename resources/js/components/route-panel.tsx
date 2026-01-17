@@ -296,7 +296,7 @@ export default function RoutePanel({
                     <div>
                         <Label htmlFor="start-marker">Start Marker</Label>
                         <Select
-                            value={startMarkerId}
+                            value={startMarkerId || ''}
                             onValueChange={setStartMarkerId}
                         >
                             <SelectTrigger id="start-marker">
@@ -320,7 +320,7 @@ export default function RoutePanel({
                     <div>
                         <Label htmlFor="end-marker">End Marker</Label>
                         <Select
-                            value={endMarkerId}
+                            value={endMarkerId || ''}
                             onValueChange={setEndMarkerId}
                         >
                             <SelectTrigger id="end-marker">

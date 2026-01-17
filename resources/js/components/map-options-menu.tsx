@@ -124,7 +124,7 @@ export default function MapOptionsMenu({
                                             Typ des Ortes
                                         </Label>
                                         <Select
-                                            value={selectedPlaceType}
+                                            value={selectedPlaceType || ''}
                                             onValueChange={onPlaceTypeChange}
                                         >
                                             <SelectTrigger
