@@ -25,19 +25,32 @@ class LogViewerController extends Controller
             ]);
         }
 
-        // Get number of lines to show (default: 100, max: 1000)
-        $lineCount = min($request->input('lines', 100), 1000);
+        // Get number of entries to show (default: 50, max: 200)
+        $entryCount = min($request->input('entries', 50), 200);
 
-        // Read last N lines efficiently using tail command
-        $lines = $this->readLastLines($logPath, $lineCount);
+        try {
+            // Read more lines to ensure we capture enough log entries
+            // (since entries can have long stacktraces)
+            $lines = $this->readLastLines($logPath, 2000);
 
-        // Parse log entries
-        $logs = $this->parseLogEntries($lines);
+            // Parse log entries
+            $allLogs = $this->parseLogEntries($lines);
 
-        return Inertia::render('Logs/Index', [
-            'logs' => $logs,
-            'totalLines' => count($logs),
-        ]);
+            // Take only the last N entries
+            $logs = array_slice($allLogs, -$entryCount);
+
+            return Inertia::render('Logs/Index', [
+                'logs' => $logs,
+                'totalLines' => count($logs),
+            ]);
+        } catch (\Exception $e) {
+            // If parsing fails, return error message
+            return Inertia::render('Logs/Index', [
+                'logs' => [],
+                'totalLines' => 0,
+                'message' => 'Error reading logs: '.$e->getMessage(),
+            ]);
+        }
     }
 
     /**
@@ -111,17 +124,27 @@ class LogViewerController extends Controller
                     $entries[] = $currentEntry;
                 }
 
+                // Truncate very long messages to prevent JSON serialization issues
+                $message = $matches[4];
+                if (strlen($message) > 300) {
+                    $message = substr($message, 0, 300).' ... (truncated)';
+                }
+
                 // Start new entry
                 $currentEntry = [
                     'timestamp' => $matches[1],
                     'environment' => $matches[2],
                     'level' => $matches[3],
-                    'message' => $matches[4],
+                    'message' => $message,
                     'stacktrace' => [],
                 ];
             } elseif ($currentEntry !== null && ! empty(trim($line))) {
-                // Add to stacktrace of current entry (only non-empty lines)
-                $currentEntry['stacktrace'][] = $line;
+                // Limit stacktrace lines per entry (max 20 lines)
+                if (count($currentEntry['stacktrace']) < 20) {
+                    // Truncate long stacktrace lines
+                    $truncatedLine = strlen($line) > 200 ? substr($line, 0, 200).' ...' : $line;
+                    $currentEntry['stacktrace'][] = $truncatedLine;
+                }
             }
         }
 
