@@ -186,14 +186,14 @@ jobs:
           sftp_only: false
           delete_remote_files: false
 
-      - name: Extract and setup deployment on server
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          password: ${{ secrets.SSH_PASSWORD }}
-          port: 22
-          script: |
+          ssh-private-key: ${{ secrets.SFTP_SSH_PRIVATE_KEY }}
+
+      - name: Extract and setup deployment on server
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} << 'SCRIPT'
             cd ${{ secrets.SSH_REMOTE_PATH }}
             
             # Backup old .env for reference (optional)
