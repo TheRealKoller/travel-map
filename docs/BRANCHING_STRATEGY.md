@@ -1,25 +1,28 @@
 # Branching Strategy - GitHub Flow
 
-This project follows the **GitHub Flow** branching strategy, which is a lightweight, branch-based workflow that supports teams practicing continuous deployment.
+This project follows the **GitHub Flow** branching strategy, which is a lightweight, branch-based workflow that supports teams practicing continuous deployment with separate DEV and PROD environments.
 
 ## Overview
 
 GitHub Flow is a simple, powerful workflow designed around deployments. It emphasizes:
-- A single main branch that is always deployable
+- A single main branch that is always deployable to DEV
 - Short-lived feature branches
 - Pull requests for code review
-- Immediate deployment after merging
+- Immediate DEV deployment after merging
+- Manual PROD deployment when ready
 
 ## Branch Structure
 
 ### Main Branch
 
-- **`main`** - The production-ready branch
+- **`main`** - The DEV-ready branch
   - Always in a deployable state
   - Protected with branch protection rules
   - All code must pass CI checks before merging
-  - Represents the current production code
+  - Represents the current DEV code
+  - Automatically deploys to DEV (https://dev.travelmap.koller.dk/) on every push
   - Never commit directly to main (use pull requests)
+  - PROD deployments (https://travelmap.koller.dk/) are triggered manually from this branch
 
 ### Feature Branches
 
@@ -121,12 +124,21 @@ Once approved and CI passes:
 
 1. Merge the pull request to `main`
 2. Delete the feature branch
-3. Deployment is automatically triggered
+3. **DEV deployment is automatically triggered**
+4. **PROD deployment can be triggered manually when ready**
 
-The deployment workflow:
+The DEV deployment workflow:
 - Builds production assets
-- Deploys to production environment
-- Runs database migrations
+- Deploys to DEV environment (https://dev.travelmap.koller.dk/)
+- Runs database migrations (if needed)
+- Clears caches
+- Notifies team
+
+The PROD deployment workflow (manual):
+- Triggered via GitHub Actions UI
+- Builds production assets
+- Deploys to PROD environment (https://travelmap.koller.dk/)
+- Runs database migrations (if needed)
 - Clears caches
 - Notifies team
 
@@ -145,17 +157,23 @@ Lint → Test → Build (if main branch)
 2. **Test** - Run all test suites
 3. **Build** - Compile production assets (main branch only)
 
-### Deployment Pipeline (`.github/workflows/deploy.yml`)
+### Deployment Pipeline (`.github/workflows/deploy-dev.yml` and `.github/workflows/deploy-prod.yml`)
 
-Runs automatically on merge to `main`:
+**DEV Deployment** - Runs automatically on merge to `main`:
 
 ```yaml
-Deploy → Production
+Deploy → DEV (https://dev.travelmap.koller.dk/)
 ```
 
-Can also be triggered manually with:
-- Production deployment
-- Staging deployment
+Can also be triggered manually with workflow_dispatch.
+
+**PROD Deployment** - Runs only when manually triggered:
+
+```yaml
+Manual Trigger → Deploy → PROD (https://travelmap.koller.dk/)
+```
+
+Must be triggered via GitHub Actions interface.
 
 ## Branch Protection Rules
 
@@ -280,13 +298,14 @@ npm run test:e2e             # E2E tests
 
 ## Continuous Deployment
 
-With GitHub Flow, every merge to `main` should be deployable:
+With GitHub Flow, every merge to `main` should be deployable to DEV, and manually deployable to PROD when ready:
 
 1. **Small, incremental changes** - Easier to review and test
-2. **Automated testing** - Catch issues before production
-3. **Feature flags** - Deploy incomplete features safely
-4. **Monitoring** - Track deployments and errors
-5. **Quick rollback** - Revert if needed
+2. **Automated testing** - Catch issues before DEV deployment
+3. **DEV environment** - Test changes in production-like environment before PROD
+4. **Feature flags** - Deploy incomplete features safely
+5. **Monitoring** - Track deployments and errors
+6. **Quick rollback** - Revert if needed
 
 ## Team Collaboration
 
@@ -352,7 +371,7 @@ git push origin feature/my-branch
 
 ## Summary
 
-GitHub Flow provides a simple, effective workflow for continuous deployment:
+GitHub Flow provides a simple, effective workflow for continuous deployment with DEV/PROD separation:
 
 1. **Branch** from main
 2. **Commit** changes
@@ -360,6 +379,7 @@ GitHub Flow provides a simple, effective workflow for continuous deployment:
 4. **Review** code
 5. **Test** automatically
 6. **Merge** to main
-7. **Deploy** to production
+7. **Deploy** to DEV automatically
+8. **Deploy** to PROD manually when ready
 
-This strategy ensures code quality, enables collaboration, and supports rapid deployment cycles.
+This strategy ensures code quality, enables collaboration, supports rapid DEV deployment cycles, and controlled PROD releases.
