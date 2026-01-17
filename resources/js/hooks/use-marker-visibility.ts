@@ -53,6 +53,7 @@ export function useMarkerVisibility({
                 });
             } else {
                 // Tour not found, hide all markers
+
                 markers.forEach((marker) => {
                     const mapboxMarker = marker.marker;
                     if (mapboxMarker) {

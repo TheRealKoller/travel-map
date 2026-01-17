@@ -108,15 +108,13 @@ export function useMarkers({
             aiEnriched: boolean,
         ) => {
             try {
-                // Get marker from state
-                let markerToSave: MarkerData | undefined;
-                setMarkers((prev) => {
-                    markerToSave = prev.find((m) => m.id === id);
-                    return prev;
-                });
+                // Get current markers from state
+                const currentMarkers = markers;
+                const markerToSave = currentMarkers.find((m) => m.id === id);
 
                 if (!markerToSave) {
-                    console.error('Marker not found');
+                    console.error('Marker not found:', id);
+                    alert('Marker not found. Please try again.');
                     return;
                 }
 
@@ -146,9 +144,64 @@ export function useMarkers({
                     });
                 }
 
-                // Update local state - mark as saved
-                setMarkers((prev) =>
-                    prev.map((m) =>
+                // Update local state - all in one batch to avoid stale references
+                setMarkers((prev) => {
+                    const marker = prev.find((m) => m.id === id);
+                    if (!marker) {
+                        console.error(
+                            '[handleSaveMarker] marker not found in state during save',
+                            { id },
+                        );
+                        return prev;
+                    }
+
+                    // Just update the state, don't recreate the marker on the map
+                    // The marker is already on the map (either from addMarker or from highlighting)
+                    // We just need to update the marker's data and popup
+                    const mapboxMarker = marker.marker;
+
+                    if (mapInstance && mapboxMarker) {
+                        // Update the popup text
+                        const popup = new mapboxgl.Popup({
+                            offset: 25,
+                        }).setText(name || 'Unnamed Location');
+                        mapboxMarker.setPopup(popup);
+
+                        // If type changed, we need to rebuild the marker element
+                        if (type !== marker.type) {
+                            const el = createMarkerElement(type);
+                            el.addEventListener('click', (clickEvent) => {
+                                clickEvent.stopPropagation();
+                                onMarkerClick(id);
+                            });
+
+                            // Remove old marker and create new one
+                            mapboxMarker.remove();
+                            const newMarker = new mapboxgl.Marker(el)
+                                .setLngLat([marker.lng, marker.lat])
+                                .setPopup(popup)
+                                .addTo(mapInstance);
+
+                            return prev.map((m) =>
+                                m.id === id
+                                    ? {
+                                          ...m,
+                                          name,
+                                          type,
+                                          notes,
+                                          url,
+                                          isUnesco,
+                                          aiEnriched,
+                                          isSaved: true,
+                                          marker: newMarker,
+                                      }
+                                    : m,
+                            );
+                        }
+                    }
+
+                    // Just update the marker data without touching the map
+                    return prev.map((m) =>
                         m.id === id
                             ? {
                                   ...m,
@@ -161,39 +214,7 @@ export function useMarkers({
                                   isSaved: true,
                               }
                             : m,
-                    ),
-                );
-
-                // Update marker popup and icon
-                setMarkers((prev) => {
-                    const marker = prev.find((m) => m.id === id);
-                    if (marker && mapInstance) {
-                        const mapboxMarker = marker.marker;
-                        const [lng, lat] = [marker.lng, marker.lat];
-                        const popup = new mapboxgl.Popup({
-                            offset: 25,
-                        }).setText(name || 'Unnamed Location');
-                        mapboxMarker.setPopup(popup);
-
-                        // Update marker icon if type changed
-                        const el = createMarkerElement(type);
-                        el.addEventListener('click', () => {
-                            onMarkerClick(id);
-                        });
-
-                        // Remove and recreate marker with new element
-                        mapboxMarker.remove();
-                        const newMarker = new mapboxgl.Marker(el)
-                            .setLngLat([lng, lat])
-                            .setPopup(popup)
-                            .addTo(mapInstance);
-
-                        // Update the marker reference in state
-                        return prev.map((m) =>
-                            m.id === id ? { ...m, marker: newMarker } : m,
-                        );
-                    }
-                    return prev;
+                    );
                 });
 
                 // Close the form
@@ -203,13 +224,16 @@ export function useMarkers({
                 alert('Failed to save marker. Please try again.');
             }
         },
-        [selectedTripId, mapInstance, onMarkerClick],
+        [markers, selectedTripId, mapInstance, onMarkerClick],
     );
 
     const handleDeleteMarker = useCallback(
         async (id: string) => {
             try {
-                // First, get the marker and remove it from map before API call
+                // First call API to delete from database
+                await axios.delete(`/markers/${id}`);
+
+                // Remove from map and state in one operation
                 setMarkers((prev) => {
                     const marker = prev.find((m) => m.id === id);
                     if (marker) {
@@ -218,14 +242,8 @@ export function useMarkers({
                             mapboxMarker.remove();
                         }
                     }
-                    return prev;
+                    return prev.filter((m) => m.id !== id);
                 });
-
-                // Then call API
-                await axios.delete(`/markers/${id}`);
-
-                // Remove from state
-                setMarkers((prev) => prev.filter((m) => m.id !== id));
 
                 // Clear selection if deleted marker was selected
                 if (selectedMarkerId === id) {
@@ -237,15 +255,16 @@ export function useMarkers({
 
                 // Re-add marker to map if deletion failed
                 setMarkers((prev) => {
-                    const marker = prev.find((m) => m.id === id);
-                    if (marker && mapInstance) {
-                        marker.marker.addTo(mapInstance);
+                    const deletedMarker = markers.find((m) => m.id === id);
+                    if (deletedMarker && mapInstance) {
+                        deletedMarker.marker.addTo(mapInstance);
+                        return [...prev, deletedMarker];
                     }
                     return prev;
                 });
             }
         },
-        [selectedMarkerId, mapInstance],
+        [selectedMarkerId, mapInstance, markers],
     );
 
     const handleCloseForm = useCallback(() => {
@@ -268,8 +287,18 @@ export function useMarkers({
         setSelectedMarkerId(null);
     }, [selectedMarkerId]);
 
-    const addMarker = useCallback((marker: MarkerData) => {
-        setMarkers((prev) => [...prev, marker]);
+    const addMarker = useCallback((markerData: MarkerData) => {
+        setMarkers((prev) => {
+            // Check if marker already exists
+            const exists = prev.find((m) => m.id === markerData.id);
+            if (exists) {
+                console.warn('[markers] addMarker: marker already exists', {
+                    id: markerData.id,
+                });
+                return prev;
+            }
+            return [...prev, markerData];
+        });
     }, []);
 
     const updateMarkerReference = useCallback(
