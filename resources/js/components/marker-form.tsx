@@ -52,13 +52,13 @@ export default function MarkerForm({
     // Configure marked once globally
     if (
         typeof window !== 'undefined' &&
-        !(window as Record<string, unknown>).__markedConfigured
+        !(window as unknown as Record<string, unknown>).__markedConfigured
     ) {
         marked.setOptions({
             breaks: true,
             gfm: true,
         });
-        (window as Record<string, unknown>).__markedConfigured = true;
+        (window as unknown as Record<string, unknown>).__markedConfigured = true;
     }
 
     // Define mdeOptions for SimpleMDE editor
