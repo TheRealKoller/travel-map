@@ -15,8 +15,15 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function MapPage() {
-    const { trips, selectedTripId, setSelectedTripId, createTrip, renameTrip } =
-        useTrips();
+    const {
+        trips,
+        setTrips,
+        selectedTripId,
+        setSelectedTripId,
+        createTrip,
+        renameTrip,
+        updateTripViewport,
+    } = useTrips();
 
     const {
         tours,
@@ -75,6 +82,21 @@ export default function MapPage() {
         await deleteTour(modalState.tourToDelete);
     };
 
+    const handleTripImageFetched = (tripId: number, imageUrl: string) => {
+        setTrips((prev) =>
+            prev.map((t) =>
+                t.id === tripId ? { ...t, image_url: imageUrl } : t,
+            ),
+        );
+    };
+
+    const handleSetViewport = async (
+        tripId: number,
+        viewport: { latitude: number; longitude: number; zoom: number },
+    ) => {
+        await updateTripViewport(tripId, viewport);
+    };
+
     return (
         <AppLayout
             breadcrumbs={breadcrumbs}
@@ -83,6 +105,8 @@ export default function MapPage() {
             onSelectTrip={setSelectedTripId}
             onCreateTrip={openCreateTripModal}
             onRenameTrip={handleOpenRenameModal}
+            onTripImageFetched={handleTripImageFetched}
+            updateTripViewport={updateTripViewport}
         >
             <Head title="Map" />
             <MapContainer
@@ -94,6 +118,7 @@ export default function MapPage() {
                 onSelectTour={setSelectedTourId}
                 onCreateTour={openCreateTourModal}
                 onDeleteTour={handleOpenDeleteTourDialog}
+                onSetViewport={handleSetViewport}
             />
             <ModalManager
                 isCreateTripModalOpen={modalState.isCreateTripModalOpen}

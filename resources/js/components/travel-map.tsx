@@ -33,6 +33,10 @@ interface TravelMapProps {
     onSelectTour: (tourId: number | null) => void;
     onCreateTour: () => void;
     onDeleteTour: (tourId: number) => void;
+    onSetViewport?: (
+        tripId: number,
+        viewport: { latitude: number; longitude: number; zoom: number },
+    ) => Promise<void>;
 }
 
 export default function TravelMap({
@@ -44,6 +48,7 @@ export default function TravelMap({
     onSelectTour,
     onCreateTour,
     onDeleteTour,
+    onSetViewport,
 }: TravelMapProps) {
     // Initialize map instance
     const { mapRef, mapInstance } = useMapInstance();
@@ -265,6 +270,56 @@ export default function TravelMap({
             };
         }
     }, [mapInstance]);
+
+    // Handle viewport setting via custom event
+    useEffect(() => {
+        if (!mapInstance || !onSetViewport) return;
+
+        const handleSetViewportEvent = (
+            event: CustomEvent<{ tripId: number }>,
+        ) => {
+            const { tripId } = event.detail;
+            const center = mapInstance.getCenter();
+            const zoom = mapInstance.getZoom();
+
+            onSetViewport(tripId, {
+                latitude: center.lat,
+                longitude: center.lng,
+                zoom,
+            });
+        };
+
+        window.addEventListener(
+            'trip:set-viewport',
+            handleSetViewportEvent as EventListener,
+        );
+
+        return () => {
+            window.removeEventListener(
+                'trip:set-viewport',
+                handleSetViewportEvent as EventListener,
+            );
+        };
+    }, [mapInstance, onSetViewport]);
+
+    // Apply saved viewport when switching trips
+    useEffect(() => {
+        if (!mapInstance || !selectedTripId) return;
+
+        const trip = trips.find((t) => t.id === selectedTripId);
+        if (
+            trip &&
+            trip.viewport_latitude !== null &&
+            trip.viewport_longitude !== null &&
+            trip.viewport_zoom !== null
+        ) {
+            mapInstance.flyTo({
+                center: [trip.viewport_longitude, trip.viewport_latitude],
+                zoom: trip.viewport_zoom,
+                essential: true,
+            });
+        }
+    }, [selectedTripId, mapInstance, trips]);
 
     // Placeholder state for MapOptionsMenu (search feature not fully implemented)
     const searchCoordinates = null;

@@ -13,7 +13,14 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Trip } from '@/types/trip';
-import { Image, Loader2, MoreHorizontal, Pencil, Plus } from 'lucide-react';
+import {
+    Image,
+    Loader2,
+    MapPin,
+    MoreHorizontal,
+    Pencil,
+    Plus,
+} from 'lucide-react';
 import { useState } from 'react';
 
 interface TripSelectorProps {
@@ -22,6 +29,7 @@ interface TripSelectorProps {
     onSelectTrip: (tripId: number) => void;
     onCreateTrip: () => void;
     onRenameTrip?: (tripId: number) => void;
+    onSetViewport?: (tripId: number) => void;
     onTripImageFetched?: (tripId: number, imageUrl: string) => void;
 }
 
@@ -31,6 +39,7 @@ export default function TripSelector({
     onSelectTrip,
     onCreateTrip,
     onRenameTrip,
+    onSetViewport,
     onTripImageFetched,
 }: TripSelectorProps) {
     const [loadingImages, setLoadingImages] = useState<Set<number>>(new Set());
@@ -140,6 +149,7 @@ export default function TripSelector({
                                 size="icon"
                                 variant="outline"
                                 title="Trip options"
+                                data-testid="trip-options-menu"
                             >
                                 <MoreHorizontal className="h-4 w-4" />
                             </Button>
@@ -147,10 +157,22 @@ export default function TripSelector({
                         <DropdownMenuContent align="end">
                             <DropdownMenuItem
                                 onClick={() => onRenameTrip(selectedTripId)}
+                                data-testid="rename-trip-option"
                             >
                                 <Pencil className="h-4 w-4" />
                                 Rename
                             </DropdownMenuItem>
+                            {onSetViewport && (
+                                <DropdownMenuItem
+                                    onClick={() =>
+                                        onSetViewport(selectedTripId)
+                                    }
+                                    data-testid="set-viewport-option"
+                                >
+                                    <MapPin className="h-4 w-4" />
+                                    Set map viewport
+                                </DropdownMenuItem>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 )}

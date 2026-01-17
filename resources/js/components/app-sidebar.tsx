@@ -51,6 +51,11 @@ interface AppSidebarProps {
     onSelectTrip?: (tripId: number) => void;
     onCreateTrip?: () => void;
     onRenameTrip?: (tripId: number) => void;
+    onTripImageFetched?: (tripId: number, imageUrl: string) => void;
+    updateTripViewport?: (
+        tripId: number,
+        viewport: { latitude: number; longitude: number; zoom: number },
+    ) => Promise<Trip>;
 }
 
 export function AppSidebar({
@@ -59,7 +64,15 @@ export function AppSidebar({
     onSelectTrip = () => {},
     onCreateTrip = () => {},
     onRenameTrip,
+    onTripImageFetched,
 }: AppSidebarProps) {
+    const handleSetViewport = (tripId: number) => {
+        // Dispatch a custom event that the map component will listen to
+        window.dispatchEvent(
+            new CustomEvent('trip:set-viewport', { detail: { tripId } }),
+        );
+    };
+
     return (
         <Sidebar collapsible="offcanvas" variant="inset">
             <SidebarHeader>
@@ -83,6 +96,8 @@ export function AppSidebar({
                     onSelectTrip={onSelectTrip}
                     onCreateTrip={onCreateTrip}
                     onRenameTrip={onRenameTrip}
+                    onSetViewport={handleSetViewport}
+                    onTripImageFetched={onTripImageFetched}
                 />
             </SidebarContent>
 

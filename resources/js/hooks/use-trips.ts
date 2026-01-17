@@ -82,6 +82,50 @@ export function useTrips() {
         }
     }, []);
 
+    const updateTripViewport = useCallback(
+        async (
+            tripId: number,
+            viewport: {
+                latitude: number;
+                longitude: number;
+                zoom: number;
+            },
+        ) => {
+            setIsLoading(true);
+            setError(null);
+
+            try {
+                const response = await axios.put<Trip>(
+                    tripsUpdate.url(tripId),
+                    {
+                        viewport_latitude: viewport.latitude,
+                        viewport_longitude: viewport.longitude,
+                        viewport_zoom: viewport.zoom,
+                    },
+                );
+                const updatedTrip = response.data;
+                setTrips((prev) =>
+                    prev.map((t) =>
+                        t.id === updatedTrip.id ? updatedTrip : t,
+                    ),
+                );
+
+                return updatedTrip;
+            } catch (err) {
+                const error =
+                    err instanceof Error
+                        ? err
+                        : new Error('Failed to update trip viewport');
+                setError(error);
+                console.error('Failed to update trip viewport:', error);
+                throw error;
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        [],
+    );
+
     useEffect(() => {
         loadTrips();
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -89,6 +133,7 @@ export function useTrips() {
 
     return {
         trips,
+        setTrips,
         selectedTripId,
         setSelectedTripId,
         isLoading,
@@ -96,5 +141,6 @@ export function useTrips() {
         loadTrips,
         createTrip,
         renameTrip,
+        updateTripViewport,
     } as const;
 }

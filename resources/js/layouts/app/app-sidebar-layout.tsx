@@ -15,6 +15,11 @@ interface AppSidebarLayoutContentProps extends PropsWithChildren {
     onSelectTrip?: (tripId: number) => void;
     onCreateTrip?: () => void;
     onRenameTrip?: (tripId: number) => void;
+    onTripImageFetched?: (tripId: number, imageUrl: string) => void;
+    updateTripViewport?: (
+        tripId: number,
+        viewport: { latitude: number; longitude: number; zoom: number },
+    ) => Promise<Trip>;
 }
 
 function AppSidebarLayoutContent({
@@ -25,6 +30,8 @@ function AppSidebarLayoutContent({
     onSelectTrip,
     onCreateTrip,
     onRenameTrip,
+    onTripImageFetched,
+    updateTripViewport,
 }: AppSidebarLayoutContentProps) {
     const { setOpen, isMobile } = useSidebar();
 
@@ -48,6 +55,8 @@ function AppSidebarLayoutContent({
                 onSelectTrip={onSelectTrip}
                 onCreateTrip={onCreateTrip}
                 onRenameTrip={onRenameTrip}
+                onTripImageFetched={onTripImageFetched}
+                updateTripViewport={updateTripViewport}
             />
             <AppContent variant="sidebar" className="overflow-x-hidden">
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
@@ -65,6 +74,8 @@ export default function AppSidebarLayout({
     onSelectTrip,
     onCreateTrip,
     onRenameTrip,
+    onTripImageFetched,
+    updateTripViewport,
 }: AppSidebarLayoutContentProps) {
     return (
         <AppShell variant="sidebar">
@@ -75,6 +86,8 @@ export default function AppSidebarLayout({
                 onSelectTrip={onSelectTrip}
                 onCreateTrip={onCreateTrip}
                 onRenameTrip={onRenameTrip}
+                onTripImageFetched={onTripImageFetched}
+                updateTripViewport={updateTripViewport}
             >
                 {children}
             </AppSidebarLayoutContent>
