@@ -33,9 +33,9 @@ export default function DeleteTripDialog({
                     <DialogTitle>Delete trip</DialogTitle>
                     <DialogDescription>
                         Are you sure you want to delete the trip "{tripName}"?
-                        This will permanently delete the trip and all
-                        associated data including markers, tours, and routes.
-                        This action cannot be undone.
+                        This will permanently delete the trip and all associated
+                        data including markers, tours, and routes. This action
+                        cannot be undone.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>

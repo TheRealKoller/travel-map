@@ -178,9 +178,7 @@ export default function TripSelector({
                             )}
                             {onDeleteTrip && (
                                 <DropdownMenuItem
-                                    onClick={() =>
-                                        onDeleteTrip(selectedTripId)
-                                    }
+                                    onClick={() => onDeleteTrip(selectedTripId)}
                                     data-testid="delete-trip-option"
                                     className="text-red-600 focus:text-red-600"
                                 >

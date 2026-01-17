@@ -94,13 +94,9 @@ export function useTrips() {
 
                 // If we deleted the selected trip, select the first remaining trip
                 if (selectedTripId === tripId) {
-                    const remainingTrips = trips.filter(
-                        (t) => t.id !== tripId,
-                    );
+                    const remainingTrips = trips.filter((t) => t.id !== tripId);
                     setSelectedTripId(
-                        remainingTrips.length > 0
-                            ? remainingTrips[0].id
-                            : null,
+                        remainingTrips.length > 0 ? remainingTrips[0].id : null,
                     );
                 }
             } catch (err) {
