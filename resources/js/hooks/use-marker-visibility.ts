@@ -19,6 +19,7 @@ export function useMarkerVisibility({
     useEffect(() => {
         if (!mapInstance) return;
 
+
         if (selectedTourId === null) {
             // Show all markers when no tour is selected
             markers.forEach((marker) => {
@@ -35,6 +36,8 @@ export function useMarkerVisibility({
                 const tourMarkerIds = new Set(
                     selectedTour.markers?.map((m) => m.id) || [],
                 );
+
+
 
                 // Show/hide markers based on whether they belong to the tour
                 markers.forEach((marker) => {
@@ -53,6 +56,7 @@ export function useMarkerVisibility({
                 });
             } else {
                 // Tour not found, hide all markers
+
                 markers.forEach((marker) => {
                     const mapboxMarker = marker.marker;
                     if (mapboxMarker) {

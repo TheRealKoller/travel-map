@@ -32,12 +32,14 @@ export function useMarkerHighlight({
 
         const currentMarkers = markersRef.current;
 
+
         // Restore previous marker to its original appearance
         if (previousSelectedMarkerRef.current) {
             const prevMarker = currentMarkers.find(
                 (m) => m.id === previousSelectedMarkerRef.current,
             );
             if (prevMarker) {
+
                 const mapboxMarker = prevMarker.marker;
                 const [lng, lat] = [prevMarker.lng, prevMarker.lat];
                 const el = createMarkerElement(prevMarker.type, false);
@@ -53,7 +55,8 @@ export function useMarkerHighlight({
                 );
                 newMarker.setPopup(popup);
 
-                el.addEventListener('click', () => {
+                el.addEventListener('click', (clickEvent) => {
+                    clickEvent.stopPropagation();
                     onMarkerClick(prevMarker.id);
                 });
 
@@ -68,6 +71,7 @@ export function useMarkerHighlight({
                 (m) => m.id === selectedMarkerId,
             );
             if (selectedMarker) {
+
                 const mapboxMarker = selectedMarker.marker;
                 const [lng, lat] = [selectedMarker.lng, selectedMarker.lat];
                 const el = createMarkerElement(selectedMarker.type, true);
@@ -83,12 +87,15 @@ export function useMarkerHighlight({
                 );
                 newMarker.setPopup(popup);
 
-                el.addEventListener('click', () => {
+                el.addEventListener('click', (clickEvent) => {
+                    clickEvent.stopPropagation();
                     onMarkerClick(selectedMarker.id);
                 });
 
                 // Update the marker reference
                 onMarkerUpdated(selectedMarker.id, newMarker);
+            } else {
+                // Selected marker not found in current markers
             }
         }
 
