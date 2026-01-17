@@ -36,9 +36,11 @@ Lint → Tests → Build
 - PHPUnit/Pest Tests (Unit + Feature)
 - Code Coverage Reports
 
-### 🚀 Deploy
-**Datei:** `.github/workflows/deploy.yml`  
-**Trigger:** Push auf `main` oder manuell
+### 🚀 Deploy to DEV
+**Datei:** `.github/workflows/deploy-dev.yml`  
+**Trigger:** Push auf `main` oder manuell  
+**Environment:** `development`  
+**Target:** https://dev.travelmap.koller.dk/
 
 **Pipeline:**
 ```
@@ -48,23 +50,65 @@ Tests → Build → Package → SFTP Upload → Post-Deploy
 **Schritte:**
 1. ✅ Tests ausführen
 2. 🔨 Production Assets bauen
-3. 📦 Deployment-Paket erstellen
-4. 📤 Upload zu all-inkl.com via SFTP
-5. ⚙️ Post-Deployment Commands:
+3. 📝 .env aus GitHub Secrets generieren
+4. 📦 Deployment-Paket erstellen (ZIP)
+5. 📤 Upload zur DEV-Umgebung via SFTP
+6. 🔓 Auf Server entpacken
+7. ⚙️ Post-Deployment Commands:
    - Berechtigungen setzen
    - Laravel Cache optimieren
    - Optional: Migrationen
 
-## Erforderliche Secrets
+### 🚀 Deploy to PROD
+**Datei:** `.github/workflows/deploy-prod.yml`  
+**Trigger:** Nur manuell  
+**Environment:** `production`  
+**Target:** https://travelmap.koller.dk/
 
-Für das Deployment müssen folgende Secrets konfiguriert werden:
+**Pipeline:**
+```
+Tests → Build → Package → SFTP Upload → Post-Deploy
+```
+
+**Schritte:**
+1. ✅ Tests ausführen
+2. 🔨 Production Assets bauen
+3. 📝 .env aus GitHub Secrets generieren
+4. 📦 Deployment-Paket erstellen (ZIP)
+5. 📤 Upload zur PROD-Umgebung via SFTP
+6. 🔓 Auf Server entpacken
+7. ⚙️ Post-Deployment Commands:
+   - Berechtigungen setzen
+   - Laravel Cache optimieren
+   - Optional: Migrationen
+
+**Wichtig:** PROD Deployments müssen immer manuell über GitHub Actions UI ausgelöst werden!
+
+## Erforderliche Secrets und Variables
+
+Für das Deployment müssen Secrets und Variables in GitHub Environments konfiguriert werden.
+
+**Siehe:** [GitHub Environments Setup Guide](./GITHUB-ENVIRONMENTS-SETUP.md)
+
+### DEV Environment (`development`)
+- Alle Secrets und Variables für dev.travelmap.koller.dk
+- APP_DEBUG=true
+- Separate Datenbank
+
+### PROD Environment (`production`)
+- Alle Secrets und Variables für travelmap.koller.dk
+- APP_DEBUG=false
+- Separate Datenbank
+
+### SSH/SFTP Secrets
+Entweder auf Repository-Ebene oder Environment-Ebene:
 
 | Secret | Beschreibung | Beispiel |
 |--------|--------------|----------|
-| `SFTP_HOST` | SSH-Hostname | `ssh.kasserver.com` |
-| `SFTP_USERNAME` | SSH-Benutzername | `kas123456` |
-| `SFTP_PASSWORD` | SSH-Passwort | `***` |
-| `SFTP_REMOTE_PATH` | Zielverzeichnis | `/www/htdocs/kas123456/public_html` |
+| `SSH_HOST` | SSH-Hostname | `ssh.kasserver.com` |
+| `SSH_USERNAME` | SSH-Benutzername | `w00b3df6` |
+| `SSH_PASSWORD` | SSH-Passwort | `***` |
+| `SSH_REMOTE_PATH` | Zielverzeichnis | `/www/htdocs/w00b3df6/dev.travelmap.koller.dk` |
 
 ## Workflow-Trigger
 
@@ -72,7 +116,7 @@ Für das Deployment müssen folgende Secrets konfiguriert werden:
 
 - **Push auf `main`**:
   - CI läuft (Lint, Tests, Build)
-  - Deploy läuft (nach erfolgreichen Tests)
+  - DEV Deploy läuft (nach erfolgreichen Tests)
 
 - **Pull Request auf `main`**:
   - CI läuft (Lint, Tests)
@@ -80,20 +124,26 @@ Für das Deployment müssen folgende Secrets konfiguriert werden:
 
 ### Manuell
 
-Alle Workflows können manuell gestartet werden:
+**DEV Deployment:**
+1. Gehe zu **Actions** → **Deploy to DEV**
+2. Klicke auf **Run workflow**
+3. Wähle Branch: `main`
+4. Klicke auf **Run workflow**
 
-1. Gehe zu **Actions**
-2. Wähle den Workflow
-3. Klicke auf **Run workflow**
-4. Wähle den Branch
-5. Klicke auf **Run workflow**
+**PROD Deployment:**
+1. Gehe zu **Actions** → **Deploy to PROD**
+2. Klicke auf **Run workflow**
+3. Wähle Branch: `main`
+4. Klicke auf **Run workflow**
+5. Warte auf Bestätigung/Genehmigung (falls konfiguriert)
 
 ## Branch-Strategie (GitHub Flow)
 
 ```
 ┌─────────────────────────────────────────┐
-│           main (Production)              │
-│    ✅ Tests  🚀 Auto-Deploy              │
+│           main (DEV-ready)               │
+│    ✅ Tests  🚀 Auto-Deploy to DEV       │
+│    🔐 Manual Deploy to PROD              │
 └─────────────────────────────────────────┘
            ↑               ↑
            │               │
