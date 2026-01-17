@@ -108,15 +108,13 @@ export function useMarkers({
             aiEnriched: boolean,
         ) => {
             try {
-                // Get marker from state
-                let markerToSave: MarkerData | undefined;
-                setMarkers((prev) => {
-                    markerToSave = prev.find((m) => m.id === id);
-                    return prev;
-                });
+                // Get current markers from state
+                const currentMarkers = markers;
+                const markerToSave = currentMarkers.find((m) => m.id === id);
 
                 if (!markerToSave) {
-                    console.error('Marker not found');
+                    console.error('Marker not found:', id);
+                    alert('Marker not found. Please try again.');
                     return;
                 }
 
@@ -203,7 +201,7 @@ export function useMarkers({
                 alert('Failed to save marker. Please try again.');
             }
         },
-        [selectedTripId, mapInstance, onMarkerClick],
+        [markers, selectedTripId, mapInstance, onMarkerClick],
     );
 
     const handleDeleteMarker = useCallback(

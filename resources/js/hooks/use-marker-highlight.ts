@@ -19,14 +19,22 @@ export function useMarkerHighlight({
     onMarkerClick,
 }: UseMarkerHighlightOptions) {
     const previousSelectedMarkerRef = useRef<string | null>(null);
+    const markersRef = useRef<MarkerData[]>(markers);
+
+    // Keep markersRef in sync with markers prop
+    useEffect(() => {
+        markersRef.current = markers;
+    }, [markers]);
 
     // Highlight selected marker effect
     useEffect(() => {
         if (!mapInstance) return;
 
+        const currentMarkers = markersRef.current;
+
         // Restore previous marker to its original appearance
         if (previousSelectedMarkerRef.current) {
-            const prevMarker = markers.find(
+            const prevMarker = currentMarkers.find(
                 (m) => m.id === previousSelectedMarkerRef.current,
             );
             if (prevMarker) {
@@ -56,7 +64,7 @@ export function useMarkerHighlight({
 
         // Highlight the currently selected marker
         if (selectedMarkerId) {
-            const selectedMarker = markers.find(
+            const selectedMarker = currentMarkers.find(
                 (m) => m.id === selectedMarkerId,
             );
             if (selectedMarker) {
@@ -86,5 +94,7 @@ export function useMarkerHighlight({
 
         // Update the ref for the next iteration
         previousSelectedMarkerRef.current = selectedMarkerId;
-    }, [selectedMarkerId, mapInstance, markers, onMarkerClick, onMarkerUpdated]);
+        // Only depend on selectedMarkerId and mapInstance
+        // markers are accessed via ref to avoid infinite loops
+    }, [selectedMarkerId, mapInstance, onMarkerUpdated, onMarkerClick]);
 }
