@@ -213,8 +213,16 @@ class UnsplashService
     public function getPhotoForMarker(string $markerName, ?string $markerType = null): ?array
     {
         // Build query with marker name and optional type
+        // Only include types that improve search results (exclude generic ones like "point_of_interest")
+        $specificeTypes = [
+            'hotel', 'restaurant', 'cafe', 'bar', 'museum', 'monument',
+            'castle', 'ruins', 'church', 'temple', 'mosque', 'park',
+            'garden', 'zoo', 'beach', 'shop', 'cinema', 'theatre',
+            'gallery', 'library', 'hospital', 'airport', 'train_station',
+        ];
+
         $query = $markerName;
-        if ($markerType && $markerType !== 'question' && $markerType !== 'tip') {
+        if ($markerType && in_array($markerType, $specificeTypes, true)) {
             $query .= ' '.$markerType;
         }
 
