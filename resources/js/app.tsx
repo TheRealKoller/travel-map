@@ -17,15 +17,7 @@ if (csrfToken) {
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 axios.defaults.headers.common['Accept'] = 'application/json';
 
-// Set base URL to /public/ to avoid 301 redirects on production servers
-// Only set if we're not in E2E test environment (which uses php artisan serve)
-// E2E tests run on localhost:8000 without /public/ prefix
-if (
-    !window.location.href.includes('127.0.0.1:8000') &&
-    !window.location.href.includes('localhost:8000')
-) {
-    axios.defaults.baseURL = '/public';
-}
+// Do not prefix axios baseURL so requests go to the app root (no /public)
 
 // Update CSRF token on every Inertia navigation
 router.on('navigate', (event) => {
