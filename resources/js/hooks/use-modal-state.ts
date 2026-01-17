@@ -5,9 +5,11 @@ import { useCallback, useReducer } from 'react';
 interface ModalState {
     isCreateTripModalOpen: boolean;
     isRenameTripModalOpen: boolean;
+    isDeleteTripDialogOpen: boolean;
     isCreateTourModalOpen: boolean;
     isDeleteTourDialogOpen: boolean;
     tripToRename: Trip | null;
+    tripToDelete: Trip | null;
     tourToDelete: Tour | null;
 }
 
@@ -16,6 +18,8 @@ type ModalAction =
     | { type: 'CLOSE_CREATE_TRIP' }
     | { type: 'OPEN_RENAME_TRIP'; trip: Trip }
     | { type: 'CLOSE_RENAME_TRIP' }
+    | { type: 'OPEN_DELETE_TRIP'; trip: Trip }
+    | { type: 'CLOSE_DELETE_TRIP' }
     | { type: 'OPEN_CREATE_TOUR' }
     | { type: 'CLOSE_CREATE_TOUR' }
     | { type: 'OPEN_DELETE_TOUR'; tour: Tour }
@@ -24,9 +28,11 @@ type ModalAction =
 const initialState: ModalState = {
     isCreateTripModalOpen: false,
     isRenameTripModalOpen: false,
+    isDeleteTripDialogOpen: false,
     isCreateTourModalOpen: false,
     isDeleteTourDialogOpen: false,
     tripToRename: null,
+    tripToDelete: null,
     tourToDelete: null,
 };
 
@@ -47,6 +53,18 @@ function modalReducer(state: ModalState, action: ModalAction): ModalState {
                 ...state,
                 isRenameTripModalOpen: false,
                 tripToRename: null,
+            };
+        case 'OPEN_DELETE_TRIP':
+            return {
+                ...state,
+                isDeleteTripDialogOpen: true,
+                tripToDelete: action.trip,
+            };
+        case 'CLOSE_DELETE_TRIP':
+            return {
+                ...state,
+                isDeleteTripDialogOpen: false,
+                tripToDelete: null,
             };
         case 'OPEN_CREATE_TOUR':
             return { ...state, isCreateTourModalOpen: true };
@@ -88,6 +106,14 @@ export function useModalState() {
         dispatch({ type: 'CLOSE_RENAME_TRIP' });
     }, []);
 
+    const openDeleteTripDialog = useCallback((trip: Trip) => {
+        dispatch({ type: 'OPEN_DELETE_TRIP', trip });
+    }, []);
+
+    const closeDeleteTripDialog = useCallback(() => {
+        dispatch({ type: 'CLOSE_DELETE_TRIP' });
+    }, []);
+
     const openCreateTourModal = useCallback(() => {
         dispatch({ type: 'OPEN_CREATE_TOUR' });
     }, []);
@@ -110,6 +136,8 @@ export function useModalState() {
         closeCreateTripModal,
         openRenameTripModal,
         closeRenameTripModal,
+        openDeleteTripDialog,
+        closeDeleteTripDialog,
         openCreateTourModal,
         closeCreateTourModal,
         openDeleteTourDialog,

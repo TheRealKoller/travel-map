@@ -11,6 +11,10 @@ interface MapContainerProps {
     onSelectTour: (tourId: number | null) => void;
     onCreateTour: () => void;
     onDeleteTour: (tourId: number) => void;
+    onSetViewport?: (
+        tripId: number,
+        viewport: { latitude: number; longitude: number; zoom: number },
+    ) => Promise<void>;
 }
 
 export function MapContainer({
@@ -22,6 +26,7 @@ export function MapContainer({
     onSelectTour,
     onCreateTour,
     onDeleteTour,
+    onSetViewport,
 }: MapContainerProps) {
     return (
         <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
@@ -34,6 +39,7 @@ export function MapContainer({
                 onSelectTour={onSelectTour}
                 onCreateTour={onCreateTour}
                 onDeleteTour={onDeleteTour}
+                onSetViewport={onSetViewport}
             />
         </div>
     );

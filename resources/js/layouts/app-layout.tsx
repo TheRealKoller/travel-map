@@ -11,6 +11,12 @@ interface AppLayoutProps {
     onSelectTrip?: (tripId: number) => void;
     onCreateTrip?: () => void;
     onRenameTrip?: (tripId: number) => void;
+    onDeleteTrip?: (tripId: number) => void;
+    onTripImageFetched?: (tripId: number, imageUrl: string) => void;
+    updateTripViewport?: (
+        tripId: number,
+        viewport: { latitude: number; longitude: number; zoom: number },
+    ) => Promise<Trip>;
 }
 
 export default ({
@@ -21,6 +27,9 @@ export default ({
     onSelectTrip,
     onCreateTrip,
     onRenameTrip,
+    onDeleteTrip,
+    onTripImageFetched,
+    updateTripViewport,
     ...props
 }: AppLayoutProps) => (
     <AppLayoutTemplate
@@ -30,6 +39,9 @@ export default ({
         onSelectTrip={onSelectTrip}
         onCreateTrip={onCreateTrip}
         onRenameTrip={onRenameTrip}
+        onDeleteTrip={onDeleteTrip}
+        onTripImageFetched={onTripImageFetched}
+        updateTripViewport={updateTripViewport}
         {...props}
     >
         {children}

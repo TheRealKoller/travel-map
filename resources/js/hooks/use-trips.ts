@@ -1,4 +1,5 @@
 import {
+    destroy as tripsDestroy,
     index as tripsIndex,
     store as tripsStore,
     update as tripsUpdate,
@@ -82,6 +83,81 @@ export function useTrips() {
         }
     }, []);
 
+    const deleteTrip = useCallback(
+        async (tripId: number) => {
+            setIsLoading(true);
+            setError(null);
+
+            try {
+                await axios.delete(tripsDestroy.url(tripId));
+                setTrips((prev) => prev.filter((t) => t.id !== tripId));
+
+                // If we deleted the selected trip, select the first remaining trip
+                if (selectedTripId === tripId) {
+                    const remainingTrips = trips.filter((t) => t.id !== tripId);
+                    setSelectedTripId(
+                        remainingTrips.length > 0 ? remainingTrips[0].id : null,
+                    );
+                }
+            } catch (err) {
+                const error =
+                    err instanceof Error
+                        ? err
+                        : new Error('Failed to delete trip');
+                setError(error);
+                console.error('Failed to delete trip:', error);
+                throw error;
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        [selectedTripId, trips],
+    );
+
+    const updateTripViewport = useCallback(
+        async (
+            tripId: number,
+            viewport: {
+                latitude: number;
+                longitude: number;
+                zoom: number;
+            },
+        ) => {
+            setIsLoading(true);
+            setError(null);
+
+            try {
+                const response = await axios.put<Trip>(
+                    tripsUpdate.url(tripId),
+                    {
+                        viewport_latitude: viewport.latitude,
+                        viewport_longitude: viewport.longitude,
+                        viewport_zoom: viewport.zoom,
+                    },
+                );
+                const updatedTrip = response.data;
+                setTrips((prev) =>
+                    prev.map((t) =>
+                        t.id === updatedTrip.id ? updatedTrip : t,
+                    ),
+                );
+
+                return updatedTrip;
+            } catch (err) {
+                const error =
+                    err instanceof Error
+                        ? err
+                        : new Error('Failed to update trip viewport');
+                setError(error);
+                console.error('Failed to update trip viewport:', error);
+                throw error;
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        [],
+    );
+
     useEffect(() => {
         loadTrips();
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -89,6 +165,7 @@ export function useTrips() {
 
     return {
         trips,
+        setTrips,
         selectedTripId,
         setSelectedTripId,
         isLoading,
@@ -96,5 +173,7 @@ export function useTrips() {
         loadTrips,
         createTrip,
         renameTrip,
+        deleteTrip,
+        updateTripViewport,
     } as const;
 }

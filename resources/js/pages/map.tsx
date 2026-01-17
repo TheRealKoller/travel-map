@@ -15,8 +15,16 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function MapPage() {
-    const { trips, selectedTripId, setSelectedTripId, createTrip, renameTrip } =
-        useTrips();
+    const {
+        trips,
+        setTrips,
+        selectedTripId,
+        setSelectedTripId,
+        createTrip,
+        renameTrip,
+        deleteTrip,
+        updateTripViewport,
+    } = useTrips();
 
     const {
         tours,
@@ -33,6 +41,8 @@ export default function MapPage() {
         closeCreateTripModal,
         openRenameTripModal,
         closeRenameTripModal,
+        openDeleteTripDialog,
+        closeDeleteTripDialog,
         openCreateTourModal,
         closeCreateTourModal,
         openDeleteTourDialog,
@@ -46,6 +56,15 @@ export default function MapPage() {
             return;
         }
         openRenameTripModal(trip);
+    };
+
+    const handleOpenDeleteTripDialog = (tripId: number) => {
+        const trip = trips.find((t) => t.id === tripId);
+        if (!trip) {
+            console.warn(`Trip with id ${tripId} not found`);
+            return;
+        }
+        openDeleteTripDialog(trip);
     };
 
     const handleOpenDeleteTourDialog = (tourId: number) => {
@@ -66,6 +85,11 @@ export default function MapPage() {
         await renameTrip(modalState.tripToRename, name);
     };
 
+    const handleDeleteTrip = async () => {
+        if (!modalState.tripToDelete) return;
+        await deleteTrip(modalState.tripToDelete.id);
+    };
+
     const handleCreateTour = async (name: string) => {
         await createTour(name);
     };
@@ -73,6 +97,21 @@ export default function MapPage() {
     const handleDeleteTour = async () => {
         if (!modalState.tourToDelete) return;
         await deleteTour(modalState.tourToDelete);
+    };
+
+    const handleTripImageFetched = (tripId: number, imageUrl: string) => {
+        setTrips((prev) =>
+            prev.map((t) =>
+                t.id === tripId ? { ...t, image_url: imageUrl } : t,
+            ),
+        );
+    };
+
+    const handleSetViewport = async (
+        tripId: number,
+        viewport: { latitude: number; longitude: number; zoom: number },
+    ) => {
+        await updateTripViewport(tripId, viewport);
     };
 
     return (
@@ -83,6 +122,9 @@ export default function MapPage() {
             onSelectTrip={setSelectedTripId}
             onCreateTrip={openCreateTripModal}
             onRenameTrip={handleOpenRenameModal}
+            onDeleteTrip={handleOpenDeleteTripDialog}
+            onTripImageFetched={handleTripImageFetched}
+            updateTripViewport={updateTripViewport}
         >
             <Head title="Map" />
             <MapContainer
@@ -94,20 +136,25 @@ export default function MapPage() {
                 onSelectTour={setSelectedTourId}
                 onCreateTour={openCreateTourModal}
                 onDeleteTour={handleOpenDeleteTourDialog}
+                onSetViewport={handleSetViewport}
             />
             <ModalManager
                 isCreateTripModalOpen={modalState.isCreateTripModalOpen}
                 isRenameTripModalOpen={modalState.isRenameTripModalOpen}
+                isDeleteTripDialogOpen={modalState.isDeleteTripDialogOpen}
                 isCreateTourModalOpen={modalState.isCreateTourModalOpen}
                 isDeleteTourDialogOpen={modalState.isDeleteTourDialogOpen}
                 tripToRename={modalState.tripToRename}
+                tripToDelete={modalState.tripToDelete}
                 tourToDelete={modalState.tourToDelete}
                 onCreateTripOpenChange={closeCreateTripModal}
                 onRenameTripOpenChange={closeRenameTripModal}
+                onDeleteTripOpenChange={closeDeleteTripDialog}
                 onCreateTourOpenChange={closeCreateTourModal}
                 onDeleteTourOpenChange={closeDeleteTourDialog}
                 onCreateTrip={handleCreateTrip}
                 onRenameTrip={handleRenameTrip}
+                onDeleteTrip={handleDeleteTrip}
                 onCreateTour={handleCreateTour}
                 onDeleteTour={handleDeleteTour}
             />
