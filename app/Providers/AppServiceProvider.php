@@ -15,6 +15,7 @@ class AppServiceProvider extends ServiceProvider
         // Register MapboxPlacesService with access token from config
         $this->app->singleton(\App\Services\MapboxPlacesService::class, function ($app) {
             $accessToken = config('services.mapbox.access_token');
+
             return new \App\Services\MapboxPlacesService(
                 accessToken: $accessToken ?: null
             );
