@@ -23,6 +23,9 @@ class UpdateTripRequest extends FormRequest
     {
         return [
             'name' => 'sometimes|string|max:255',
+            'viewport_latitude' => 'sometimes|nullable|numeric|between:-90,90',
+            'viewport_longitude' => 'sometimes|nullable|numeric|between:-180,180',
+            'viewport_zoom' => 'sometimes|nullable|numeric|between:0,22',
         ];
     }
 }

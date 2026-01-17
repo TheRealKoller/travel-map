@@ -14,6 +14,9 @@ class Trip extends Model
     protected $fillable = [
         'name',
         'image_url',
+        'viewport_latitude',
+        'viewport_longitude',
+        'viewport_zoom',
     ];
 
     public function user(): BelongsTo
