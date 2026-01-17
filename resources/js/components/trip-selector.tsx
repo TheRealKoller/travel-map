@@ -20,6 +20,7 @@ import {
     MoreHorizontal,
     Pencil,
     Plus,
+    Trash2,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -29,6 +30,7 @@ interface TripSelectorProps {
     onSelectTrip: (tripId: number) => void;
     onCreateTrip: () => void;
     onRenameTrip?: (tripId: number) => void;
+    onDeleteTrip?: (tripId: number) => void;
     onSetViewport?: (tripId: number) => void;
     onTripImageFetched?: (tripId: number, imageUrl: string) => void;
 }
@@ -39,6 +41,7 @@ export default function TripSelector({
     onSelectTrip,
     onCreateTrip,
     onRenameTrip,
+    onDeleteTrip,
     onSetViewport,
     onTripImageFetched,
 }: TripSelectorProps) {
@@ -171,6 +174,18 @@ export default function TripSelector({
                                 >
                                     <MapPin className="h-4 w-4" />
                                     Set map viewport
+                                </DropdownMenuItem>
+                            )}
+                            {onDeleteTrip && (
+                                <DropdownMenuItem
+                                    onClick={() =>
+                                        onDeleteTrip(selectedTripId)
+                                    }
+                                    data-testid="delete-trip-option"
+                                    className="text-red-600 focus:text-red-600"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                    Delete trip
                                 </DropdownMenuItem>
                             )}
                         </DropdownMenuContent>

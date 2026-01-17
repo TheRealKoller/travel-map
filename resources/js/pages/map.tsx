@@ -22,6 +22,7 @@ export default function MapPage() {
         setSelectedTripId,
         createTrip,
         renameTrip,
+        deleteTrip,
         updateTripViewport,
     } = useTrips();
 
@@ -40,6 +41,8 @@ export default function MapPage() {
         closeCreateTripModal,
         openRenameTripModal,
         closeRenameTripModal,
+        openDeleteTripDialog,
+        closeDeleteTripDialog,
         openCreateTourModal,
         closeCreateTourModal,
         openDeleteTourDialog,
@@ -53,6 +56,15 @@ export default function MapPage() {
             return;
         }
         openRenameTripModal(trip);
+    };
+
+    const handleOpenDeleteTripDialog = (tripId: number) => {
+        const trip = trips.find((t) => t.id === tripId);
+        if (!trip) {
+            console.warn(`Trip with id ${tripId} not found`);
+            return;
+        }
+        openDeleteTripDialog(trip);
     };
 
     const handleOpenDeleteTourDialog = (tourId: number) => {
@@ -71,6 +83,11 @@ export default function MapPage() {
     const handleRenameTrip = async (name: string) => {
         if (!modalState.tripToRename) return;
         await renameTrip(modalState.tripToRename, name);
+    };
+
+    const handleDeleteTrip = async () => {
+        if (!modalState.tripToDelete) return;
+        await deleteTrip(modalState.tripToDelete.id);
     };
 
     const handleCreateTour = async (name: string) => {
@@ -105,6 +122,7 @@ export default function MapPage() {
             onSelectTrip={setSelectedTripId}
             onCreateTrip={openCreateTripModal}
             onRenameTrip={handleOpenRenameModal}
+            onDeleteTrip={handleOpenDeleteTripDialog}
             onTripImageFetched={handleTripImageFetched}
             updateTripViewport={updateTripViewport}
         >
@@ -123,16 +141,20 @@ export default function MapPage() {
             <ModalManager
                 isCreateTripModalOpen={modalState.isCreateTripModalOpen}
                 isRenameTripModalOpen={modalState.isRenameTripModalOpen}
+                isDeleteTripDialogOpen={modalState.isDeleteTripDialogOpen}
                 isCreateTourModalOpen={modalState.isCreateTourModalOpen}
                 isDeleteTourDialogOpen={modalState.isDeleteTourDialogOpen}
                 tripToRename={modalState.tripToRename}
+                tripToDelete={modalState.tripToDelete}
                 tourToDelete={modalState.tourToDelete}
                 onCreateTripOpenChange={closeCreateTripModal}
                 onRenameTripOpenChange={closeRenameTripModal}
+                onDeleteTripOpenChange={closeDeleteTripDialog}
                 onCreateTourOpenChange={closeCreateTourModal}
                 onDeleteTourOpenChange={closeDeleteTourDialog}
                 onCreateTrip={handleCreateTrip}
                 onRenameTrip={handleRenameTrip}
+                onDeleteTrip={handleDeleteTrip}
                 onCreateTour={handleCreateTour}
                 onDeleteTour={handleDeleteTour}
             />

@@ -1,4 +1,5 @@
 import {
+    destroy as tripsDestroy,
     index as tripsIndex,
     store as tripsStore,
     update as tripsUpdate,
@@ -82,6 +83,41 @@ export function useTrips() {
         }
     }, []);
 
+    const deleteTrip = useCallback(
+        async (tripId: number) => {
+            setIsLoading(true);
+            setError(null);
+
+            try {
+                await axios.delete(tripsDestroy.url(tripId));
+                setTrips((prev) => prev.filter((t) => t.id !== tripId));
+
+                // If we deleted the selected trip, select the first remaining trip
+                if (selectedTripId === tripId) {
+                    const remainingTrips = trips.filter(
+                        (t) => t.id !== tripId,
+                    );
+                    setSelectedTripId(
+                        remainingTrips.length > 0
+                            ? remainingTrips[0].id
+                            : null,
+                    );
+                }
+            } catch (err) {
+                const error =
+                    err instanceof Error
+                        ? err
+                        : new Error('Failed to delete trip');
+                setError(error);
+                console.error('Failed to delete trip:', error);
+                throw error;
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        [selectedTripId, trips],
+    );
+
     const updateTripViewport = useCallback(
         async (
             tripId: number,
@@ -141,6 +177,7 @@ export function useTrips() {
         loadTrips,
         createTrip,
         renameTrip,
+        deleteTrip,
         updateTripViewport,
     } as const;
 }

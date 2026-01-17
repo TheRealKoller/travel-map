@@ -15,6 +15,7 @@ interface AppSidebarLayoutContentProps extends PropsWithChildren {
     onSelectTrip?: (tripId: number) => void;
     onCreateTrip?: () => void;
     onRenameTrip?: (tripId: number) => void;
+    onDeleteTrip?: (tripId: number) => void;
     onTripImageFetched?: (tripId: number, imageUrl: string) => void;
     updateTripViewport?: (
         tripId: number,
@@ -30,6 +31,7 @@ function AppSidebarLayoutContent({
     onSelectTrip,
     onCreateTrip,
     onRenameTrip,
+    onDeleteTrip,
     onTripImageFetched,
     updateTripViewport,
 }: AppSidebarLayoutContentProps) {
@@ -55,6 +57,7 @@ function AppSidebarLayoutContent({
                 onSelectTrip={onSelectTrip}
                 onCreateTrip={onCreateTrip}
                 onRenameTrip={onRenameTrip}
+                onDeleteTrip={onDeleteTrip}
                 onTripImageFetched={onTripImageFetched}
                 updateTripViewport={updateTripViewport}
             />
@@ -74,6 +77,7 @@ export default function AppSidebarLayout({
     onSelectTrip,
     onCreateTrip,
     onRenameTrip,
+    onDeleteTrip,
     onTripImageFetched,
     updateTripViewport,
 }: AppSidebarLayoutContentProps) {
@@ -86,6 +90,7 @@ export default function AppSidebarLayout({
                 onSelectTrip={onSelectTrip}
                 onCreateTrip={onCreateTrip}
                 onRenameTrip={onRenameTrip}
+                onDeleteTrip={onDeleteTrip}
                 onTripImageFetched={onTripImageFetched}
                 updateTripViewport={updateTripViewport}
             >
