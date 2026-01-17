@@ -106,3 +106,101 @@ test('unauthenticated user cannot access trip endpoints', function () {
     $this->putJson('/trips/1', ['name' => 'Test'])->assertStatus(401);
     $this->deleteJson('/trips/1')->assertStatus(401);
 });
+
+test('authenticated user can set viewport for their trip', function () {
+    $trip = Trip::factory()->create(['user_id' => $this->user->id]);
+
+    $response = $this->actingAs($this->user)->putJson("/trips/{$trip->id}", [
+        'viewport_latitude' => 47.3769,
+        'viewport_longitude' => 8.5417,
+        'viewport_zoom' => 12.5,
+    ]);
+
+    $response->assertStatus(200)
+        ->assertJsonFragment([
+            'viewport_latitude' => 47.3769,
+            'viewport_longitude' => 8.5417,
+            'viewport_zoom' => 12.5,
+        ]);
+
+    $this->assertDatabaseHas('trips', [
+        'id' => $trip->id,
+        'viewport_latitude' => 47.3769,
+        'viewport_longitude' => 8.5417,
+        'viewport_zoom' => 12.5,
+    ]);
+});
+
+test('viewport fields are optional when updating trip', function () {
+    $trip = Trip::factory()->create(['user_id' => $this->user->id]);
+
+    $response = $this->actingAs($this->user)->putJson("/trips/{$trip->id}", [
+        'name' => 'Just Rename',
+    ]);
+
+    $response->assertStatus(200)
+        ->assertJsonFragment(['name' => 'Just Rename']);
+});
+
+test('viewport latitude must be between -90 and 90', function () {
+    $trip = Trip::factory()->create(['user_id' => $this->user->id]);
+
+    $response = $this->actingAs($this->user)->putJson("/trips/{$trip->id}", [
+        'viewport_latitude' => 95,
+        'viewport_longitude' => 8.5417,
+        'viewport_zoom' => 12.5,
+    ]);
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['viewport_latitude']);
+});
+
+test('viewport longitude must be between -180 and 180', function () {
+    $trip = Trip::factory()->create(['user_id' => $this->user->id]);
+
+    $response = $this->actingAs($this->user)->putJson("/trips/{$trip->id}", [
+        'viewport_latitude' => 47.3769,
+        'viewport_longitude' => 185,
+        'viewport_zoom' => 12.5,
+    ]);
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['viewport_longitude']);
+});
+
+test('viewport zoom must be between 0 and 22', function () {
+    $trip = Trip::factory()->create(['user_id' => $this->user->id]);
+
+    $response = $this->actingAs($this->user)->putJson("/trips/{$trip->id}", [
+        'viewport_latitude' => 47.3769,
+        'viewport_longitude' => 8.5417,
+        'viewport_zoom' => 25,
+    ]);
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['viewport_zoom']);
+});
+
+test('viewport fields can be set to null', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'viewport_latitude' => 47.3769,
+        'viewport_longitude' => 8.5417,
+        'viewport_zoom' => 12.5,
+    ]);
+
+    $response = $this->actingAs($this->user)->putJson("/trips/{$trip->id}", [
+        'viewport_latitude' => null,
+        'viewport_longitude' => null,
+        'viewport_zoom' => null,
+    ]);
+
+    $response->assertStatus(200);
+
+    $this->assertDatabaseHas('trips', [
+        'id' => $trip->id,
+        'viewport_latitude' => null,
+        'viewport_longitude' => null,
+        'viewport_zoom' => null,
+    ]);
+});
