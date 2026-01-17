@@ -61,13 +61,28 @@ class LogViewerController extends Controller
         $logsDirectory = storage_path('logs');
 
         if (! is_dir($logsDirectory)) {
+            \Log::warning('Logs directory does not exist', ['path' => $logsDirectory]);
+
             return null;
         }
 
         // Get all Laravel log files (exclude browser.log and other non-Laravel logs)
         $files = glob($logsDirectory.DIRECTORY_SEPARATOR.'laravel*.log');
 
+        if ($files === false) {
+            \Log::error('glob() failed to read logs directory', ['path' => $logsDirectory]);
+
+            return null;
+        }
+
         if (empty($files)) {
+            // Try to list all files for debugging
+            $allFiles = scandir($logsDirectory);
+            \Log::warning('No laravel*.log files found in logs directory', [
+                'path' => $logsDirectory,
+                'all_files' => $allFiles,
+            ]);
+
             return null;
         }
 
