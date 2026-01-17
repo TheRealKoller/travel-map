@@ -3,9 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { getMarkerTypeIcon, UnescoIcon } from '@/lib/marker-icons';
 import { MarkerData } from '@/types/marker';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Image, Loader2 } from 'lucide-react';
 import { marked } from 'marked';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 interface MarkerListProps {
     markers: MarkerData[];
@@ -13,6 +13,7 @@ interface MarkerListProps {
     onSelectMarker: (id: string) => void;
     selectedTourId: number | null;
     onAddMarkerToTour?: (markerId: string) => void;
+    onMarkerImageFetched?: (markerId: string, imageUrl: string) => void;
 }
 
 interface MarkerItemProps {
@@ -21,6 +22,7 @@ interface MarkerItemProps {
     onSelect: (id: string) => void;
     showAddToTourButton: boolean;
     onAddToTour?: (markerId: string) => void;
+    onImageFetched?: (markerId: string, imageUrl: string) => void;
 }
 
 function MarkerItem({
@@ -29,7 +31,10 @@ function MarkerItem({
     onSelect,
     showAddToTourButton,
     onAddToTour,
+    onImageFetched,
 }: MarkerItemProps) {
+    const [loadingImage, setLoadingImage] = useState(false);
+
     // Configure marked
     useEffect(() => {
         marked.setOptions({
@@ -45,15 +50,72 @@ function MarkerItem({
         }
     };
 
+    const handleFetchImage = async (event: React.MouseEvent) => {
+        event.stopPropagation();
+
+        if (loadingImage) return;
+
+        setLoadingImage(true);
+
+        try {
+            const response = await fetch(
+                `/markers/${markerData.id}/fetch-image`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN':
+                            document
+                                .querySelector('meta[name="csrf-token"]')
+                                ?.getAttribute('content') || '',
+                    },
+                },
+            );
+
+            if (response.ok) {
+                const data = await response.json();
+
+                if (data.marker?.image_url && onImageFetched) {
+                    onImageFetched(markerData.id, data.marker.image_url);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch image:', error);
+        } finally {
+            setLoadingImage(false);
+        }
+    };
+
     return (
         <li
-            className={`flex items-start gap-1 rounded p-2 transition ${
+            className={`flex items-start gap-2 rounded p-2 transition ${
                 isSelected
                     ? 'border-2 border-blue-500 bg-blue-100'
                     : 'bg-gray-50 hover:bg-gray-100'
             }`}
             data-testid="marker-list-item"
         >
+            {markerData.imageUrl ? (
+                <img
+                    src={markerData.imageUrl}
+                    alt={markerData.name || 'Marker'}
+                    className="h-16 w-16 flex-shrink-0 rounded object-cover"
+                    loading="lazy"
+                />
+            ) : (
+                <button
+                    onClick={handleFetchImage}
+                    className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded bg-gray-200 transition-colors hover:bg-gray-300"
+                    title="Click to load image"
+                    disabled={loadingImage}
+                >
+                    {loadingImage ? (
+                        <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
+                    ) : (
+                        <Image className="h-6 w-6 text-gray-400" />
+                    )}
+                </button>
+            )}
             <div
                 className="flex-1 cursor-pointer"
                 onClick={() => onSelect(markerData.id)}
@@ -129,6 +191,7 @@ export default function MarkerList({
     onSelectMarker,
     selectedTourId,
     onAddMarkerToTour,
+    onMarkerImageFetched,
 }: MarkerListProps) {
     if (markers.length === 0) {
         return (
@@ -165,6 +228,7 @@ export default function MarkerList({
                         onSelect={onSelectMarker}
                         showAddToTourButton={showAddToTourButtons}
                         onAddToTour={onAddMarkerToTour}
+                        onImageFetched={onMarkerImageFetched}
                     />
                 ))}
             </ul>

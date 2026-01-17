@@ -50,4 +50,9 @@ return [
         'travel_recommendation_agent_id' => env('LECHAT_TRAVEL_RECOMMENDATION_AGENT_ID'),
     ],
 
+    'unsplash' => [
+        'access_key' => env('UNSPLASH_ACCESS_KEY'),
+        'utm_source' => env('UNSPLASH_UTM_SOURCE', env('APP_NAME', 'TravelMap')),
+    ],
+
 ];

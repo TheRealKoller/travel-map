@@ -82,6 +82,7 @@ export function useSearchResults({
                         type: markerType,
                         notes: '',
                         url: '',
+                        imageUrl: null,
                         isUnesco: false,
                         aiEnriched: false,
                         marker: newMarker,

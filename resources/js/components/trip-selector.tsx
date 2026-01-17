@@ -13,7 +13,8 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Trip } from '@/types/trip';
-import { MoreHorizontal, Pencil, Plus } from 'lucide-react';
+import { Image, Loader2, MoreHorizontal, Pencil, Plus } from 'lucide-react';
+import { useState } from 'react';
 
 interface TripSelectorProps {
     trips: Trip[];
@@ -21,6 +22,7 @@ interface TripSelectorProps {
     onSelectTrip: (tripId: number) => void;
     onCreateTrip: () => void;
     onRenameTrip?: (tripId: number) => void;
+    onTripImageFetched?: (tripId: number, imageUrl: string) => void;
 }
 
 export default function TripSelector({
@@ -29,7 +31,49 @@ export default function TripSelector({
     onSelectTrip,
     onCreateTrip,
     onRenameTrip,
+    onTripImageFetched,
 }: TripSelectorProps) {
+    const [loadingImages, setLoadingImages] = useState<Set<number>>(new Set());
+
+    const handleFetchImage = async (
+        tripId: number,
+        event: React.MouseEvent,
+    ) => {
+        event.stopPropagation();
+
+        if (loadingImages.has(tripId)) return;
+
+        setLoadingImages((prev) => new Set(prev).add(tripId));
+
+        try {
+            const response = await fetch(`/trips/${tripId}/fetch-image`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN':
+                        document
+                            .querySelector('meta[name="csrf-token"]')
+                            ?.getAttribute('content') || '',
+                },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (onTripImageFetched && data.trip?.image_url) {
+                    onTripImageFetched(tripId, data.trip.image_url);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch image:', error);
+        } finally {
+            setLoadingImages((prev) => {
+                const next = new Set(prev);
+                next.delete(tripId);
+                return next;
+            });
+        }
+    };
+
     return (
         <div className="flex flex-col gap-2 px-2 py-2">
             <div className="flex items-center gap-2">
@@ -53,7 +97,34 @@ export default function TripSelector({
                                 key={trip.id}
                                 value={trip.id.toString()}
                             >
-                                {trip.name}
+                                <div className="flex items-center gap-2">
+                                    {trip.image_url ? (
+                                        <img
+                                            src={trip.image_url}
+                                            alt={trip.name}
+                                            className="h-8 w-8 rounded object-cover"
+                                            loading="lazy"
+                                        />
+                                    ) : (
+                                        <button
+                                            onClick={(e) =>
+                                                handleFetchImage(trip.id, e)
+                                            }
+                                            className="flex h-8 w-8 items-center justify-center rounded bg-gray-200 transition-colors hover:bg-gray-300"
+                                            title="Click to load image"
+                                            disabled={loadingImages.has(
+                                                trip.id,
+                                            )}
+                                        >
+                                            {loadingImages.has(trip.id) ? (
+                                                <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
+                                            ) : (
+                                                <Image className="h-4 w-4 text-gray-400" />
+                                            )}
+                                        </button>
+                                    )}
+                                    <span>{trip.name}</span>
+                                </div>
                             </SelectItem>
                         ))}
                     </SelectContent>

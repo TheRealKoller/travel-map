@@ -26,7 +26,6 @@ This project follows the **GitHub Flow** branching strategy for a streamlined de
 - **[Mapbox Geocoder Feature](./docs/GEOCODER_FEATURE.md)** - Location search functionality documentation
 - **[Mapbox Migration Guide](./docs/MAPBOX_MIGRATION.md)** - Migration from Leaflet to Mapbox GL JS
 
-
 ### 🚀 Quick Start
 
 ```bash
@@ -52,6 +51,7 @@ This repository is configured with a custom environment for GitHub Copilot to au
 - Frontend asset building
 
 When GitHub Copilot starts working on an issue, it will automatically:
+
 1. Install PHP and Node.js dependencies
 2. Configure the Laravel environment
 3. Run database migrations
@@ -61,11 +61,11 @@ For detailed instructions and project conventions, see [`.github/copilot-instruc
 
 ## Features & Technology
 
-* **Icons**: [FontAwesome](https://fontawesome.com/search?o=r&ic=free&s=regular&ip=classic)
-* **Map Library**: [Mapbox GL JS](https://docs.mapbox.com/mapbox-gl-js/) (migrated from Leaflet)
-* **Location Search**: [Mapbox Geocoder](https://github.com/mapbox/mapbox-gl-geocoder)
-* **Frontend**: React 19 with TypeScript and Inertia.js
-* **Backend**: Laravel 12 with PHP 8.2+
+- **Icons**: [FontAwesome](https://fontawesome.com/search?o=r&ic=free&s=regular&ip=classic)
+- **Map Library**: [Mapbox GL JS](https://docs.mapbox.com/mapbox-gl-js/) (migrated from Leaflet)
+- **Location Search**: [Mapbox Geocoder](https://github.com/mapbox/mapbox-gl-geocoder)
+- **Frontend**: React 19 with TypeScript and Inertia.js
+- **Backend**: Laravel 12 with PHP 8.2+
 
 ## Requirements
 
@@ -120,14 +120,63 @@ php artisan key:generate
 php artisan migrate
 ```
 
-### 6. Build Frontend Assets
+### 6. Configure External Services (Optional)
+
+#### Mapbox (Required for map functionality)
+
+Get your Mapbox access token from [Mapbox Account](https://account.mapbox.com/):
+
+```
+MAPBOX_ACCESS_TOKEN=your_mapbox_token_here
+```
+
+#### Unsplash (Optional - for on-demand trip and marker images)
+
+Get your Unsplash access key from [Unsplash Developers](https://unsplash.com/developers):
+
+```
+UNSPLASH_ACCESS_KEY=your_unsplash_access_key_here
+UNSPLASH_UTM_SOURCE="${APP_NAME}"
+```
+
+**Features:**
+
+- On-demand image fetching for trips and markers (click placeholder to load)
+- Uses official Unsplash PHP wrapper for proper API compliance
+- Images are cached for 30 days to minimize API calls
+- Properly tracks downloads to increment photo views
+- Hotlinks images directly from Unsplash (as per API guidelines)
+- **Rate Limit:** 50 requests/hour (free tier)
+- Falls back to placeholder images if API is unavailable
+
+**Usage:**
+1. Click on the image placeholder icon for any trip or marker
+2. The application fetches a relevant image from Unsplash
+3. Image is displayed and cached for future use
+4. Photo views are tracked to benefit photographers
+
+**Note:** If you don't configure an Unsplash API key, the application will display clickable placeholder images. Configure the `UNSPLASH_UTM_SOURCE` to attribute traffic to your application (defaults to `APP_NAME`).
+
+#### Le Chat Agent (Optional - for AI-powered marker enrichment)
+
+Get your API key from [Mistral AI Console](https://console.mistral.ai/):
+
+```
+LECHAT_API_KEY=your_lechat_api_key_here
+LECHAT_MARKER_ENRICHMENT_AGENT_ID=your_agent_id_here
+LECHAT_TRAVEL_RECOMMENDATION_AGENT_ID=your_agent_id_here
+```
+
+### 7. Build Frontend Assets
 
 For development:
+
 ```bash
 npm run dev
 ```
 
 For production:
+
 ```bash
 npm run build
 ```
@@ -137,33 +186,36 @@ npm run build
 ### Development Mode
 
 1. **Start the Laravel development server** (in one terminal):
-   ```bash
-   php artisan serve
-   ```
+
+    ```bash
+    php artisan serve
+    ```
 
 2. **Start the Vite development server** (in another terminal):
-   ```bash
-   npm run dev
-   ```
+
+    ```bash
+    npm run dev
+    ```
 
 3. **Open your browser** and visit:
-   ```
-   http://localhost:8000
-   ```
+    ```
+    http://localhost:8000
+    ```
 
 ### Production Mode
 
 1. Build the frontend assets:
-   ```bash
-   npm run build
-   ```
+
+    ```bash
+    npm run build
+    ```
 
 2. Configure your web server (Apache/Nginx) to point to the `public` directory
 
 3. Ensure proper file permissions:
-   ```bash
-   chmod -R 775 storage bootstrap/cache
-   ```
+    ```bash
+    chmod -R 775 storage bootstrap/cache
+    ```
 
 ## Testing
 
@@ -184,6 +236,7 @@ Or using Pest directly:
 ## Contributing
 
 We welcome contributions! Please read our [Contributing Guide](./CONTRIBUTING.md) for details on:
+
 - Setting up your development environment
 - Our code of conduct
 - The pull request process
@@ -192,6 +245,7 @@ We welcome contributions! Please read our [Contributing Guide](./CONTRIBUTING.md
 ## Additional Commands
 
 ### Clear Application Cache
+
 ```bash
 php artisan cache:clear
 php artisan config:clear
@@ -200,6 +254,7 @@ php artisan view:clear
 ```
 
 ### Create Database Seeder Data
+
 ```bash
 php artisan db:seed
 ```

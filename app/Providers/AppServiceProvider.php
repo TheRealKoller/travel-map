@@ -14,8 +14,10 @@ class AppServiceProvider extends ServiceProvider
     {
         // Register MapboxPlacesService with access token from config
         $this->app->singleton(\App\Services\MapboxPlacesService::class, function ($app) {
+            $accessToken = config('services.mapbox.access_token');
+
             return new \App\Services\MapboxPlacesService(
-                accessToken: config('services.mapbox.access_token')
+                accessToken: $accessToken ?: null
             );
         });
 
@@ -32,6 +34,14 @@ class AppServiceProvider extends ServiceProvider
             return new \App\Services\TravelRecommendationAgentService(
                 apiKey: config('services.lechat.api_key'),
                 agentId: config('services.lechat.travel_recommendation_agent_id')
+            );
+        });
+
+        // Register UnsplashService with API credentials from config
+        $this->app->singleton(\App\Services\UnsplashService::class, function ($app) {
+            return new \App\Services\UnsplashService(
+                accessKey: config('services.unsplash.access_key'),
+                utmSource: config('services.unsplash.utm_source')
             );
         });
     }

@@ -86,5 +86,5 @@ export function useMarkerHighlight({
 
         // Update the ref for the next iteration
         previousSelectedMarkerRef.current = selectedMarkerId;
-    }, [selectedMarkerId, mapInstance, onMarkerUpdated, onMarkerClick, markers]);
+    }, [selectedMarkerId, mapInstance, markers, onMarkerClick, onMarkerUpdated]);
 }

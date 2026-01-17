@@ -26,6 +26,7 @@ export interface MarkerData {
     type: MarkerType;
     notes: string;
     url: string;
+    imageUrl: string | null;
     isUnesco: boolean;
     aiEnriched: boolean;
     marker: mapboxgl.Marker;

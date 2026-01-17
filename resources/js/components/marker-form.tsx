@@ -36,7 +36,8 @@ export default function MarkerForm({
     onToggleMarkerInTour,
 }: MarkerFormProps) {
     // Initialize local state from marker prop
-    // Using marker?.id as key in parent will cause re-mount when marker changes
+    // The key={selectedMarkerId} in parent ensures this component remounts with each new marker
+    // so we can safely initialize state here without worrying about updates
     const [name, setName] = useState(marker?.name || '');
     const [type, setType] = useState<MarkerType>(
         marker?.type || MarkerType.PointOfInterest,
@@ -48,14 +49,17 @@ export default function MarkerForm({
     const [isEnriching, setIsEnriching] = useState(false);
     const [enrichmentError, setEnrichmentError] = useState<string | null>(null);
 
-    // Define mdeOptions before any early returns to ensure hooks are called in consistent order
-    const mdeOptions = useMemo(() => {
-        // Configure marked to preserve line breaks
+    // Configure marked once globally
+    if (typeof window !== 'undefined' && !((window as Record<string, unknown>).__markedConfigured)) {
         marked.setOptions({
             breaks: true,
             gfm: true,
         });
+        (window as Record<string, unknown>).__markedConfigured = true;
+    }
 
+    // Define mdeOptions for SimpleMDE editor
+    const mdeOptions = useMemo(() => {
         type ToolbarButton =
             | 'bold'
             | 'italic'

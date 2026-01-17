@@ -118,6 +118,7 @@ export function useGeocoder({
                     type: defaultType,
                     notes: '',
                     url: '',
+                    imageUrl: null,
                     isUnesco: false,
                     aiEnriched: false,
                     marker: marker,

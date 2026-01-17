@@ -48,6 +48,7 @@ export function useMarkers({
                         type: MarkerType;
                         notes: string;
                         url: string;
+                        image_url: string | null;
                         is_unesco: boolean;
                         ai_enriched: boolean;
                     }) => {
@@ -75,6 +76,7 @@ export function useMarkers({
                             type: dbMarker.type,
                             notes: dbMarker.notes || '',
                             url: dbMarker.url || '',
+                            imageUrl: dbMarker.image_url || null,
                             isUnesco: dbMarker.is_unesco || false,
                             aiEnriched: dbMarker.ai_enriched || false,
                             marker: marker,
@@ -106,7 +108,13 @@ export function useMarkers({
             aiEnriched: boolean,
         ) => {
             try {
-                const markerToSave = markers.find((m) => m.id === id);
+                // Get marker from state
+                let markerToSave: MarkerData | undefined;
+                setMarkers((prev) => {
+                    markerToSave = prev.find((m) => m.id === id);
+                    return prev;
+                });
+
                 if (!markerToSave) {
                     console.error('Marker not found');
                     return;
@@ -157,35 +165,36 @@ export function useMarkers({
                 );
 
                 // Update marker popup and icon
-                const marker = markers.find((m) => m.id === id);
-                if (marker && mapInstance) {
-                    const mapboxMarker = marker.marker;
-                    const [lng, lat] = [marker.lng, marker.lat];
-                    const popup = new mapboxgl.Popup({ offset: 25 }).setText(
-                        name || 'Unnamed Location',
-                    );
-                    mapboxMarker.setPopup(popup);
+                setMarkers((prev) => {
+                    const marker = prev.find((m) => m.id === id);
+                    if (marker && mapInstance) {
+                        const mapboxMarker = marker.marker;
+                        const [lng, lat] = [marker.lng, marker.lat];
+                        const popup = new mapboxgl.Popup({
+                            offset: 25,
+                        }).setText(name || 'Unnamed Location');
+                        mapboxMarker.setPopup(popup);
 
-                    // Update marker icon if type changed
-                    const el = createMarkerElement(type);
-                    el.addEventListener('click', () => {
-                        onMarkerClick(id);
-                    });
+                        // Update marker icon if type changed
+                        const el = createMarkerElement(type);
+                        el.addEventListener('click', () => {
+                            onMarkerClick(id);
+                        });
 
-                    // Remove and recreate marker with new element
-                    mapboxMarker.remove();
-                    const newMarker = new mapboxgl.Marker(el)
-                        .setLngLat([lng, lat])
-                        .setPopup(popup)
-                        .addTo(mapInstance);
+                        // Remove and recreate marker with new element
+                        mapboxMarker.remove();
+                        const newMarker = new mapboxgl.Marker(el)
+                            .setLngLat([lng, lat])
+                            .setPopup(popup)
+                            .addTo(mapInstance);
 
-                    // Update the marker reference in state
-                    setMarkers((prev) =>
-                        prev.map((m) =>
+                        // Update the marker reference in state
+                        return prev.map((m) =>
                             m.id === id ? { ...m, marker: newMarker } : m,
-                        ),
-                    );
-                }
+                        );
+                    }
+                    return prev;
+                });
 
                 // Close the form
                 setSelectedMarkerId(null);
@@ -194,20 +203,23 @@ export function useMarkers({
                 alert('Failed to save marker. Please try again.');
             }
         },
-        [markers, selectedTripId, mapInstance, onMarkerClick],
+        [selectedTripId, mapInstance, onMarkerClick],
     );
 
     const handleDeleteMarker = useCallback(
         async (id: string) => {
             try {
                 // First, get the marker and remove it from map before API call
-                const marker = markers.find((m) => m.id === id);
-                if (marker) {
-                    const mapboxMarker = marker.marker;
-                    if (mapboxMarker) {
-                        mapboxMarker.remove();
+                setMarkers((prev) => {
+                    const marker = prev.find((m) => m.id === id);
+                    if (marker) {
+                        const mapboxMarker = marker.marker;
+                        if (mapboxMarker) {
+                            mapboxMarker.remove();
+                        }
                     }
-                }
+                    return prev;
+                });
 
                 // Then call API
                 await axios.delete(`/markers/${id}`);
@@ -224,33 +236,37 @@ export function useMarkers({
                 alert('Failed to delete marker. Please try again.');
 
                 // Re-add marker to map if deletion failed
-                const marker = markers.find((m) => m.id === id);
-                if (marker && mapInstance) {
-                    marker.marker.addTo(mapInstance);
-                }
+                setMarkers((prev) => {
+                    const marker = prev.find((m) => m.id === id);
+                    if (marker && mapInstance) {
+                        marker.marker.addTo(mapInstance);
+                    }
+                    return prev;
+                });
             }
         },
-        [markers, selectedMarkerId, mapInstance],
+        [selectedMarkerId, mapInstance],
     );
 
     const handleCloseForm = useCallback(() => {
         // If closing an unsaved marker, remove it from the map and state
         if (selectedMarkerId) {
-            const marker = markers.find((m) => m.id === selectedMarkerId);
-            if (marker && !marker.isSaved) {
-                // Remove marker from map
-                const mapboxMarker = marker.marker;
-                if (mapboxMarker) {
-                    mapboxMarker.remove();
+            setMarkers((prev) => {
+                const marker = prev.find((m) => m.id === selectedMarkerId);
+                if (marker && !marker.isSaved) {
+                    // Remove marker from map
+                    const mapboxMarker = marker.marker;
+                    if (mapboxMarker) {
+                        mapboxMarker.remove();
+                    }
+                    // Remove from state
+                    return prev.filter((m) => m.id !== selectedMarkerId);
                 }
-                // Remove from state
-                setMarkers((prev) =>
-                    prev.filter((m) => m.id !== selectedMarkerId),
-                );
-            }
+                return prev;
+            });
         }
         setSelectedMarkerId(null);
-    }, [selectedMarkerId, markers]);
+    }, [selectedMarkerId]);
 
     const addMarker = useCallback((marker: MarkerData) => {
         setMarkers((prev) => [...prev, marker]);
