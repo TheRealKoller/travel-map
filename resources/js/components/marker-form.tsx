@@ -50,12 +50,12 @@ export default function MarkerForm({
     const [enrichmentError, setEnrichmentError] = useState<string | null>(null);
 
     // Configure marked once globally
-    if (typeof window !== 'undefined' && !(window as any).__markedConfigured) {
+    if (typeof window !== 'undefined' && !((window as Record<string, unknown>).__markedConfigured)) {
         marked.setOptions({
             breaks: true,
             gfm: true,
         });
-        (window as any).__markedConfigured = true;
+        (window as Record<string, unknown>).__markedConfigured = true;
     }
 
     // Define mdeOptions for SimpleMDE editor
