@@ -48,6 +48,7 @@ export function useMarkers({
                         type: MarkerType;
                         notes: string;
                         url: string;
+                        image_url: string | null;
                         is_unesco: boolean;
                         ai_enriched: boolean;
                     }) => {
@@ -75,6 +76,7 @@ export function useMarkers({
                             type: dbMarker.type,
                             notes: dbMarker.notes || '',
                             url: dbMarker.url || '',
+                            imageUrl: dbMarker.image_url || null,
                             isUnesco: dbMarker.is_unesco || false,
                             aiEnriched: dbMarker.ai_enriched || false,
                             marker: marker,

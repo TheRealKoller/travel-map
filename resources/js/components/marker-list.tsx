@@ -74,7 +74,7 @@ function MarkerItem({
 
             if (response.ok) {
                 const data = await response.json();
-                
+
                 if (data.marker?.image_url && onImageFetched) {
                     onImageFetched(markerData.id, data.marker.image_url);
                 }

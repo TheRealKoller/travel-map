@@ -315,10 +315,8 @@ export default function TravelMap({
                             onAddMarkerToTour={handleAddMarkerToTour}
                             onMarkerImageFetched={(markerId, imageUrl) => {
                                 // Update markers state directly with the new imageUrl
-                                const updatedMarkers = markers.map(m => 
-                                    m.id === markerId 
-                                        ? { ...m, imageUrl } 
-                                        : m
+                                const updatedMarkers = markers.map((m) =>
+                                    m.id === markerId ? { ...m, imageUrl } : m,
                                 );
                                 // Force update by creating a new array reference
                                 setMarkers([...updatedMarkers]);
