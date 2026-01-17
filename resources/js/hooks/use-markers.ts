@@ -118,13 +118,6 @@ export function useMarkers({
                     return;
                 }
 
-                console.log('[markers] saving marker', {
-                    id,
-                    isSaved: markerToSave.isSaved,
-                    lat: markerToSave.lat,
-                    lng: markerToSave.lng,
-                });
-
                 if (markerToSave.isSaved) {
                     // Update existing marker in database
                     await axios.put(`/markers/${id}`, {
@@ -155,7 +148,10 @@ export function useMarkers({
                 setMarkers((prev) => {
                     const marker = prev.find((m) => m.id === id);
                     if (!marker) {
-                        console.error('[handleSaveMarker] marker not found in state during save', { id });
+                        console.error(
+                            '[handleSaveMarker] marker not found in state during save',
+                            { id },
+                        );
                         return prev;
                     }
 
@@ -163,39 +159,29 @@ export function useMarkers({
                     // The marker is already on the map (either from addMarker or from highlighting)
                     // We just need to update the marker's data and popup
                     const mapboxMarker = marker.marker;
-                    
+
                     if (mapInstance && mapboxMarker) {
-                        console.log('[markers] updating marker on map', {
-                            id,
-                        });
-                        
                         // Update the popup text
                         const popup = new mapboxgl.Popup({
                             offset: 25,
                         }).setText(name || 'Unnamed Location');
                         mapboxMarker.setPopup(popup);
-                        
+
                         // If type changed, we need to rebuild the marker element
                         if (type !== marker.type) {
-                            console.log('[markers] marker type changed, rebuilding', {
-                                id,
-                                oldType: marker.type,
-                                newType: type,
-                            });
-                            
                             const el = createMarkerElement(type);
                             el.addEventListener('click', (clickEvent) => {
                                 clickEvent.stopPropagation();
                                 onMarkerClick(id);
                             });
-                            
+
                             // Remove old marker and create new one
                             mapboxMarker.remove();
                             const newMarker = new mapboxgl.Marker(el)
                                 .setLngLat([marker.lng, marker.lat])
                                 .setPopup(popup)
                                 .addTo(mapInstance);
-                            
+
                             return prev.map((m) =>
                                 m.id === id
                                     ? {
@@ -215,11 +201,6 @@ export function useMarkers({
                     }
 
                     // Just update the marker data without touching the map
-                    console.log('[markers] marker saved', {
-                        id,
-                        totalMarkers: prev.length,
-                    });
-                    
                     return prev.map((m) =>
                         m.id === id
                             ? {
@@ -249,12 +230,8 @@ export function useMarkers({
     const handleDeleteMarker = useCallback(
         async (id: string) => {
             try {
-                console.log('[markers] deleting marker', { id });
-
                 // First call API to delete from database
                 await axios.delete(`/markers/${id}`);
-
-                console.log('[markers] marker deleted from DB, removing from state', { id });
 
                 // Remove from map and state in one operation
                 setMarkers((prev) => {
@@ -265,9 +242,7 @@ export function useMarkers({
                             mapboxMarker.remove();
                         }
                     }
-                    const result = prev.filter((m) => m.id !== id);
-                    console.log('[markers] removed from state and map', { id, remaining: result.length });
-                    return result;
+                    return prev.filter((m) => m.id !== id);
                 });
 
                 // Clear selection if deleted marker was selected

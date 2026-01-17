@@ -32,14 +32,12 @@ export function useMarkerHighlight({
 
         const currentMarkers = markersRef.current;
 
-
         // Restore previous marker to its original appearance
         if (previousSelectedMarkerRef.current) {
             const prevMarker = currentMarkers.find(
                 (m) => m.id === previousSelectedMarkerRef.current,
             );
             if (prevMarker) {
-
                 const mapboxMarker = prevMarker.marker;
                 const [lng, lat] = [prevMarker.lng, prevMarker.lat];
                 const el = createMarkerElement(prevMarker.type, false);
@@ -71,7 +69,6 @@ export function useMarkerHighlight({
                 (m) => m.id === selectedMarkerId,
             );
             if (selectedMarker) {
-
                 const mapboxMarker = selectedMarker.marker;
                 const [lng, lat] = [selectedMarker.lng, selectedMarker.lat];
                 const el = createMarkerElement(selectedMarker.type, true);
