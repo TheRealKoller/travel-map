@@ -311,7 +311,10 @@ export default function TravelMap({
             trip &&
             trip.viewport_latitude !== null &&
             trip.viewport_longitude !== null &&
-            trip.viewport_zoom !== null
+            trip.viewport_zoom !== null &&
+            !isNaN(trip.viewport_latitude) &&
+            !isNaN(trip.viewport_longitude) &&
+            !isNaN(trip.viewport_zoom)
         ) {
             mapInstance.flyTo({
                 center: [trip.viewport_longitude, trip.viewport_latitude],
