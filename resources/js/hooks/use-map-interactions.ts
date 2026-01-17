@@ -331,8 +331,8 @@ export function useMapInteractions({
                 const target = feat.target as { featuresetId?: string };
                 return (
                     target?.featuresetId === 'poi' ||
-                    target?.featuresetId === 'place_label' ||
-                    target?.featuresetId === 'landmark'
+                    target?.featuresetId === 'place-labels' ||
+                    target?.featuresetId === 'landmark-icons'
                 );
             });
 
