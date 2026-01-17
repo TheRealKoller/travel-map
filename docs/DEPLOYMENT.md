@@ -2,16 +2,33 @@
 
 ## 📋 Übersicht
 
-Dieses Projekt verwendet **GitHub Flow** als Branching-Strategie:
-- **`main` Branch** = Produktionsumgebung (automatisches Deployment nach erfolgreichem Merge)
+Dieses Projekt verwendet **GitHub Flow** als Branching-Strategie mit zwei separaten Deployment-Umgebungen:
+
+### Umgebungen
+
+- **DEV (Development)**: https://dev.travelmap.koller.dk/
+  - **`main` Branch** → automatisches DEV-Deployment (nach erfolgreichem Merge)
+  - Für Tests und Entwicklung
+  - Deployment erfolgt bei jedem Push auf `main`
+  
+- **PROD (Production)**: https://travelmap.koller.dk/
+  - Nur **manuelles Deployment** über GitHub Actions
+  - Für Live-Betrieb
+  - Deployment muss explizit ausgelöst werden
+
+### Workflow
+
 - **Feature-Branches** für Entwicklung (z.B. `feature/neue-funktion`)
 - **Pull Requests** für Code-Reviews und Qualitätssicherung
-- **Automatisches Deployment** bei Push auf `main` (nur wenn alle Tests bestehen)
+- **Automatisches DEV-Deployment** bei Push auf `main` (nur wenn alle Tests bestehen)
+- **Manuelles PROD-Deployment** über GitHub Actions Interface
 
 ## 🚀 Workflow
 
 ```
-Feature Branch → Pull Request → Code Review → Tests → Merge → Deployment
+Feature Branch → Pull Request → Code Review → Tests → Merge → DEV Deployment
+                                                              ↓
+                                                    (Manuell) PROD Deployment
 ```
 
 ## ⚡ Deployment-Optimierung
@@ -30,55 +47,64 @@ Das Deployment verwendet ein **ZIP-basiertes Verfahren** für maximale Upload-Ge
   5. .env-Datei wird automatisch wiederhergestellt
   6. Berechtigungen gesetzt und Caches optimiert
 
-## 1️⃣ GitHub Secrets einrichten
+## 1️⃣ GitHub Secrets und Environments einrichten
 
-### Application Secrets (Environment Variables)
+### Environment-basierte Konfiguration
 
-Die Anwendung verwendet GitHub Secrets zur sicheren Verwaltung aller Umgebungsvariablen. Die `.env` Datei wird automatisch während des Deployments aus den GitHub Secrets generiert.
+Die Anwendung verwendet GitHub Environments (DEV und PROD) zur Verwaltung von Umgebungsvariablen. Jedes Environment hat seine eigenen Secrets und Variables. Die `.env` Datei wird automatisch während des Deployments aus den GitHub Secrets und Variables generiert.
 
-**📖 Dokumentation:**
-- **[Schnellstart](SECRETS-SETUP-QUICK-START.md)** - Kurzanleitung für Setup (empfohlen für Ersteinrichtung)
-- **[Vollständige Dokumentation](GITHUB-SECRETS.md)** - Detaillierte Beschreibung aller Secrets
+**📖 Vollständige Dokumentation:**
+- **[GitHub Environments Setup Guide](GITHUB-ENVIRONMENTS-SETUP.md)** - **HAUPTDOKUMENTATION** für DEV/PROD Setup (empfohlen)
+- [Schnellstart für alte Single-Environment Setup](SECRETS-SETUP-QUICK-START.md) - Legacy-Dokumentation
+- [Vollständige Secrets Dokumentation](GITHUB-SECRETS.md) - Detaillierte Beschreibung aller Secrets
 
-**Wichtigste Secrets:**
-- `APP_KEY` - Laravel Verschlüsselungsschlüssel (mit `php artisan key:generate --show` generieren)
-- `DB_*` - Datenbank-Credentials (Connection, Host, Database, Username, Password)
-- `MAIL_*` - E-Mail-Server Konfiguration
-- **Insgesamt ca. 44 Secrets** müssen konfiguriert werden (siehe Schnellstart-Guide)
+**Wichtigste Punkte:**
+- **Zwei separate Environments**: `development` und `production`
+- Jedes Environment hat eigene Secrets und Variables
+- `APP_KEY` muss für jedes Environment unterschiedlich sein
+- DEV verwendet `APP_DEBUG=true`, PROD verwendet `APP_DEBUG=false`
+- **Insgesamt ca. 44 Secrets/Variables** pro Environment (siehe Setup Guide)
 
 ### Deployment Secrets (SFTP/SSH)
 
-Gehe zu: **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
+Die SSH/SFTP Secrets müssen entweder auf Repository-Ebene (wenn beide Environments auf demselben Server liegen) oder auf Environment-Ebene (wenn separate Server verwendet werden) konfiguriert werden.
 
-| Secret Name | Beispielwert | Wo zu finden |
-|-------------|--------------|--------------|
-| `SSH_HOST` | `ssh.kasserver.com` | KAS → SSH-Zugang |
-| `SSH_USERNAME` | `kas123456` | KAS → SSH-Zugang |
-| `SSH_PASSWORD` | `dein-passwort` | KAS → SSH-Zugang |
-| `SSH_REMOTE_PATH` | `/www/htdocs/kas123456/public_html` | Dein Zielverzeichnis |
+**Siehe: [GitHub Environments Setup Guide](GITHUB-ENVIRONMENTS-SETUP.md)** für detaillierte Anweisungen.
 
-### Optional: Environment erstellen
+**Kurzfassung - Gleicher Server:**
+- Repository Secrets: `SSH_HOST`, `SSH_USERNAME`, `SSH_PASSWORD`, `SFTP_SSH_PRIVATE_KEY`
+- DEV Environment Secret: `SSH_REMOTE_PATH` = `/www/htdocs/w00b3df6/dev.travelmap.koller.dk`
+- PROD Environment Secret: `SSH_REMOTE_PATH` = `/www/htdocs/w00b3df6/travelmap.koller.dk`
 
-Für bessere Organisation kannst du ein "production" Environment erstellen:
-
-1. **Settings** → **Environments** → **New environment**
-2. Name: `production`
-3. Füge die Secrets dem Environment hinzu
-4. Optional: Aktiviere "Required reviewers" für zusätzliche Sicherheit
+**Kurzfassung - Unterschiedliche Server:**
+- Alle SSH-Secrets als Environment Secrets in jedem Environment separat konfigurieren
 
 ## 2️⃣ Server vorbereiten (einmalig)
 
 ### SSH-Verbindung testen
 
 ```bash
-ssh kas123456@ssh.kasserver.com
+ssh dein_user@ssh.kasserver.com
 ```
 
 ### Verzeichnisstruktur erstellen
 
+**DEV Server:**
 ```bash
-# Hauptverzeichnis
-cd /www/htdocs/kas123456/public_html
+cd /www/htdocs/dein_user/dev.travelmap.koller.dk
+
+# Storage-Verzeichnisse
+mkdir -p storage/{app,framework/{cache,sessions,views},logs}
+mkdir -p bootstrap/cache
+
+# Berechtigungen setzen
+chmod -R 755 storage
+chmod -R 755 bootstrap/cache
+```
+
+**PROD Server:**
+```bash
+cd /www/htdocs/dein_user/travelmap.koller.dk
 
 # Storage-Verzeichnisse
 mkdir -p storage/{app,framework/{cache,sessions,views},logs}
@@ -143,13 +169,31 @@ Speichern: `CTRL+O`, `ENTER`, `CTRL+X`
 ### Datenbank erstellen
 
 1. Im **KAS**: **MySQL-Datenbanken** → **Neue Datenbank**
-2. Notiere: Datenbankname, User, Passwort
-3. Trage die Daten in `.env` ein
+2. Erstelle zwei separate Datenbanken:
+   - **DEV**: z.B. `dev_travelmap_db` mit User `dev_db_user`
+   - **PROD**: z.B. `prod_travelmap_db` mit User `prod_db_user`
+3. Notiere: Datenbankname, User, Passwort für beide Umgebungen
+4. Trage die Daten in die entsprechenden GitHub Environment Variables ein (siehe [Setup Guide](GITHUB-ENVIRONMENTS-SETUP.md))
 
 ### Domain-Konfiguration
 
+**DEV Domain: dev.travelmap.koller.dk**
+
 **Option A: Domain direkt auf `public` zeigen lassen**
-- Im KAS: Domain-Verwaltung → Dokumentenpfad: `/www/htdocs/kas123456/public_html/public`
+- Im KAS: Domain-Verwaltung → Dokumentenpfad: `/www/htdocs/dein_user/dev.travelmap.koller.dk/public`
+
+**Option B: .htaccess Rewrite**
+```apache
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+```
+
+**PROD Domain: travelmap.koller.dk**
+
+**Option A: Domain direkt auf `public` zeigen lassen**
+- Im KAS: Domain-Verwaltung → Dokumentenpfad: `/www/htdocs/dein_user/travelmap.koller.dk/public`
 
 **Option B: .htaccess Rewrite**
 ```apache
@@ -161,13 +205,46 @@ Speichern: `CTRL+O`, `ENTER`, `CTRL+X`
 
 ## 3️⃣ Erstes Deployment
 
-### Nach dem ersten Deployment via SSH:
+### DEV Deployment (automatisch)
+
+Push eine Änderung auf den `main` Branch:
 
 ```bash
-cd /www/htdocs/kas123456/public_html
+git checkout main
+git pull origin main
+# Mache eine kleine Änderung
+git add .
+git commit -m "Trigger DEV deployment"
+git push origin main
+```
 
-# APP_KEY generieren
-php artisan key:generate
+Überprüfe den Deployment-Status unter **Actions** → **Deploy to DEV**
+
+### Nach dem ersten DEV Deployment via SSH:
+
+```bash
+cd /www/htdocs/dein_user/dev.travelmap.koller.dk
+
+# Datenbank migrieren
+php artisan migrate --force
+
+# Cache optimieren
+php artisan optimize
+```
+
+### PROD Deployment (manuell)
+
+1. Gehe zu **Actions** → **Deploy to PROD**
+2. Klicke auf **Run workflow**
+3. Wähle Branch: `main`
+4. Klicke auf **Run workflow**
+
+Überprüfe den Deployment-Status in den Actions Logs.
+
+### Nach dem ersten PROD Deployment via SSH:
+
+```bash
+cd /www/htdocs/dein_user/travelmap.koller.dk
 
 # Datenbank migrieren
 php artisan migrate --force
@@ -202,23 +279,32 @@ git push origin feature/meine-neue-funktion
 6. Optional: Request Review
 7. Nach erfolgreichen Tests: **Merge pull request**
 
-### Automatisches Deployment
+### Automatisches DEV Deployment
 
 Nach dem Merge in `main`:
 1. ✅ Tests laufen automatisch
 2. 🔨 Assets werden gebaut
 3. 📦 Deployment-Paket wird erstellt
-4. 🚀 Upload zu all-inkl.com via SFTP
+4. 🚀 Upload zur DEV-Umgebung via SFTP
 5. ⚙️ Post-Deployment Commands (Cache, Permissions)
-6. ✅ Deployment abgeschlossen
+6. ✅ DEV Deployment abgeschlossen
+7. 🌐 Verfügbar unter: https://dev.travelmap.koller.dk/
 
-## 5️⃣ Manuelles Deployment
+## 5️⃣ PROD Deployment (Manuell)
 
-Falls du manuell deployen möchtest:
+PROD Deployments müssen immer manuell ausgelöst werden:
 
-1. **Actions** → **Deploy to Production**
-2. **Run workflow** → Branch: `main`
+1. **Actions** → **Deploy to PROD**
+2. **Run workflow** → Branch: `main` (oder ein anderer Branch wenn nötig)
 3. **Run workflow**
+4. Warte auf erfolgreichen Deployment
+5. 🌐 Verfügbar unter: https://travelmap.koller.dk/
+
+**Wichtig:** 
+- PROD wird NIE automatisch deployed
+- Du musst den Workflow manuell auslösen
+- Stelle sicher, dass alle Tests auf dem Branch bestehen
+- Teste die Änderungen zuerst auf DEV
 
 ## 6️⃣ Nach jedem Deployment
 
@@ -226,9 +312,17 @@ Falls du manuell deployen möchtest:
 
 Wenn DB-Änderungen vorhanden sind:
 
+**DEV:**
 ```bash
-ssh ssh-w00b3df6@w00b3df6.kasserver.com
-cd /www/htdocs/w00b3df6/dev.travelmap.koller.dk
+ssh dein_user@ssh.kasserver.com
+cd /www/htdocs/dein_user/dev.travelmap.koller.dk
+php artisan migrate --force
+```
+
+**PROD:**
+```bash
+ssh dein_user@ssh.kasserver.com
+cd /www/htdocs/dein_user/travelmap.koller.dk
 php artisan migrate --force
 ```
 
@@ -303,11 +397,25 @@ git push
 - **Tests**: Unit, Feature und E2E Tests
 - **Build**: Asset-Kompilierung
 
-### Deploy Workflow (nur bei Push auf main)
+### DEV Deploy Workflow (automatisch bei Push auf main)
+- Trigger: Automatisch bei Push auf `main` oder manuell
+- Environment: `development`
+- Target: https://dev.travelmap.koller.dk/
 - Führt zuerst Tests aus
 - Baut Production Assets
 - Erstellt Deployment-Paket (ZIP-Archiv für schnellen Upload)
-- Upload via SFTP (einzelne ZIP-Datei statt tausender Einzeldateien)
+- Upload via SFTP zur DEV-Umgebung
+- Entpackt und richtet Deployment auf dem Server ein
+- Post-Deployment Commands (Berechtigungen, Cache-Optimierung)
+
+### PROD Deploy Workflow (nur manuell)
+- Trigger: Nur manuell über GitHub Actions Interface
+- Environment: `production`
+- Target: https://travelmap.koller.dk/
+- Führt zuerst Tests aus
+- Baut Production Assets
+- Erstellt Deployment-Paket (ZIP-Archiv für schnellen Upload)
+- Upload via SFTP zur PROD-Umgebung
 - Entpackt und richtet Deployment auf dem Server ein
 - Post-Deployment Commands (Berechtigungen, Cache-Optimierung)
 

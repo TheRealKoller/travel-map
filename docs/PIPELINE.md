@@ -75,9 +75,30 @@ This document provides a visual overview of the CI/CD pipeline implemented for t
                            │
                            ▼
         ╔═════════════════════════════════════╗
-        ║   Deploy Workflow (Automatic)       ║
+        ║  DEV Deploy Workflow (Automatic)    ║
         ╠═════════════════════════════════════╣
-        ║ • Deploy to production               ║
+        ║ • Deploy to DEV environment          ║
+        ║ • URL: dev.travelmap.koller.dk       ║
+        ║ • Run migrations                     ║
+        ║ • Clear caches                       ║
+        ║ • Send notification                  ║
+        ╚═════════════════════════════════════╝
+                           │
+                           ▼
+        ┌─────────────────────────────────────┐
+        │    🧪 Live on DEV                    │
+        │    Test & Verify Changes             │
+        └─────────────────────────────────────┘
+                           │
+                  (Manual Decision)
+                           │
+                           ▼
+        ╔═════════════════════════════════════╗
+        ║  PROD Deploy Workflow (Manual)      ║
+        ╠═════════════════════════════════════╣
+        ║ • Triggered via GitHub Actions UI    ║
+        ║ • Deploy to PROD environment         ║
+        ║ • URL: travelmap.koller.dk           ║
         ║ • Run migrations                     ║
         ║ • Clear caches                       ║
         ║ • Send notification                  ║
@@ -130,24 +151,57 @@ This document provides a visual overview of the CI/CD pipeline implemented for t
 - Same as CI lint job
 - Kept for backward compatibility
 
-### 3. Deployment Workflow (`.github/workflows/deploy.yml`)
+### 3. Deployment Workflows
+
+#### DEV Deploy Workflow (`.github/workflows/deploy-dev.yml`)
 
 **Triggers:**
 - Automatic: Push to `main` branch
-- Manual: workflow_dispatch with environment selection
+- Manual: workflow_dispatch
+
+**Environment:** `development`
+
+**Target:** https://dev.travelmap.koller.dk/
 
 **Jobs:**
-- Deploy to production (or staging if manual)
+- Run tests first (ensure quality)
 - Install dependencies
-- Build assets
-- Prepare deployment package
-- Deploy (placeholder for actual deployment)
+- Build production assets
+- Generate .env from GitHub Secrets/Variables
+- Create deployment package (ZIP)
+- Deploy to DEV server via SFTP
+- Extract and configure on server
+- Optimize caches
 - Send notification
 
-**Deployment Options:**
-- Laravel Forge (commented example)
-- Laravel Vapor (commented example)
-- Custom deployment script
+#### PROD Deploy Workflow (`.github/workflows/deploy-prod.yml`)
+
+**Triggers:**
+- Manual only: workflow_dispatch
+
+**Environment:** `production`
+
+**Target:** https://travelmap.koller.dk/
+
+**Jobs:**
+- Run tests first (ensure quality)
+- Install dependencies
+- Build production assets
+- Generate .env from GitHub Secrets/Variables
+- Create deployment package (ZIP)
+- Deploy to PROD server via SFTP
+- Extract and configure on server
+- Optimize caches
+- Send notification
+
+**Deployment Process:**
+1. Build deployment package with all files
+2. Compress to ZIP (74% size reduction)
+3. Upload single ZIP file via SFTP
+4. Extract on server
+5. Backup old .env file
+6. Set permissions
+7. Optimize Laravel caches
 
 ## Branch Protection Rules
 
@@ -189,7 +243,8 @@ Build Job:     ~1-2 minutes
   └─ Upload:         5-10 seconds
 
 Total PR:      ~6-10 minutes
-Total Deploy:  ~3-5 minutes
+Total DEV Deploy: ~3-5 minutes
+Total PROD Deploy: ~3-5 minutes
 ```
 
 ## Status Checks
@@ -203,34 +258,38 @@ All pull requests must pass:
 
 ## Environment Variables & Secrets
 
-Required secrets for deployment (configure in GitHub):
+Required secrets and variables for deployment are managed via GitHub Environments:
 
-```
-# Laravel Forge (if used)
-FORGE_TOKEN
-FORGE_SERVER_ID
-FORGE_SITE_ID
+**See:** [GitHub Environments Setup Guide](./GITHUB-ENVIRONMENTS-SETUP.md)
 
-# Laravel Vapor (if used)
-VAPOR_API_TOKEN
+**DEV Environment** (`development`):
+- All secrets and variables configured for dev.travelmap.koller.dk
+- APP_DEBUG=true for debugging
+- Separate database and credentials
 
-# Custom Deployment
-DEPLOY_HOST
-DEPLOY_USER
-DEPLOY_KEY
-```
+**PROD Environment** (`production`):
+- All secrets and variables configured for travelmap.koller.dk
+- APP_DEBUG=false for security
+- Separate database and credentials
+
+**SSH/SFTP Secrets** (Repository or Environment level):
+- SSH_HOST, SSH_USERNAME, SSH_PASSWORD
+- SSH_REMOTE_PATH (environment-specific)
+- SFTP_SSH_PRIVATE_KEY (optional)
 
 ## Monitoring & Notifications
 
 **Success indicators:**
 - ✅ All CI checks green
 - 📦 Build artifacts uploaded
-- 🚀 Deployment completed
+- 🚀 DEV deployment completed automatically
+- 🔐 PROD deployment triggered manually
 - 📊 No test failures
 
 **Failure handling:**
 - ❌ CI fails → PR blocked
-- 🔴 Deployment fails → Rollback available
+- 🔴 DEV deployment fails → Check logs and fix
+- 🔴 PROD deployment fails → Rollback available
 - 📧 Team notified via GitHub
 - 📝 Logs available in Actions tab
 

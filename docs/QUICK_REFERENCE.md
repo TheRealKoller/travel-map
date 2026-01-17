@@ -107,14 +107,20 @@ git push origin --delete feature/name  # Delete remote branch
 
 | Event | Workflows | Jobs |
 |-------|-----------|------|
-| Push to main | `ci.yml`, `deploy.yml` | Lint → Test → Build → Deploy |
+| Push to main | `ci.yml`, `deploy-dev.yml` | Lint → Test → Build → Deploy to DEV |
 | Pull Request | `ci.yml` | Lint → Test |
-| Manual Deploy | `deploy.yml` | Deploy |
+| Manual DEV Deploy | `deploy-dev.yml` | Deploy to DEV |
+| Manual PROD Deploy | `deploy-prod.yml` | Deploy to PROD |
 
 ### Job Dependencies
 
 ```
-Lint ──> Test ──> Build (main only) ──> Deploy (main only)
+Lint ──> Test ──> Build (main only) ──> DEV Deploy (main only)
+                                             │
+                                      (Manual Trigger)
+                                             │
+                                             ▼
+                                      PROD Deploy
 ```
 
 ## 🐛 Troubleshooting

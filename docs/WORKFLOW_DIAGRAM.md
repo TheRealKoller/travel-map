@@ -85,31 +85,46 @@ graph LR
 
 ```mermaid
 graph TD
-    subgraph "Deploy Workflow (.github/workflows/deploy.yml)"
-        TriggerDeploy[Trigger: Merge to main / Manual] --> PrepDeploy[Prepare Deployment]
-        PrepDeploy --> InstallDeps[Install Dependencies]
-        InstallDeps --> BuildProd[Build Production Assets]
-        BuildProd --> Package[Create Deployment Package]
+    subgraph "DEV Deploy Workflow (.github/workflows/deploy-dev.yml)"
+        TriggerDev[Trigger: Merge to main / Manual] --> RunTestsDev[Run Tests]
+        RunTestsDev --> PrepDev[Prepare Deployment]
+        PrepDev --> InstallDepsDev[Install Dependencies]
+        InstallDepsDev --> BuildProdDev[Build Production Assets]
+        BuildProdDev --> GenEnvDev[Generate .env from Secrets]
+        GenEnvDev --> PackageDev[Create ZIP Package]
         
-        Package --> DeployType{Deployment Type?}
+        PackageDev --> UploadDev[Upload via SFTP to DEV]
+        UploadDev --> ExtractDev[Extract on DEV Server]
+        ExtractDev --> PostDeployDev[Post-Deploy Tasks]
         
-        DeployType -->|Forge| Forge[Deploy to Laravel Forge]
-        DeployType -->|Vapor| Vapor[Deploy to Laravel Vapor]
-        DeployType -->|Custom| Custom[Custom Deployment]
-        
-        Forge --> PostDeploy[Post-Deploy Tasks]
-        Vapor --> PostDeploy
-        Custom --> PostDeploy
-        
-        PostDeploy --> Migrations[Run Migrations]
-        Migrations --> ClearCache[Clear Caches]
-        ClearCache --> Notify[Send Notification]
-        Notify --> Success([✅ Deployment Complete])
+        PostDeployDev --> PermissionsDev[Set Permissions]
+        PermissionsDev --> CacheDev[Optimize Caches]
+        CacheDev --> NotifyDev[Send Notification]
+        NotifyDev --> SuccessDev([✅ DEV Deployed])
     end
     
-    style TriggerDeploy fill:#e1f5e1
-    style Success fill:#e1f5e1
-    style DeployType fill:#fff3cd
+    subgraph "PROD Deploy Workflow (.github/workflows/deploy-prod.yml)"
+        TriggerProd[Trigger: Manual Only] --> RunTestsProd[Run Tests]
+        RunTestsProd --> PrepProd[Prepare Deployment]
+        PrepProd --> InstallDepsProd[Install Dependencies]
+        InstallDepsProd --> BuildProdProd[Build Production Assets]
+        BuildProdProd --> GenEnvProd[Generate .env from Secrets]
+        GenEnvProd --> PackageProd[Create ZIP Package]
+        
+        PackageProd --> UploadProd[Upload via SFTP to PROD]
+        UploadProd --> ExtractProd[Extract on PROD Server]
+        ExtractProd --> PostDeployProd[Post-Deploy Tasks]
+        
+        PostDeployProd --> PermissionsProd[Set Permissions]
+        PermissionsProd --> CacheProd[Optimize Caches]
+        CacheProd --> NotifyProd[Send Notification]
+        NotifyProd --> SuccessProd([✅ PROD Deployed])
+    end
+    
+    style TriggerDev fill:#e1f5e1
+    style TriggerProd fill:#ffe1e1
+    style SuccessDev fill:#e1f5e1
+    style SuccessProd fill:#e1f5e1
 ```
 
 ## Feature Branch Workflow

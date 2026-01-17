@@ -14,7 +14,8 @@ This document visualizes how GitHub Secrets are used during the deployment proce
                                  ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │                   2. GitHub Actions Workflow Starts                  │
-│                    (.github/workflows/deploy.yml)                    │
+│              (.github/workflows/deploy-dev.yml or                    │
+│               .github/workflows/deploy-prod.yml)                     │
 └────────────────────────────────┬────────────────────────────────────┘
                                  │
                                  ▼

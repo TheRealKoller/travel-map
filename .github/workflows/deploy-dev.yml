@@ -1,4 +1,4 @@
-name: Deploy to Production
+name: Deploy to DEV
 
 on:
   push:
@@ -16,10 +16,10 @@ jobs:
 
   # Deployment (nur wenn Tests erfolgreich)
   deploy:
-    name: Deploy to all-inkl.com
+    name: Deploy to DEV (all-inkl.com)
     runs-on: ubuntu-latest
     needs: tests
-    environment: production
+    environment: development
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -81,7 +81,7 @@ jobs:
           SESSION_LIFETIME="120"
           SESSION_ENCRYPT="false"
           SESSION_PATH="/"
-          SESSION_DOMAIN=".travelmap.koller.dk"
+          SESSION_DOMAIN=".dev.travelmap.koller.dk"
           SESSION_SECURE_COOKIE="true"
           SESSION_SAME_SITE="lax"
           
@@ -240,21 +240,24 @@ jobs:
       - name: Create deployment summary
         if: success()
         run: |
-          echo "### ✅ Deployment erfolgreich!" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ DEV Deployment erfolgreich!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** DEV" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** https://dev.travelmap.koller.dk/" >> $GITHUB_STEP_SUMMARY
           echo "**Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Author:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
           echo "**Message:** ${{ github.event.head_commit.message }}" >> $GITHUB_STEP_SUMMARY
           echo "**Zeit:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "🚀 Die Anwendung wurde erfolgreich zu all-inkl.com deployed." >> $GITHUB_STEP_SUMMARY
+          echo "🚀 Die Anwendung wurde erfolgreich zur DEV-Umgebung deployed." >> $GITHUB_STEP_SUMMARY
 
       - name: Notify on failure
         if: failure()
         run: |
-          echo "### ❌ Deployment fehlgeschlagen!" >> $GITHUB_STEP_SUMMARY
+          echo "### ❌ DEV Deployment fehlgeschlagen!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** DEV" >> $GITHUB_STEP_SUMMARY
           echo "**Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY

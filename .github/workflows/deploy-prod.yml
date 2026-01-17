@@ -1,0 +1,261 @@
+name: Deploy to PROD
+
+on:
+  workflow_dispatch: # Nur manuelles Deployment erlauben
+
+permissions:
+  contents: read
+
+jobs:
+  # Zuerst Tests ausführen
+  tests:
+    uses: ./.github/workflows/tests.yml
+
+  # Deployment (nur wenn Tests erfolgreich)
+  deploy:
+    name: Deploy to PROD (all-inkl.com)
+    runs-on: ubuntu-latest
+    needs: tests
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build production assets
+        run: npm run build
+        env:
+          VITE_MAPBOX_ACCESS_TOKEN: ${{ secrets.MAPBOX_ACCESS_TOKEN }}
+
+      - name: Generate production .env file
+        run: |
+          # Create .env from GitHub Variables (non-sensitive) and Secrets (sensitive)
+          cat > .env << 'EOF'
+          APP_NAME="${{ vars.APP_NAME }}"
+          APP_ENV="${{ vars.APP_ENV }}"
+          APP_KEY="${{ secrets.APP_KEY }}"
+          APP_DEBUG="${{ vars.APP_DEBUG }}"
+          APP_URL="${{ vars.APP_URL }}"
+          
+          APP_LOCALE="de"
+          APP_FALLBACK_LOCALE="de"
+          APP_FAKER_LOCALE="de_DE"
+          
+          APP_MAINTENANCE_DRIVER="file"
+          
+          BCRYPT_ROUNDS="12"
+          
+          LOG_CHANNEL="stack"
+          LOG_STACK="single"
+          LOG_DEPRECATIONS_CHANNEL="null"
+          LOG_LEVEL="error"
+          
+          DB_CONNECTION="${{ vars.DB_CONNECTION }}"
+          DB_HOST="${{ vars.DB_HOST }}"
+          DB_PORT="${{ vars.DB_PORT }}"
+          DB_DATABASE="${{ vars.DB_DATABASE }}"
+          DB_USERNAME="${{ vars.DB_USERNAME }}"
+          DB_PASSWORD="${{ secrets.DB_PASSWORD }}"
+          
+          SESSION_DRIVER="database"
+          SESSION_LIFETIME="120"
+          SESSION_ENCRYPT="false"
+          SESSION_PATH="/"
+          SESSION_DOMAIN=".travelmap.koller.dk"
+          SESSION_SECURE_COOKIE="true"
+          SESSION_SAME_SITE="lax"
+          
+          BROADCAST_CONNECTION="log"
+          FILESYSTEM_DISK="local"
+          QUEUE_CONNECTION="database"
+          
+          CACHE_STORE="database"
+          
+          MEMCACHED_HOST="127.0.0.1"
+
+          REDIS_CLIENT=phpredis
+          REDIS_HOST=127.0.0.1
+          REDIS_PASSWORD=null
+          REDIS_PORT=6379
+          
+          MAIL_MAILER="${{ vars.MAIL_MAILER }}"
+          MAIL_SCHEME="${{ vars.MAIL_SCHEME }}"
+          MAIL_HOST="${{ vars.MAIL_HOST }}"
+          MAIL_PORT="${{ vars.MAIL_PORT }}"
+          MAIL_USERNAME="${{ vars.MAIL_USERNAME }}"
+          MAIL_PASSWORD="${{ secrets.MAIL_PASSWORD }}"
+          MAIL_FROM_ADDRESS="${{ vars.MAIL_FROM_ADDRESS }}"
+          MAIL_FROM_NAME="${{ vars.MAIL_FROM_NAME }}"
+          
+          AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          AWS_DEFAULT_REGION="${{ vars.AWS_DEFAULT_REGION }}"
+          AWS_BUCKET="${{ vars.AWS_BUCKET }}"
+          AWS_USE_PATH_STYLE_ENDPOINT="${{ vars.AWS_USE_PATH_STYLE_ENDPOINT }}"
+          
+          MAPBOX_ACCESS_TOKEN="${{ secrets.MAPBOX_ACCESS_TOKEN }}"
+          
+          GOOGLE_MAPS_API_KEY="${{ secrets.GOOGLE_MAPS_API_KEY }}"
+          
+          LECHAT_API_KEY="${{ secrets.LECHAT_API_KEY }}"
+          LECHAT_MARKER_ENRICHMENT_AGENT_ID="${{ secrets.LECHAT_MARKER_ENRICHMENT_AGENT_ID }}"
+          LECHAT_TRAVEL_RECOMMENDATION_AGENT_ID="${{ secrets.LECHAT_TRAVEL_RECOMMENDATION_AGENT_ID }}"
+          
+          VITE_APP_NAME="${{ vars.VITE_APP_NAME }}"
+          VITE_MAPBOX_ACCESS_TOKEN="${{ secrets.MAPBOX_ACCESS_TOKEN }}"
+          EOF
+          
+          echo "✅ .env file generated from GitHub Variables and Secrets"
+
+      - name: Create deployment package
+        run: |
+          mkdir -p deploy
+          
+          # Kopiere alle benötigten Dateien (exclude dev files)
+          rsync -a \
+            --exclude='.git' \
+            --exclude='docs' \
+            --exclude='node_modules' \
+            --exclude='tests' \
+            --exclude='.env.example' \
+            --exclude='.env.testing' \
+            --exclude='.env.e2e' \
+            --exclude='.env.production.template' \
+            --exclude='storage/logs/*' \
+            --exclude='storage/framework/cache/*' \
+            --exclude='storage/framework/sessions/*' \
+            --exclude='storage/framework/views/*' \
+            --exclude='database/*.sqlite*' \
+            --exclude='.github' \
+            --exclude='.vscode' \
+            --exclude='.idea' \
+            --exclude='.fleet' \
+            --exclude='.nova' \
+            --exclude='README.md' \
+            --exclude='DEPLOYMENT*.md' \
+            --exclude='docker-compose.yml' \
+            --exclude='phpunit.xml' \
+            --exclude='scripts' \
+            ./ deploy/
+          
+          # Erstelle .gitkeep Dateien für storage-Verzeichnisse
+          touch deploy/storage/logs/.gitkeep
+          touch deploy/storage/framework/cache/.gitkeep
+          touch deploy/storage/framework/sessions/.gitkeep
+          touch deploy/storage/framework/views/.gitkeep
+          
+          # Erstelle ZIP-Archiv für schnelleren Upload
+          cd deploy
+          zip -r -q ../deployment.zip .
+          cd ..
+          
+          # Zeige Größenvergleich
+          UNCOMPRESSED=$(du -sh deploy | cut -f1)
+          COMPRESSED=$(du -sh deployment.zip | cut -f1)
+          echo "📦 Deployment package created:"
+          echo "  - Uncompressed: $UNCOMPRESSED"
+          echo "  - Compressed: $COMPRESSED"
+
+      - name: Upload deployment package via SFTP
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+        with:
+          ssh_private_key: ${{ secrets.SFTP_SSH_PRIVATE_KEY }}
+          username: ${{ secrets.SSH_USERNAME }}
+          server: ${{ secrets.SSH_HOST }}
+          port: 22
+          password: ${{ secrets.SSH_PASSWORD }}
+          local_path: './deployment.zip'
+          remote_path: ${{ secrets.SSH_REMOTE_PATH }}
+          sftp_only: false
+          delete_remote_files: false
+
+      - name: Extract and setup deployment on server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 22
+          script: |
+            cd ${{ secrets.SSH_REMOTE_PATH }}
+            
+            # Backup old .env for reference (optional)
+            if [ -f .env ]; then
+              echo "💾 Creating backup of old .env file"
+              cp .env .env.backup.$(date +%Y%m%d_%H%M%S)
+            fi
+            
+            # Entpacke das Deployment
+            echo "📦 Extracting deployment package..."
+            unzip -q -o deployment.zip
+            
+            # Verifiziere dass .env existiert
+            if [ ! -f .env ]; then
+              echo "❌ ERROR: .env file not found in deployment package!"
+              exit 1
+            fi
+            
+            echo "✅ New .env file deployed from GitHub Secrets"
+            
+            # Lösche das ZIP-Archiv
+            rm -f deployment.zip
+            
+            # Setze korrekte Berechtigungen
+            echo "🔐 Setting permissions..."
+            chmod -R 755 bootstrap/cache 2>/dev/null || true
+            chmod -R 755 storage 2>/dev/null || true
+            
+            # Laravel Cache-Optimierung
+            echo "⚡ Optimizing Laravel caches..."
+            php artisan optimize:clear 2>/dev/null || true
+            php artisan config:cache 2>/dev/null || true
+            php artisan route:cache 2>/dev/null || true
+            php artisan view:cache 2>/dev/null || true
+            
+            # Optional: Migrationen (auskommentiert zur Sicherheit)
+            # php artisan migrate --force
+            
+            echo "✅ Deployment completed successfully!"
+
+      - name: Create deployment summary
+        if: success()
+        run: |
+          echo "### ✅ PROD Deployment erfolgreich!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** PRODUCTION" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** https://travelmap.koller.dk/" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Author:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Message:** ${{ github.event.head_commit.message }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Zeit:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🚀 Die Anwendung wurde erfolgreich zur PROD-Umgebung deployed." >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "### ❌ PROD Deployment fehlgeschlagen!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** PRODUCTION" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Bitte prüfe die Logs für weitere Details." >> $GITHUB_STEP_SUMMARY
