@@ -444,7 +444,8 @@ export default function MarkerForm({
                     )}
                     <div className="border-t border-gray-200 pt-2">
                         <p className="text-xs text-gray-500">
-                            Lat, Long: {marker.lat.toFixed(6)}, {marker.lng.toFixed(6)}
+                            Lat, Long: {marker.lat.toFixed(6)},{' '}
+                            {marker.lng.toFixed(6)}
                         </p>
                     </div>
                     <div className="flex flex-col gap-2 border-t border-gray-200 pt-4 lg:flex-row lg:gap-2">
@@ -704,7 +705,8 @@ export default function MarkerForm({
                         )}
                         <div className="border-t border-gray-200 pt-2">
                             <p className="text-xs text-gray-500">
-                                Lat, Long: {marker.lat.toFixed(6)}, {marker.lng.toFixed(6)}
+                                Lat, Long: {marker.lat.toFixed(6)},{' '}
+                                {marker.lng.toFixed(6)}
                             </p>
                         </div>
                         <div className="flex flex-col gap-2 border-t border-gray-200 pt-4 lg:flex-row lg:gap-2">
