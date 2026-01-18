@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    return Inertia::render('map');
+    return redirect()->route('trips.index');
 })->middleware(['auth', 'verified'])->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -24,6 +24,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/trips/create', [TripController::class, 'create'])->name('trips.create');
     Route::post('/trips', [TripController::class, 'store'])->name('trips.store');
     Route::get('/trips/{trip}', [TripController::class, 'show'])->name('trips.show');
+    
+    // Map route - show map for a specific trip
+    Route::get('/map/{trip}', function (\App\Models\Trip $trip) {
+        // Authorize access to the trip
+        if ($trip->user_id !== auth()->id()) {
+            abort(403);
+        }
+        return Inertia::render('map', [
+            'trip' => [
+                'id' => $trip->id,
+            ],
+        ]);
+    })->name('map.show');
     Route::put('/trips/{trip}', [TripController::class, 'update'])->name('trips.update');
     Route::delete('/trips/{trip}', [TripController::class, 'destroy'])->name('trips.destroy');
     Route::post('/trips/{trip}/fetch-image', [TripController::class, 'fetchImage'])->name('trips.fetch-image');

@@ -20,11 +20,17 @@ class TripController extends Controller
         private readonly UnsplashService $unsplashService
     ) {}
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse|Response
     {
         $trips = auth()->user()->trips()->orderBy('created_at', 'asc')->get();
 
-        return response()->json($trips);
+        // If this is an API request (has Accept: application/json), return JSON
+        if ($request->expectsJson()) {
+            return response()->json($trips);
+        }
+
+        // Otherwise, return the Inertia page
+        return Inertia::render('trips/index');
     }
 
     public function create(): Response

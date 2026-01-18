@@ -18,8 +18,8 @@ import { useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Map',
-        href: '/',
+        title: 'Trips',
+        href: '/trips',
     },
     {
         title: 'Create trip',
@@ -62,8 +62,10 @@ export default function CreateTrip() {
                 );
             }
 
-            // Navigate back to map after successful creation
-            router.visit('/');
+            const createdTrip = await response.json();
+            
+            // Navigate to map with the newly created trip
+            router.visit(`/map/${createdTrip.id}`);
         } catch (error) {
             const errorMessage =
                 error instanceof Error ? error.message : 'Failed to create trip';
@@ -75,7 +77,7 @@ export default function CreateTrip() {
     };
 
     const handleCancel = () => {
-        router.visit('/');
+        router.visit('/trips');
     };
 
     return (
