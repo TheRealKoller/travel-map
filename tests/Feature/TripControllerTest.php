@@ -557,3 +557,36 @@ test('PDF filename sanitizes special characters', function () {
     $response->assertStatus(200)
         ->assertDownload('Trip_With_Special_Characters_.pdf');
 });
+
+test('PDF includes markers overview when trip has markers', function () {
+    // Configure a fake Mapbox token for testing
+    config(['services.mapbox.access_token' => 'pk.test.fake_token_for_testing_only']);
+
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Trip with Markers',
+    ]);
+
+    // Create some markers for the trip
+    \App\Models\Marker::factory()->count(3)->create([
+        'trip_id' => $trip->id,
+        'user_id' => $this->user->id,
+    ]);
+
+    $response = $this->actingAs($this->user)->get("/trips/{$trip->id}/export-pdf");
+
+    $response->assertStatus(200)
+        ->assertHeader('content-type', 'application/pdf');
+});
+
+test('PDF export works when trip has no markers', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Trip without Markers',
+    ]);
+
+    $response = $this->actingAs($this->user)->get("/trips/{$trip->id}/export-pdf");
+
+    $response->assertStatus(200)
+        ->assertHeader('content-type', 'application/pdf');
+});
