@@ -179,6 +179,30 @@ test('unauthenticated user cannot access trip creation page', function () {
     $response->assertRedirect('/login');
 });
 
+test('authenticated user can access trip edit page', function () {
+    $trip = Trip::factory()->create(['user_id' => $this->user->id]);
+
+    $response = $this->actingAs($this->user)->get("/trips/{$trip->id}/edit");
+
+    $response->assertStatus(200);
+});
+
+test('user cannot access edit page for another users trip', function () {
+    $otherTrip = Trip::factory()->create();
+
+    $response = $this->actingAs($this->user)->get("/trips/{$otherTrip->id}/edit");
+
+    $response->assertStatus(403);
+});
+
+test('unauthenticated user cannot access trip edit page', function () {
+    $trip = Trip::factory()->create();
+
+    $response = $this->get("/trips/{$trip->id}/edit");
+
+    $response->assertRedirect('/login');
+});
+
 test('authenticated user can set viewport for their trip', function () {
     $trip = Trip::factory()->create(['user_id' => $this->user->id]);
 

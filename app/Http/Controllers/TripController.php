@@ -50,6 +50,15 @@ class TripController extends Controller
         return response()->json($trip, 201);
     }
 
+    public function edit(Trip $trip): Response
+    {
+        $this->authorize('update', $trip);
+
+        return Inertia::render('trips/create', [
+            'trip' => $trip,
+        ]);
+    }
+
     public function show(Trip $trip): JsonResponse
     {
         $this->authorize('view', $trip);

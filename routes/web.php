@@ -24,6 +24,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/trips/create', [TripController::class, 'create'])->name('trips.create');
     Route::post('/trips', [TripController::class, 'store'])->name('trips.store');
     Route::get('/trips/{trip}', [TripController::class, 'show'])->name('trips.show');
+    Route::get('/trips/{trip}/edit', [TripController::class, 'edit'])->name('trips.edit');
 
     // Map route - show map for a specific trip
     Route::get('/map/{trip}', function (\App\Models\Trip $trip) {

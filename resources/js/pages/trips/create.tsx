@@ -11,25 +11,31 @@ import {
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { COUNTRIES } from '@/lib/countries';
-import { store as tripsStore } from '@/routes/trips';
-import { type BreadcrumbItem } from '@/types';
+import { store as tripsStore, update as tripsUpdate } from '@/routes/trips';
+import { type BreadcrumbItem, type Trip } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Trips',
-        href: '/trips',
-    },
-    {
-        title: 'Create trip',
-        href: '/trips/create',
-    },
-];
+interface CreateTripProps {
+    trip?: Trip;
+}
 
-export default function CreateTrip() {
-    const [name, setName] = useState('');
-    const [country, setCountry] = useState<string>('');
+export default function CreateTrip({ trip }: CreateTripProps) {
+    const isEditMode = !!trip;
+    
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: 'Trips',
+            href: '/trips',
+        },
+        {
+            title: isEditMode ? 'Edit trip' : 'Create trip',
+            href: isEditMode ? `/trips/${trip.id}/edit` : '/trips/create',
+        },
+    ];
+
+    const [name, setName] = useState(trip?.name || '');
+    const [country, setCountry] = useState<string>(trip?.country || '');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -40,37 +46,64 @@ export default function CreateTrip() {
         setIsSubmitting(true);
         setError(null);
         try {
-            const response = await fetch(tripsStore.url(), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN':
-                        document
-                            .querySelector('meta[name="csrf-token"]')
-                            ?.getAttribute('content') || '',
-                },
-                body: JSON.stringify({
-                    name: name.trim(),
-                    country: country || null,
-                }),
-            });
+            if (isEditMode) {
+                // Update existing trip
+                const response = await fetch(tripsUpdate.url(trip.id), {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN':
+                            document
+                                .querySelector('meta[name="csrf-token"]')
+                                ?.getAttribute('content') || '',
+                    },
+                    body: JSON.stringify({
+                        name: name.trim(),
+                        country: country || null,
+                    }),
+                });
 
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Failed to create trip');
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || 'Failed to update trip');
+                }
+
+                // Navigate to trips overview after successful update
+                router.visit('/trips');
+            } else {
+                // Create new trip
+                const response = await fetch(tripsStore.url(), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN':
+                            document
+                                .querySelector('meta[name="csrf-token"]')
+                                ?.getAttribute('content') || '',
+                    },
+                    body: JSON.stringify({
+                        name: name.trim(),
+                        country: country || null,
+                    }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || 'Failed to create trip');
+                }
+
+                const createdTrip = await response.json();
+
+                // Navigate to map with the newly created trip
+                router.visit(`/map/${createdTrip.id}`);
             }
-
-            const createdTrip = await response.json();
-
-            // Navigate to map with the newly created trip
-            router.visit(`/map/${createdTrip.id}`);
         } catch (error) {
             const errorMessage =
                 error instanceof Error
                     ? error.message
-                    : 'Failed to create trip';
+                    : isEditMode ? 'Failed to update trip' : 'Failed to create trip';
             setError(errorMessage);
-            console.error('Failed to create trip:', error);
+            console.error(isEditMode ? 'Failed to update trip:' : 'Failed to create trip:', error);
         } finally {
             setIsSubmitting(false);
         }
@@ -82,15 +115,17 @@ export default function CreateTrip() {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Create trip" />
+            <Head title={isEditMode ? 'Edit trip' : 'Create trip'} />
             <div className="flex h-full flex-1 items-center justify-center p-4">
                 <div className="w-full max-w-2xl space-y-6 rounded-xl border border-sidebar-border/70 bg-card p-6 dark:border-sidebar-border">
                     <div>
                         <h1 className="text-2xl font-semibold">
-                            Create new trip
+                            {isEditMode ? 'Edit trip' : 'Create new trip'}
                         </h1>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            Fill in the details to create your trip
+                            {isEditMode 
+                                ? 'Update the details of your trip' 
+                                : 'Fill in the details to create your trip'}
                         </p>
                     </div>
 
@@ -98,7 +133,7 @@ export default function CreateTrip() {
                         {error && (
                             <AlertError
                                 errors={[error]}
-                                title="Failed to create trip"
+                                title={isEditMode ? 'Failed to update trip' : 'Failed to create trip'}
                             />
                         )}
 
