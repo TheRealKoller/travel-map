@@ -80,6 +80,19 @@
             color: #9ca3af;
             font-size: 10px;
         }
+        
+        .page-break {
+            page-break-after: always;
+        }
+        
+        .markers-info {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f9fafb;
+            border-radius: 6px;
+            font-size: 11px;
+            color: #6b7280;
+        }
     </style>
 </head>
 <body>
@@ -118,5 +131,29 @@
             Generated on {{ now()->format('F j, Y \a\t g:i A') }}
         </div>
     </div>
+
+    @if($markersOverviewUrl)
+        <div class="page-break"></div>
+        
+        <div class="container">
+            <div class="header">
+                <h1 class="trip-name">{{ $trip->name }}</h1>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">Markers overview</h2>
+                <div class="markers-info">
+                    This map shows all {{ $markersCount }} marker(s) of your trip.
+                </div>
+                <div class="image-container">
+                    <img src="{{ $markersOverviewUrl }}" alt="Markers overview map">
+                </div>
+            </div>
+
+            <div class="footer">
+                Generated on {{ now()->format('F j, Y \a\t g:i A') }}
+            </div>
+        </div>
+    @endif
 </body>
 </html>

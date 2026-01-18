@@ -112,14 +112,30 @@ class TripController extends Controller
 
     /**
      * Export a trip as PDF.
-     * Generates a PDF document with trip information including name, title image, and map viewport.
+     * Generates a PDF document with trip information including name, title image, map viewport, and markers overview.
      */
     public function exportPdf(Trip $trip): HttpResponse
     {
         $this->authorize('view', $trip);
 
+        // Load markers for the trip
+        $markers = $trip->markers()->get(['latitude', 'longitude'])->toArray();
+
+        // Generate static image URL for markers overview if markers exist
+        $markersOverviewUrl = null;
+        if (! empty($markers)) {
+            $markersOverviewUrl = $this->mapboxStaticImageService->generateStaticImageWithMarkers(
+                markers: $markers,
+                width: 800,
+                height: 600,
+                padding: 50
+            );
+        }
+
         $pdf = Pdf::loadView('trip-pdf', [
             'trip' => $trip,
+            'markersOverviewUrl' => $markersOverviewUrl,
+            'markersCount' => count($markers),
         ]);
 
         // Generate a safe filename from the trip name
