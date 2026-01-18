@@ -1,4 +1,5 @@
 import AlertError from '@/components/alert-error';
+import DeleteTripDialog from '@/components/delete-trip-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,7 +12,11 @@ import {
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { COUNTRIES } from '@/lib/countries';
-import { store as tripsStore, update as tripsUpdate } from '@/routes/trips';
+import {
+    destroy as tripsDestroy,
+    store as tripsStore,
+    update as tripsUpdate,
+} from '@/routes/trips';
 import { type BreadcrumbItem, type Trip } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
@@ -38,6 +43,7 @@ export default function CreateTrip({ trip }: CreateTripProps) {
     const [country, setCountry] = useState<string>(trip?.country || '');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -122,6 +128,37 @@ export default function CreateTrip({ trip }: CreateTripProps) {
 
     const handleCancel = () => {
         router.visit('/trips');
+    };
+
+    const handleDelete = async () => {
+        if (!trip) return;
+
+        try {
+            const response = await fetch(tripsDestroy.url(trip.id), {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN':
+                        document
+                            .querySelector('meta[name="csrf-token"]')
+                            ?.getAttribute('content') || '',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete trip');
+            }
+
+            // Navigate to trips overview after successful deletion
+            router.visit('/trips');
+        } catch (error) {
+            console.error('Failed to delete trip:', error);
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : 'Failed to delete trip',
+            );
+        }
     };
 
     return (
@@ -216,27 +253,49 @@ export default function CreateTrip({ trip }: CreateTripProps) {
                             </div>
                         </div>
 
-                        <div className="flex justify-end gap-3">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={handleCancel}
-                                disabled={isSubmitting}
-                                data-testid="cancel-button"
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                type="submit"
-                                disabled={isSubmitting || !name.trim()}
-                                data-testid="save-button"
-                            >
-                                {isSubmitting ? 'Saving...' : 'Save'}
-                            </Button>
+                        <div className="flex items-center justify-between">
+                            {isEditMode && (
+                                <Button
+                                    type="button"
+                                    variant="destructive"
+                                    onClick={() => setIsDeleteDialogOpen(true)}
+                                    disabled={isSubmitting}
+                                    data-testid="delete-trip-button"
+                                >
+                                    Delete trip
+                                </Button>
+                            )}
+                            <div className="ml-auto flex justify-end gap-3">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={handleCancel}
+                                    disabled={isSubmitting}
+                                    data-testid="cancel-button"
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    disabled={isSubmitting || !name.trim()}
+                                    data-testid="save-button"
+                                >
+                                    {isSubmitting ? 'Saving...' : 'Save'}
+                                </Button>
+                            </div>
                         </div>
                     </form>
                 </div>
             </div>
+
+            {isEditMode && trip && (
+                <DeleteTripDialog
+                    open={isDeleteDialogOpen}
+                    onOpenChange={setIsDeleteDialogOpen}
+                    onConfirm={handleDelete}
+                    tripName={trip.name}
+                />
+            )}
         </AppLayout>
     );
 }
