@@ -123,7 +123,7 @@ class TripController extends Controller
         ]);
 
         // Generate a safe filename from the trip name
-        $filename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $trip->name) . '.pdf';
+        $filename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $trip->name).'.pdf';
 
         return $pdf->download($filename);
     }

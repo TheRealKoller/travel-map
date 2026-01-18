@@ -4,7 +4,7 @@ import AppLayout from '@/layouts/app-layout';
 import { COUNTRIES } from '@/lib/countries';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { Pencil, Plus } from 'lucide-react';
+import { FileDown, Pencil, Plus } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -23,6 +23,12 @@ export default function TripsIndex() {
     const handleEditTrip = (e: React.MouseEvent, tripId: number) => {
         e.stopPropagation();
         router.visit(`/trips/${tripId}/edit`);
+    };
+
+    const handleExportPdf = (e: React.MouseEvent, tripId: number) => {
+        e.stopPropagation();
+        // Open PDF in a new tab
+        window.open(`/trips/${tripId}/export-pdf`, '_blank');
     };
 
     const handleCreateTrip = () => {
@@ -52,15 +58,28 @@ export default function TripsIndex() {
                             key={trip.id}
                             className="group relative flex flex-col overflow-hidden rounded-xl border-2 border-sidebar-border bg-card shadow-md transition-all hover:border-sidebar-border hover:shadow-xl dark:border-sidebar-border"
                         >
-                            {/* Edit Button */}
-                            <button
-                                data-testid={`edit-trip-button-${trip.id}`}
-                                onClick={(e) => handleEditTrip(e, trip.id)}
-                                className="absolute top-3 right-3 z-10 flex size-8 items-center justify-center rounded-lg bg-background/80 text-muted-foreground opacity-0 backdrop-blur-sm transition-all group-hover:opacity-100 hover:bg-background hover:text-foreground"
-                                aria-label="Edit trip"
-                            >
-                                <Pencil className="size-4" />
-                            </button>
+                            {/* Action Buttons */}
+                            <div className="absolute top-3 right-3 z-10 flex gap-2">
+                                {/* PDF Export Button */}
+                                <button
+                                    data-testid={`export-pdf-button-${trip.id}`}
+                                    onClick={(e) => handleExportPdf(e, trip.id)}
+                                    className="flex size-8 items-center justify-center rounded-lg bg-background/80 text-muted-foreground opacity-0 backdrop-blur-sm transition-all group-hover:opacity-100 hover:bg-background hover:text-foreground"
+                                    aria-label="Export as PDF"
+                                    title="Export as PDF"
+                                >
+                                    <FileDown className="size-4" />
+                                </button>
+                                {/* Edit Button */}
+                                <button
+                                    data-testid={`edit-trip-button-${trip.id}`}
+                                    onClick={(e) => handleEditTrip(e, trip.id)}
+                                    className="flex size-8 items-center justify-center rounded-lg bg-background/80 text-muted-foreground opacity-0 backdrop-blur-sm transition-all group-hover:opacity-100 hover:bg-background hover:text-foreground"
+                                    aria-label="Edit trip"
+                                >
+                                    <Pencil className="size-4" />
+                                </button>
+                            </div>
 
                             {/* Cover Image */}
                             <button

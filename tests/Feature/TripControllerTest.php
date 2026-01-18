@@ -557,4 +557,3 @@ test('PDF filename sanitizes special characters', function () {
     $response->assertStatus(200)
         ->assertDownload('Trip_With_Special_Characters_.pdf');
 });
-
