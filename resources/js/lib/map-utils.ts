@@ -9,8 +9,18 @@ export function calculateBoundingBoxFromViewport(
     longitude: number,
     zoom: number,
 ): [number, number, number, number] | undefined {
+    console.log('[calculateBoundingBoxFromViewport] Input:', { latitude, longitude, zoom });
+    
+    // Convert to numbers to handle string inputs from database
+    latitude = Number(latitude);
+    longitude = Number(longitude);
+    zoom = Number(zoom);
+    
+    console.log('[calculateBoundingBoxFromViewport] After Number conversion:', { latitude, longitude, zoom });
+    
     // Validate inputs - must be finite numbers
     if (!isFinite(latitude) || !isFinite(longitude) || !isFinite(zoom)) {
+        console.log('[calculateBoundingBoxFromViewport] Invalid: inputs not finite');
         return undefined;
     }
 
@@ -61,10 +71,13 @@ export function calculateBoundingBoxFromViewport(
         !isFinite(east) ||
         !isFinite(north)
     ) {
+        console.log('[calculateBoundingBoxFromViewport] Invalid: bbox values not finite', { west, south, east, north });
         return undefined;
     }
 
-    return [west, south, east, north];
+    const bbox: [number, number, number, number] = [west, south, east, north];
+    console.log('[calculateBoundingBoxFromViewport] Success:', bbox);
+    return bbox;
 }
 
 /**
@@ -74,18 +87,35 @@ export function calculateBoundingBoxFromViewport(
 export function getBoundingBoxFromTrip(
     trip: Trip | null | undefined,
 ): [number, number, number, number] | undefined {
+    console.log('[getBoundingBoxFromTrip] Trip:', trip);
+    
     if (
         !trip ||
         trip.viewport_latitude === null ||
         trip.viewport_longitude === null ||
         trip.viewport_zoom === null
     ) {
+        console.log('[getBoundingBoxFromTrip] Trip viewport not set or null');
         return undefined;
     }
 
-    return calculateBoundingBoxFromViewport(
+    console.log('[getBoundingBoxFromTrip] Viewport values:', {
+        latitude: trip.viewport_latitude,
+        longitude: trip.viewport_longitude,
+        zoom: trip.viewport_zoom,
+        types: {
+            latitude: typeof trip.viewport_latitude,
+            longitude: typeof trip.viewport_longitude,
+            zoom: typeof trip.viewport_zoom,
+        }
+    });
+
+    const bbox = calculateBoundingBoxFromViewport(
         trip.viewport_latitude,
         trip.viewport_longitude,
         trip.viewport_zoom,
     );
+    
+    console.log('[getBoundingBoxFromTrip] Result bbox:', bbox);
+    return bbox;
 }
