@@ -88,7 +88,6 @@
             <h1 class="trip-name">{{ $trip->name }}</h1>
         </div>
 
-        @if($trip->image_url || !$trip->image_url)
         <div class="section">
             <h2 class="section-title">Title image</h2>
             <div class="image-container">
@@ -101,9 +100,7 @@
                 @endif
             </div>
         </div>
-        @endif
 
-        @if($trip->viewport_static_image_url || !$trip->viewport_static_image_url)
         <div class="section">
             <h2 class="section-title">Map viewport</h2>
             <div class="image-container">
@@ -116,7 +113,6 @@
                 @endif
             </div>
         </div>
-        @endif
 
         <div class="footer">
             Generated on {{ now()->format('F j, Y \a\t g:i A') }}
