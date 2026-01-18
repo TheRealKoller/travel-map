@@ -303,6 +303,33 @@ export function useMarkers({
                 });
                 return prev;
             }
+
+            // If adding a new temporary marker, remove any existing temporary markers first
+            if (!markerData.isSaved) {
+                // Separate saved and unsaved markers in a single pass
+                const savedMarkers: MarkerData[] = [];
+                const unsavedMarkers: MarkerData[] = [];
+
+                prev.forEach((m) => {
+                    if (m.isSaved) {
+                        savedMarkers.push(m);
+                    } else {
+                        unsavedMarkers.push(m);
+                    }
+                });
+
+                // Remove all existing unsaved markers from map
+                unsavedMarkers.forEach((m) => {
+                    const mapboxMarker = m.marker;
+                    if (mapboxMarker) {
+                        mapboxMarker.remove();
+                    }
+                });
+
+                // Return state without unsaved markers, plus the new marker
+                return [...savedMarkers, markerData];
+            }
+
             return [...prev, markerData];
         });
     }, []);
