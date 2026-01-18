@@ -1,29 +1,30 @@
 /* Mapbox marker styles */
 .mapbox-marker {
-    width: 30px;
-    height: 30px;
-    border-radius: 50% 50% 50% 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
     position: relative;
-    transform: rotate(-45deg);
     border: 2px solid white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     cursor: pointer;
     transition: transform 0.2s ease;
     /* Default z-index for saved markers */
     z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .mapbox-marker:hover {
-    transform: rotate(-45deg) scale(1.1);
+    transform: scale(1.1);
 }
 
 .mapbox-marker__icon {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(45deg);
     color: white;
-    font-size: 16px;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Marker colors based on type */
@@ -90,7 +91,7 @@
 /* Highlighted marker (selected) */
 .mapbox-marker--highlighted {
     box-shadow: white 0 0 10px 3px;
-    transform: rotate(-45deg) scale(1.15);
+    transform: scale(1.2);
 }
 
 /* Search marker (temporary from geocoder) */
