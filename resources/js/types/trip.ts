@@ -7,6 +7,7 @@ export interface Trip {
     viewport_latitude: number | null;
     viewport_longitude: number | null;
     viewport_zoom: number | null;
+    viewport_static_image_url: string | null;
     created_at: string;
     updated_at: string;
 }

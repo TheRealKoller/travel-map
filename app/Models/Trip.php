@@ -18,6 +18,7 @@ class Trip extends Model
         'viewport_latitude',
         'viewport_longitude',
         'viewport_zoom',
+        'viewport_static_image_url',
     ];
 
     public function user(): BelongsTo

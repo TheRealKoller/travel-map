@@ -44,6 +44,15 @@ class AppServiceProvider extends ServiceProvider
                 utmSource: config('services.unsplash.utm_source')
             );
         });
+
+        // Register MapboxStaticImageService with access token from config
+        $this->app->singleton(\App\Services\MapboxStaticImageService::class, function ($app) {
+            $accessToken = config('services.mapbox.access_token');
+
+            return new \App\Services\MapboxStaticImageService(
+                accessToken: $accessToken ?: null
+            );
+        });
     }
 
     /**

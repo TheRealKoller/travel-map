@@ -17,7 +17,8 @@ class TripController extends Controller
     use AuthorizesRequests;
 
     public function __construct(
-        private readonly UnsplashService $unsplashService
+        private readonly UnsplashService $unsplashService,
+        private readonly \App\Services\MapboxStaticImageService $mapboxStaticImageService
     ) {}
 
     public function index(Request $request): JsonResponse|Response
@@ -51,6 +52,19 @@ class TripController extends Controller
             'viewport_zoom' => $validated['viewport_zoom'] ?? null,
         ]);
 
+        // Generate static image URL if viewport is set
+        if ($trip->viewport_latitude !== null && $trip->viewport_longitude !== null && $trip->viewport_zoom !== null) {
+            $staticImageUrl = $this->mapboxStaticImageService->generateStaticImageUrl(
+                latitude: $trip->viewport_latitude,
+                longitude: $trip->viewport_longitude,
+                zoom: $trip->viewport_zoom
+            );
+
+            if ($staticImageUrl) {
+                $trip->update(['viewport_static_image_url' => $staticImageUrl]);
+            }
+        }
+
         // Auto-fetch image if both name and country are provided and no image_url yet
         if ($trip->name && $trip->country && ! $trip->image_url) {
             $this->autoFetchImage($trip);
@@ -82,6 +96,22 @@ class TripController extends Controller
         $validated = $request->validated();
 
         $trip->update($validated);
+
+        // Generate static image URL if viewport is set
+        if ($trip->viewport_latitude !== null && $trip->viewport_longitude !== null && $trip->viewport_zoom !== null) {
+            $staticImageUrl = $this->mapboxStaticImageService->generateStaticImageUrl(
+                latitude: $trip->viewport_latitude,
+                longitude: $trip->viewport_longitude,
+                zoom: $trip->viewport_zoom
+            );
+
+            if ($staticImageUrl) {
+                $trip->update(['viewport_static_image_url' => $staticImageUrl]);
+            }
+        } else {
+            // Clear static image URL if viewport is removed
+            $trip->update(['viewport_static_image_url' => null]);
+        }
 
         // Auto-fetch image if both name and country are provided and no image_url yet
         if ($trip->name && $trip->country && ! $trip->image_url) {
