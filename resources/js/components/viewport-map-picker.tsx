@@ -201,7 +201,7 @@ export function ViewportMapPicker({
 
     return (
         <div
-            className="relative h-64 overflow-hidden rounded-lg border border-input"
+            className="relative h-96 overflow-hidden rounded-lg border border-input"
             data-testid="viewport-map-picker"
         >
             <div ref={mapRef} className="h-full w-full" />

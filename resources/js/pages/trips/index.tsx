@@ -50,7 +50,7 @@ export default function TripsIndex() {
                     {trips.map((trip) => (
                         <div
                             key={trip.id}
-                            className="group relative flex flex-col overflow-hidden rounded-xl border border-sidebar-border/70 bg-card transition-all hover:border-sidebar-border hover:shadow-lg dark:border-sidebar-border"
+                            className="group relative flex flex-col overflow-hidden rounded-xl border-2 border-sidebar-border bg-card shadow-md transition-all hover:border-sidebar-border hover:shadow-xl dark:border-sidebar-border"
                         >
                             {/* Edit Button */}
                             <button
@@ -102,7 +102,7 @@ export default function TripsIndex() {
 
                                 {/* Map Viewport Placeholder */}
                                 {trip.viewport_static_image_url ? (
-                                    <div className="relative h-24 w-full border-t border-sidebar-border/70 bg-muted/50 dark:border-sidebar-border">
+                                    <div className="relative aspect-[4/3] w-full border-t border-sidebar-border/70 bg-muted/50 dark:border-sidebar-border">
                                         <img
                                             src={trip.viewport_static_image_url}
                                             alt="Map preview"
