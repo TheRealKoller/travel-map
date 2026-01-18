@@ -19,6 +19,7 @@ import { useSearchRadius } from '@/hooks/use-search-radius';
 import { useSearchResults } from '@/hooks/use-search-results';
 import { useTourLines } from '@/hooks/use-tour-lines';
 import { useTourMarkers } from '@/hooks/use-tour-markers';
+import { getBoundingBoxFromTrip } from '@/lib/map-utils';
 import { Tour } from '@/types/tour';
 import { Trip } from '@/types/trip';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -506,6 +507,7 @@ export default function TravelMap({
                                     ? [selectedTrip.country]
                                     : undefined
                             }
+                            bbox={getBoundingBoxFromTrip(selectedTrip)}
                         />
                         <MapOptionsMenu
                             isSearchMode={isSearchMode}

@@ -18,11 +18,16 @@ interface MapSearchBoxProps {
      * Defaults to all types if not specified
      */
     types?: string[];
+    /**
+     * Bounding box to restrict search results [west, south, east, north]
+     * If provided, this takes precedence over countries and proximity
+     */
+    bbox?: [number, number, number, number];
 }
 
 /**
- * SearchBox component that integrates Mapbox SearchBox with proximity filtering
- * based on the current map viewport
+ * SearchBox component that integrates Mapbox SearchBox with bounding box filtering
+ * based on the trip's saved viewport settings
  */
 export function MapSearchBox({
     mapInstance,
@@ -30,35 +35,20 @@ export function MapSearchBox({
     accessToken,
     countries,
     types,
+    bbox: initialBbox,
 }: MapSearchBoxProps) {
-    const [proximity, setProximity] = useState<{
-        lng: number;
-        lat: number;
-    } | null>(null);
+    const [bbox, setBbox] = useState<[number, number, number, number] | null>(
+        initialBbox || null,
+    );
 
-    // Update proximity based on map center whenever map moves
+    // Update bbox when initialBbox prop changes (when trip changes)
     useEffect(() => {
-        // Only set up event listeners if we have both map instance and access token
-        if (!mapInstance || !accessToken) return;
-
-        const updateProximity = () => {
-            const center = mapInstance.getCenter();
-            setProximity({
-                lng: center.lng,
-                lat: center.lat,
-            });
-        };
-
-        // Set initial proximity
-        updateProximity();
-
-        // Update proximity when map moves
-        mapInstance.on('moveend', updateProximity);
-
-        return () => {
-            mapInstance.off('moveend', updateProximity);
-        };
-    }, [mapInstance, accessToken]);
+        if (initialBbox && initialBbox.every((val) => isFinite(val))) {
+            setBbox(initialBbox);
+        } else {
+            setBbox(null);
+        }
+    }, [initialBbox]);
 
     // Early return if no access token
     if (!accessToken) {
@@ -74,7 +64,7 @@ export function MapSearchBox({
                 accessToken={accessToken}
                 options={{
                     language: 'en,de',
-                    proximity: proximity || undefined,
+                    bbox: bbox || undefined,
                     country: countries?.join(','),
                     types: types?.join(','),
                 }}
