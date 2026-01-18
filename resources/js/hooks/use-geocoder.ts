@@ -82,7 +82,8 @@ export function useGeocoder({
 
                 // Create permanent marker
                 const defaultType = MarkerType.PointOfInterest;
-                const markerEl = createMarkerElement(defaultType);
+                // Create temporary marker (unsaved) with highest z-index
+                const markerEl = createMarkerElement(defaultType, false, true);
 
                 const marker = new mapboxgl.Marker(markerEl)
                     .setLngLat([lng, lat])

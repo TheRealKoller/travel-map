@@ -67,7 +67,8 @@ export function useMapInteractions({
                 const markerType = getMarkerTypeFromMapboxClass(mapboxClass);
 
                 const [lng, lat] = [lngLat.lng, lngLat.lat];
-                const markerEl = createMarkerElement(markerType);
+                // Create temporary marker (unsaved) with highest z-index
+                const markerEl = createMarkerElement(markerType, false, true);
 
                 const newMarker = new mapboxgl.Marker(markerEl)
                     .setLngLat([lng, lat])
@@ -161,7 +162,8 @@ export function useMapInteractions({
                 }
 
                 const [lng, lat] = [lngLat.lng, lngLat.lat];
-                const markerEl = createMarkerElement(markerType);
+                // Create temporary marker (unsaved) with highest z-index
+                const markerEl = createMarkerElement(markerType, false, true);
 
                 const newMarker = new mapboxgl.Marker(markerEl)
                     .setLngLat([lng, lat])
@@ -266,7 +268,8 @@ export function useMapInteractions({
                 const markerType = getMarkerTypeFromMapboxClass(mapboxClass);
 
                 const [lng, lat] = [lngLat.lng, lngLat.lat];
-                const markerEl = createMarkerElement(markerType);
+                // Create temporary marker (unsaved) with highest z-index
+                const markerEl = createMarkerElement(markerType, false, true);
 
                 const newMarker = new mapboxgl.Marker(markerEl)
                     .setLngLat([lng, lat])
@@ -355,7 +358,8 @@ export function useMapInteractions({
 
             // Create a marker at the clicked location
             const defaultType = MarkerType.PointOfInterest;
-            const markerEl = createMarkerElement(defaultType);
+            // Create temporary marker (unsaved) with highest z-index
+            const markerEl = createMarkerElement(defaultType, false, true);
 
             const marker = new mapboxgl.Marker(markerEl)
                 .setLngLat(e.lngLat)
