@@ -11,6 +11,9 @@ interface UseGeocoderOptions {
     onMarkerSelected: (markerId: string) => void;
 }
 
+// Minimum required coordinate length (longitude, latitude)
+const REQUIRED_COORDINATE_LENGTH = 2;
+
 /**
  * Hook to manage search result markers and conversions
  * This hook provides callbacks for the SearchBox component
@@ -29,10 +32,14 @@ export function useGeocoder({
         (result: SearchBoxRetrieveResponse) => {
             if (!mapInstance) return;
 
+            // Guard check for valid features array
+            if (!result.features || result.features.length === 0) return;
+
             const coordinates = result.features[0]?.geometry.coordinates;
             const properties = result.features[0]?.properties;
 
-            if (!coordinates || coordinates.length < 2) return;
+            if (!coordinates || coordinates.length < REQUIRED_COORDINATE_LENGTH)
+                return;
 
             const [lng, lat] = coordinates;
             const placeName =

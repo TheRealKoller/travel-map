@@ -25,7 +25,8 @@ export function MapSearchBox({
 
     // Update proximity based on map center whenever map moves
     useEffect(() => {
-        if (!mapInstance) return;
+        // Only set up event listeners if we have both map instance and access token
+        if (!mapInstance || !accessToken) return;
 
         const updateProximity = () => {
             const center = mapInstance.getCenter();
@@ -44,8 +45,9 @@ export function MapSearchBox({
         return () => {
             mapInstance.off('moveend', updateProximity);
         };
-    }, [mapInstance]);
+    }, [mapInstance, accessToken]);
 
+    // Early return if no access token
     if (!accessToken) {
         return null;
     }
