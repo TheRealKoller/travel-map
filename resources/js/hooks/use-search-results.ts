@@ -65,8 +65,12 @@ export function useSearchResults({
                     // Get the appropriate marker type based on OSM type
                     const markerType = getMarkerTypeFromOSMType(result.type);
 
-                    // Create the marker element
-                    const markerEl = createMarkerElement(markerType);
+                    // Create the marker element - temporary (unsaved) with highest z-index
+                    const markerEl = createMarkerElement(
+                        markerType,
+                        false,
+                        true,
+                    );
 
                     // Create the marker
                     const newMarker = new mapboxgl.Marker(markerEl)

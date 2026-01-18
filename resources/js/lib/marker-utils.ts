@@ -76,21 +76,24 @@ export const getMarkerTypeClass = (type: MarkerType): string => {
  * Create a custom marker element for Mapbox GL
  * @param type - The marker type
  * @param isHighlighted - Whether the marker should be highlighted
+ * @param isTemporary - Whether this is a temporary (unsaved) marker with highest z-index
  * @returns HTML div element configured as a marker
- * @note All variables (typeClass, highlightClass, icon) are derived from controlled enums
+ * @note All variables (typeClass, highlightClass, temporaryClass, icon) are derived from controlled enums
  *       and internal functions, ensuring no XSS vulnerability from user input
  */
 export const createMarkerElement = (
     type: MarkerType,
     isHighlighted = false,
+    isTemporary = false,
 ): HTMLDivElement => {
     const el = document.createElement('div');
     const typeClass = getMarkerTypeClass(type);
     const highlightClass = isHighlighted ? 'mapbox-marker--highlighted' : '';
+    const temporaryClass = isTemporary ? 'mapbox-marker--temporary' : '';
     const icon = getIconForType(type);
 
     el.innerHTML = `
-        <div class="mapbox-marker ${typeClass} ${highlightClass}">
+        <div class="mapbox-marker ${typeClass} ${highlightClass} ${temporaryClass}">
             <div class="mapbox-marker__icon">
                 <i class="fa ${icon}"></i>
             </div>

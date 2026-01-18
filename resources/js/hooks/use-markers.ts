@@ -52,7 +52,12 @@ export function useMarkers({
                         is_unesco: boolean;
                         ai_enriched: boolean;
                     }) => {
-                        const el = createMarkerElement(dbMarker.type);
+                        // Saved markers use isTemporary=false (default z-index)
+                        const el = createMarkerElement(
+                            dbMarker.type,
+                            false,
+                            false,
+                        );
 
                         const marker = new mapboxgl.Marker(el)
                             .setLngLat([dbMarker.longitude, dbMarker.latitude])
@@ -169,7 +174,8 @@ export function useMarkers({
 
                         // If type changed, we need to rebuild the marker element
                         if (type !== marker.type) {
-                            const el = createMarkerElement(type);
+                            // Saved marker (not temporary)
+                            const el = createMarkerElement(type, false, false);
                             el.addEventListener('click', (clickEvent) => {
                                 clickEvent.stopPropagation();
                                 onMarkerClick(id);

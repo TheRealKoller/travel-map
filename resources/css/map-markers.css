@@ -9,6 +9,8 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     cursor: pointer;
     transition: transform 0.2s ease;
+    /* Default z-index for saved markers */
+    z-index: 10;
 }
 
 .mapbox-marker:hover {
@@ -94,10 +96,18 @@
 /* Search marker (temporary from geocoder) */
 .mapbox-marker--search {
     background-color: #ffff00; /* yellow */
+    /* Higher z-index for search markers - above search results */
+    z-index: 20;
 }
 
 .mapbox-marker--search .mapbox-marker__icon {
     color: black;
+}
+
+/* Temporary/unsaved marker (highest priority) */
+.mapbox-marker--temporary {
+    /* Highest z-index for temporary markers - topmost */
+    z-index: 30;
 }
 
 /* Search result marker (blue circles) */
@@ -110,6 +120,8 @@
     border: 2px solid #3b82f6;
     cursor: pointer;
     transition: opacity 0.2s ease;
+    /* Higher z-index for search results - above saved markers */
+    z-index: 20;
 }
 
 .search-result-marker:hover {

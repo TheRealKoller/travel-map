@@ -40,7 +40,12 @@ export function useMarkerHighlight({
             if (prevMarker) {
                 const mapboxMarker = prevMarker.marker;
                 const [lng, lat] = [prevMarker.lng, prevMarker.lat];
-                const el = createMarkerElement(prevMarker.type, false);
+                // Restore with temporary flag if marker is unsaved
+                const el = createMarkerElement(
+                    prevMarker.type,
+                    false,
+                    !prevMarker.isSaved,
+                );
 
                 // Remove and recreate marker with new element
                 mapboxMarker.remove();
@@ -71,7 +76,12 @@ export function useMarkerHighlight({
             if (selectedMarker) {
                 const mapboxMarker = selectedMarker.marker;
                 const [lng, lat] = [selectedMarker.lng, selectedMarker.lat];
-                const el = createMarkerElement(selectedMarker.type, true);
+                // Apply temporary flag if marker is unsaved
+                const el = createMarkerElement(
+                    selectedMarker.type,
+                    true,
+                    !selectedMarker.isSaved,
+                );
 
                 // Remove and recreate marker with new element
                 mapboxMarker.remove();

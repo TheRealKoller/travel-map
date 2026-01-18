@@ -1,3 +1,7 @@
+import {
+    ensureVectorLayerOrder,
+    getFirstSymbolLayerId,
+} from '@/lib/map-layers';
 import { MarkerData } from '@/types/marker';
 import { Route } from '@/types/route';
 import { Tour } from '@/types/tour';
@@ -154,37 +158,46 @@ export function useTourLines({
                 },
             });
 
+            // Get first symbol layer to insert tour line layers below labels
+            const beforeLayerId = getFirstSymbolLayerId(mapInstance);
+
             // Add base line layer (always visible)
-            mapInstance.addLayer({
-                id: lineId,
-                type: 'line',
-                source: lineId,
-                layout: {
-                    'line-join': 'round',
-                    'line-cap': 'round',
+            mapInstance.addLayer(
+                {
+                    id: lineId,
+                    type: 'line',
+                    source: lineId,
+                    layout: {
+                        'line-join': 'round',
+                        'line-cap': 'round',
+                    },
+                    paint: {
+                        'line-color': '#3b82f6', // Blue color
+                        'line-width': 3,
+                        'line-opacity': 0.6,
+                    },
                 },
-                paint: {
-                    'line-color': '#3b82f6', // Blue color
-                    'line-width': 3,
-                    'line-opacity': 0.6,
-                },
-            });
+                beforeLayerId,
+            );
 
             // Add hover highlight layer (only visible on hover)
-            mapInstance.addLayer({
-                id: `${lineId}-hover`,
-                type: 'line',
-                source: lineId,
-                layout: {
-                    'line-join': 'round',
-                    'line-cap': 'round',
+            mapInstance.addLayer(
+                {
+                    id: `${lineId}-hover`,
+                    type: 'line',
+                    source: lineId,
+                    layout: {
+                        'line-join': 'round',
+                        'line-cap': 'round',
+                    },
+                    paint: {
+                        'line-color': '#3b82f6', // Same blue for hover
+                        'line-width': 5,
+                        'line-opacity': 0,
+                    },
                 },
-                paint: {
-                    'line-color': '#3b82f6', // Same blue for hover
-                    'line-width': 5,
-                    'line-opacity': 0,
-                },
-            });
+                beforeLayerId,
+            );
 
             // Add hover interactions
             mapInstance.on('mouseenter', lineId, () => {
@@ -220,6 +233,9 @@ export function useTourLines({
 
             lineLayerIdsRef.current.add(lineId);
         }
+
+        // Ensure proper layer ordering after adding all tour lines
+        ensureVectorLayerOrder(mapInstance);
     }, [mapInstance, selectedTourId, tours, markers, routes, onTourLineClick]);
 
     return null;

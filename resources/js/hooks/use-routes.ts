@@ -1,3 +1,7 @@
+import {
+    ensureVectorLayerOrder,
+    getFirstSymbolLayerId,
+} from '@/lib/map-layers';
 import { Route } from '@/types/route';
 import axios from 'axios';
 import mapboxgl from 'mapbox-gl';
@@ -113,37 +117,46 @@ export function useRoutes({
             // Check if this route is highlighted
             const isHighlighted = highlightedRouteId === route.id;
 
+            // Get first symbol layer to insert route layers below labels
+            const beforeLayerId = getFirstSymbolLayerId(mapInstance);
+
             // Add base layer for the route
-            mapInstance.addLayer({
-                id: layerId,
-                type: 'line',
-                source: layerId,
-                layout: {
-                    'line-join': 'round',
-                    'line-cap': 'round',
+            mapInstance.addLayer(
+                {
+                    id: layerId,
+                    type: 'line',
+                    source: layerId,
+                    layout: {
+                        'line-join': 'round',
+                        'line-cap': 'round',
+                    },
+                    paint: {
+                        'line-color': color,
+                        'line-width': isHighlighted ? 5 : 3,
+                        'line-opacity': isHighlighted ? 0.9 : 0.6,
+                    },
                 },
-                paint: {
-                    'line-color': color,
-                    'line-width': isHighlighted ? 5 : 3,
-                    'line-opacity': isHighlighted ? 0.9 : 0.6,
-                },
-            });
+                beforeLayerId,
+            );
 
             // Add hover highlight layer
-            mapInstance.addLayer({
-                id: `${layerId}-hover`,
-                type: 'line',
-                source: layerId,
-                layout: {
-                    'line-join': 'round',
-                    'line-cap': 'round',
+            mapInstance.addLayer(
+                {
+                    id: `${layerId}-hover`,
+                    type: 'line',
+                    source: layerId,
+                    layout: {
+                        'line-join': 'round',
+                        'line-cap': 'round',
+                    },
+                    paint: {
+                        'line-color': color,
+                        'line-width': 5,
+                        'line-opacity': 0,
+                    },
                 },
-                paint: {
-                    'line-color': color,
-                    'line-width': 5,
-                    'line-opacity': 0,
-                },
-            });
+                beforeLayerId,
+            );
 
             // Add popup on click
             mapInstance.on('click', layerId, (e) => {
@@ -193,6 +206,9 @@ export function useRoutes({
 
             routeLayerIdsRef.current.set(route.id, layerId);
         });
+
+        // Ensure proper layer ordering after adding all routes
+        ensureVectorLayerOrder(mapInstance);
     }, [
         routes,
         mapInstance,
