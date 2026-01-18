@@ -21,6 +21,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Trip routes
     Route::get('/trips', [TripController::class, 'index'])->name('trips.index');
+    Route::get('/trips/create', [TripController::class, 'create'])->name('trips.create');
     Route::post('/trips', [TripController::class, 'store'])->name('trips.store');
     Route::get('/trips/{trip}', [TripController::class, 'show'])->name('trips.show');
     Route::put('/trips/{trip}', [TripController::class, 'update'])->name('trips.update');
