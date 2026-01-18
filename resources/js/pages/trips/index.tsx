@@ -56,7 +56,7 @@ export default function TripsIndex() {
                             <button
                                 data-testid={`edit-trip-button-${trip.id}`}
                                 onClick={(e) => handleEditTrip(e, trip.id)}
-                                className="absolute right-3 top-3 z-10 flex size-8 items-center justify-center rounded-lg bg-background/80 text-muted-foreground opacity-0 backdrop-blur-sm transition-all hover:bg-background hover:text-foreground group-hover:opacity-100"
+                                className="absolute top-3 right-3 z-10 flex size-8 items-center justify-center rounded-lg bg-background/80 text-muted-foreground opacity-0 backdrop-blur-sm transition-all group-hover:opacity-100 hover:bg-background hover:text-foreground"
                                 aria-label="Edit trip"
                             >
                                 <Pencil className="size-4" />
@@ -106,9 +106,9 @@ export default function TripsIndex() {
                                     <div className="absolute inset-0 flex items-center justify-center">
                                         <span className="text-xs text-muted-foreground">
                                             Map preview
-                                    </span>
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
                             </button>
                         </div>
                     ))}

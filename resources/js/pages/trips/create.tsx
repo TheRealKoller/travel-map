@@ -22,7 +22,7 @@ interface CreateTripProps {
 
 export default function CreateTrip({ trip }: CreateTripProps) {
     const isEditMode = !!trip;
-    
+
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: 'Trips',
@@ -65,7 +65,9 @@ export default function CreateTrip({ trip }: CreateTripProps) {
 
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
-                    throw new Error(errorData.message || 'Failed to update trip');
+                    throw new Error(
+                        errorData.message || 'Failed to update trip',
+                    );
                 }
 
                 // Navigate to trips overview after successful update
@@ -89,7 +91,9 @@ export default function CreateTrip({ trip }: CreateTripProps) {
 
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
-                    throw new Error(errorData.message || 'Failed to create trip');
+                    throw new Error(
+                        errorData.message || 'Failed to create trip',
+                    );
                 }
 
                 const createdTrip = await response.json();
@@ -101,9 +105,16 @@ export default function CreateTrip({ trip }: CreateTripProps) {
             const errorMessage =
                 error instanceof Error
                     ? error.message
-                    : isEditMode ? 'Failed to update trip' : 'Failed to create trip';
+                    : isEditMode
+                      ? 'Failed to update trip'
+                      : 'Failed to create trip';
             setError(errorMessage);
-            console.error(isEditMode ? 'Failed to update trip:' : 'Failed to create trip:', error);
+            console.error(
+                isEditMode
+                    ? 'Failed to update trip:'
+                    : 'Failed to create trip:',
+                error,
+            );
         } finally {
             setIsSubmitting(false);
         }
@@ -123,8 +134,8 @@ export default function CreateTrip({ trip }: CreateTripProps) {
                             {isEditMode ? 'Edit trip' : 'Create new trip'}
                         </h1>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            {isEditMode 
-                                ? 'Update the details of your trip' 
+                            {isEditMode
+                                ? 'Update the details of your trip'
                                 : 'Fill in the details to create your trip'}
                         </p>
                     </div>
@@ -133,7 +144,11 @@ export default function CreateTrip({ trip }: CreateTripProps) {
                         {error && (
                             <AlertError
                                 errors={[error]}
-                                title={isEditMode ? 'Failed to update trip' : 'Failed to create trip'}
+                                title={
+                                    isEditMode
+                                        ? 'Failed to update trip'
+                                        : 'Failed to create trip'
+                                }
                             />
                         )}
 
