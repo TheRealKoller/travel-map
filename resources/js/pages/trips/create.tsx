@@ -277,8 +277,9 @@ export default function CreateTrip({ trip }: CreateTripProps) {
                                     onViewportChange={setViewport}
                                 />
                                 <p className="text-xs text-muted-foreground">
-                                    The map will automatically search for the trip
-                                    name. Adjust the view to show the desired area.
+                                    The map will automatically search for the
+                                    trip name. Adjust the view to show the
+                                    desired area.
                                 </p>
                             </div>
                         </div>

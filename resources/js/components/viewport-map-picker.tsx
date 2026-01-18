@@ -45,9 +45,6 @@ export function ViewportMapPicker({
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
     const [mapInitialized, setMapInitialized] = useState(false);
-    const searchBoxRef = useRef<{ search: (query: string) => void } | null>(
-        null,
-    );
     const lastSearchQueryRef = useRef<string>('');
 
     // Initialize map
