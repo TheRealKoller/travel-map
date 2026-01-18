@@ -98,23 +98,3 @@ export function ensureVectorLayerOrder(map: mapboxgl.Map): void {
         }
     });
 }
-
-/**
- * Apply z-index to a marker element based on its type
- */
-export function applyMarkerZIndex(
-    element: HTMLElement,
-    type: 'saved' | 'search-result' | 'temporary',
-): void {
-    switch (type) {
-        case 'saved':
-            element.style.zIndex = String(MARKER_Z_INDEX.SAVED);
-            break;
-        case 'search-result':
-            element.style.zIndex = String(MARKER_Z_INDEX.SEARCH_RESULT);
-            break;
-        case 'temporary':
-            element.style.zIndex = String(MARKER_Z_INDEX.TEMPORARY);
-            break;
-    }
-}

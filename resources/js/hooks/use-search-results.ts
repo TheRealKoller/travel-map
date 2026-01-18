@@ -65,7 +65,7 @@ export function useSearchResults({
                     // Get the appropriate marker type based on OSM type
                     const markerType = getMarkerTypeFromOSMType(result.type);
 
-                    // Create the marker element - temporary (unsaved) with highest z-index
+                    // Create the marker element - created from search result but becomes temporary until saved
                     const markerEl = createMarkerElement(
                         markerType,
                         false,

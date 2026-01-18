@@ -96,7 +96,7 @@
 /* Search marker (temporary from geocoder) */
 .mapbox-marker--search {
     background-color: #ffff00; /* yellow */
-    /* Higher z-index for search markers - above search results */
+    /* Same z-index as search results - both are temporary/unsearched markers */
     z-index: 20;
 }
 
