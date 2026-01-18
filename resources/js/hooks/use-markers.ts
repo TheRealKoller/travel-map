@@ -306,8 +306,19 @@ export function useMarkers({
 
             // If adding a new temporary marker, remove any existing temporary markers first
             if (!markerData.isSaved) {
-                // Remove all existing unsaved markers from map and state
-                const unsavedMarkers = prev.filter((m) => !m.isSaved);
+                // Separate saved and unsaved markers in a single pass
+                const savedMarkers: MarkerData[] = [];
+                const unsavedMarkers: MarkerData[] = [];
+
+                prev.forEach((m) => {
+                    if (m.isSaved) {
+                        savedMarkers.push(m);
+                    } else {
+                        unsavedMarkers.push(m);
+                    }
+                });
+
+                // Remove all existing unsaved markers from map
                 unsavedMarkers.forEach((m) => {
                     const mapboxMarker = m.marker;
                     if (mapboxMarker) {
@@ -316,7 +327,7 @@ export function useMarkers({
                 });
 
                 // Return state without unsaved markers, plus the new marker
-                return [...prev.filter((m) => m.isSaved), markerData];
+                return [...savedMarkers, markerData];
             }
 
             return [...prev, markerData];
