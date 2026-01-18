@@ -408,19 +408,6 @@ export default function MarkerForm({
                             />
                         </div>
                     )}
-                    <div>
-                        <label className="mb-1 block text-sm font-medium text-gray-700">
-                            Coordinates
-                        </label>
-                        <p className="text-sm text-gray-600">
-                            <span className="font-medium">Latitude:</span>{' '}
-                            {marker.lat.toFixed(6)}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                            <span className="font-medium">Longitude:</span>{' '}
-                            {marker.lng.toFixed(6)}
-                        </p>
-                    </div>
                     {tours.length > 0 && onToggleMarkerInTour && (
                         <div>
                             <label className="mb-1 block text-sm font-medium text-gray-700">
@@ -455,6 +442,11 @@ export default function MarkerForm({
                             </div>
                         </div>
                     )}
+                    <div className="border-t border-gray-200 pt-2">
+                        <p className="text-xs text-gray-500">
+                            Lat, Long: {marker.lat.toFixed(6)}, {marker.lng.toFixed(6)}
+                        </p>
+                    </div>
                     <div className="flex flex-col gap-2 border-t border-gray-200 pt-4 lg:flex-row lg:gap-2">
                         <button
                             onClick={handleEnterEditMode}
@@ -671,19 +663,6 @@ export default function MarkerForm({
                                 options={mdeOptions}
                             />
                         </div>
-                        <div>
-                            <label className="mb-2 block text-sm font-medium text-gray-700">
-                                Coordinates
-                            </label>
-                            <p className="text-sm text-gray-600">
-                                <span className="font-medium">Latitude:</span>{' '}
-                                {marker.lat.toFixed(6)}
-                            </p>
-                            <p className="text-sm text-gray-600">
-                                <span className="font-medium">Longitude:</span>{' '}
-                                {marker.lng.toFixed(6)}
-                            </p>
-                        </div>
                         {tours.length > 0 && onToggleMarkerInTour && (
                             <div>
                                 <label className="mb-2 block text-sm font-medium text-gray-700">
@@ -723,6 +702,11 @@ export default function MarkerForm({
                                 </div>
                             </div>
                         )}
+                        <div className="border-t border-gray-200 pt-2">
+                            <p className="text-xs text-gray-500">
+                                Lat, Long: {marker.lat.toFixed(6)}, {marker.lng.toFixed(6)}
+                            </p>
+                        </div>
                         <div className="flex flex-col gap-2 border-t border-gray-200 pt-4 lg:flex-row lg:gap-2">
                             <button
                                 onClick={handleSave}
