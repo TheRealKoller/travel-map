@@ -1,11 +1,8 @@
 import { createMarkerElement } from '@/lib/marker-utils';
-import { GeocodeResult } from '@/types/geocoder';
 import { MarkerData, MarkerType } from '@/types/marker';
-// @ts-expect-error - No type definitions available for @mapbox/mapbox-gl-geocoder
-import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
-import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
+import { SearchBoxRetrieveResponse } from '@mapbox/search-js-core';
 import mapboxgl from 'mapbox-gl';
-import { useEffect, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 interface UseGeocoderOptions {
@@ -14,6 +11,10 @@ interface UseGeocoderOptions {
     onMarkerSelected: (markerId: string) => void;
 }
 
+/**
+ * Hook to manage search result markers and conversions
+ * This hook provides callbacks for the SearchBox component
+ */
 export function useGeocoder({
     mapInstance,
     onMarkerCreated,
@@ -21,53 +22,23 @@ export function useGeocoder({
 }: UseGeocoderOptions) {
     const searchMarkerRef = useRef<mapboxgl.Marker | null>(null);
 
-    useEffect(() => {
-        if (!mapInstance) return;
+    /**
+     * Handle search result selection from SearchBox
+     */
+    const handleSearchResult = useCallback(
+        (result: SearchBoxRetrieveResponse) => {
+            if (!mapInstance) return;
 
-        // Add geocoder search control
-        const geocoder = new MapboxGeocoder({
-            accessToken: mapboxgl.accessToken || '',
-            mapboxgl: mapboxgl as never,
-            marker: false, // We'll handle markers ourselves
-            placeholder: 'Search for places...',
-        });
+            const coordinates = result.features[0]?.geometry.coordinates;
+            const properties = result.features[0]?.properties;
 
-        mapInstance.addControl(geocoder, 'top-left');
+            if (!coordinates || coordinates.length < 2) return;
 
-        // Add data-testid for E2E testing
-        // Use MutationObserver to watch for when the geocoder is added to the DOM
-        const addTestIdToGeocoder = () => {
-            const geocoderElement = document.querySelector(
-                '.mapboxgl-ctrl-geocoder',
-            );
-            if (geocoderElement) {
-                geocoderElement.setAttribute('data-testid', 'map-geocoder');
-                return true;
-            }
-            return false;
-        };
-
-        // Try immediately first
-        if (!addTestIdToGeocoder()) {
-            // If not found, set up MutationObserver
-            const observer = new MutationObserver(() => {
-                if (addTestIdToGeocoder()) {
-                    observer.disconnect();
-                }
-            });
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true,
-            });
-
-            // Fallback timeout to disconnect observer after 5 seconds
-            setTimeout(() => observer.disconnect(), 5000);
-        }
-
-        // Handle geocoder result
-        geocoder.on('result', (e: { result: GeocodeResult }) => {
-            const [lng, lat] = e.result.center;
-            const placeName = e.result.place_name || 'Searched Location';
+            const [lng, lat] = coordinates;
+            const placeName =
+                properties?.name ||
+                properties?.full_address ||
+                'Searched Location';
 
             // Remove previous search marker if exists
             if (searchMarkerRef.current) {
@@ -145,10 +116,12 @@ export function useGeocoder({
 
             // Center and zoom to the location
             mapInstance.flyTo({ center: [lng, lat], zoom: 16 });
-        });
-    }, [mapInstance, onMarkerCreated, onMarkerSelected]);
+        },
+        [mapInstance, onMarkerCreated, onMarkerSelected],
+    );
 
     return {
         searchMarkerRef,
+        handleSearchResult,
     } as const;
 }

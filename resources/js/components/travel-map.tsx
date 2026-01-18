@@ -1,5 +1,6 @@
 import { AiRecommendationsPanel } from '@/components/ai-recommendations-panel';
 import MapOptionsMenu from '@/components/map-options-menu';
+import { MapSearchBox } from '@/components/map-search-box';
 import MarkerForm from '@/components/marker-form';
 import MarkerList from '@/components/marker-list';
 import RoutePanel from '@/components/route-panel';
@@ -21,6 +22,7 @@ import { useTourMarkers } from '@/hooks/use-tour-markers';
 import { Tour } from '@/types/tour';
 import { Trip } from '@/types/trip';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -206,8 +208,8 @@ export default function TravelMap({
         onMarkerClick: setSelectedMarkerId,
     });
 
-    // Geocoder
-    useGeocoder({
+    // Geocoder - provides callbacks for SearchBox component
+    const { handleSearchResult } = useGeocoder({
         mapInstance,
         onMarkerCreated: addMarker,
         onMarkerSelected: setSelectedMarkerId,
@@ -493,6 +495,11 @@ export default function TravelMap({
                             ref={mapRef}
                             id="map"
                             className="z-10 h-full w-full"
+                        />
+                        <MapSearchBox
+                            mapInstance={mapInstance}
+                            onRetrieve={handleSearchResult}
+                            accessToken={mapboxgl.accessToken || ''}
                         />
                         <MapOptionsMenu
                             isSearchMode={isSearchMode}
