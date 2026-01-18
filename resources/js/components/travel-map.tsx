@@ -1,4 +1,5 @@
 import { AiRecommendationsPanel } from '@/components/ai-recommendations-panel';
+import { MapDebugInfo } from '@/components/map-debug-info';
 import MapOptionsMenu from '@/components/map-options-menu';
 import { MapSearchBox } from '@/components/map-search-box';
 import MarkerForm from '@/components/marker-form';
@@ -65,6 +66,16 @@ export default function TravelMap({
         south: number;
         east: number;
         west: number;
+    } | null>(null);
+
+    // State for current map viewport (for debug info)
+    const [currentMapViewport, setCurrentMapViewport] = useState<{
+        north: number;
+        south: number;
+        east: number;
+        west: number;
+        center: { lat: number; lng: number };
+        zoom: number;
     } | null>(null);
 
     // Search mode management
@@ -255,12 +266,24 @@ export default function TravelMap({
         if (mapInstance) {
             const updateBounds = () => {
                 const bounds = mapInstance.getBounds();
+                const center = mapInstance.getCenter();
+                const zoom = mapInstance.getZoom();
+
                 if (bounds) {
                     setMapBounds({
                         north: bounds.getNorth(),
                         south: bounds.getSouth(),
                         east: bounds.getEast(),
                         west: bounds.getWest(),
+                    });
+
+                    setCurrentMapViewport({
+                        north: bounds.getNorth(),
+                        south: bounds.getSouth(),
+                        east: bounds.getEast(),
+                        west: bounds.getWest(),
+                        center: { lat: center.lat, lng: center.lng },
+                        zoom,
                     });
                 }
             };
@@ -483,12 +506,23 @@ export default function TravelMap({
                     className="flex w-full flex-1 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm lg:ml-4"
                     data-testid="map-panel"
                 >
-                    {/* Top area for future buttons/controls */}
-                    <div
-                        className="mb-2 min-h-[40px] rounded-lg bg-white p-2 shadow"
-                        aria-hidden="true"
-                    >
-                        {/* Empty for now - placeholder for future controls */}
+                    {/* Top area for debug info */}
+                    <div className="mb-2 min-h-[40px] rounded-lg bg-white p-2 shadow">
+                        <MapDebugInfo
+                            tripViewport={
+                                selectedTrip
+                                    ? {
+                                          latitude:
+                                              selectedTrip.viewport_latitude,
+                                          longitude:
+                                              selectedTrip.viewport_longitude,
+                                          zoom: selectedTrip.viewport_zoom,
+                                      }
+                                    : null
+                            }
+                            currentMapBounds={currentMapViewport}
+                            searchBbox={getBoundingBoxFromTrip(selectedTrip)}
+                        />
                     </div>
 
                     {/* Map area */}

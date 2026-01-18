@@ -41,12 +41,12 @@ export function calculateBoundingBoxFromViewport(
     // Convert meters to degrees (approximate)
     const latDelta = viewportHeightMeters / 111320 / 2; // 1 degree latitude ≈ 111.32km
     const cosLat = Math.cos((latitude * Math.PI) / 180);
-    
+
     // Avoid division by zero at poles
     if (Math.abs(cosLat) < 0.0001) {
         return undefined;
     }
-    
+
     const lngDelta = viewportWidthMeters / (111320 * cosLat) / 2;
 
     const west = longitude - lngDelta;
