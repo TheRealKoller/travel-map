@@ -8,6 +8,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import AlertError from '@/components/alert-error';
 import AppLayout from '@/layouts/app-layout';
 import { COUNTRIES } from '@/lib/countries';
 import { store as tripsStore } from '@/routes/trips';
@@ -30,14 +31,16 @@ export default function CreateTrip() {
     const [name, setName] = useState('');
     const [country, setCountry] = useState<string>('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!name.trim()) return;
 
         setIsSubmitting(true);
+        setError(null);
         try {
-            await fetch(tripsStore.url(), {
+            const response = await fetch(tripsStore.url(), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -52,9 +55,19 @@ export default function CreateTrip() {
                 }),
             });
 
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(
+                    errorData.message || 'Failed to create trip',
+                );
+            }
+
             // Navigate back to map after successful creation
             router.visit('/');
         } catch (error) {
+            const errorMessage =
+                error instanceof Error ? error.message : 'Failed to create trip';
+            setError(errorMessage);
             console.error('Failed to create trip:', error);
         } finally {
             setIsSubmitting(false);
@@ -80,6 +93,13 @@ export default function CreateTrip() {
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
+                        {error && (
+                            <AlertError
+                                errors={[error]}
+                                title="Failed to create trip"
+                            />
+                        )}
+
                         <div className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Name *</Label>
