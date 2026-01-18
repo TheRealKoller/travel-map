@@ -7,9 +7,11 @@ use App\Http\Requests\UpdateTripRequest;
 use App\Models\Trip;
 use App\Services\MapboxStaticImageService;
 use App\Services\UnsplashService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -106,6 +108,24 @@ class TripController extends Controller
         $trip->delete();
 
         return response()->json(null, 204);
+    }
+
+    /**
+     * Export a trip as PDF.
+     * Generates a PDF document with trip information including name, title image, and map viewport.
+     */
+    public function exportPdf(Trip $trip): HttpResponse
+    {
+        $this->authorize('view', $trip);
+
+        $pdf = Pdf::loadView('trip-pdf', [
+            'trip' => $trip,
+        ]);
+
+        // Generate a safe filename from the trip name
+        $filename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $trip->name) . '.pdf';
+
+        return $pdf->download($filename);
     }
 
     /**

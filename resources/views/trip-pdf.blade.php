@@ -37,12 +37,6 @@
             margin-bottom: 10px;
         }
         
-        .trip-country {
-            font-size: 18px;
-            color: #6b7280;
-            margin-bottom: 5px;
-        }
-        
         .section {
             margin-bottom: 40px;
         }
@@ -92,9 +86,6 @@
     <div class="container">
         <div class="header">
             <h1 class="trip-name">{{ $trip->name }}</h1>
-            @if($trip->country)
-                <div class="trip-country">{{ $countryName }}</div>
-            @endif
         </div>
 
         @if($trip->image_url || !$trip->image_url)

@@ -516,3 +516,45 @@ test('static map image URL is updated when viewport changes', function () {
     expect($trip->viewport_static_image_url)->not->toBe('https://api.mapbox.com/old-url')
         ->and($trip->viewport_static_image_url)->toContain('7.4474,46.948,10');
 });
+
+test('authenticated user can export their trip as PDF', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Summer Vacation 2024',
+    ]);
+
+    $response = $this->actingAs($this->user)->get("/trips/{$trip->id}/export-pdf");
+
+    $response->assertStatus(200)
+        ->assertHeader('content-type', 'application/pdf')
+        ->assertDownload('Summer_Vacation_2024.pdf');
+});
+
+test('user cannot export another users trip as PDF', function () {
+    $otherTrip = Trip::factory()->create();
+
+    $response = $this->actingAs($this->user)->get("/trips/{$otherTrip->id}/export-pdf");
+
+    $response->assertStatus(403);
+});
+
+test('unauthenticated user cannot export trip as PDF', function () {
+    $trip = Trip::factory()->create();
+
+    $response = $this->get("/trips/{$trip->id}/export-pdf");
+
+    $response->assertRedirect('/login');
+});
+
+test('PDF filename sanitizes special characters', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Trip/With\\Special:Characters*',
+    ]);
+
+    $response = $this->actingAs($this->user)->get("/trips/{$trip->id}/export-pdf");
+
+    $response->assertStatus(200)
+        ->assertDownload('Trip_With_Special_Characters_.pdf');
+});
+
