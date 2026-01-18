@@ -27,7 +27,6 @@ export default function MapPage() {
 
     const {
         trips,
-        setTrips,
         selectedTripId,
         setSelectedTripId,
         createTrip,
@@ -55,33 +54,13 @@ export default function MapPage() {
     const {
         state: modalState,
         closeCreateTripModal,
-        openRenameTripModal,
         closeRenameTripModal,
-        openDeleteTripDialog,
         closeDeleteTripDialog,
         openCreateTourModal,
         closeCreateTourModal,
         openDeleteTourDialog,
         closeDeleteTourDialog,
     } = useModalState();
-
-    const handleOpenRenameModal = (tripId: number) => {
-        const trip = trips.find((t) => t.id === tripId);
-        if (!trip) {
-            console.warn(`Trip with id ${tripId} not found`);
-            return;
-        }
-        openRenameTripModal(trip);
-    };
-
-    const handleOpenDeleteTripDialog = (tripId: number) => {
-        const trip = trips.find((t) => t.id === tripId);
-        if (!trip) {
-            console.warn(`Trip with id ${tripId} not found`);
-            return;
-        }
-        openDeleteTripDialog(trip);
-    };
 
     const handleOpenDeleteTourDialog = (tourId: number) => {
         const tour = tours.find((t) => t.id === tourId);
@@ -115,14 +94,6 @@ export default function MapPage() {
         await deleteTour(modalState.tourToDelete);
     };
 
-    const handleTripImageFetched = (tripId: number, imageUrl: string) => {
-        setTrips((prev) =>
-            prev.map((t) =>
-                t.id === tripId ? { ...t, image_url: imageUrl } : t,
-            ),
-        );
-    };
-
     const handleSetViewport = async (
         tripId: number,
         viewport: { latitude: number; longitude: number; zoom: number },
@@ -131,16 +102,7 @@ export default function MapPage() {
     };
 
     return (
-        <AppLayout
-            breadcrumbs={breadcrumbs}
-            trips={trips}
-            selectedTripId={selectedTripId}
-            onSelectTrip={setSelectedTripId}
-            onRenameTrip={handleOpenRenameModal}
-            onDeleteTrip={handleOpenDeleteTripDialog}
-            onTripImageFetched={handleTripImageFetched}
-            updateTripViewport={updateTripViewport}
-        >
+        <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Map" />
             <MapContainer
                 selectedTripId={selectedTripId}
