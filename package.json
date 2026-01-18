@@ -36,7 +36,6 @@
         "@fortawesome/fontawesome-free": "^7.1.0",
         "@headlessui/react": "^2.2.0",
         "@inertiajs/react": "^2.1.4",
-        "@mapbox/mapbox-gl-geocoder": "^5.1.2",
         "@mapbox/search-js-react": "^1.5.1",
         "@radix-ui/react-avatar": "^1.1.3",
         "@radix-ui/react-checkbox": "^1.1.4",
