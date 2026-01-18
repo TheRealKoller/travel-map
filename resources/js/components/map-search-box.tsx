@@ -63,7 +63,7 @@ export function MapSearchBox({
             <SearchBox
                 accessToken={accessToken}
                 options={{
-                    language: 'en,de',
+                    language: 'de,en',
                     bbox: bbox || undefined,
                     country: countries?.join(','),
                     types: types?.join(','),
