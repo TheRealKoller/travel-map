@@ -15,7 +15,7 @@ import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Trip } from '@/types/trip';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Map } from 'lucide-react';
+import { BookOpen, Folder, LayoutGrid, Luggage, Map } from 'lucide-react';
 import AppLogo from './app-logo';
 import { MapboxUsageProgressBar } from './mapbox-usage-progress-bar';
 
@@ -24,6 +24,11 @@ const mainNavItems: NavItem[] = [
         title: 'Map',
         href: '/',
         icon: Map,
+    },
+    {
+        title: 'Trips',
+        href: '/trips',
+        icon: Luggage,
     },
     {
         title: 'Dashboard',
