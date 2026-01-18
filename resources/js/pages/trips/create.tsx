@@ -1,3 +1,4 @@
+import AlertError from '@/components/alert-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,7 +9,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import AlertError from '@/components/alert-error';
 import AppLayout from '@/layouts/app-layout';
 import { COUNTRIES } from '@/lib/countries';
 import { store as tripsStore } from '@/routes/trips';
@@ -57,18 +57,18 @@ export default function CreateTrip() {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(
-                    errorData.message || 'Failed to create trip',
-                );
+                throw new Error(errorData.message || 'Failed to create trip');
             }
 
             const createdTrip = await response.json();
-            
+
             // Navigate to map with the newly created trip
             router.visit(`/map/${createdTrip.id}`);
         } catch (error) {
             const errorMessage =
-                error instanceof Error ? error.message : 'Failed to create trip';
+                error instanceof Error
+                    ? error.message
+                    : 'Failed to create trip';
             setError(errorMessage);
             console.error('Failed to create trip:', error);
         } finally {

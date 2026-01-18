@@ -19,11 +19,12 @@ interface MapPageProps {
     trip?: {
         id: number;
     };
+    [key: string]: unknown;
 }
 
 export default function MapPage() {
     const { trip } = usePage<MapPageProps>().props;
-    
+
     const {
         trips,
         setTrips,
