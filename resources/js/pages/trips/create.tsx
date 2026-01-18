@@ -10,6 +10,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { ViewportMapPicker } from '@/components/viewport-map-picker';
 import AppLayout from '@/layouts/app-layout';
 import { COUNTRIES } from '@/lib/countries';
 import {
@@ -41,6 +42,21 @@ export default function CreateTrip({ trip }: CreateTripProps) {
 
     const [name, setName] = useState(trip?.name || '');
     const [country, setCountry] = useState<string>(trip?.country || '');
+    const [viewport, setViewport] = useState<{
+        latitude: number;
+        longitude: number;
+        zoom: number;
+    } | null>(
+        trip?.viewport_latitude &&
+            trip?.viewport_longitude &&
+            trip?.viewport_zoom
+            ? {
+                  latitude: trip.viewport_latitude,
+                  longitude: trip.viewport_longitude,
+                  zoom: trip.viewport_zoom,
+              }
+            : null,
+    );
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -52,6 +68,20 @@ export default function CreateTrip({ trip }: CreateTripProps) {
         setIsSubmitting(true);
         setError(null);
         try {
+            const tripData: {
+                name: string;
+                country: string | null;
+                viewport_latitude?: number | null;
+                viewport_longitude?: number | null;
+                viewport_zoom?: number | null;
+            } = {
+                name: name.trim(),
+                country: country || null,
+                viewport_latitude: viewport?.latitude ?? null,
+                viewport_longitude: viewport?.longitude ?? null,
+                viewport_zoom: viewport?.zoom ?? null,
+            };
+
             if (isEditMode) {
                 // Update existing trip
                 const response = await fetch(tripsUpdate.url(trip.id), {
@@ -63,10 +93,7 @@ export default function CreateTrip({ trip }: CreateTripProps) {
                                 .querySelector('meta[name="csrf-token"]')
                                 ?.getAttribute('content') || '',
                     },
-                    body: JSON.stringify({
-                        name: name.trim(),
-                        country: country || null,
-                    }),
+                    body: JSON.stringify(tripData),
                 });
 
                 if (!response.ok) {
@@ -89,10 +116,7 @@ export default function CreateTrip({ trip }: CreateTripProps) {
                                 .querySelector('meta[name="csrf-token"]')
                                 ?.getAttribute('content') || '',
                     },
-                    body: JSON.stringify({
-                        name: name.trim(),
-                        country: country || null,
-                    }),
+                    body: JSON.stringify(tripData),
                 });
 
                 if (!response.ok) {
@@ -246,11 +270,17 @@ export default function CreateTrip({ trip }: CreateTripProps) {
 
                             <div className="space-y-2">
                                 <Label>Viewport</Label>
-                                <div className="flex h-32 items-center justify-center rounded-lg border border-dashed border-muted-foreground/25 bg-muted/10">
-                                    <p className="text-sm text-muted-foreground">
-                                        Placeholder for viewport settings
-                                    </p>
-                                </div>
+                                <ViewportMapPicker
+                                    searchQuery={name}
+                                    country={country}
+                                    initialViewport={viewport ?? undefined}
+                                    onViewportChange={setViewport}
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                    The map will automatically search for the
+                                    trip name. Adjust the view to show the
+                                    desired area.
+                                </p>
                             </div>
                         </div>
 

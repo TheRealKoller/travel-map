@@ -45,6 +45,9 @@ class TripController extends Controller
         $trip = auth()->user()->trips()->create([
             'name' => $validated['name'],
             'country' => $validated['country'] ?? null,
+            'viewport_latitude' => $validated['viewport_latitude'] ?? null,
+            'viewport_longitude' => $validated['viewport_longitude'] ?? null,
+            'viewport_zoom' => $validated['viewport_zoom'] ?? null,
         ]);
 
         return response()->json($trip, 201);

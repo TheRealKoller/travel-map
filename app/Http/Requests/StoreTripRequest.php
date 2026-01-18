@@ -24,6 +24,9 @@ class StoreTripRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'country' => 'nullable|string|size:2',
+            'viewport_latitude' => 'nullable|numeric|between:-90,90',
+            'viewport_longitude' => 'nullable|numeric|between:-180,180',
+            'viewport_zoom' => 'nullable|numeric|between:0,22',
         ];
     }
 }
