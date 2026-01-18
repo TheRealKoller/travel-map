@@ -146,7 +146,8 @@ export default function CreateTrip({ trip }: CreateTripProps) {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to delete trip');
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Failed to delete trip');
             }
 
             // Navigate to trips overview after successful deletion
