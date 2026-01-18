@@ -74,7 +74,8 @@ export function useGeocoder({
             popup.addTo(mapInstance);
 
             // Add click handler to convert temporary marker to permanent
-            el.addEventListener('click', () => {
+            el.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent map click event
                 // Remove the temporary marker
                 searchMarker.remove();
                 searchMarkerRef.current = null;
