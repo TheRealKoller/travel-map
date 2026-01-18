@@ -190,17 +190,113 @@ class UnsplashService
     }
 
     /**
-     * Get photo data for a trip by name.
+     * Get photo data for a trip by name and optional country.
      *
      * @param  string  $tripName  Name of the trip
+     * @param  string|null  $countryCode  Optional country code (e.g., 'DE', 'US')
      * @return array|null Photo data or null if not found
      */
-    public function getPhotoForTrip(string $tripName): ?array
+    public function getPhotoForTrip(string $tripName, ?string $countryCode = null): ?array
     {
+        // Build query with trip name
+        $query = $tripName;
+
+        // Add country name to query if country code is provided
+        if ($countryCode) {
+            $countryName = $this->getCountryName($countryCode);
+            if ($countryName) {
+                $query = $countryName.' '.$query;
+            }
+        }
+
         // Enhance query with travel-related terms for better results
-        $query = $tripName.' travel destination';
+        $query .= ' travel destination';
 
         return $this->searchPhoto($query, 'landscape');
+    }
+
+    /**
+     * Convert country code to country name for better search results.
+     *
+     * @param  string  $countryCode  ISO 3166-1 alpha-2 country code
+     * @return string|null Country name or null if not found
+     */
+    private function getCountryName(string $countryCode): ?string
+    {
+        $countries = [
+            'DE' => 'Germany',
+            'AT' => 'Austria',
+            'CH' => 'Switzerland',
+            'FR' => 'France',
+            'IT' => 'Italy',
+            'ES' => 'Spain',
+            'PT' => 'Portugal',
+            'GB' => 'United Kingdom',
+            'IE' => 'Ireland',
+            'NL' => 'Netherlands',
+            'BE' => 'Belgium',
+            'LU' => 'Luxembourg',
+            'DK' => 'Denmark',
+            'SE' => 'Sweden',
+            'NO' => 'Norway',
+            'FI' => 'Finland',
+            'IS' => 'Iceland',
+            'PL' => 'Poland',
+            'CZ' => 'Czech Republic',
+            'SK' => 'Slovakia',
+            'HU' => 'Hungary',
+            'RO' => 'Romania',
+            'BG' => 'Bulgaria',
+            'HR' => 'Croatia',
+            'SI' => 'Slovenia',
+            'GR' => 'Greece',
+            'TR' => 'Turkey',
+            'CY' => 'Cyprus',
+            'MT' => 'Malta',
+            'EE' => 'Estonia',
+            'LV' => 'Latvia',
+            'LT' => 'Lithuania',
+            'US' => 'United States',
+            'CA' => 'Canada',
+            'MX' => 'Mexico',
+            'BR' => 'Brazil',
+            'AR' => 'Argentina',
+            'CL' => 'Chile',
+            'PE' => 'Peru',
+            'CO' => 'Colombia',
+            'JP' => 'Japan',
+            'CN' => 'China',
+            'KR' => 'South Korea',
+            'TH' => 'Thailand',
+            'VN' => 'Vietnam',
+            'IN' => 'India',
+            'ID' => 'Indonesia',
+            'MY' => 'Malaysia',
+            'SG' => 'Singapore',
+            'PH' => 'Philippines',
+            'AU' => 'Australia',
+            'NZ' => 'New Zealand',
+            'ZA' => 'South Africa',
+            'EG' => 'Egypt',
+            'MA' => 'Morocco',
+            'TN' => 'Tunisia',
+            'KE' => 'Kenya',
+            'TZ' => 'Tanzania',
+            'AE' => 'United Arab Emirates',
+            'SA' => 'Saudi Arabia',
+            'IL' => 'Israel',
+            'JO' => 'Jordan',
+            'RU' => 'Russia',
+            'UA' => 'Ukraine',
+            'BY' => 'Belarus',
+            'RS' => 'Serbia',
+            'BA' => 'Bosnia and Herzegovina',
+            'ME' => 'Montenegro',
+            'MK' => 'North Macedonia',
+            'AL' => 'Albania',
+        ];
+
+        return $countries[$countryCode] ?? null;
     }
 
     /**

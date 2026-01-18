@@ -3,6 +3,7 @@ import DeleteTripDialog from '@/components/delete-trip-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import {
     Select,
     SelectContent,
@@ -15,12 +16,14 @@ import AppLayout from '@/layouts/app-layout';
 import { COUNTRIES } from '@/lib/countries';
 import {
     destroy as tripsDestroy,
+    fetchImage as tripsFetchImage,
     store as tripsStore,
     update as tripsUpdate,
 } from '@/routes/trips';
 import { type BreadcrumbItem, type Trip } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { ImageIcon, Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface CreateTripProps {
     trip?: Trip;
@@ -42,6 +45,10 @@ export default function CreateTrip({ trip }: CreateTripProps) {
 
     const [name, setName] = useState(trip?.name || '');
     const [country, setCountry] = useState<string>(trip?.country || '');
+    const [imageUrl, setImageUrl] = useState<string | null>(
+        trip?.image_url || null,
+    );
+    const [isLoadingImage, setIsLoadingImage] = useState(false);
     const [viewport, setViewport] = useState<{
         latitude: number;
         longitude: number;
@@ -61,6 +68,57 @@ export default function CreateTrip({ trip }: CreateTripProps) {
     const [error, setError] = useState<string | null>(null);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
+    // Auto-fetch image when both name and country are available
+    useEffect(() => {
+        // Auto-fetch image when editing existing trips without images.
+        // This effect runs ONCE on component mount (not on user input changes).
+        // For new trips, the backend auto-fetches images on save if name+country are provided.
+        // Only auto-fetch if:
+        // 1. We're in edit mode (existing trip)
+        // 2. Trip has both name and country
+        // 3. No image is currently set
+        // 4. Not already loading an image
+        if (
+            name.trim() &&
+            country &&
+            !imageUrl &&
+            !isLoadingImage &&
+            isEditMode &&
+            trip
+        ) {
+            const fetchImage = async () => {
+                setIsLoadingImage(true);
+                try {
+                    const response = await fetch(tripsFetchImage.url(trip.id), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN':
+                                document
+                                    .querySelector('meta[name="csrf-token"]')
+                                    ?.getAttribute('content') || '',
+                        },
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.trip?.image_url) {
+                            setImageUrl(data.trip.image_url);
+                        }
+                    }
+                    // Silently fail if no image found
+                } catch (error) {
+                    console.error('Failed to fetch image:', error);
+                } finally {
+                    setIsLoadingImage(false);
+                }
+            };
+
+            fetchImage();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Empty deps: run once on mount, not on every keystroke
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!name.trim()) return;
@@ -71,12 +129,14 @@ export default function CreateTrip({ trip }: CreateTripProps) {
             const tripData: {
                 name: string;
                 country: string | null;
+                image_url?: string | null;
                 viewport_latitude?: number | null;
                 viewport_longitude?: number | null;
                 viewport_zoom?: number | null;
             } = {
                 name: name.trim(),
                 country: country || null,
+                image_url: imageUrl,
                 viewport_latitude: viewport?.latitude ?? null,
                 viewport_longitude: viewport?.longitude ?? null,
                 viewport_zoom: viewport?.zoom ?? null,
@@ -261,11 +321,40 @@ export default function CreateTrip({ trip }: CreateTripProps) {
 
                             <div className="space-y-2">
                                 <Label>Image</Label>
-                                <div className="flex h-32 items-center justify-center rounded-lg border border-dashed border-muted-foreground/25 bg-muted/10">
-                                    <p className="text-sm text-muted-foreground">
-                                        Placeholder for image upload
-                                    </p>
+                                <div
+                                    className="relative aspect-video w-full overflow-hidden rounded-lg border border-sidebar-border/70 bg-muted dark:border-sidebar-border"
+                                    data-testid="trip-image-preview"
+                                >
+                                    {isLoadingImage ? (
+                                        <div className="flex size-full items-center justify-center">
+                                            <Loader2 className="size-8 animate-spin text-muted-foreground" />
+                                            <span className="ml-2 text-sm text-muted-foreground">
+                                                Loading image...
+                                            </span>
+                                        </div>
+                                    ) : imageUrl ? (
+                                        <img
+                                            src={imageUrl}
+                                            alt={name || 'Trip image'}
+                                            className="size-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="flex size-full flex-col items-center justify-center gap-2">
+                                            <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+                                            <ImageIcon className="relative size-12 text-muted-foreground/50" />
+                                            <p className="relative text-sm text-muted-foreground">
+                                                {name && country
+                                                    ? 'Image will be loaded automatically'
+                                                    : 'Add name and country to load image'}
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
+                                <p className="text-xs text-muted-foreground">
+                                    Images are automatically fetched from
+                                    Unsplash when you provide both trip name and
+                                    country
+                                </p>
                             </div>
 
                             <div className="space-y-2">
