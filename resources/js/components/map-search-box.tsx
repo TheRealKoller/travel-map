@@ -1,4 +1,4 @@
-git import { SearchBoxRetrieveResponse } from '@mapbox/search-js-core';
+import { SearchBoxRetrieveResponse } from '@mapbox/search-js-core';
 import { SearchBox } from '@mapbox/search-js-react';
 import { useMemo } from 'react';
 
