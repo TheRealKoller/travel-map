@@ -59,6 +59,54 @@ test('authenticated user can create a trip with country', function () {
     ]);
 });
 
+test('authenticated user can create a trip with viewport', function () {
+    $tripData = [
+        'name' => 'Switzerland Trip',
+        'country' => 'CH',
+        'viewport_latitude' => 47.3769,
+        'viewport_longitude' => 8.5417,
+        'viewport_zoom' => 7.5,
+    ];
+
+    $response = $this->actingAs($this->user)->postJson('/trips', $tripData);
+
+    $response->assertStatus(201)
+        ->assertJsonFragment([
+            'name' => 'Switzerland Trip',
+            'country' => 'CH',
+            'viewport_latitude' => 47.3769,
+            'viewport_longitude' => 8.5417,
+            'viewport_zoom' => 7.5,
+        ]);
+
+    $this->assertDatabaseHas('trips', [
+        'name' => 'Switzerland Trip',
+        'country' => 'CH',
+        'viewport_latitude' => 47.3769,
+        'viewport_longitude' => 8.5417,
+        'viewport_zoom' => 7.5,
+        'user_id' => $this->user->id,
+    ]);
+});
+
+test('viewport fields are optional when creating trip', function () {
+    $tripData = [
+        'name' => 'Simple Trip',
+    ];
+
+    $response = $this->actingAs($this->user)->postJson('/trips', $tripData);
+
+    $response->assertStatus(201)
+        ->assertJsonFragment(['name' => 'Simple Trip']);
+
+    $this->assertDatabaseHas('trips', [
+        'name' => 'Simple Trip',
+        'viewport_latitude' => null,
+        'viewport_longitude' => null,
+        'viewport_zoom' => null,
+    ]);
+});
+
 test('country must be exactly 2 characters if provided', function () {
     $response = $this->actingAs($this->user)->postJson('/trips', [
         'name' => 'Trip',
