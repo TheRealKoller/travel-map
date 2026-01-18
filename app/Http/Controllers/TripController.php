@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreTripRequest;
 use App\Http\Requests\UpdateTripRequest;
 use App\Models\Trip;
+use App\Services\MapboxStaticImageService;
 use App\Services\UnsplashService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
@@ -17,7 +18,8 @@ class TripController extends Controller
     use AuthorizesRequests;
 
     public function __construct(
-        private readonly UnsplashService $unsplashService
+        private readonly UnsplashService $unsplashService,
+        private readonly MapboxStaticImageService $mapboxStaticImageService
     ) {}
 
     public function index(Request $request): JsonResponse|Response
@@ -51,6 +53,9 @@ class TripController extends Controller
             'viewport_zoom' => $validated['viewport_zoom'] ?? null,
         ]);
 
+        // Generate static image URL if viewport is set
+        $this->updateViewportStaticImage($trip);
+
         // Auto-fetch image if both name and country are provided and no image_url yet
         if ($trip->name && $trip->country && ! $trip->image_url) {
             $this->autoFetchImage($trip);
@@ -82,6 +87,9 @@ class TripController extends Controller
         $validated = $request->validated();
 
         $trip->update($validated);
+
+        // Generate static image URL if viewport is set
+        $this->updateViewportStaticImage($trip);
 
         // Auto-fetch image if both name and country are provided and no image_url yet
         if ($trip->name && $trip->country && ! $trip->image_url) {
@@ -159,6 +167,29 @@ class TripController extends Controller
                 'trip_id' => $trip->id,
                 'error' => $e->getMessage(),
             ]);
+        }
+    }
+
+    /**
+     * Update the viewport static image URL for a trip.
+     * Generates a static map image URL if viewport coordinates are set,
+     * otherwise clears the static image URL.
+     */
+    private function updateViewportStaticImage(Trip $trip): void
+    {
+        if ($trip->viewport_latitude !== null && $trip->viewport_longitude !== null && $trip->viewport_zoom !== null) {
+            $staticImageUrl = $this->mapboxStaticImageService->generateStaticImageUrl(
+                latitude: $trip->viewport_latitude,
+                longitude: $trip->viewport_longitude,
+                zoom: $trip->viewport_zoom
+            );
+
+            if ($staticImageUrl) {
+                $trip->update(['viewport_static_image_url' => $staticImageUrl]);
+            }
+        } else {
+            // Clear static image URL if viewport is removed
+            $trip->update(['viewport_static_image_url' => null]);
         }
     }
 }

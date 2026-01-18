@@ -417,3 +417,102 @@ test('authenticated user can clear trip image_url', function () {
         'image_url' => null,
     ]);
 });
+
+test('static map image URL is generated when creating trip with viewport', function () {
+    // Configure a fake Mapbox token for testing
+    config(['services.mapbox.access_token' => 'pk.test.fake_token_for_testing_only']);
+
+    $tripData = [
+        'name' => 'Switzerland Trip',
+        'country' => 'CH',
+        'viewport_latitude' => 47.3769,
+        'viewport_longitude' => 8.5417,
+        'viewport_zoom' => 7.5,
+    ];
+
+    $response = $this->actingAs($this->user)->postJson('/trips', $tripData);
+
+    $response->assertStatus(201);
+    $trip = Trip::find($response->json('id'));
+
+    expect($trip->viewport_static_image_url)->not->toBeNull()
+        ->and($trip->viewport_static_image_url)->toContain('api.mapbox.com/styles/v1/mapbox/streets-v12/static');
+});
+
+test('static map image URL is not generated when creating trip without viewport', function () {
+    $tripData = [
+        'name' => 'Simple Trip',
+    ];
+
+    $response = $this->actingAs($this->user)->postJson('/trips', $tripData);
+
+    $response->assertStatus(201);
+    $trip = Trip::find($response->json('id'));
+
+    expect($trip->viewport_static_image_url)->toBeNull();
+});
+
+test('static map image URL is generated when updating trip with viewport', function () {
+    // Configure a fake Mapbox token for testing
+    config(['services.mapbox.access_token' => 'pk.test.fake_token_for_testing_only']);
+
+    $trip = Trip::factory()->create(['user_id' => $this->user->id]);
+
+    $response = $this->actingAs($this->user)->putJson("/trips/{$trip->id}", [
+        'viewport_latitude' => 47.3769,
+        'viewport_longitude' => 8.5417,
+        'viewport_zoom' => 12.5,
+    ]);
+
+    $response->assertStatus(200);
+    $trip = $trip->fresh();
+
+    expect($trip->viewport_static_image_url)->not->toBeNull()
+        ->and($trip->viewport_static_image_url)->toContain('api.mapbox.com/styles/v1/mapbox/streets-v12/static');
+});
+
+test('static map image URL is cleared when removing viewport from trip', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'viewport_latitude' => 47.3769,
+        'viewport_longitude' => 8.5417,
+        'viewport_zoom' => 12.5,
+        'viewport_static_image_url' => 'https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/8.5417,47.3769,12.5,0,0/800x400?access_token=test',
+    ]);
+
+    $response = $this->actingAs($this->user)->putJson("/trips/{$trip->id}", [
+        'viewport_latitude' => null,
+        'viewport_longitude' => null,
+        'viewport_zoom' => null,
+    ]);
+
+    $response->assertStatus(200);
+    $trip = $trip->fresh();
+
+    expect($trip->viewport_static_image_url)->toBeNull();
+});
+
+test('static map image URL is updated when viewport changes', function () {
+    // Configure a fake Mapbox token for testing
+    config(['services.mapbox.access_token' => 'pk.test.fake_token_for_testing_only']);
+
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'viewport_latitude' => 47.3769,
+        'viewport_longitude' => 8.5417,
+        'viewport_zoom' => 12.5,
+        'viewport_static_image_url' => 'https://api.mapbox.com/old-url',
+    ]);
+
+    $response = $this->actingAs($this->user)->putJson("/trips/{$trip->id}", [
+        'viewport_latitude' => 46.9480,
+        'viewport_longitude' => 7.4474,
+        'viewport_zoom' => 10,
+    ]);
+
+    $response->assertStatus(200);
+    $trip = $trip->fresh();
+
+    expect($trip->viewport_static_image_url)->not->toBe('https://api.mapbox.com/old-url')
+        ->and($trip->viewport_static_image_url)->toContain('7.4474,46.948,10');
+});

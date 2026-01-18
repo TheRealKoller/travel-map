@@ -101,14 +101,15 @@ export default function TripsIndex() {
                                 </div>
 
                                 {/* Map Viewport Placeholder */}
-                                <div className="relative h-24 w-full border-t border-sidebar-border/70 bg-muted/50 dark:border-sidebar-border">
-                                    <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <span className="text-xs text-muted-foreground">
-                                            Map preview
-                                        </span>
+                                {trip.viewport_static_image_url ? (
+                                    <div className="relative h-24 w-full border-t border-sidebar-border/70 bg-muted/50 dark:border-sidebar-border">
+                                        <img
+                                            src={trip.viewport_static_image_url}
+                                            alt="Map preview"
+                                            className="size-full object-cover"
+                                        />
                                     </div>
-                                </div>
+                                ) : null}
                             </button>
                         </div>
                     ))}
