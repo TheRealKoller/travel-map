@@ -8,12 +8,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { COUNTRIES } from '@/lib/countries';
 import AppLayout from '@/layouts/app-layout';
+import { COUNTRIES } from '@/lib/countries';
 import { store as tripsStore } from '@/routes/trips';
 import { type BreadcrumbItem } from '@/types';
-import { router } from '@inertiajs/react';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -72,7 +71,9 @@ export default function CreateTrip() {
             <div className="flex h-full flex-1 items-center justify-center p-4">
                 <div className="w-full max-w-2xl space-y-6 rounded-xl border border-sidebar-border/70 bg-card p-6 dark:border-sidebar-border">
                     <div>
-                        <h1 className="text-2xl font-semibold">Create new trip</h1>
+                        <h1 className="text-2xl font-semibold">
+                            Create new trip
+                        </h1>
                         <p className="mt-1 text-sm text-muted-foreground">
                             Fill in the details to create your trip
                         </p>
@@ -109,14 +110,18 @@ export default function CreateTrip() {
                                     </SelectTrigger>
                                     <SelectContent>
                                         {COUNTRIES.map((c) => (
-                                            <SelectItem key={c.code} value={c.code}>
+                                            <SelectItem
+                                                key={c.code}
+                                                value={c.code}
+                                            >
                                                 {c.name}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
                                 <p className="text-xs text-muted-foreground">
-                                    Search results will be filtered to this country
+                                    Search results will be filtered to this
+                                    country
                                 </p>
                             </div>
 

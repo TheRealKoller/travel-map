@@ -49,7 +49,6 @@ interface AppSidebarProps {
     trips?: Trip[];
     selectedTripId?: number | null;
     onSelectTrip?: (tripId: number) => void;
-    onCreateTrip?: () => void;
     onRenameTrip?: (tripId: number) => void;
     onDeleteTrip?: (tripId: number) => void;
     onTripImageFetched?: (tripId: number, imageUrl: string) => void;
@@ -63,7 +62,6 @@ export function AppSidebar({
     trips = [],
     selectedTripId = null,
     onSelectTrip = () => {},
-    onCreateTrip = () => {},
     onRenameTrip,
     onDeleteTrip,
     onTripImageFetched,
@@ -96,7 +94,6 @@ export function AppSidebar({
                     trips={trips}
                     selectedTripId={selectedTripId}
                     onSelectTrip={onSelectTrip}
-                    onCreateTrip={onCreateTrip}
                     onRenameTrip={onRenameTrip}
                     onDeleteTrip={onDeleteTrip}
                     onSetViewport={handleSetViewport}

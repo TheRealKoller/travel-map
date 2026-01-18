@@ -29,7 +29,6 @@ interface TripSelectorProps {
     trips: Trip[];
     selectedTripId: number | null;
     onSelectTrip: (tripId: number) => void;
-    onCreateTrip: () => void;
     onRenameTrip?: (tripId: number) => void;
     onDeleteTrip?: (tripId: number) => void;
     onSetViewport?: (tripId: number) => void;
@@ -40,7 +39,6 @@ export default function TripSelector({
     trips,
     selectedTripId,
     onSelectTrip,
-    onCreateTrip,
     onRenameTrip,
     onDeleteTrip,
     onSetViewport,
