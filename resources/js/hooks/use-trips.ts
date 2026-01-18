@@ -36,27 +36,35 @@ export function useTrips() {
         }
     }, [selectedTripId]);
 
-    const createTrip = useCallback(async (name: string) => {
-        setIsLoading(true);
-        setError(null);
+    const createTrip = useCallback(
+        async (name: string, country: string | null = null) => {
+            setIsLoading(true);
+            setError(null);
 
-        try {
-            const response = await axios.post<Trip>(tripsStore.url(), { name });
-            const newTrip = response.data;
-            setTrips((prev) => [...prev, newTrip]);
-            setSelectedTripId(newTrip.id);
+            try {
+                const response = await axios.post<Trip>(tripsStore.url(), {
+                    name,
+                    country,
+                });
+                const newTrip = response.data;
+                setTrips((prev) => [...prev, newTrip]);
+                setSelectedTripId(newTrip.id);
 
-            return newTrip;
-        } catch (err) {
-            const error =
-                err instanceof Error ? err : new Error('Failed to create trip');
-            setError(error);
-            console.error('Failed to create trip:', error);
-            throw error;
-        } finally {
-            setIsLoading(false);
-        }
-    }, []);
+                return newTrip;
+            } catch (err) {
+                const error =
+                    err instanceof Error
+                        ? err
+                        : new Error('Failed to create trip');
+                setError(error);
+                console.error('Failed to create trip:', error);
+                throw error;
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        [],
+    );
 
     const renameTrip = useCallback(async (trip: Trip, name: string) => {
         setIsLoading(true);

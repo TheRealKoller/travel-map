@@ -7,6 +7,17 @@ interface MapSearchBoxProps {
     mapInstance: mapboxgl.Map | null;
     onRetrieve: (result: SearchBoxRetrieveResponse) => void;
     accessToken: string;
+    /**
+     * ISO 3166 alpha-2 country codes to restrict search results
+     * Examples: ['DE'], ['DE', 'AT', 'CH'], ['US', 'CA']
+     * If not provided, searches globally
+     */
+    countries?: string[];
+    /**
+     * Types of results to return (e.g., 'place', 'poi', 'address')
+     * Defaults to all types if not specified
+     */
+    types?: string[];
 }
 
 /**
@@ -17,6 +28,8 @@ export function MapSearchBox({
     mapInstance,
     onRetrieve,
     accessToken,
+    countries,
+    types,
 }: MapSearchBoxProps) {
     const [proximity, setProximity] = useState<{
         lng: number;
@@ -62,6 +75,8 @@ export function MapSearchBox({
                 options={{
                     language: 'en,de',
                     proximity: proximity || undefined,
+                    country: countries?.join(','),
+                    types: types?.join(','),
                 }}
                 placeholder="Search for places..."
                 onRetrieve={onRetrieve}

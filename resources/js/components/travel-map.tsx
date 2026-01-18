@@ -55,6 +55,9 @@ export default function TravelMap({
     // Initialize map instance
     const { mapRef, mapInstance } = useMapInstance();
 
+    // Get the selected trip to access its country
+    const selectedTrip = trips.find((t) => t.id === selectedTripId);
+
     // State for map bounds
     const [mapBounds, setMapBounds] = useState<{
         north: number;
@@ -335,8 +338,6 @@ export default function TravelMap({
     const selectedMarker =
         markers.find((m) => m.id === selectedMarkerId) || null;
 
-    const selectedTrip = trips.find((t) => t.id === selectedTripId) || null;
-
     return (
         <div className="flex h-full flex-col gap-4">
             {/* AI Recommendations Panel - Full width above the 4 existing areas */}
@@ -500,6 +501,11 @@ export default function TravelMap({
                             mapInstance={mapInstance}
                             onRetrieve={handleSearchResult}
                             accessToken={mapboxgl.accessToken || ''}
+                            countries={
+                                selectedTrip?.country
+                                    ? [selectedTrip.country]
+                                    : undefined
+                            }
                         />
                         <MapOptionsMenu
                             isSearchMode={isSearchMode}
