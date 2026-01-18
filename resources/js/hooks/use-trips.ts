@@ -23,9 +23,7 @@ export function useTrips() {
             const loadedTrips = response.data;
             setTrips(loadedTrips);
 
-            if (loadedTrips.length > 0 && selectedTripId === null) {
-                setSelectedTripId(loadedTrips[0].id);
-            }
+            // Don't auto-select the first trip - let the user choose
         } catch (err) {
             const error =
                 err instanceof Error ? err : new Error('Failed to load trips');
@@ -34,7 +32,7 @@ export function useTrips() {
         } finally {
             setIsLoading(false);
         }
-    }, [selectedTripId]);
+    }, []);
 
     const createTrip = useCallback(
         async (name: string, country: string | null = null) => {

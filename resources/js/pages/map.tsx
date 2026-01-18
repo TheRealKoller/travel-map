@@ -5,7 +5,8 @@ import { useTours } from '@/hooks/use-tours';
 import { useTrips } from '@/hooks/use-trips';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
+import { useEffect } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -14,7 +15,16 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+interface MapPageProps {
+    trip?: {
+        id: number;
+    };
+    [key: string]: unknown;
+}
+
 export default function MapPage() {
+    const { trip } = usePage<MapPageProps>().props;
+
     const {
         trips,
         setTrips,
@@ -25,6 +35,13 @@ export default function MapPage() {
         deleteTrip,
         updateTripViewport,
     } = useTrips();
+
+    // Set the selected trip based on the route parameter
+    useEffect(() => {
+        if (trip?.id && selectedTripId !== trip.id) {
+            setSelectedTripId(trip.id);
+        }
+    }, [trip?.id, selectedTripId, setSelectedTripId]);
 
     const {
         tours,
