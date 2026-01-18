@@ -13,6 +13,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Trip } from '@/types/trip';
+import { router } from '@inertiajs/react';
 import {
     Image,
     Loader2,
@@ -28,7 +29,6 @@ interface TripSelectorProps {
     trips: Trip[];
     selectedTripId: number | null;
     onSelectTrip: (tripId: number) => void;
-    onCreateTrip: () => void;
     onRenameTrip?: (tripId: number) => void;
     onDeleteTrip?: (tripId: number) => void;
     onSetViewport?: (tripId: number) => void;
@@ -39,7 +39,6 @@ export default function TripSelector({
     trips,
     selectedTripId,
     onSelectTrip,
-    onCreateTrip,
     onRenameTrip,
     onDeleteTrip,
     onSetViewport,
@@ -190,10 +189,11 @@ export default function TripSelector({
                     </DropdownMenu>
                 )}
                 <Button
-                    onClick={onCreateTrip}
+                    onClick={() => router.visit('/trips/create')}
                     size="icon"
                     variant="outline"
                     title="Create new trip"
+                    data-testid="create-trip-button"
                 >
                     <Plus className="h-4 w-4" />
                 </Button>

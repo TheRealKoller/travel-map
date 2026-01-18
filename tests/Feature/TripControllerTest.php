@@ -167,6 +167,18 @@ test('unauthenticated user cannot access trip endpoints', function () {
     $this->deleteJson('/trips/1')->assertStatus(401);
 });
 
+test('authenticated user can access trip creation page', function () {
+    $response = $this->actingAs($this->user)->get('/trips/create');
+
+    $response->assertStatus(200);
+});
+
+test('unauthenticated user cannot access trip creation page', function () {
+    $response = $this->get('/trips/create');
+
+    $response->assertRedirect('/login');
+});
+
 test('authenticated user can set viewport for their trip', function () {
     $trip = Trip::factory()->create(['user_id' => $this->user->id]);
 

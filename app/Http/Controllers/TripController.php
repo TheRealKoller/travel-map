@@ -9,6 +9,8 @@ use App\Services\UnsplashService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class TripController extends Controller
 {
@@ -23,6 +25,11 @@ class TripController extends Controller
         $trips = auth()->user()->trips()->orderBy('created_at', 'asc')->get();
 
         return response()->json($trips);
+    }
+
+    public function create(): Response
+    {
+        return Inertia::render('trips/create');
     }
 
     public function store(StoreTripRequest $request): JsonResponse

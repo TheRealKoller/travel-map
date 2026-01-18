@@ -37,7 +37,6 @@ export default function MapPage() {
 
     const {
         state: modalState,
-        openCreateTripModal,
         closeCreateTripModal,
         openRenameTripModal,
         closeRenameTripModal,
@@ -120,7 +119,6 @@ export default function MapPage() {
             trips={trips}
             selectedTripId={selectedTripId}
             onSelectTrip={setSelectedTripId}
-            onCreateTrip={openCreateTripModal}
             onRenameTrip={handleOpenRenameModal}
             onDeleteTrip={handleOpenDeleteTripDialog}
             onTripImageFetched={handleTripImageFetched}
