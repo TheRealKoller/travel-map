@@ -25,6 +25,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/trips', [TripController::class, 'store'])->name('trips.store');
     Route::get('/trips/{trip}', [TripController::class, 'show'])->name('trips.show');
     Route::get('/trips/{trip}/edit', [TripController::class, 'edit'])->name('trips.edit');
+    Route::put('/trips/{trip}', [TripController::class, 'update'])->name('trips.update');
+    Route::delete('/trips/{trip}', [TripController::class, 'destroy'])->name('trips.destroy');
+    Route::post('/trips/{trip}/fetch-image', [TripController::class, 'fetchImage'])->name('trips.fetch-image');
 
     // Map route - show map for a specific trip
     Route::get('/map/{trip}', function (\App\Models\Trip $trip) {
@@ -39,9 +42,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ],
         ]);
     })->name('map.show');
-    Route::put('/trips/{trip}', [TripController::class, 'update'])->name('trips.update');
-    Route::delete('/trips/{trip}', [TripController::class, 'destroy'])->name('trips.destroy');
-    Route::post('/trips/{trip}/fetch-image', [TripController::class, 'fetchImage'])->name('trips.fetch-image');
 
     // Tour routes
     Route::get('/tours', [TourController::class, 'index'])->name('tours.index');
