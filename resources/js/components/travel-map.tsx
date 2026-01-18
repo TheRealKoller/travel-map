@@ -533,7 +533,6 @@ export default function TravelMap({
                             className="z-10 h-full w-full"
                         />
                         <MapSearchBox
-                            mapInstance={mapInstance}
                             onRetrieve={handleSearchResult}
                             accessToken={mapboxgl.accessToken || ''}
                             countries={

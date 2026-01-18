@@ -1,10 +1,8 @@
 import { SearchBoxRetrieveResponse } from '@mapbox/search-js-core';
 import { SearchBox } from '@mapbox/search-js-react';
-import mapboxgl from 'mapbox-gl';
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 
 interface MapSearchBoxProps {
-    mapInstance: mapboxgl.Map | null;
     onRetrieve: (result: SearchBoxRetrieveResponse) => void;
     accessToken: string;
     /**
@@ -30,25 +28,19 @@ interface MapSearchBoxProps {
  * based on the trip's saved viewport settings
  */
 export function MapSearchBox({
-    mapInstance,
     onRetrieve,
     accessToken,
     countries,
     types,
-    bbox: initialBbox,
+    bbox,
 }: MapSearchBoxProps) {
-    const [bbox, setBbox] = useState<[number, number, number, number] | null>(
-        initialBbox || null,
-    );
-
-    // Update bbox when initialBbox prop changes (when trip changes)
-    useEffect(() => {
-        if (initialBbox && initialBbox.every((val) => isFinite(val))) {
-            setBbox(initialBbox);
-        } else {
-            setBbox(null);
+    // Validate and memoize bbox to avoid unnecessary re-renders
+    const validatedBbox = useMemo(() => {
+        if (bbox && bbox.every((val) => isFinite(val))) {
+            return bbox;
         }
-    }, [initialBbox]);
+        return undefined;
+    }, [bbox]);
 
     // Early return if no access token
     if (!accessToken) {
@@ -64,7 +56,7 @@ export function MapSearchBox({
                 accessToken={accessToken}
                 options={{
                     language: 'de,en',
-                    bbox: bbox || undefined,
+                    bbox: validatedBbox,
                     country: countries?.join(','),
                     types: types?.join(','),
                 }}
