@@ -15,7 +15,7 @@ test('generates static image URL with valid parameters', function () {
         zoom: 12.5
     );
 
-    expect($url)->toContain('api.mapbox.com/styles/v1/mapbox/streets-v12/static')
+    expect($url)->toContain('api.mapbox.com/styles/v1/the-koller/cmkk2r7cg00gl01r15b1achfj/static')
         ->and($url)->toContain('8.5417,47.3769,12.5')
         ->and($url)->toContain('800x400')
         ->and($url)->toContain('access_token='.$this->accessToken);
@@ -87,14 +87,14 @@ test('throws exception for invalid height', function () {
     );
 })->throws(\InvalidArgumentException::class, 'Height must be between 1 and 1280');
 
-test('uses streets-v12 style', function () {
+test('uses custom style', function () {
     $url = $this->service->generateStaticImageUrl(
         latitude: 47.3769,
         longitude: 8.5417,
         zoom: 12.5
     );
 
-    expect($url)->toContain('/mapbox/streets-v12/static');
+    expect($url)->toContain('/the-koller/cmkk2r7cg00gl01r15b1achfj/static');
 });
 
 test('sets bearing and pitch to 0', function () {
