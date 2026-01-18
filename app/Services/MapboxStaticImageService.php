@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Log;
+
 class MapboxStaticImageService
 {
     private const MAPBOX_STATIC_IMAGE_BASE_URL = 'https://api.mapbox.com/styles/v1';
@@ -30,7 +32,7 @@ class MapboxStaticImageService
     ): ?string {
         // Return null if no access token is configured
         if (empty($this->accessToken)) {
-            \Log::warning('Mapbox Static Image API called without access token configured');
+            Log::warning('Mapbox Static Image API called without access token configured');
 
             return null;
         }
