@@ -43,6 +43,7 @@ export default function DeleteTripDialog({
                         type="button"
                         variant="outline"
                         onClick={() => onOpenChange(false)}
+                        data-testid="delete-dialog-cancel-button"
                     >
                         Cancel
                     </Button>
@@ -50,6 +51,7 @@ export default function DeleteTripDialog({
                         type="button"
                         variant="destructive"
                         onClick={handleConfirm}
+                        data-testid="delete-dialog-confirm-button"
                     >
                         Delete trip
                     </Button>
