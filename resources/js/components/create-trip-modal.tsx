@@ -9,12 +9,20 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { COUNTRIES } from '@/lib/countries';
 import { useState } from 'react';
 
 interface CreateTripModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onCreateTrip: (name: string) => Promise<void>;
+    onCreateTrip: (name: string, country: string | null) => Promise<void>;
 }
 
 export default function CreateTripModal({
@@ -23,6 +31,7 @@ export default function CreateTripModal({
     onCreateTrip,
 }: CreateTripModalProps) {
     const [tripName, setTripName] = useState('');
+    const [country, setCountry] = useState<string>('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -31,8 +40,9 @@ export default function CreateTripModal({
 
         setIsSubmitting(true);
         try {
-            await onCreateTrip(tripName.trim());
+            await onCreateTrip(tripName.trim(), country || null);
             setTripName('');
+            setCountry('');
             onOpenChange(false);
         } catch (error) {
             console.error('Failed to create trip:', error);
@@ -47,7 +57,8 @@ export default function CreateTripModal({
                 <DialogHeader>
                     <DialogTitle>Create new trip</DialogTitle>
                     <DialogDescription>
-                        Give your trip a name to organize your travel markers.
+                        Give your trip a name and optionally select a country to
+                        filter search results.
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
@@ -62,6 +73,28 @@ export default function CreateTripModal({
                                 disabled={isSubmitting}
                                 autoFocus
                             />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="country">Country (optional)</Label>
+                            <Select
+                                value={country}
+                                onValueChange={setCountry}
+                                disabled={isSubmitting}
+                            >
+                                <SelectTrigger id="country">
+                                    <SelectValue placeholder="Select a country..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {COUNTRIES.map((c) => (
+                                        <SelectItem key={c.code} value={c.code}>
+                                            {c.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <p className="text-xs text-muted-foreground">
+                                Search results will be filtered to this country
+                            </p>
                         </div>
                     </div>
                     <DialogFooter>

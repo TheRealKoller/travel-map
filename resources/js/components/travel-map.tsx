@@ -1,5 +1,7 @@
 import { AiRecommendationsPanel } from '@/components/ai-recommendations-panel';
+import { MapDebugInfo } from '@/components/map-debug-info';
 import MapOptionsMenu from '@/components/map-options-menu';
+import { MapSearchBox } from '@/components/map-search-box';
 import MarkerForm from '@/components/marker-form';
 import MarkerList from '@/components/marker-list';
 import RoutePanel from '@/components/route-panel';
@@ -18,9 +20,11 @@ import { useSearchRadius } from '@/hooks/use-search-radius';
 import { useSearchResults } from '@/hooks/use-search-results';
 import { useTourLines } from '@/hooks/use-tour-lines';
 import { useTourMarkers } from '@/hooks/use-tour-markers';
+import { getBoundingBoxFromTrip } from '@/lib/map-utils';
 import { Tour } from '@/types/tour';
 import { Trip } from '@/types/trip';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -53,12 +57,25 @@ export default function TravelMap({
     // Initialize map instance
     const { mapRef, mapInstance } = useMapInstance();
 
+    // Get the selected trip to access its country
+    const selectedTrip = trips.find((t) => t.id === selectedTripId);
+
     // State for map bounds
     const [mapBounds, setMapBounds] = useState<{
         north: number;
         south: number;
         east: number;
         west: number;
+    } | null>(null);
+
+    // State for current map viewport (for debug info)
+    const [currentMapViewport, setCurrentMapViewport] = useState<{
+        north: number;
+        south: number;
+        east: number;
+        west: number;
+        center: { lat: number; lng: number };
+        zoom: number;
     } | null>(null);
 
     // Search mode management
@@ -206,8 +223,8 @@ export default function TravelMap({
         onMarkerClick: setSelectedMarkerId,
     });
 
-    // Geocoder
-    useGeocoder({
+    // Geocoder - provides callbacks for SearchBox component
+    const { handleSearchResult } = useGeocoder({
         mapInstance,
         onMarkerCreated: addMarker,
         onMarkerSelected: setSelectedMarkerId,
@@ -249,12 +266,24 @@ export default function TravelMap({
         if (mapInstance) {
             const updateBounds = () => {
                 const bounds = mapInstance.getBounds();
+                const center = mapInstance.getCenter();
+                const zoom = mapInstance.getZoom();
+
                 if (bounds) {
                     setMapBounds({
                         north: bounds.getNorth(),
                         south: bounds.getSouth(),
                         east: bounds.getEast(),
                         west: bounds.getWest(),
+                    });
+
+                    setCurrentMapViewport({
+                        north: bounds.getNorth(),
+                        south: bounds.getSouth(),
+                        east: bounds.getEast(),
+                        west: bounds.getWest(),
+                        center: { lat: center.lat, lng: center.lng },
+                        zoom,
                     });
                 }
             };
@@ -332,8 +361,6 @@ export default function TravelMap({
 
     const selectedMarker =
         markers.find((m) => m.id === selectedMarkerId) || null;
-
-    const selectedTrip = trips.find((t) => t.id === selectedTripId) || null;
 
     return (
         <div className="flex h-full flex-col gap-4">
@@ -479,12 +506,23 @@ export default function TravelMap({
                     className="flex w-full flex-1 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm lg:ml-4"
                     data-testid="map-panel"
                 >
-                    {/* Top area for future buttons/controls */}
-                    <div
-                        className="mb-2 min-h-[40px] rounded-lg bg-white p-2 shadow"
-                        aria-hidden="true"
-                    >
-                        {/* Empty for now - placeholder for future controls */}
+                    {/* Top area for debug info */}
+                    <div className="mb-2 min-h-[40px] rounded-lg bg-white p-2 shadow">
+                        <MapDebugInfo
+                            tripViewport={
+                                selectedTrip
+                                    ? {
+                                          latitude:
+                                              selectedTrip.viewport_latitude,
+                                          longitude:
+                                              selectedTrip.viewport_longitude,
+                                          zoom: selectedTrip.viewport_zoom,
+                                      }
+                                    : null
+                            }
+                            currentMapBounds={currentMapViewport}
+                            searchBbox={getBoundingBoxFromTrip(selectedTrip)}
+                        />
                     </div>
 
                     {/* Map area */}
@@ -493,6 +531,16 @@ export default function TravelMap({
                             ref={mapRef}
                             id="map"
                             className="z-10 h-full w-full"
+                        />
+                        <MapSearchBox
+                            onRetrieve={handleSearchResult}
+                            accessToken={mapboxgl.accessToken || ''}
+                            countries={
+                                selectedTrip?.country
+                                    ? [selectedTrip.country]
+                                    : undefined
+                            }
+                            bbox={getBoundingBoxFromTrip(selectedTrip)}
                         />
                         <MapOptionsMenu
                             isSearchMode={isSearchMode}

@@ -31,6 +31,7 @@ class TripController extends Controller
 
         $trip = auth()->user()->trips()->create([
             'name' => $validated['name'],
+            'country' => $validated['country'] ?? null,
         ]);
 
         return response()->json($trip, 201);

@@ -13,6 +13,7 @@ class Trip extends Model
 
     protected $fillable = [
         'name',
+        'country',
         'image_url',
         'viewport_latitude',
         'viewport_longitude',

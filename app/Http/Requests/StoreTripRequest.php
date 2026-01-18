@@ -23,6 +23,7 @@ class StoreTripRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255',
+            'country' => 'nullable|string|size:2',
         ];
     }
 }

@@ -38,6 +38,37 @@ test('trip name is required when creating', function () {
         ->assertJsonValidationErrors(['name']);
 });
 
+test('authenticated user can create a trip with country', function () {
+    $tripData = [
+        'name' => 'Germany Trip',
+        'country' => 'DE',
+    ];
+
+    $response = $this->actingAs($this->user)->postJson('/trips', $tripData);
+
+    $response->assertStatus(201)
+        ->assertJsonFragment([
+            'name' => 'Germany Trip',
+            'country' => 'DE',
+        ]);
+
+    $this->assertDatabaseHas('trips', [
+        'name' => 'Germany Trip',
+        'country' => 'DE',
+        'user_id' => $this->user->id,
+    ]);
+});
+
+test('country must be exactly 2 characters if provided', function () {
+    $response = $this->actingAs($this->user)->postJson('/trips', [
+        'name' => 'Trip',
+        'country' => 'DEU',
+    ]);
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['country']);
+});
+
 test('authenticated user can view their own trip', function () {
     $trip = Trip::factory()->create(['user_id' => $this->user->id]);
 

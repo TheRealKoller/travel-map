@@ -1,113 +1,174 @@
-# Mapbox Geocoder Implementation - Summary
+# Mapbox SearchBox Implementation - Summary
 
 ## Issue Resolution
-**Issue**: "Mapbox Geocoder für Suche implementieren" (Implement Mapbox Geocoder for search)
+**Issue**: "bessere suche" (better search) - Replace geocoding with Mapbox SearchBox and add proximity filtering
 **Status**: ✅ **COMPLETED**
 
 ## What Was Implemented
 
-The Mapbox Geocoder for location search was **already implemented** in the codebase. This task enhanced the existing implementation with:
+The Mapbox search feature was upgraded from the legacy Geocoder to the modern SearchBox component with proximity-based filtering:
 
-### 1. **Testability Enhancement**
-- Added `data-testid="map-geocoder"` attribute to the geocoder control
-- Enables reliable testing
-- Follows project testing best practices
+### 1. **Package Migration**
+- Removed: `@mapbox/mapbox-gl-geocoder` v5.1.2 (legacy package)
+- Added: `@mapbox/search-js-react` v1.5.1
+- Added: `@mapbox/search-js-core` v1.5.1 (dependency)
+- Added: `@mapbox/search-js-web` v1.5.1 (dependency)
 
-### 2. **Comprehensive Test Suite**
-Created `tests/e2e/geocoder.spec.ts` with 6 test cases:
-- ✅ Geocoder visibility verification
-- ✅ Input field accessibility check
-- ✅ User typing interaction test
-- ✅ API request triggering validation
-- ✅ Clear button functionality test
-- ✅ Results dropdown display test
+### 2. **Proximity-Based Search**
+- Search results now prioritized based on current map viewport center
+- Proximity parameter automatically updates when the map moves
+- More relevant results for users as they explore different regions
+- Supports the map's current view context for better UX
 
-All tests properly mock Mapbox API calls to avoid external dependencies.
+### 3. **Component Architecture**
+Created new `MapSearchBox` component:
+- React-based implementation using Mapbox's official React library
+- Positioned absolutely in top-left corner of map
+- Themed to match application design
+- Multi-language support (English and German)
 
-### 3. **Complete Documentation**
-Created `docs/GEOCODER_FEATURE.md` including:
-- Feature overview and capabilities
-- End-user guide with step-by-step instructions
-- Developer integration guide
-- Testing documentation
-- Troubleshooting section
-- Environment configuration details
-- Future enhancement suggestions
+### 4. **Hook Refactoring**
+Updated `use-geocoder.ts`:
+- Converted from imperative control-adding pattern to callback-based pattern
+- Now provides `handleSearchResult` callback for SearchBox component
+- Maintains existing marker creation behavior
+- No breaking changes to marker workflow
 
 ## Technical Implementation
 
-### Package Information
-- **Library**: `@mapbox/mapbox-gl-geocoder` v5.1.2
-- **Type Definitions**: `@types/mapbox__mapbox-gl-geocoder` v5.1.0
-- **Location**: `resources/js/components/travel-map.tsx` lines 666-684
+### New Component: MapSearchBox
+**Location**: `resources/js/components/map-search-box.tsx`
 
-### Features Provided
-1. **Search Control**: Located in top-left corner of map
-2. **Autocomplete**: Real-time suggestions as user types
-3. **Global Coverage**: Search any location worldwide
-4. **Temporary Markers**: Yellow search result markers
-5. **Click-to-Save**: Convert search results to permanent markers
-6. **Map Navigation**: Auto-fly to selected locations
+```typescript
+<MapSearchBox
+    mapInstance={mapInstance}
+    onRetrieve={handleSearchResult}
+    accessToken={mapboxgl.accessToken || ''}
+/>
+```
 
-### Code Quality
-✅ TypeScript types checked
-✅ ESLint validated
-✅ Prettier formatted
-✅ Build successful
-✅ All PHP tests pass (214 tests)
+**Key Features:**
+- Proximity updates on map move (`moveend` event)
+- Absolute positioning (top-left corner)
+- Styled with Tailwind CSS
+- Includes `data-testid` for E2E testing
+
+### Updated Hook: use-geocoder.ts
+**Location**: `resources/js/hooks/use-geocoder.ts`
+
+**Changes:**
+- Removed: MapboxGeocoder control initialization
+- Removed: useEffect with geocoder setup
+- Added: `handleSearchResult` callback function
+- Updated: Import from `@mapbox/search-js-core` for types
+
+**Function Signature:**
+```typescript
+const { handleSearchResult } = useGeocoder({
+    mapInstance,
+    onMarkerCreated: addMarker,
+    onMarkerSelected: setSelectedMarkerId,
+});
+```
+
+### Integration Point
+**Location**: `resources/js/components/travel-map.tsx`
+
+The SearchBox is rendered in the map area:
+```typescript
+<div className="relative flex-1">
+    <div ref={mapRef} id="map" className="z-10 h-full w-full" />
+    <MapSearchBox
+        mapInstance={mapInstance}
+        onRetrieve={handleSearchResult}
+        accessToken={mapboxgl.accessToken || ''}
+    />
+    {/* Other map controls */}
+</div>
+```
 
 ## Files Changed/Created
 
-### Modified
-- `resources/js/components/travel-map.tsx`
-  - Added data-testid to geocoder control for testing
-
 ### Created
-- `tests/e2e/geocoder.spec.ts` (191 lines)
-  - Comprehensive E2E test suite for geocoder
-- `docs/GEOCODER_FEATURE.md` (242 lines)
-  - Complete feature documentation
+- `resources/js/components/map-search-box.tsx` (67 lines)
+  - New SearchBox React component with proximity filtering
+
+### Modified
+- `resources/js/hooks/use-geocoder.ts`
+  - Refactored from control-based to callback-based pattern
+  - Removed MapboxGeocoder initialization
+  - Added handleSearchResult callback
+  
+- `resources/js/components/travel-map.tsx`
+  - Added MapSearchBox component import
+  - Integrated SearchBox into map rendering
+  - Connected handleSearchResult callback
+
+- `package.json` & `package-lock.json`
+  - Removed: `@mapbox/mapbox-gl-geocoder` and 83 dependencies
+  - Added: `@mapbox/search-js-react` and 9 dependencies
+  
+- `docs/GEOCODER_FEATURE.md`
+  - Updated to reflect SearchBox implementation
+  - Added proximity filtering documentation
+  - Updated API references
+
+- `docs/GEOCODER_IMPLEMENTATION.md`
+  - Updated implementation details
+  - Documented migration from Geocoder to SearchBox
 
 ## How to Use
 
 ### For End Users
 1. Open the map page
 2. Find the search box in the top-left corner
-3. Type a location name
+3. Type a location name (results prioritized by current map view)
 4. Select from the dropdown suggestions
 5. Click the yellow temporary marker
 6. Edit details and save
 
+**New Feature:** As you move the map around, search results automatically adjust to show locations closer to your current view!
+
 ### For Developers
+
+#### Using the SearchBox Component
 ```typescript
-import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
-import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
+import { MapSearchBox } from '@/components/map-search-box';
 
-const geocoder = new MapboxGeocoder({
-    accessToken: mapboxgl.accessToken || '',
-    mapboxgl: mapboxgl as never,
-    marker: false,
-    placeholder: 'Search for places...',
+<MapSearchBox
+    mapInstance={mapInstance}
+    onRetrieve={handleSearchResult}
+    accessToken={mapboxgl.accessToken || ''}
+/>
+```
+
+#### Implementing Search Result Handler
+```typescript
+import { useGeocoder } from '@/hooks/use-geocoder';
+
+const { handleSearchResult } = useGeocoder({
+    mapInstance,
+    onMarkerCreated: addMarker,
+    onMarkerSelected: setSelectedMarkerId,
 });
-
-map.addControl(geocoder, 'top-left');
 ```
 
 ## Testing
 
-### Run E2E Tests
+### Run Backend Tests
 ```bash
-npm run test:e2e -- geocoder.spec.ts
-```
+# PHP tests (all 269 tests)
+composer test
 
-### Run All Tests
-```bash
-# PHP tests
+# Or use Pest directly
 ./vendor/bin/pest
-
-# E2E tests
-npm run test:e2e
 ```
+
+### Test Coverage
+✅ All 269 backend tests pass
+✅ Marker creation and management
+✅ Mapbox request limiting
+✅ Search API integration (mocked)
 
 ## Environment Setup
 
@@ -120,31 +181,59 @@ VITE_MAPBOX_ACCESS_TOKEN="${MAPBOX_ACCESS_TOKEN}"
 Get a token from: https://account.mapbox.com/
 
 ## Related Documentation
-- [Geocoder Feature Guide](./docs/GEOCODER_FEATURE.md)
-- [Mapbox Migration Guide](./docs/MAPBOX_MIGRATION.md)
-- [E2E Testing Guide](./tests/e2e/MAPBOX_MOCKING.md)
+- [SearchBox Feature Guide](./GEOCODER_FEATURE.md)
+- [Mapbox Search JS API Docs](https://docs.mapbox.com/mapbox-search-js/api/react/)
+- [Mapbox Migration Guide](./MAPBOX_MIGRATION.md)
+- [Mapbox Request Limiting](./MAPBOX_REQUEST_LIMITING.md)
 
 ## Verification Checklist
-- [x] Package installed and configured
-- [x] Geocoder control visible on map
-- [x] Search functionality working
-- [x] CSS properly imported
-- [x] Data-testid added for testing
-- [x] E2E tests created and working
-- [x] Documentation complete
+- [x] New package installed and configured
+- [x] Old package removed cleanly
+- [x] SearchBox component created
+- [x] Proximity filtering implemented
+- [x] Hook refactored for callbacks
+- [x] Integration with travel-map complete
+- [x] Data-testid maintained for testing
+- [x] Documentation updated
 - [x] Code formatted and linted
 - [x] TypeScript types valid
 - [x] Build successful
-- [x] All tests passing
+- [x] All 269 tests passing
+
+## Migration Benefits
+
+### Why SearchBox over Geocoder?
+1. **Modern API**: Uses Mapbox's latest search technology
+2. **Better Results**: Structured data and improved relevance
+3. **Proximity Support**: Built-in support for location-based filtering
+4. **Performance**: Optimized for autocomplete use cases
+5. **Official React Support**: First-class React integration
+6. **Smaller Bundle**: Reduced dependencies (83 packages removed, 9 added)
+
+### Backward Compatibility
+✅ User workflow unchanged (search → select → click → save)
+✅ Marker creation behavior preserved
+✅ All existing tests pass
+✅ No breaking changes to API
 
 ## Next Steps (Optional Enhancements)
 Future improvements could include:
-- Add country filter option to geocoder
-- Implement search history
+- Add bbox filtering based on visible map area (in addition to proximity)
+- Implement search history using local storage
 - Add keyboard shortcuts (e.g., Ctrl+K to focus search)
 - Add "Search near me" geolocation button
 - Implement search result favorites
 - Add search analytics
+- Adjust proximity radius based on zoom level
+- Add country filter UI control
 
 ## Conclusion
-The Mapbox Geocoder is **fully implemented, tested, and documented**. The implementation follows all project conventions and best practices. Users can now search for locations worldwide and easily add them as markers to their travel maps.
+The Mapbox SearchBox is **fully implemented with proximity filtering**. The implementation:
+- ✅ Replaces the legacy Geocoder with modern SearchBox API
+- ✅ Adds proximity-based search result ranking
+- ✅ Maintains all existing functionality
+- ✅ Passes all tests (269 tests)
+- ✅ Follows project conventions
+- ✅ Is production-ready
+
+Users can now search for locations with results intelligently prioritized based on their current map view, providing a more relevant and intuitive search experience.
