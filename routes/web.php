@@ -28,6 +28,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/trips/{trip}', [TripController::class, 'update'])->name('trips.update');
     Route::delete('/trips/{trip}', [TripController::class, 'destroy'])->name('trips.destroy');
     Route::post('/trips/{trip}/fetch-image', [TripController::class, 'fetchImage'])->name('trips.fetch-image');
+    Route::get('/trips/{trip}/export-pdf', [TripController::class, 'exportPdf'])->name('trips.export-pdf');
 
     // Map route - show map for a specific trip
     Route::get('/map/{trip}', function (\App\Models\Trip $trip) {
