@@ -339,6 +339,19 @@ export default function MarkerForm({
             {/* View Mode */}
             {!isEditMode && (
                 <div className="space-y-4">
+                    {marker.imageUrl && (
+                        <div>
+                            <label className="mb-2 block text-sm font-medium text-gray-700">
+                                Image
+                            </label>
+                            <img
+                                src={marker.imageUrl}
+                                alt={name || 'Marker image'}
+                                className="w-full rounded-md object-cover"
+                                style={{ maxHeight: '300px' }}
+                            />
+                        </div>
+                    )}
                     <div>
                         <label className="mb-2 block text-sm font-medium text-gray-700">
                             Name
