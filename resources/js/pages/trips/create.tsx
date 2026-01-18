@@ -70,10 +70,14 @@ export default function CreateTrip({ trip }: CreateTripProps) {
 
     // Auto-fetch image when both name and country are available
     useEffect(() => {
+        // Auto-fetch image when editing existing trips without images.
+        // This effect runs ONCE on component mount (not on user input changes).
+        // For new trips, the backend auto-fetches images on save if name+country are provided.
         // Only auto-fetch if:
-        // 1. We're in edit mode OR both name and country are provided
-        // 2. No image is currently set
-        // 3. Not already loading an image
+        // 1. We're in edit mode (existing trip)
+        // 2. Trip has both name and country
+        // 3. No image is currently set
+        // 4. Not already loading an image
         if (
             name.trim() &&
             country &&
@@ -113,7 +117,7 @@ export default function CreateTrip({ trip }: CreateTripProps) {
             fetchImage();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // Only run once on mount for edit mode
+    }, []); // Empty deps: run once on mount, not on every keystroke
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
