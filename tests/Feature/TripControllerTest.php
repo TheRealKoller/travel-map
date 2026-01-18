@@ -436,7 +436,7 @@ test('static map image URL is generated when creating trip with viewport', funct
     $trip = Trip::find($response->json('id'));
 
     expect($trip->viewport_static_image_url)->not->toBeNull()
-        ->and($trip->viewport_static_image_url)->toContain('api.mapbox.com/styles/v1/mapbox/streets-v12/static');
+        ->and($trip->viewport_static_image_url)->toContain('api.mapbox.com/styles/v1/the-koller/cmkk2r7cg00gl01r15b1achfj/static');
 });
 
 test('static map image URL is not generated when creating trip without viewport', function () {
@@ -468,7 +468,7 @@ test('static map image URL is generated when updating trip with viewport', funct
     $trip = $trip->fresh();
 
     expect($trip->viewport_static_image_url)->not->toBeNull()
-        ->and($trip->viewport_static_image_url)->toContain('api.mapbox.com/styles/v1/mapbox/streets-v12/static');
+        ->and($trip->viewport_static_image_url)->toContain('api.mapbox.com/styles/v1/the-koller/cmkk2r7cg00gl01r15b1achfj/static');
 });
 
 test('static map image URL is cleared when removing viewport from trip', function () {
@@ -477,7 +477,7 @@ test('static map image URL is cleared when removing viewport from trip', functio
         'viewport_latitude' => 47.3769,
         'viewport_longitude' => 8.5417,
         'viewport_zoom' => 12.5,
-        'viewport_static_image_url' => 'https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/8.5417,47.3769,12.5,0,0/800x400?access_token=test',
+        'viewport_static_image_url' => 'https://api.mapbox.com/styles/v1/the-koller/cmkk2r7cg00gl01r15b1achfj/static/8.5417,47.3769,12.5,0,0/800x400?access_token=test',
     ]);
 
     $response = $this->actingAs($this->user)->putJson("/trips/{$trip->id}", [

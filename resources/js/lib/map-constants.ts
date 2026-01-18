@@ -13,3 +13,10 @@ export const DEFAULT_MAP_CENTER: [number, number] = [36.2048, 138.2529];
  * Default zoom level for the map
  */
 export const DEFAULT_MAP_ZOOM = 6;
+
+/**
+ * Custom Mapbox style for viewport selection map
+ * This style is used in the trip editing form and for static images
+ */
+export const VIEWPORT_MAP_STYLE =
+    'mapbox://styles/the-koller/cmkk2r7cg00gl01r15b1achfj';

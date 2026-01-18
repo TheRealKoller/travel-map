@@ -14,7 +14,7 @@ class MapboxStaticImageService
 
     /**
      * Generate a static image URL for a map viewport.
-     * Uses the same style as the viewport picker (streets-v12).
+     * Uses the custom style matching the viewport picker (the-koller/cmkk2r7cg00gl01r15b1achfj).
      *
      * @param  float  $latitude  The latitude of the map center
      * @param  float  $longitude  The longitude of the map center
@@ -54,8 +54,8 @@ class MapboxStaticImageService
             throw new \InvalidArgumentException('Height must be between 1 and 1280');
         }
 
-        // Use streets-v12 style to match the viewport picker
-        $style = 'mapbox/streets-v12';
+        // Use custom style to match the viewport picker
+        $style = 'the-koller/cmkk2r7cg00gl01r15b1achfj';
 
         // Format: /styles/v1/{username}/{style_id}/static/{longitude},{latitude},{zoom},{bearing},{pitch}/{width}x{height}{@2x}
         // We use default bearing (0) and pitch (0)

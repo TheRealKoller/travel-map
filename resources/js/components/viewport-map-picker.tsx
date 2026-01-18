@@ -1,4 +1,5 @@
 import { MapSearchBox } from '@/components/map-search-box';
+import { VIEWPORT_MAP_STYLE } from '@/lib/map-constants';
 import { SearchBoxRetrieveResponse } from '@mapbox/search-js-core';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -60,11 +61,10 @@ export function ViewportMapPicker({
 
         mapboxgl.accessToken = mapboxToken;
 
-        // Initialize with simplified style showing only countries, regions, and cities
+        // Initialize with custom style for viewport selection
         const map = new mapboxgl.Map({
             container: mapRef.current,
-            // Use streets-v12 style which can be simplified to show only places
-            style: 'mapbox://styles/mapbox/streets-v12',
+            style: VIEWPORT_MAP_STYLE,
             center: initialViewport
                 ? [initialViewport.longitude, initialViewport.latitude]
                 : [8.5417, 47.3769], // Default to Zurich, Switzerland
@@ -73,36 +73,8 @@ export function ViewportMapPicker({
 
         mapInstanceRef.current = map;
 
-        // Wait for map to load before simplifying
+        // Wait for map to load
         map.on('load', () => {
-            // Hide road and other detail layers to show only places
-            const layersToHide = [
-                'road-label',
-                'road-simple',
-                'road-street',
-                'road-secondary-tertiary',
-                'road-primary',
-                'road-motorway-trunk',
-                'bridge-simple',
-                'bridge-street',
-                'bridge-secondary-tertiary',
-                'bridge-primary',
-                'bridge-motorway-trunk',
-                'tunnel-simple',
-                'tunnel-street',
-                'tunnel-secondary-tertiary',
-                'tunnel-primary',
-                'tunnel-motorway-trunk',
-                'ferry',
-                'ferry-auto',
-            ];
-
-            layersToHide.forEach((layerId) => {
-                if (map.getLayer(layerId)) {
-                    map.setLayoutProperty(layerId, 'visibility', 'none');
-                }
-            });
-
             setMapInitialized(true);
         });
 
