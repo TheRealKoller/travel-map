@@ -1,4 +1,6 @@
 import '@/../../resources/css/markdown-preview.css';
+import { Icon } from '@/components/ui/icon';
+import { getMarkerTypeIcon, UnescoIcon } from '@/lib/marker-icons';
 import { MarkerData, MarkerType } from '@/types/marker';
 import { Tour } from '@/types/tour';
 import 'easymde/dist/easymde.min.css';
@@ -312,11 +314,25 @@ export default function MarkerForm({
                     />
                 </svg>
             </button>
-            <h2 className="mb-4 pr-8 text-xl font-semibold">
-                Marker Details
+            <h2 className="mb-4 flex items-center gap-2 pr-8 text-xl font-semibold">
+                <span>Marker Details</span>
+                <span title={getMarkerTypeLabel(type)}>
+                    <Icon
+                        iconNode={getMarkerTypeIcon(type)}
+                        className="h-5 w-5 text-gray-600"
+                    />
+                </span>
+                {isUnesco && (
+                    <span title="UNESCO World Heritage Site">
+                        <Icon
+                            iconNode={UnescoIcon}
+                            className="h-5 w-5 text-blue-600"
+                        />
+                    </span>
+                )}
                 {aiEnriched && (
                     <span
-                        className="ml-2 inline-flex items-center gap-1 rounded bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700"
+                        className="inline-flex items-center gap-1 rounded bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700"
                         title="This marker has been enriched with AI"
                     >
                         <svg
@@ -338,12 +354,9 @@ export default function MarkerForm({
 
             {/* View Mode */}
             {!isEditMode && (
-                <div className="space-y-4">
+                <div className="space-y-3">
                     {marker.imageUrl && (
                         <div>
-                            <label className="mb-2 block text-sm font-medium text-gray-700">
-                                Image
-                            </label>
                             <img
                                 src={marker.imageUrl}
                                 alt={name || 'Marker image'}
@@ -353,61 +366,22 @@ export default function MarkerForm({
                         </div>
                     )}
                     <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                            Name
-                        </label>
-                        <p className="text-gray-900">
-                            {name || 'Unnamed Location'}
-                        </p>
-                    </div>
-                    <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                            Type
-                        </label>
-                        <p className="text-gray-900">
-                            {getMarkerTypeLabel(type)}
-                        </p>
-                    </div>
-                    {isUnesco && (
-                        <div>
-                            <p className="flex items-center gap-2 text-sm text-gray-700">
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="h-5 w-5 text-blue-600"
-                                    viewBox="0 0 20 20"
-                                    fill="currentColor"
-                                >
-                                    <path
-                                        fillRule="evenodd"
-                                        d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                        clipRule="evenodd"
-                                    />
-                                </svg>
-                                <span className="font-medium">
-                                    UNESCO World Heritage Site
-                                </span>
-                            </p>
-                        </div>
-                    )}
-                    {url && (
-                        <div>
-                            <label className="mb-2 block text-sm font-medium text-gray-700">
-                                URL
+                        <div className="mb-1 flex items-center justify-between gap-2">
+                            <label className="block text-sm font-medium text-gray-700">
+                                Name
                             </label>
-                            <div className="flex gap-2">
-                                <p className="flex-1 truncate text-gray-900">
-                                    {url}
-                                </p>
+                            {url && (
                                 <button
                                     type="button"
                                     onClick={handleOpenUrl}
                                     disabled={!isValidUrl(url)}
-                                    className="flex-shrink-0 rounded-md bg-blue-600 px-3 py-2 text-sm text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:bg-gray-400"
+                                    className="flex-shrink-0 rounded-md bg-blue-600 px-2 py-1 text-sm text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:bg-gray-400"
                                     aria-label="Open URL in new tab"
+                                    title="Open URL"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
-                                        className="h-5 w-5"
+                                        className="h-4 w-4"
                                         viewBox="0 0 20 20"
                                         fill="currentColor"
                                     >
@@ -415,12 +389,15 @@ export default function MarkerForm({
                                         <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
                                     </svg>
                                 </button>
-                            </div>
+                            )}
                         </div>
-                    )}
+                        <p className="text-gray-900">
+                            {name || 'Unnamed Location'}
+                        </p>
+                    </div>
                     {notes && (
                         <div>
-                            <label className="mb-2 block text-sm font-medium text-gray-700">
+                            <label className="mb-1 block text-sm font-medium text-gray-700">
                                 Notes
                             </label>
                             <div
@@ -432,7 +409,7 @@ export default function MarkerForm({
                         </div>
                     )}
                     <div>
-                        <label className="mb-2 block text-sm font-medium text-gray-700">
+                        <label className="mb-1 block text-sm font-medium text-gray-700">
                             Coordinates
                         </label>
                         <p className="text-sm text-gray-600">
@@ -446,7 +423,7 @@ export default function MarkerForm({
                     </div>
                     {tours.length > 0 && onToggleMarkerInTour && (
                         <div>
-                            <label className="mb-2 block text-sm font-medium text-gray-700">
+                            <label className="mb-1 block text-sm font-medium text-gray-700">
                                 Tours
                             </label>
                             <div className="space-y-1">
