@@ -348,3 +348,72 @@ test('viewport fields can be set to null', function () {
         'viewport_zoom' => null,
     ]);
 });
+
+test('authenticated user can create a trip with image_url', function () {
+    $tripData = [
+        'name' => 'Paris Trip',
+        'country' => 'FR',
+        'image_url' => 'https://images.unsplash.com/photo-example',
+    ];
+
+    $response = $this->actingAs($this->user)->postJson('/trips', $tripData);
+
+    $response->assertStatus(201)
+        ->assertJsonFragment([
+            'name' => 'Paris Trip',
+            'country' => 'FR',
+            'image_url' => 'https://images.unsplash.com/photo-example',
+        ]);
+
+    $this->assertDatabaseHas('trips', [
+        'name' => 'Paris Trip',
+        'country' => 'FR',
+        'image_url' => 'https://images.unsplash.com/photo-example',
+        'user_id' => $this->user->id,
+    ]);
+});
+
+test('image_url must be a valid URL if provided', function () {
+    $response = $this->actingAs($this->user)->postJson('/trips', [
+        'name' => 'Trip',
+        'country' => 'DE',
+        'image_url' => 'not-a-valid-url',
+    ]);
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['image_url']);
+});
+
+test('authenticated user can update trip image_url', function () {
+    $trip = Trip::factory()->create(['user_id' => $this->user->id]);
+
+    $response = $this->actingAs($this->user)->putJson("/trips/{$trip->id}", [
+        'image_url' => 'https://images.unsplash.com/photo-updated',
+    ]);
+
+    $response->assertStatus(200)
+        ->assertJsonFragment(['image_url' => 'https://images.unsplash.com/photo-updated']);
+
+    $this->assertDatabaseHas('trips', [
+        'id' => $trip->id,
+        'image_url' => 'https://images.unsplash.com/photo-updated',
+    ]);
+});
+
+test('authenticated user can clear trip image_url', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'image_url' => 'https://images.unsplash.com/photo-example',
+    ]);
+
+    $response = $this->actingAs($this->user)->putJson("/trips/{$trip->id}", [
+        'image_url' => null,
+    ]);
+
+    $response->assertStatus(200);
+
+    $this->assertDatabaseHas('trips', [
+        'id' => $trip->id,
+        'image_url' => null,
+    ]);
+});
