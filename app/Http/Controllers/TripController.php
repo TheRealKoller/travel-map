@@ -112,14 +112,35 @@ class TripController extends Controller
 
     /**
      * Export a trip as PDF.
-     * Generates a PDF document with trip information including name, title image, and map viewport.
+     * Generates a PDF document with trip information including name, title image, map viewport, and markers overview.
      */
     public function exportPdf(Trip $trip): HttpResponse
     {
         $this->authorize('view', $trip);
 
+        // Load markers for the trip
+        $markers = $trip->markers()->get(['latitude', 'longitude'])->toArray();
+
+        // Generate static image URL for markers overview if markers exist
+        $markersOverviewUrl = null;
+        if (! empty($markers)) {
+            $markersOverviewUrl = $this->mapboxStaticImageService->generateStaticImageWithMarkers(
+                markers: $markers,
+                width: 800,
+                height: 600,
+                padding: 50
+            );
+        }
+
+        // Convert external URLs to base64 data URIs for DomPDF compatibility
+        $viewportImageUrl = $trip->viewport_static_image_url ? $this->convertImageToBase64($trip->viewport_static_image_url) : null;
+        $markersOverviewBase64 = $markersOverviewUrl ? $this->convertImageToBase64($markersOverviewUrl) : null;
+
         $pdf = Pdf::loadView('trip-pdf', [
             'trip' => $trip,
+            'viewportImageUrl' => $viewportImageUrl,
+            'markersOverviewUrl' => $markersOverviewBase64,
+            'markersCount' => count($markers),
         ]);
 
         // Generate a safe filename from the trip name
@@ -210,6 +231,43 @@ class TripController extends Controller
         } else {
             // Clear static image URL if viewport is removed
             $trip->update(['viewport_static_image_url' => null]);
+        }
+    }
+
+    /**
+     * Convert an image URL to a base64 data URI.
+     * DomPDF cannot load external URLs directly, so we download the image and convert it to base64.
+     *
+     * @param  string  $url  The image URL to convert
+     * @return string|null The base64 data URI or null if conversion fails
+     */
+    private function convertImageToBase64(string $url): ?string
+    {
+        try {
+            // Download the image
+            $imageContent = file_get_contents($url);
+
+            if ($imageContent === false) {
+                \Log::warning('Failed to download image for PDF', ['url' => $url]);
+
+                return null;
+            }
+
+            // Detect MIME type from image content
+            $finfo = new \finfo(FILEINFO_MIME_TYPE);
+            $mimeType = $finfo->buffer($imageContent);
+
+            // Convert to base64 data URI
+            $base64 = base64_encode($imageContent);
+
+            return "data:{$mimeType};base64,{$base64}";
+        } catch (\Exception $e) {
+            \Log::error('Error converting image to base64 for PDF', [
+                'url' => $url,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
         }
     }
 }

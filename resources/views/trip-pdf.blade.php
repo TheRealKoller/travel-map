@@ -80,6 +80,19 @@
             color: #9ca3af;
             font-size: 10px;
         }
+        
+        .page-break {
+            page-break-after: always;
+        }
+        
+        .markers-info {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f9fafb;
+            border-radius: 6px;
+            font-size: 11px;
+            color: #6b7280;
+        }
     </style>
 </head>
 <body>
@@ -89,23 +102,10 @@
         </div>
 
         <div class="section">
-            <h2 class="section-title">Title image</h2>
-            <div class="image-container">
-                @if($trip->image_url)
-                    <img src="{{ $trip->image_url }}" alt="{{ $trip->name }}">
-                @else
-                    <div class="placeholder">
-                        Title image placeholder
-                    </div>
-                @endif
-            </div>
-        </div>
-
-        <div class="section">
             <h2 class="section-title">Map viewport</h2>
             <div class="image-container">
-                @if($trip->viewport_static_image_url)
-                    <img src="{{ $trip->viewport_static_image_url }}" alt="Map viewport">
+                @if($viewportImageUrl)
+                    <img src="{{ $viewportImageUrl }}" alt="Map viewport">
                 @else
                     <div class="placeholder">
                         Map viewport placeholder
@@ -118,5 +118,29 @@
             Generated on {{ now()->format('F j, Y \a\t g:i A') }}
         </div>
     </div>
+
+    @if($markersOverviewUrl)
+        <div class="page-break"></div>
+        
+        <div class="container">
+            <div class="header">
+                <h1 class="trip-name">{{ $trip->name }}</h1>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">Markers overview</h2>
+                <div class="markers-info">
+                    This map shows all {{ $markersCount }} marker(s) of your trip.
+                </div>
+                <div class="image-container">
+                    <img src="{{ $markersOverviewUrl }}" alt="Markers overview map">
+                </div>
+            </div>
+
+            <div class="footer">
+                Generated on {{ now()->format('F j, Y \a\t g:i A') }}
+            </div>
+        </div>
+    @endif
 </body>
 </html>
