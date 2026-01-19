@@ -1,5 +1,8 @@
 <?php
 
+use App\Models\Marker;
+use App\Models\Route;
+use App\Models\Tour;
 use App\Models\Trip;
 use App\Models\User;
 
@@ -182,16 +185,16 @@ test('deleting a trip also deletes all associated data', function () {
     $trip = Trip::factory()->create(['user_id' => $this->user->id]);
 
     // Create associated data
-    $marker = \App\Models\Marker::factory()->create([
+    $marker = Marker::factory()->create([
         'trip_id' => $trip->id,
         'user_id' => $this->user->id,
     ]);
 
-    $tour = \App\Models\Tour::factory()->create([
+    $tour = Tour::factory()->create([
         'trip_id' => $trip->id,
     ]);
 
-    $route = \App\Models\Route::factory()->create([
+    $route = Route::factory()->create([
         'trip_id' => $trip->id,
     ]);
 
@@ -568,7 +571,7 @@ test('PDF includes markers overview when trip has markers', function () {
     ]);
 
     // Create some markers for the trip
-    \App\Models\Marker::factory()->count(3)->create([
+    Marker::factory()->count(3)->create([
         'trip_id' => $trip->id,
         'user_id' => $this->user->id,
     ]);
@@ -584,6 +587,185 @@ test('PDF export works when trip has no markers', function () {
         'user_id' => $this->user->id,
         'name' => 'Trip without Markers',
     ]);
+
+    $response = $this->actingAs($this->user)->get("/trips/{$trip->id}/export-pdf");
+
+    $response->assertStatus(200)
+        ->assertHeader('content-type', 'application/pdf');
+});
+
+test('PDF export includes tour pages when trip has tours', function () {
+    // Configure a fake Mapbox token for testing
+    config(['services.mapbox.access_token' => 'pk.test.fake_token_for_testing_only']);
+
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Trip with Tours',
+    ]);
+
+    // Create a tour with markers
+    $tour = Tour::factory()->create([
+        'trip_id' => $trip->id,
+        'name' => 'City Tour',
+    ]);
+
+    $markers = Marker::factory()->count(3)->create([
+        'trip_id' => $trip->id,
+        'user_id' => $this->user->id,
+    ]);
+
+    // Attach markers to tour
+    foreach ($markers as $index => $marker) {
+        $tour->markers()->attach($marker->id, ['position' => $index]);
+    }
+
+    $response = $this->actingAs($this->user)->get("/trips/{$trip->id}/export-pdf");
+
+    $response->assertStatus(200)
+        ->assertHeader('content-type', 'application/pdf');
+});
+
+test('PDF export includes multiple tour pages', function () {
+    // Configure a fake Mapbox token for testing
+    config(['services.mapbox.access_token' => 'pk.test.fake_token_for_testing_only']);
+
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Trip with Multiple Tours',
+    ]);
+
+    // Create two tours
+    $tour1 = Tour::factory()->create([
+        'trip_id' => $trip->id,
+        'name' => 'City Tour',
+    ]);
+
+    $tour2 = Tour::factory()->create([
+        'trip_id' => $trip->id,
+        'name' => 'Beach Tour',
+    ]);
+
+    // Create markers for first tour
+    $markers1 = Marker::factory()->count(2)->create([
+        'trip_id' => $trip->id,
+        'user_id' => $this->user->id,
+    ]);
+
+    foreach ($markers1 as $index => $marker) {
+        $tour1->markers()->attach($marker->id, ['position' => $index]);
+    }
+
+    // Create markers for second tour
+    $markers2 = Marker::factory()->count(2)->create([
+        'trip_id' => $trip->id,
+        'user_id' => $this->user->id,
+    ]);
+
+    foreach ($markers2 as $index => $marker) {
+        $tour2->markers()->attach($marker->id, ['position' => $index]);
+    }
+
+    $response = $this->actingAs($this->user)->get("/trips/{$trip->id}/export-pdf");
+
+    $response->assertStatus(200)
+        ->assertHeader('content-type', 'application/pdf');
+});
+
+test('PDF export includes tour with routes', function () {
+    // Configure a fake Mapbox token for testing
+    config(['services.mapbox.access_token' => 'pk.test.fake_token_for_testing_only']);
+
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Trip with Tour Routes',
+    ]);
+
+    $tour = Tour::factory()->create([
+        'trip_id' => $trip->id,
+        'name' => 'Scenic Route Tour',
+    ]);
+
+    $marker1 = Marker::factory()->create([
+        'trip_id' => $trip->id,
+        'user_id' => $this->user->id,
+        'latitude' => 47.3769,
+        'longitude' => 8.5417,
+    ]);
+
+    $marker2 = Marker::factory()->create([
+        'trip_id' => $trip->id,
+        'user_id' => $this->user->id,
+        'latitude' => 47.5596,
+        'longitude' => 7.5886,
+    ]);
+
+    // Attach markers to tour
+    $tour->markers()->attach($marker1->id, ['position' => 0]);
+    $tour->markers()->attach($marker2->id, ['position' => 1]);
+
+    // Create a route between markers
+    Route::factory()->create([
+        'trip_id' => $trip->id,
+        'tour_id' => $tour->id,
+        'start_marker_id' => $marker1->id,
+        'end_marker_id' => $marker2->id,
+        'geometry' => [
+            [8.5417, 47.3769],
+            [8.3, 47.45],
+            [7.9, 47.52],
+            [7.5886, 47.5596],
+        ],
+    ]);
+
+    $response = $this->actingAs($this->user)->get("/trips/{$trip->id}/export-pdf");
+
+    $response->assertStatus(200)
+        ->assertHeader('content-type', 'application/pdf');
+});
+
+test('PDF export handles tour with no markers gracefully', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Trip with Empty Tour',
+    ]);
+
+    // Create a tour without markers
+    Tour::factory()->create([
+        'trip_id' => $trip->id,
+        'name' => 'Empty Tour',
+    ]);
+
+    $response = $this->actingAs($this->user)->get("/trips/{$trip->id}/export-pdf");
+
+    $response->assertStatus(200)
+        ->assertHeader('content-type', 'application/pdf');
+});
+
+test('PDF export includes marker details in tour pages', function () {
+    // Configure a fake Mapbox token for testing
+    config(['services.mapbox.access_token' => 'pk.test.fake_token_for_testing_only']);
+
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Trip with Detailed Markers',
+    ]);
+
+    $tour = Tour::factory()->create([
+        'trip_id' => $trip->id,
+        'name' => 'Detailed Tour',
+    ]);
+
+    $marker = Marker::factory()->create([
+        'trip_id' => $trip->id,
+        'user_id' => $this->user->id,
+        'name' => 'Eiffel Tower',
+        'type' => 'monument',
+        'notes' => 'Visit in the evening for the light show',
+        'url' => 'https://example.com/eiffel',
+        'is_unesco' => true,
+    ]);
+
+    $tour->markers()->attach($marker->id, ['position' => 0]);
 
     $response = $this->actingAs($this->user)->get("/trips/{$trip->id}/export-pdf");
 

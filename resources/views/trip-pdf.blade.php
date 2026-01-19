@@ -93,6 +93,64 @@
             font-size: 11px;
             color: #6b7280;
         }
+        
+        .tour-header {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+        
+        .marker-list {
+            margin-top: 20px;
+        }
+        
+        .marker-item {
+            margin-bottom: 15px;
+            padding: 12px;
+            background-color: #f9fafb;
+            border-left: 3px solid #3b82f6;
+            border-radius: 4px;
+        }
+        
+        .marker-name {
+            font-size: 13px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+        
+        .marker-type {
+            font-size: 11px;
+            color: #6b7280;
+            font-style: italic;
+            margin-bottom: 6px;
+        }
+        
+        .marker-detail {
+            font-size: 11px;
+            color: #4b5563;
+            margin-bottom: 3px;
+        }
+        
+        .marker-notes {
+            font-size: 11px;
+            color: #4b5563;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .unesco-badge {
+            display: inline-block;
+            background-color: #fef3c7;
+            color: #92400e;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 3px;
+            margin-left: 8px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -142,5 +200,61 @@
             </div>
         </div>
     @endif
+
+    @foreach($tours as $tour)
+        <div class="page-break"></div>
+        
+        <div class="container">
+            <div class="header">
+                <h1 class="trip-name">{{ $trip->name }}</h1>
+            </div>
+
+            <div class="section">
+                <h2 class="tour-header">{{ $tour['name'] }}</h2>
+                
+                @if($tour['mapUrl'])
+                    <div class="image-container">
+                        <img src="{{ $tour['mapUrl'] }}" alt="Tour map: {{ $tour['name'] }}">
+                    </div>
+                @endif
+
+                @if(!empty($tour['markers']))
+                    <div class="marker-list">
+                        <h3 class="section-title">Markers</h3>
+                        @foreach($tour['markers'] as $marker)
+                            <div class="marker-item">
+                                <div class="marker-name">
+                                    {{ $marker['name'] }}
+                                    @if($marker['is_unesco'])
+                                        <span class="unesco-badge">UNESCO</span>
+                                    @endif
+                                </div>
+                                @if($marker['type'])
+                                    <div class="marker-type">{{ $marker['type'] }}</div>
+                                @endif
+                                <div class="marker-detail">
+                                    Coordinates: {{ number_format($marker['latitude'], 6) }}, {{ number_format($marker['longitude'], 6) }}
+                                </div>
+                                @if($marker['url'])
+                                    <div class="marker-detail">
+                                        URL: {{ $marker['url'] }}
+                                    </div>
+                                @endif
+                                @if($marker['notes'])
+                                    <div class="marker-notes">
+                                        <strong>Notes:</strong> {{ $marker['notes'] }}
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+
+            <div class="footer">
+                Generated on {{ now()->format('F j, Y \a\t g:i A') }}
+            </div>
+        </div>
+    @endforeach
 </body>
 </html>
