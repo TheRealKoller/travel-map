@@ -16,12 +16,12 @@ return new class extends Migration
             $table->unsignedSmallInteger('planned_start_year')->nullable()->after('ai_enriched');
             $table->unsignedTinyInteger('planned_start_month')->nullable()->after('planned_start_year');
             $table->unsignedTinyInteger('planned_start_day')->nullable()->after('planned_start_month');
-            
+
             // Planned end period (can be year only, year+month, or year+month+day)
             $table->unsignedSmallInteger('planned_end_year')->nullable()->after('planned_start_day');
             $table->unsignedTinyInteger('planned_end_month')->nullable()->after('planned_end_year');
             $table->unsignedTinyInteger('planned_end_day')->nullable()->after('planned_end_month');
-            
+
             // Planned duration in days (independent of the period)
             $table->unsignedSmallInteger('planned_duration_days')->nullable()->after('planned_end_day');
         });

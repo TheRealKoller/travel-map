@@ -175,26 +175,7 @@
     </style>
 </head>
 <body>
-    @php
-    function formatPlannedPeriod($year, $month, $day) {
-        if (!$year) return '';
-        
-        $monthNames = [
-            1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April',
-            5 => 'May', 6 => 'June', 7 => 'July', 8 => 'August',
-            9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December'
-        ];
-        
-        if ($day && $month) {
-            return $monthNames[$month] . ' ' . $day . ', ' . $year;
-        } elseif ($month) {
-            return $monthNames[$month] . ' ' . $year;
-        } else {
-            return (string) $year;
-        }
-    }
-    @endphp
-    
+
     <div class="container">
         <div class="header">
             <h1 class="trip-name">{{ $trip->name }}</h1>
@@ -285,11 +266,40 @@
                                     <div class="planning-section">
                                         <div class="planning-label">Planning</div>
                                         @if($marker['planned_start_year'] || $marker['planned_end_year'])
+                                            @php
+                                            $monthNames = [
+                                                1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April',
+                                                5 => 'May', 6 => 'June', 7 => 'July', 8 => 'August',
+                                                9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December'
+                                            ];
+                                            
+                                            $startPeriod = '';
+                                            if ($marker['planned_start_year']) {
+                                                if ($marker['planned_start_day'] && $marker['planned_start_month']) {
+                                                    $startPeriod = $monthNames[$marker['planned_start_month']] . ' ' . $marker['planned_start_day'] . ', ' . $marker['planned_start_year'];
+                                                } elseif ($marker['planned_start_month']) {
+                                                    $startPeriod = $monthNames[$marker['planned_start_month']] . ' ' . $marker['planned_start_year'];
+                                                } else {
+                                                    $startPeriod = (string) $marker['planned_start_year'];
+                                                }
+                                            }
+                                            
+                                            $endPeriod = '';
+                                            if ($marker['planned_end_year']) {
+                                                if ($marker['planned_end_day'] && $marker['planned_end_month']) {
+                                                    $endPeriod = $monthNames[$marker['planned_end_month']] . ' ' . $marker['planned_end_day'] . ', ' . $marker['planned_end_year'];
+                                                } elseif ($marker['planned_end_month']) {
+                                                    $endPeriod = $monthNames[$marker['planned_end_month']] . ' ' . $marker['planned_end_year'];
+                                                } else {
+                                                    $endPeriod = (string) $marker['planned_end_year'];
+                                                }
+                                            }
+                                            @endphp
                                             <div class="planning-detail">
                                                 <strong>Period:</strong> 
-                                                {{ formatPlannedPeriod($marker['planned_start_year'], $marker['planned_start_month'], $marker['planned_start_day']) }}
-                                                @if($marker['planned_end_year'])
-                                                    → {{ formatPlannedPeriod($marker['planned_end_year'], $marker['planned_end_month'], $marker['planned_end_day']) }}
+                                                {{ $startPeriod }}
+                                                @if($endPeriod)
+                                                    → {{ $endPeriod }}
                                                 @endif
                                             </div>
                                         @endif

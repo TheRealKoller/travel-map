@@ -60,7 +60,7 @@ export default function MarkerForm({
     const [aiEnriched, setAiEnriched] = useState(marker?.aiEnriched || false);
     const [isEnriching, setIsEnriching] = useState(false);
     const [enrichmentError, setEnrichmentError] = useState<string | null>(null);
-    
+
     // Planned period and duration state
     const [plannedStartYear, setPlannedStartYear] = useState<string>(
         marker?.plannedStartYear?.toString() || '',
@@ -170,12 +170,22 @@ export default function MarkerForm({
         day: number | null | undefined,
     ): string => {
         if (!year) return '';
-        
+
         const monthNames = [
-            'January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December'
+            'January',
+            'February',
+            'March',
+            'April',
+            'May',
+            'June',
+            'July',
+            'August',
+            'September',
+            'October',
+            'November',
+            'December',
         ];
-        
+
         if (day && month) {
             return `${monthNames[month - 1]} ${day}, ${year}`;
         } else if (month) {
@@ -268,7 +278,9 @@ export default function MarkerForm({
             setPlannedEndYear(marker.plannedEndYear?.toString() || '');
             setPlannedEndMonth(marker.plannedEndMonth?.toString() || '');
             setPlannedEndDay(marker.plannedEndDay?.toString() || '');
-            setPlannedDurationDays(marker.plannedDurationDays?.toString() || '');
+            setPlannedDurationDays(
+                marker.plannedDurationDays?.toString() || '',
+            );
         }
         setIsEditMode(false);
         setEnrichmentError(null);
@@ -481,27 +493,45 @@ export default function MarkerForm({
                             />
                         </div>
                     )}
-                    {(marker?.plannedStartYear || marker?.plannedEndYear || marker?.plannedDurationDays) && (
+                    {(marker?.plannedStartYear ||
+                        marker?.plannedEndYear ||
+                        marker?.plannedDurationDays) && (
                         <div className="space-y-2 rounded-md border border-gray-200 bg-gray-50 p-3">
                             <label className="block text-sm font-medium text-gray-700">
                                 Planning
                             </label>
-                            {(marker?.plannedStartYear || marker?.plannedEndYear) && (
+                            {(marker?.plannedStartYear ||
+                                marker?.plannedEndYear) && (
                                 <div className="text-sm text-gray-900">
-                                    <span className="font-medium">Period: </span>
-                                    {formatPlannedPeriod(marker?.plannedStartYear, marker?.plannedStartMonth, marker?.plannedStartDay)}
+                                    <span className="font-medium">
+                                        Period:{' '}
+                                    </span>
+                                    {formatPlannedPeriod(
+                                        marker?.plannedStartYear,
+                                        marker?.plannedStartMonth,
+                                        marker?.plannedStartDay,
+                                    )}
                                     {marker?.plannedEndYear && (
                                         <>
                                             {' → '}
-                                            {formatPlannedPeriod(marker?.plannedEndYear, marker?.plannedEndMonth, marker?.plannedEndDay)}
+                                            {formatPlannedPeriod(
+                                                marker?.plannedEndYear,
+                                                marker?.plannedEndMonth,
+                                                marker?.plannedEndDay,
+                                            )}
                                         </>
                                     )}
                                 </div>
                             )}
                             {marker?.plannedDurationDays && (
                                 <div className="text-sm text-gray-900">
-                                    <span className="font-medium">Duration: </span>
-                                    {marker.plannedDurationDays} {marker.plannedDurationDays === 1 ? 'day' : 'days'}
+                                    <span className="font-medium">
+                                        Duration:{' '}
+                                    </span>
+                                    {marker.plannedDurationDays}{' '}
+                                    {marker.plannedDurationDays === 1
+                                        ? 'day'
+                                        : 'days'}
                                 </div>
                             )}
                         </div>
@@ -752,16 +782,18 @@ export default function MarkerForm({
                                 </button>
                             </div>
                         </div>
-                        
+
                         {/* Planned Period Section */}
                         <div className="space-y-3 rounded-md border border-gray-200 p-3">
                             <label className="block text-sm font-medium text-gray-700">
                                 Planned period (optional)
                             </label>
                             <p className="text-xs text-gray-500">
-                                Specify when you plan to visit this location. You can enter year only, year and month, or full date.
+                                Specify when you plan to visit this location.
+                                You can enter year only, year and month, or full
+                                date.
                             </p>
-                            
+
                             {/* Start Date */}
                             <div>
                                 <label className="mb-1 block text-xs font-medium text-gray-600">
@@ -771,7 +803,9 @@ export default function MarkerForm({
                                     <input
                                         type="number"
                                         value={plannedStartYear}
-                                        onChange={(e) => setPlannedStartYear(e.target.value)}
+                                        onChange={(e) =>
+                                            setPlannedStartYear(e.target.value)
+                                        }
                                         placeholder="Year"
                                         min="1000"
                                         max="9999"
@@ -781,7 +815,9 @@ export default function MarkerForm({
                                     <input
                                         type="number"
                                         value={plannedStartMonth}
-                                        onChange={(e) => setPlannedStartMonth(e.target.value)}
+                                        onChange={(e) =>
+                                            setPlannedStartMonth(e.target.value)
+                                        }
                                         placeholder="Month"
                                         min="1"
                                         max="12"
@@ -791,7 +827,9 @@ export default function MarkerForm({
                                     <input
                                         type="number"
                                         value={plannedStartDay}
-                                        onChange={(e) => setPlannedStartDay(e.target.value)}
+                                        onChange={(e) =>
+                                            setPlannedStartDay(e.target.value)
+                                        }
                                         placeholder="Day"
                                         min="1"
                                         max="31"
@@ -800,7 +838,7 @@ export default function MarkerForm({
                                     />
                                 </div>
                             </div>
-                            
+
                             {/* End Date */}
                             <div>
                                 <label className="mb-1 block text-xs font-medium text-gray-600">
@@ -810,7 +848,9 @@ export default function MarkerForm({
                                     <input
                                         type="number"
                                         value={plannedEndYear}
-                                        onChange={(e) => setPlannedEndYear(e.target.value)}
+                                        onChange={(e) =>
+                                            setPlannedEndYear(e.target.value)
+                                        }
                                         placeholder="Year"
                                         min="1000"
                                         max="9999"
@@ -820,7 +860,9 @@ export default function MarkerForm({
                                     <input
                                         type="number"
                                         value={plannedEndMonth}
-                                        onChange={(e) => setPlannedEndMonth(e.target.value)}
+                                        onChange={(e) =>
+                                            setPlannedEndMonth(e.target.value)
+                                        }
                                         placeholder="Month"
                                         min="1"
                                         max="12"
@@ -830,7 +872,9 @@ export default function MarkerForm({
                                     <input
                                         type="number"
                                         value={plannedEndDay}
-                                        onChange={(e) => setPlannedEndDay(e.target.value)}
+                                        onChange={(e) =>
+                                            setPlannedEndDay(e.target.value)
+                                        }
                                         placeholder="Day"
                                         min="1"
                                         max="31"
@@ -840,7 +884,7 @@ export default function MarkerForm({
                                 </div>
                             </div>
                         </div>
-                        
+
                         {/* Planned Duration */}
                         <div>
                             <label
@@ -854,20 +898,25 @@ export default function MarkerForm({
                                     id="planned-duration"
                                     type="number"
                                     value={plannedDurationDays}
-                                    onChange={(e) => setPlannedDurationDays(e.target.value)}
+                                    onChange={(e) =>
+                                        setPlannedDurationDays(e.target.value)
+                                    }
                                     placeholder="Number of days"
                                     min="1"
                                     max="9999"
                                     className="w-32 rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                     data-testid="planned-duration-days"
                                 />
-                                <span className="text-sm text-gray-600">days</span>
+                                <span className="text-sm text-gray-600">
+                                    days
+                                </span>
                             </div>
                             <p className="mt-1 text-xs text-gray-500">
-                                The duration doesn't need to match the planned period
+                                The duration doesn't need to match the planned
+                                period
                             </p>
                         </div>
-                        
+
                         <div>
                             <label className="mb-2 block text-sm font-medium text-gray-700">
                                 Notes
