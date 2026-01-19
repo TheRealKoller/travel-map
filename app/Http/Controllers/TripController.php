@@ -132,6 +132,63 @@ class TripController extends Controller
             );
         }
 
+        // Load tours with their markers and routes
+        $tours = $trip->tours()->with(['markers', 'routes'])->get();
+
+        // Generate tour data with static maps
+        $toursData = [];
+        foreach ($tours as $tour) {
+            $tourMarkers = $tour->markers->map(function ($marker) {
+                return [
+                    'id' => $marker->id,
+                    'name' => $marker->name,
+                    'type' => $marker->type,
+                    'latitude' => $marker->latitude,
+                    'longitude' => $marker->longitude,
+                    'notes' => $marker->notes,
+                    'url' => $marker->url,
+                    'is_unesco' => $marker->is_unesco,
+                ];
+            })->toArray();
+
+            $tourRoutes = $tour->routes->map(function ($route) {
+                return [
+                    'geometry' => $route->geometry,
+                    'distance' => $route->distance,
+                    'duration' => $route->duration,
+                ];
+            })->toArray();
+
+            // Generate static map for this tour
+            $tourMapUrl = null;
+            if (! empty($tourMarkers)) {
+                if (! empty($tourRoutes)) {
+                    // Generate map with both markers and routes
+                    $tourMapUrl = $this->mapboxStaticImageService->generateStaticImageWithMarkersAndRoutes(
+                        markers: $tourMarkers,
+                        routes: $tourRoutes,
+                        width: 800,
+                        height: 600,
+                        padding: 50
+                    );
+                } else {
+                    // Generate map with only markers
+                    $tourMapUrl = $this->mapboxStaticImageService->generateStaticImageWithMarkers(
+                        markers: $tourMarkers,
+                        width: 800,
+                        height: 600,
+                        padding: 50
+                    );
+                }
+            }
+
+            $toursData[] = [
+                'name' => $tour->name,
+                'markers' => $tourMarkers,
+                'mapUrl' => $tourMapUrl ? $this->convertImageToBase64($tourMapUrl) : null,
+            ];
+        }
+
         // Convert external URLs to base64 data URIs for DomPDF compatibility
         $viewportImageUrl = $trip->viewport_static_image_url ? $this->convertImageToBase64($trip->viewport_static_image_url) : null;
         $markersOverviewBase64 = $markersOverviewUrl ? $this->convertImageToBase64($markersOverviewUrl) : null;
@@ -141,6 +198,7 @@ class TripController extends Controller
             'viewportImageUrl' => $viewportImageUrl,
             'markersOverviewUrl' => $markersOverviewBase64,
             'markersCount' => count($markers),
+            'tours' => $toursData,
         ]);
 
         // Generate a safe filename from the trip name
