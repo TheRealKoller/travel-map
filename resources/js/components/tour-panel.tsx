@@ -125,6 +125,18 @@ function MarkerItem({
                             className="h-4 w-4 text-blue-600"
                         />
                     )}
+                    {onRemove && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-5 w-5 p-0 text-gray-400 hover:text-red-600"
+                            onClick={onRemove}
+                            title="Remove from tour"
+                            data-testid="remove-marker-from-tour"
+                        >
+                            <Trash2 className="h-3 w-3" />
+                        </Button>
+                    )}
                 </div>
             </div>
         </div>
@@ -171,7 +183,7 @@ function TourCard({
             ) : (
                 <ul className="space-y-1">
                     {markers.map((marker, index) => (
-                        <li key={marker.id}>
+                        <li key={index}>
                             <MarkerItem
                                 marker={marker}
                                 index={index}

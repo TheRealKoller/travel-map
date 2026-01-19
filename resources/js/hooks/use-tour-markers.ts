@@ -61,19 +61,7 @@ export function useTourMarkers({
             if (selectedTourId === null) return;
 
             try {
-                // Check if marker is already in tour
-                const selectedTour = tours.find((t) => t.id === selectedTourId);
-                if (selectedTour) {
-                    const isAlreadyInTour = selectedTour.markers?.some(
-                        (m) => m.id === markerId,
-                    );
-
-                    if (isAlreadyInTour) {
-                        return; // Skip silently
-                    }
-                }
-
-                // Attach marker to tour
+                // Attach marker to tour (duplicates allowed)
                 await axios.post(`/tours/${selectedTourId}/markers`, {
                     marker_id: markerId,
                 });
@@ -90,7 +78,7 @@ export function useTourMarkers({
                 alert('Failed to add marker to tour. Please try again.');
             }
         },
-        [selectedTourId, selectedTripId, tours, onToursUpdate],
+        [selectedTourId, selectedTripId, onToursUpdate],
     );
 
     const handleMoveMarkerUp = useCallback(
@@ -219,10 +207,36 @@ export function useTourMarkers({
         [selectedTourId, selectedTripId, tours, onToursUpdate],
     );
 
+    const handleRemoveMarker = useCallback(
+        async (markerId: string) => {
+            if (selectedTourId === null) return;
+
+            try {
+                // Remove one instance of the marker from the tour
+                await axios.delete(`/tours/${selectedTourId}/markers`, {
+                    data: { marker_id: markerId },
+                });
+
+                // Reload tours to get updated marker associations
+                if (selectedTripId) {
+                    const response = await axios.get('/tours', {
+                        params: { trip_id: selectedTripId },
+                    });
+                    onToursUpdate(response.data);
+                }
+            } catch (error) {
+                console.error('Failed to remove marker from tour:', error);
+                alert('Failed to remove marker from tour. Please try again.');
+            }
+        },
+        [selectedTourId, selectedTripId, onToursUpdate],
+    );
+
     return {
         handleToggleMarkerInTour,
         handleAddMarkerToTour,
         handleMoveMarkerUp,
         handleMoveMarkerDown,
+        handleRemoveMarker,
     } as const;
 }

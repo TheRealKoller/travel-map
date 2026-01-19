@@ -4,6 +4,7 @@ use App\Models\Marker;
 use App\Models\Tour;
 use App\Models\Trip;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 beforeEach(function () {
     $this->user = User::factory()->withoutTwoFactor()->create();
@@ -312,4 +313,129 @@ test('updating tour to same name with different case is allowed', function () {
 
     $response->assertStatus(200)
         ->assertJsonFragment(['name' => 'DAY 1 - TOKYO']);
+});
+
+test('marker can be added multiple times to same tour', function () {
+    $tour = Tour::factory()->create(['trip_id' => $this->trip->id]);
+    $marker = Marker::factory()->create([
+        'trip_id' => $this->trip->id,
+        'user_id' => $this->user->id,
+    ]);
+
+    // Add marker first time
+    $response = $this->actingAs($this->user)->postJson("/tours/{$tour->id}/markers", [
+        'marker_id' => $marker->id,
+    ]);
+    $response->assertStatus(200);
+
+    // Add same marker second time
+    $response = $this->actingAs($this->user)->postJson("/tours/{$tour->id}/markers", [
+        'marker_id' => $marker->id,
+    ]);
+    $response->assertStatus(200);
+
+    // Add same marker third time
+    $response = $this->actingAs($this->user)->postJson("/tours/{$tour->id}/markers", [
+        'marker_id' => $marker->id,
+    ]);
+    $response->assertStatus(200);
+
+    // Verify all three instances exist in database
+    $this->assertDatabaseCount('marker_tour', 3);
+
+    $markerTourRecords = DB::table('marker_tour')
+        ->where('marker_id', $marker->id)
+        ->where('tour_id', $tour->id)
+        ->get();
+
+    expect($markerTourRecords)->toHaveCount(3);
+});
+
+test('detaching marker removes only one instance when duplicates exist', function () {
+    $tour = Tour::factory()->create(['trip_id' => $this->trip->id]);
+    $marker = Marker::factory()->create([
+        'trip_id' => $this->trip->id,
+        'user_id' => $this->user->id,
+    ]);
+
+    // Add marker three times
+    $tour->markers()->attach($marker->id, ['position' => 0]);
+    $tour->markers()->attach($marker->id, ['position' => 1]);
+    $tour->markers()->attach($marker->id, ['position' => 2]);
+
+    // Verify three instances exist
+    $this->assertDatabaseCount('marker_tour', 3);
+
+    // Detach one instance
+    $response = $this->actingAs($this->user)->deleteJson("/tours/{$tour->id}/markers", [
+        'marker_id' => $marker->id,
+    ]);
+    $response->assertStatus(200);
+
+    // Verify only two instances remain
+    $markerTourRecords = DB::table('marker_tour')
+        ->where('marker_id', $marker->id)
+        ->where('tour_id', $tour->id)
+        ->get();
+
+    expect($markerTourRecords)->toHaveCount(2);
+});
+
+test('reorder markers works with duplicate markers', function () {
+    $tour = Tour::factory()->create(['trip_id' => $this->trip->id]);
+    $marker1 = Marker::factory()->create([
+        'trip_id' => $this->trip->id,
+        'user_id' => $this->user->id,
+    ]);
+    $marker2 = Marker::factory()->create([
+        'trip_id' => $this->trip->id,
+        'user_id' => $this->user->id,
+    ]);
+
+    // Add markers in order: marker1, marker2, marker1, marker2
+    $tour->markers()->attach($marker1->id, ['position' => 0]);
+    $tour->markers()->attach($marker2->id, ['position' => 1]);
+    $tour->markers()->attach($marker1->id, ['position' => 2]);
+    $tour->markers()->attach($marker2->id, ['position' => 3]);
+
+    // Reorder to: marker2, marker1, marker2, marker1
+    $response = $this->actingAs($this->user)->putJson("/tours/{$tour->id}/markers/reorder", [
+        'marker_ids' => [$marker2->id, $marker1->id, $marker2->id, $marker1->id],
+    ]);
+
+    $response->assertStatus(200);
+
+    // Verify the new order
+    $tour->refresh();
+    $orderedMarkers = $tour->markers;
+
+    expect($orderedMarkers[0]->id)->toBe($marker2->id);
+    expect($orderedMarkers[1]->id)->toBe($marker1->id);
+    expect($orderedMarkers[2]->id)->toBe($marker2->id);
+    expect($orderedMarkers[3]->id)->toBe($marker1->id);
+});
+
+test('tour with duplicate markers maintains correct positions', function () {
+    $tour = Tour::factory()->create(['trip_id' => $this->trip->id]);
+    $marker = Marker::factory()->create([
+        'trip_id' => $this->trip->id,
+        'user_id' => $this->user->id,
+    ]);
+
+    // Add same marker three times with different positions
+    $tour->markers()->attach($marker->id, ['position' => 0]);
+    $tour->markers()->attach($marker->id, ['position' => 1]);
+    $tour->markers()->attach($marker->id, ['position' => 2]);
+
+    // Get tour with markers
+    $response = $this->actingAs($this->user)->getJson("/tours/{$tour->id}");
+
+    $response->assertStatus(200);
+
+    // Verify positions are correct in the response
+    $markers = $response->json('markers');
+    expect($markers)->toHaveCount(3);
+    expect($markers[0]['position'])->toBe(0);
+    expect($markers[1]['position'])->toBe(1);
+    expect($markers[2]['position'])->toBe(2);
 });

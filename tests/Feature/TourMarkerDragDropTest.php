@@ -10,7 +10,7 @@ beforeEach(function () {
     $this->trip = Trip::factory()->create(['user_id' => $this->user->id]);
 });
 
-test('marker can only be attached to tour once', function () {
+test('marker can be attached to tour multiple times', function () {
     $tour = Tour::factory()->create(['trip_id' => $this->trip->id]);
     $marker = Marker::factory()->create([
         'trip_id' => $this->trip->id,
@@ -29,21 +29,21 @@ test('marker can only be attached to tour once', function () {
         'tour_id' => $tour->id,
     ]);
 
-    // Try to attach the same marker again
+    // Attach the same marker again - should be allowed
     $response = $this->actingAs($this->user)->postJson("/tours/{$tour->id}/markers", [
         'marker_id' => $marker->id,
     ]);
 
-    // Should still return 200, but not create duplicate
+    // Should return 200 and create a duplicate entry
     $response->assertStatus(200);
 
-    // Verify there's still only one entry in the pivot table
+    // Verify there are now two entries in the pivot table
     $count = \DB::table('marker_tour')
         ->where('marker_id', $marker->id)
         ->where('tour_id', $tour->id)
         ->count();
 
-    expect($count)->toBe(1);
+    expect($count)->toBe(2);
 });
 
 test('marker from different trip cannot be attached to tour', function () {

@@ -11,6 +11,7 @@ use App\Models\Trip;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class TourController extends Controller
 {
@@ -92,12 +93,9 @@ class TourController extends Controller
             return response()->json(['error' => 'Marker does not belong to this tour\'s trip'], 422);
         }
 
-        // Attach marker to tour if not already attached
-        if (! $tour->markers()->where('marker_id', $marker->id)->exists()) {
-            // Get the highest position and add 1
-            $maxPosition = $tour->markers()->max('position') ?? -1;
-            $tour->markers()->attach($marker->id, ['position' => $maxPosition + 1]);
-        }
+        // Get the highest position and add 1
+        $maxPosition = $tour->markers()->max('position') ?? -1;
+        $tour->markers()->attach($marker->id, ['position' => $maxPosition + 1]);
 
         return response()->json(new TourResource($tour->load(['markers'])));
     }
@@ -110,7 +108,19 @@ class TourController extends Controller
             'marker_id' => 'required|uuid|exists:markers,id',
         ]);
 
-        $tour->markers()->detach($validated['marker_id']);
+        // When duplicates are allowed, only remove one instance of the marker
+        // Get the first pivot record for this marker-tour combination
+        $pivotRecord = DB::table('marker_tour')
+            ->where('tour_id', $tour->id)
+            ->where('marker_id', $validated['marker_id'])
+            ->orderBy('position', 'asc')
+            ->first();
+
+        if ($pivotRecord) {
+            DB::table('marker_tour')
+                ->where('id', $pivotRecord->id)
+                ->delete();
+        }
 
         return response()->json(new TourResource($tour->load(['markers'])));
     }
@@ -126,17 +136,12 @@ class TourController extends Controller
 
         $markerIds = $validated['marker_ids'];
 
-        // Verify all markers belong to this tour
-        $tourMarkerIds = $tour->markers->pluck('id')->toArray();
-        $invalidMarkerIds = array_diff($markerIds, $tourMarkerIds);
+        // Detach all current markers
+        $tour->markers()->detach();
 
-        if (! empty($invalidMarkerIds)) {
-            return response()->json(['error' => 'One or more markers do not belong to this tour'], 422);
-        }
-
-        // Update positions for each marker
+        // Re-attach markers in the new order
         foreach ($markerIds as $index => $markerId) {
-            $tour->markers()->updateExistingPivot($markerId, ['position' => $index]);
+            $tour->markers()->attach($markerId, ['position' => $index]);
         }
 
         return response()->json(new TourResource($tour->load(['markers'])));
