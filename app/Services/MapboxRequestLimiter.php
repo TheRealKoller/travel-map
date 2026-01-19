@@ -51,11 +51,6 @@ class MapboxRequestLimiter
             $record->increment('count');
             $record->update(['last_request_at' => now()]);
         });
-
-        Log::info('Mapbox request counted', [
-            'period' => $currentPeriod,
-            'new_count' => $this->getOrCreateRecord($currentPeriod)->count,
-        ]);
     }
 
     /**
