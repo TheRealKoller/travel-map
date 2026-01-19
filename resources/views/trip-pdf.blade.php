@@ -151,9 +151,50 @@
             margin-left: 8px;
             font-weight: bold;
         }
+        
+        .planning-section {
+            margin-top: 8px;
+            padding: 8px;
+            background-color: #eff6ff;
+            border-left: 3px solid #3b82f6;
+            border-radius: 4px;
+        }
+        
+        .planning-label {
+            font-size: 10px;
+            font-weight: bold;
+            color: #1e40af;
+            margin-bottom: 4px;
+        }
+        
+        .planning-detail {
+            font-size: 10px;
+            color: #1e3a8a;
+            margin-bottom: 2px;
+        }
     </style>
 </head>
 <body>
+    @php
+    function formatPlannedPeriod($year, $month, $day) {
+        if (!$year) return '';
+        
+        $monthNames = [
+            1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April',
+            5 => 'May', 6 => 'June', 7 => 'July', 8 => 'August',
+            9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December'
+        ];
+        
+        if ($day && $month) {
+            return $monthNames[$month] . ' ' . $day . ', ' . $year;
+        } elseif ($month) {
+            return $monthNames[$month] . ' ' . $year;
+        } else {
+            return (string) $year;
+        }
+    }
+    @endphp
+    
     <div class="container">
         <div class="header">
             <h1 class="trip-name">{{ $trip->name }}</h1>
@@ -238,6 +279,25 @@
                                 @if($marker['url'])
                                     <div class="marker-detail">
                                         URL: {{ $marker['url'] }}
+                                    </div>
+                                @endif
+                                @if($marker['planned_start_year'] || $marker['planned_end_year'] || $marker['planned_duration_days'])
+                                    <div class="planning-section">
+                                        <div class="planning-label">Planning</div>
+                                        @if($marker['planned_start_year'] || $marker['planned_end_year'])
+                                            <div class="planning-detail">
+                                                <strong>Period:</strong> 
+                                                {{ formatPlannedPeriod($marker['planned_start_year'], $marker['planned_start_month'], $marker['planned_start_day']) }}
+                                                @if($marker['planned_end_year'])
+                                                    → {{ formatPlannedPeriod($marker['planned_end_year'], $marker['planned_end_month'], $marker['planned_end_day']) }}
+                                                @endif
+                                            </div>
+                                        @endif
+                                        @if($marker['planned_duration_days'])
+                                            <div class="planning-detail">
+                                                <strong>Duration:</strong> {{ $marker['planned_duration_days'] }} {{ $marker['planned_duration_days'] == 1 ? 'day' : 'days' }}
+                                            </div>
+                                        @endif
                                     </div>
                                 @endif
                                 @if($marker['notes'])

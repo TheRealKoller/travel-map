@@ -32,4 +32,11 @@ export interface MarkerData {
     marker: mapboxgl.Marker;
     isSaved: boolean; // Track if marker is persisted in database
     position?: number; // Position in tour (when part of a tour)
+    plannedStartYear?: number | null;
+    plannedStartMonth?: number | null;
+    plannedStartDay?: number | null;
+    plannedEndYear?: number | null;
+    plannedEndMonth?: number | null;
+    plannedEndDay?: number | null;
+    plannedDurationDays?: number | null;
 }
