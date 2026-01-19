@@ -251,6 +251,15 @@ export default function TravelMap({
         onToursUpdate,
     });
 
+    // Handler for removing a marker from the currently selected tour
+    const handleRemoveMarkerFromTour = useCallback(
+        async (markerId: string) => {
+            if (selectedTourId === null) return;
+            await handleToggleMarkerInTour(markerId, selectedTourId, true);
+        },
+        [selectedTourId, handleToggleMarkerInTour],
+    );
+
     // Tour lines - draw curved lines between markers in selected tour
     useTourLines({
         mapInstance,
@@ -426,6 +435,9 @@ export default function TravelMap({
                                 markers={markers}
                                 onMoveMarkerUp={handleMoveMarkerUp}
                                 onMoveMarkerDown={handleMoveMarkerDown}
+                                onRemoveMarkerFromTour={
+                                    handleRemoveMarkerFromTour
+                                }
                                 onRequestRoute={handleRequestRoute}
                             />
                         </div>
