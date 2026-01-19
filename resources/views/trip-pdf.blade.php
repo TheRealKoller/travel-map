@@ -102,23 +102,10 @@
         </div>
 
         <div class="section">
-            <h2 class="section-title">Title image</h2>
-            <div class="image-container">
-                @if($trip->image_url)
-                    <img src="{{ $trip->image_url }}" alt="{{ $trip->name }}">
-                @else
-                    <div class="placeholder">
-                        Title image placeholder
-                    </div>
-                @endif
-            </div>
-        </div>
-
-        <div class="section">
             <h2 class="section-title">Map viewport</h2>
             <div class="image-container">
-                @if($trip->viewport_static_image_url)
-                    <img src="{{ $trip->viewport_static_image_url }}" alt="Map viewport">
+                @if($viewportImageUrl)
+                    <img src="{{ $viewportImageUrl }}" alt="Map viewport">
                 @else
                     <div class="placeholder">
                         Map viewport placeholder

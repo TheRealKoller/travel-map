@@ -48,11 +48,6 @@ jobs:
       - name: Run Database Migrations
         run: php artisan migrate --force
 
-      - name: Build Frontend Assets
-        run: npm run build
-        env:
-          VITE_MAPBOX_ACCESS_TOKEN: pk.eyJ1IjoidGhlLWtvbGxlciIsImEiOiJjbWs5eHBobTMwcTUwM2dyMmdwMGVqenQ4In0.dSooQl188W3T2_dRLUsZMg
-
       - name: Add ShadCN Tabs Component
         run: npx shadcn@latest add tabs
 

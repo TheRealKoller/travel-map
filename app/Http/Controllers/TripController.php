@@ -132,9 +132,14 @@ class TripController extends Controller
             );
         }
 
+        // Convert external URLs to base64 data URIs for DomPDF compatibility
+        $viewportImageUrl = $trip->viewport_static_image_url ? $this->convertImageToBase64($trip->viewport_static_image_url) : null;
+        $markersOverviewBase64 = $markersOverviewUrl ? $this->convertImageToBase64($markersOverviewUrl) : null;
+
         $pdf = Pdf::loadView('trip-pdf', [
             'trip' => $trip,
-            'markersOverviewUrl' => $markersOverviewUrl,
+            'viewportImageUrl' => $viewportImageUrl,
+            'markersOverviewUrl' => $markersOverviewBase64,
             'markersCount' => count($markers),
         ]);
 
@@ -226,6 +231,43 @@ class TripController extends Controller
         } else {
             // Clear static image URL if viewport is removed
             $trip->update(['viewport_static_image_url' => null]);
+        }
+    }
+
+    /**
+     * Convert an image URL to a base64 data URI.
+     * DomPDF cannot load external URLs directly, so we download the image and convert it to base64.
+     *
+     * @param  string  $url  The image URL to convert
+     * @return string|null The base64 data URI or null if conversion fails
+     */
+    private function convertImageToBase64(string $url): ?string
+    {
+        try {
+            // Download the image
+            $imageContent = file_get_contents($url);
+
+            if ($imageContent === false) {
+                \Log::warning('Failed to download image for PDF', ['url' => $url]);
+
+                return null;
+            }
+
+            // Detect MIME type from image content
+            $finfo = new \finfo(FILEINFO_MIME_TYPE);
+            $mimeType = $finfo->buffer($imageContent);
+
+            // Convert to base64 data URI
+            $base64 = base64_encode($imageContent);
+
+            return "data:{$mimeType};base64,{$base64}";
+        } catch (\Exception $e) {
+            \Log::error('Error converting image to base64 for PDF', [
+                'url' => $url,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
         }
     }
 }
