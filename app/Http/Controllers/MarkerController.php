@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreMarkerRequest;
 use App\Http\Requests\UpdateMarkerRequest;
 use App\Models\Marker;
+use App\Models\Tour;
 use App\Services\MapboxPlacesService;
 use App\Services\TripService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -49,7 +50,7 @@ class MarkerController extends Controller
 
         // If a tour_id was provided, attach the marker to that tour
         if ($tourId) {
-            $tour = \App\Models\Tour::find($tourId);
+            $tour = Tour::find($tourId);
 
             // Verify tour belongs to the same trip
             if ($tour && $tour->trip_id === $trip->id) {
