@@ -38,10 +38,26 @@ class MarkerController extends Controller
         $tripId = $request->input('trip_id');
         $trip = $this->tripService->getActiveTrip(auth()->user(), $tripId);
 
+        // Extract tour_id before creating the marker (it's not a column on markers table)
+        $tourId = $validated['tour_id'] ?? null;
+        unset($validated['tour_id']);
+
         $marker = $trip->markers()->create([
             ...$validated,
             'user_id' => auth()->id(),
         ]);
+
+        // If a tour_id was provided, attach the marker to that tour
+        if ($tourId) {
+            $tour = \App\Models\Tour::find($tourId);
+
+            // Verify tour belongs to the same trip
+            if ($tour && $tour->trip_id === $trip->id) {
+                // Get the highest position and add 1
+                $maxPosition = $tour->markers()->max('position') ?? -1;
+                $tour->markers()->attach($marker->id, ['position' => $maxPosition + 1]);
+            }
+        }
 
         return response()->json($marker, 201);
     }

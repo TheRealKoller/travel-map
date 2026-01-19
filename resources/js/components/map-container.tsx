@@ -8,6 +8,7 @@ interface MapContainerProps {
     tours: Tour[];
     trips: Trip[];
     onToursUpdate: (tours: Tour[]) => void;
+    onReloadTours: () => void;
     onSelectTour: (tourId: number | null) => void;
     onCreateTour: () => void;
     onDeleteTour: (tourId: number) => void;
@@ -23,6 +24,7 @@ export function MapContainer({
     tours,
     trips,
     onToursUpdate,
+    onReloadTours,
     onSelectTour,
     onCreateTour,
     onDeleteTour,
@@ -36,6 +38,7 @@ export function MapContainer({
                 tours={tours}
                 trips={trips}
                 onToursUpdate={onToursUpdate}
+                onReloadTours={onReloadTours}
                 onSelectTour={onSelectTour}
                 onCreateTour={onCreateTour}
                 onDeleteTour={onDeleteTour}

@@ -34,6 +34,7 @@ interface TravelMapProps {
     tours: Tour[];
     trips: Trip[];
     onToursUpdate: (tours: Tour[]) => void;
+    onReloadTours: () => void;
     onSelectTour: (tourId: number | null) => void;
     onCreateTour: () => void;
     onDeleteTour: (tourId: number) => void;
@@ -49,6 +50,7 @@ export default function TravelMap({
     tours,
     trips,
     onToursUpdate,
+    onReloadTours,
     onSelectTour,
     onCreateTour,
     onDeleteTour,
@@ -193,9 +195,14 @@ export default function TravelMap({
     } = useMarkers({
         mapInstance,
         selectedTripId,
+        selectedTourId,
         onMarkerClick: (id: string) => {
             // This callback is safe because setSelectedMarkerId is defined in useMarkers
             setSelectedMarkerId(id);
+        },
+        onMarkerSaved: () => {
+            // Reload tours when a new marker is saved to a tour
+            onReloadTours();
         },
     });
 

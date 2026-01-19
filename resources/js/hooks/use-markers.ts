@@ -7,13 +7,17 @@ import { useCallback, useEffect, useState } from 'react';
 interface UseMarkersOptions {
     mapInstance: mapboxgl.Map | null;
     selectedTripId: number | null;
+    selectedTourId: number | null;
     onMarkerClick: (markerId: string) => void;
+    onMarkerSaved?: () => void;
 }
 
 export function useMarkers({
     mapInstance,
     selectedTripId,
+    selectedTourId,
     onMarkerClick,
+    onMarkerSaved,
 }: UseMarkersOptions) {
     const [markers, setMarkers] = useState<MarkerData[]>([]);
     const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(
@@ -135,7 +139,7 @@ export function useMarkers({
                     });
                 } else {
                     // Create new marker in database
-                    await axios.post('/markers', {
+                    const payload: Record<string, unknown> = {
                         id: id,
                         name: name,
                         type: type,
@@ -146,7 +150,14 @@ export function useMarkers({
                         trip_id: selectedTripId,
                         is_unesco: isUnesco,
                         ai_enriched: aiEnriched,
-                    });
+                    };
+
+                    // If a tour is selected, attach the marker to it
+                    if (selectedTourId !== null) {
+                        payload.tour_id = selectedTourId;
+                    }
+
+                    await axios.post('/markers', payload);
                 }
 
                 // Update local state - all in one batch to avoid stale references
@@ -222,6 +233,15 @@ export function useMarkers({
                             : m,
                     );
                 });
+
+                // If marker was just created (not updated) and added to a tour, notify parent
+                if (
+                    !markerToSave.isSaved &&
+                    selectedTourId !== null &&
+                    onMarkerSaved
+                ) {
+                    onMarkerSaved();
+                }
 
                 // Close the form
                 setSelectedMarkerId(null);
