@@ -7,6 +7,7 @@ import { MarkerData } from '@/types/marker';
 import { Tour } from '@/types/tour';
 import {
     ArrowDown,
+    ArrowLeft,
     ArrowUp,
     Plus,
     Route as RouteIcon,
@@ -22,7 +23,7 @@ interface TourPanelProps {
     markers: MarkerData[];
     onMoveMarkerUp?: (markerId: string) => void;
     onMoveMarkerDown?: (markerId: string) => void;
-    onRemoveMarker?: (markerId: string) => void;
+    onRemoveMarkerFromTour?: (markerId: string) => void;
     onRequestRoute?: (startMarkerId: string, endMarkerId: string) => void;
 }
 
@@ -102,6 +103,18 @@ function MarkerItem({
                     </div>
                 </div>
                 <div className="flex items-center gap-1.5">
+                    {onRemove && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-5 w-5 p-0 text-gray-400 hover:text-red-600"
+                            onClick={onRemove}
+                            title="Remove from tour"
+                            data-testid="remove-marker-from-tour"
+                        >
+                            <ArrowLeft className="h-3 w-3" />
+                        </Button>
+                    )}
                     <Icon
                         iconNode={getMarkerTypeIcon(marker.type)}
                         className="h-4 w-4 text-gray-600"
@@ -136,7 +149,7 @@ interface TourCardProps {
     onDeleteTour: (tourId: number) => void;
     onMoveMarkerUp?: (markerId: string) => void;
     onMoveMarkerDown?: (markerId: string) => void;
-    onRemoveMarker?: (markerId: string) => void;
+    onRemoveMarkerFromTour?: (markerId: string) => void;
     onRequestRoute?: (startMarkerId: string, endMarkerId: string) => void;
 }
 
@@ -146,7 +159,7 @@ function TourCard({
     onDeleteTour,
     onMoveMarkerUp,
     onMoveMarkerDown,
-    onRemoveMarker,
+    onRemoveMarkerFromTour,
     onRequestRoute,
 }: TourCardProps) {
     return (
@@ -187,8 +200,9 @@ function TourCard({
                                         : undefined
                                 }
                                 onRemove={
-                                    onRemoveMarker
-                                        ? () => onRemoveMarker(marker.id)
+                                    onRemoveMarkerFromTour
+                                        ? () =>
+                                              onRemoveMarkerFromTour(marker.id)
                                         : undefined
                                 }
                             />
@@ -230,7 +244,7 @@ export default function TourPanel({
     markers,
     onMoveMarkerUp,
     onMoveMarkerDown,
-    onRemoveMarker,
+    onRemoveMarkerFromTour,
     onRequestRoute,
 }: TourPanelProps) {
     const handleTabChange = (value: string) => {
@@ -304,7 +318,7 @@ export default function TourPanel({
                     onDeleteTour={onDeleteTour}
                     onMoveMarkerUp={onMoveMarkerUp}
                     onMoveMarkerDown={onMoveMarkerDown}
-                    onRemoveMarker={onRemoveMarker}
+                    onRemoveMarkerFromTour={onRemoveMarkerFromTour}
                     onRequestRoute={onRequestRoute}
                 />
             )}
