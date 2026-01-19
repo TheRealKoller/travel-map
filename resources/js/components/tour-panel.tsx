@@ -189,7 +189,8 @@ function TourCard({
                                 }
                                 onRemove={
                                     onRemoveMarkerFromTour
-                                        ? () => onRemoveMarkerFromTour(marker.id)
+                                        ? () =>
+                                              onRemoveMarkerFromTour(marker.id)
                                         : undefined
                                 }
                             />

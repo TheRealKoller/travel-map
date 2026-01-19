@@ -435,7 +435,9 @@ export default function TravelMap({
                                 markers={markers}
                                 onMoveMarkerUp={handleMoveMarkerUp}
                                 onMoveMarkerDown={handleMoveMarkerDown}
-                                onRemoveMarkerFromTour={handleRemoveMarkerFromTour}
+                                onRemoveMarkerFromTour={
+                                    handleRemoveMarkerFromTour
+                                }
                                 onRequestRoute={handleRequestRoute}
                             />
                         </div>
