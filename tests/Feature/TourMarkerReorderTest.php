@@ -176,7 +176,7 @@ test('user cannot reorder markers in another users tour', function () {
     $response->assertStatus(403);
 });
 
-test('reorder endpoint rejects markers not in the tour', function () {
+test('reorder endpoint accepts any markers from same trip', function () {
     $marker1 = Marker::factory()->create([
         'trip_id' => $this->trip->id,
         'user_id' => $this->user->id,
@@ -189,7 +189,8 @@ test('reorder endpoint rejects markers not in the tour', function () {
     // Only attach marker1 to tour
     $this->tour->markers()->attach($marker1->id, ['position' => 0]);
 
-    // Try to reorder with marker2 (which is not in the tour)
+    // Reorder with marker2 (which is not in the tour yet)
+    // This should work and add marker2 to the tour
     $response = $this->actingAs($this->user)->putJson(
         "/tours/{$this->tour->id}/markers/reorder",
         [
@@ -197,6 +198,11 @@ test('reorder endpoint rejects markers not in the tour', function () {
         ]
     );
 
-    $response->assertStatus(422)
-        ->assertJsonFragment(['error' => 'One or more markers do not belong to this tour']);
+    $response->assertStatus(200);
+
+    // Verify both markers are now in the tour with correct positions
+    $this->tour->refresh();
+    expect($this->tour->markers)->toHaveCount(2);
+    expect($this->tour->markers[0]->id)->toBe($marker1->id);
+    expect($this->tour->markers[1]->id)->toBe($marker2->id);
 });
