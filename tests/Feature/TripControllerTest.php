@@ -1,5 +1,8 @@
 <?php
 
+use App\Models\Marker;
+use App\Models\Route;
+use App\Models\Tour;
 use App\Models\Trip;
 use App\Models\User;
 
@@ -182,16 +185,16 @@ test('deleting a trip also deletes all associated data', function () {
     $trip = Trip::factory()->create(['user_id' => $this->user->id]);
 
     // Create associated data
-    $marker = \App\Models\Marker::factory()->create([
+    $marker = Marker::factory()->create([
         'trip_id' => $trip->id,
         'user_id' => $this->user->id,
     ]);
 
-    $tour = \App\Models\Tour::factory()->create([
+    $tour = Tour::factory()->create([
         'trip_id' => $trip->id,
     ]);
 
-    $route = \App\Models\Route::factory()->create([
+    $route = Route::factory()->create([
         'trip_id' => $trip->id,
     ]);
 
@@ -568,7 +571,7 @@ test('PDF includes markers overview when trip has markers', function () {
     ]);
 
     // Create some markers for the trip
-    \App\Models\Marker::factory()->count(3)->create([
+    Marker::factory()->count(3)->create([
         'trip_id' => $trip->id,
         'user_id' => $this->user->id,
     ]);
@@ -601,12 +604,12 @@ test('PDF export includes tour pages when trip has tours', function () {
     ]);
 
     // Create a tour with markers
-    $tour = \App\Models\Tour::factory()->create([
+    $tour = Tour::factory()->create([
         'trip_id' => $trip->id,
         'name' => 'City Tour',
     ]);
 
-    $markers = \App\Models\Marker::factory()->count(3)->create([
+    $markers = Marker::factory()->count(3)->create([
         'trip_id' => $trip->id,
         'user_id' => $this->user->id,
     ]);
@@ -632,18 +635,18 @@ test('PDF export includes multiple tour pages', function () {
     ]);
 
     // Create two tours
-    $tour1 = \App\Models\Tour::factory()->create([
+    $tour1 = Tour::factory()->create([
         'trip_id' => $trip->id,
         'name' => 'City Tour',
     ]);
 
-    $tour2 = \App\Models\Tour::factory()->create([
+    $tour2 = Tour::factory()->create([
         'trip_id' => $trip->id,
         'name' => 'Beach Tour',
     ]);
 
     // Create markers for first tour
-    $markers1 = \App\Models\Marker::factory()->count(2)->create([
+    $markers1 = Marker::factory()->count(2)->create([
         'trip_id' => $trip->id,
         'user_id' => $this->user->id,
     ]);
@@ -653,7 +656,7 @@ test('PDF export includes multiple tour pages', function () {
     }
 
     // Create markers for second tour
-    $markers2 = \App\Models\Marker::factory()->count(2)->create([
+    $markers2 = Marker::factory()->count(2)->create([
         'trip_id' => $trip->id,
         'user_id' => $this->user->id,
     ]);
@@ -677,19 +680,19 @@ test('PDF export includes tour with routes', function () {
         'name' => 'Trip with Tour Routes',
     ]);
 
-    $tour = \App\Models\Tour::factory()->create([
+    $tour = Tour::factory()->create([
         'trip_id' => $trip->id,
         'name' => 'Scenic Route Tour',
     ]);
 
-    $marker1 = \App\Models\Marker::factory()->create([
+    $marker1 = Marker::factory()->create([
         'trip_id' => $trip->id,
         'user_id' => $this->user->id,
         'latitude' => 47.3769,
         'longitude' => 8.5417,
     ]);
 
-    $marker2 = \App\Models\Marker::factory()->create([
+    $marker2 = Marker::factory()->create([
         'trip_id' => $trip->id,
         'user_id' => $this->user->id,
         'latitude' => 47.5596,
@@ -701,7 +704,7 @@ test('PDF export includes tour with routes', function () {
     $tour->markers()->attach($marker2->id, ['position' => 1]);
 
     // Create a route between markers
-    \App\Models\Route::factory()->create([
+    Route::factory()->create([
         'trip_id' => $trip->id,
         'tour_id' => $tour->id,
         'start_marker_id' => $marker1->id,
@@ -727,7 +730,7 @@ test('PDF export handles tour with no markers gracefully', function () {
     ]);
 
     // Create a tour without markers
-    \App\Models\Tour::factory()->create([
+    Tour::factory()->create([
         'trip_id' => $trip->id,
         'name' => 'Empty Tour',
     ]);
@@ -747,12 +750,12 @@ test('PDF export includes marker details in tour pages', function () {
         'name' => 'Trip with Detailed Markers',
     ]);
 
-    $tour = \App\Models\Tour::factory()->create([
+    $tour = Tour::factory()->create([
         'trip_id' => $trip->id,
         'name' => 'Detailed Tour',
     ]);
 
-    $marker = \App\Models\Marker::factory()->create([
+    $marker = Marker::factory()->create([
         'trip_id' => $trip->id,
         'user_id' => $this->user->id,
         'name' => 'Eiffel Tower',
