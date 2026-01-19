@@ -161,31 +161,49 @@ class TripController extends Controller
 
             // Generate static map for this tour
             $tourMapUrl = null;
+            $tourMapBase64 = null;
             if (! empty($tourMarkers)) {
-                if (! empty($tourRoutes)) {
-                    // Generate map with both markers and routes
-                    $tourMapUrl = $this->mapboxStaticImageService->generateStaticImageWithMarkersAndRoutes(
-                        markers: $tourMarkers,
-                        routes: $tourRoutes,
-                        width: 800,
-                        height: 600,
-                        padding: 50
-                    );
-                } else {
-                    // Generate map with only markers
-                    $tourMapUrl = $this->mapboxStaticImageService->generateStaticImageWithMarkers(
-                        markers: $tourMarkers,
-                        width: 800,
-                        height: 600,
-                        padding: 50
-                    );
+                try {
+                    if (! empty($tourRoutes)) {
+                        // Generate map with both markers and routes
+                        $tourMapUrl = $this->mapboxStaticImageService->generateStaticImageWithMarkersAndRoutes(
+                            markers: $tourMarkers,
+                            routes: $tourRoutes,
+                            width: 800,
+                            height: 600,
+                            padding: 20
+                        );
+                    } else {
+                        // Generate map with only markers
+                        $tourMapUrl = $this->mapboxStaticImageService->generateStaticImageWithMarkers(
+                            markers: $tourMarkers,
+                            width: 800,
+                            height: 600,
+                            padding: 20
+                        );
+                    }
+
+                    if ($tourMapUrl) {
+                        \Log::info('Generated tour map URL', ['tour' => $tour->name, 'url_length' => strlen($tourMapUrl)]);
+                        $tourMapBase64 = $this->convertImageToBase64($tourMapUrl);
+                        if (! $tourMapBase64) {
+                            \Log::warning('Failed to convert tour map to base64', ['tour' => $tour->name]);
+                        }
+                    } else {
+                        \Log::warning('Tour map URL is null', ['tour' => $tour->name]);
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Error generating tour map', [
+                        'tour' => $tour->name,
+                        'error' => $e->getMessage(),
+                    ]);
                 }
             }
 
             $toursData[] = [
                 'name' => $tour->name,
                 'markers' => $tourMarkers,
-                'mapUrl' => $tourMapUrl ? $this->convertImageToBase64($tourMapUrl) : null,
+                'mapUrl' => $tourMapBase64,
             ];
         }
 

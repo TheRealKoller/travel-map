@@ -177,6 +177,11 @@ class MapboxStaticImageService
         // Use custom style to match the viewport picker
         $style = 'the-koller/cmkk2r7cg00gl01r15b1achfj';
 
+        // Calculate bounding box from markers to determine center and zoom
+        $bounds = $this->calculateBounds($markers);
+        $center = $this->calculateCenter($bounds);
+        $zoom = $this->calculateZoomLevel($bounds, $width, $height, $padding);
+
         // Build overlays (paths first, then markers on top)
         $overlays = [];
 
@@ -196,17 +201,19 @@ class MapboxStaticImageService
             $overlays[] = $markerOverlays;
         }
 
-        // Format: /styles/v1/{username}/{style_id}/static/{overlay}/{position}/{width}x{height}
-        // Using 'auto' position to automatically fit all markers and routes
+        // Format: /styles/v1/{username}/{style_id}/static/{overlay}/{longitude},{latitude},{zoom}/{width}x{height}
+        // Using calculated center and zoom based on markers
         $url = sprintf(
-            '%s/%s/static/%s/auto/%dx%d?access_token=%s&padding=%d',
+            '%s/%s/static/%s/%s,%s,%s,0,0/%dx%d?access_token=%s',
             self::MAPBOX_STATIC_IMAGE_BASE_URL,
             $style,
             implode(',', $overlays),
+            $center['longitude'],
+            $center['latitude'],
+            $zoom,
             $width,
             $height,
-            $this->accessToken,
-            $padding
+            $this->accessToken
         );
 
         return $url;
@@ -226,9 +233,13 @@ class MapboxStaticImageService
             return null;
         }
 
+        // Simplify geometry to avoid URL length limits (max ~8000 chars for Mapbox)
+        // Take every Nth point to reduce coordinate count while preserving route shape
+        $simplified = $this->simplifyGeometry($geometry, 50);
+
         // Build coordinate string: lng,lat lng,lat lng,lat
         $coords = [];
-        foreach ($geometry as $coord) {
+        foreach ($simplified as $coord) {
             if (isset($coord[0], $coord[1])) {
                 $coords[] = sprintf('%s,%s', $coord[0], $coord[1]);
             }
@@ -244,6 +255,38 @@ class MapboxStaticImageService
             'path-3+0000ff-0.7(%s)',
             implode(' ', $coords)
         );
+    }
+
+    /**
+     * Simplify route geometry by taking every Nth point.
+     * Keeps first and last points to preserve start/end positions.
+     *
+     * @param  array  $geometry  Array of coordinate pairs
+     * @param  int  $maxPoints  Maximum number of points to keep
+     * @return array Simplified geometry
+     */
+    private function simplifyGeometry(array $geometry, int $maxPoints = 50): array
+    {
+        $count = count($geometry);
+
+        if ($count <= $maxPoints) {
+            return $geometry;
+        }
+
+        // Calculate step size to get approximately maxPoints
+        $step = (int) ceil($count / $maxPoints);
+
+        $simplified = [];
+        $simplified[] = $geometry[0]; // Always keep first point
+
+        // Take every Nth point
+        for ($i = $step; $i < $count - 1; $i += $step) {
+            $simplified[] = $geometry[$i];
+        }
+
+        $simplified[] = $geometry[$count - 1]; // Always keep last point
+
+        return $simplified;
     }
 
     /**
@@ -267,5 +310,91 @@ class MapboxStaticImageService
         }
 
         return implode(',', $overlays);
+    }
+
+    /**
+     * Calculate bounding box from markers.
+     *
+     * @param  array  $markers  Array of markers with 'latitude' and 'longitude' keys
+     * @return array Bounds with minLat, maxLat, minLng, maxLng
+     */
+    private function calculateBounds(array $markers): array
+    {
+        $lats = array_column($markers, 'latitude');
+        $lngs = array_column($markers, 'longitude');
+
+        return [
+            'minLat' => min($lats),
+            'maxLat' => max($lats),
+            'minLng' => min($lngs),
+            'maxLng' => max($lngs),
+        ];
+    }
+
+    /**
+     * Calculate center point from bounds.
+     *
+     * @param  array  $bounds  Bounds array with minLat, maxLat, minLng, maxLng
+     * @return array Center with latitude and longitude
+     */
+    private function calculateCenter(array $bounds): array
+    {
+        return [
+            'latitude' => ($bounds['minLat'] + $bounds['maxLat']) / 2,
+            'longitude' => ($bounds['minLng'] + $bounds['maxLng']) / 2,
+        ];
+    }
+
+    /**
+     * Calculate appropriate zoom level to fit all markers.
+     * Uses a simple heuristic based on the span of coordinates.
+     *
+     * @param  array  $bounds  Bounds array
+     * @param  int  $width  Image width
+     * @param  int  $height  Image height
+     * @param  int  $padding  Padding in pixels
+     * @return float Zoom level (0-22)
+     */
+    private function calculateZoomLevel(array $bounds, int $width, int $height, int $padding): float
+    {
+        $latDiff = abs($bounds['maxLat'] - $bounds['minLat']);
+        $lngDiff = abs($bounds['maxLng'] - $bounds['minLng']);
+
+        // If all markers are at the same location, use a close zoom
+        if ($latDiff < 0.001 && $lngDiff < 0.001) {
+            return 15;
+        }
+
+        // Use the larger span to determine zoom
+        $maxDiff = max($latDiff, $lngDiff);
+
+        // Simple zoom calculation based on degree span
+        // These values are approximations
+        if ($maxDiff > 10) {
+            return 5;
+        }
+        if ($maxDiff > 5) {
+            return 6;
+        }
+        if ($maxDiff > 2) {
+            return 8;
+        }
+        if ($maxDiff > 1) {
+            return 9;
+        }
+        if ($maxDiff > 0.5) {
+            return 10;
+        }
+        if ($maxDiff > 0.1) {
+            return 12;
+        }
+        if ($maxDiff > 0.05) {
+            return 13;
+        }
+        if ($maxDiff > 0.01) {
+            return 14;
+        }
+
+        return 15;
     }
 }
