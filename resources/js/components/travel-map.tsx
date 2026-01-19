@@ -244,6 +244,7 @@ export default function TravelMap({
         handleAddMarkerToTour,
         handleMoveMarkerUp,
         handleMoveMarkerDown,
+        handleRemoveMarker,
     } = useTourMarkers({
         selectedTripId,
         selectedTourId,
@@ -426,6 +427,7 @@ export default function TravelMap({
                                 markers={markers}
                                 onMoveMarkerUp={handleMoveMarkerUp}
                                 onMoveMarkerDown={handleMoveMarkerDown}
+                                onRemoveMarker={handleRemoveMarker}
                                 onRequestRoute={handleRequestRoute}
                             />
                         </div>
