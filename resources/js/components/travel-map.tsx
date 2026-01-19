@@ -244,7 +244,6 @@ export default function TravelMap({
         handleAddMarkerToTour,
         handleMoveMarkerUp,
         handleMoveMarkerDown,
-        handleRemoveMarker,
     } = useTourMarkers({
         selectedTripId,
         selectedTourId,
