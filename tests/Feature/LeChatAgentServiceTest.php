@@ -55,6 +55,7 @@ it('successfully enriches marker info with valid API response', function () {
             'is_unesco' => true,
             'notes' => 'Testnotizen auf Deutsch',
             'url' => 'https://example.com/de',
+            'estimated_hours' => null,
         ],
     ]);
 });
@@ -78,6 +79,7 @@ it('parses JSON wrapped in markdown code blocks', function () {
         'is_unesco' => false,
         'notes' => 'Deutschsprachige Testnotizen',
         'url' => 'https://test.com/de',
+        'estimated_hours' => null,
     ]);
 });
 
@@ -100,6 +102,7 @@ it('parses JSON wrapped in generic code blocks', function () {
         'is_unesco' => false,
         'notes' => 'Test',
         'url' => null,
+        'estimated_hours' => null,
     ]);
 });
 
@@ -219,4 +222,5 @@ it('handles missing optional fields in response', function () {
     expect($result['data']['is_unesco'])->toBeNull();
     expect($result['data']['notes'])->toBeNull();
     expect($result['data']['url'])->toBeNull();
+    expect($result['data']['estimated_hours'])->toBeNull();
 });

@@ -290,6 +290,11 @@
                                         URL: {{ $marker['url'] }}
                                     </div>
                                 @endif
+                                @if($marker['estimated_hours'])
+                                    <div class="marker-detail">
+                                        Estimated time: {{ number_format($marker['estimated_hours'], 1) }} {{ $marker['estimated_hours'] == 1 ? 'hour' : 'hours' }}
+                                    </div>
+                                @endif
                                 @if($marker['notes'])
                                     <div class="marker-notes">
                                         <strong>Notes:</strong> {{ $marker['notes'] }}

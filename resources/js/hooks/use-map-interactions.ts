@@ -86,6 +86,7 @@ export function useMapInteractions({
                     imageUrl: null,
                     isUnesco: false,
                     aiEnriched: false,
+                    estimatedHours: null,
                     marker: newMarker,
                     isSaved: false,
                 };
@@ -181,6 +182,7 @@ export function useMapInteractions({
                     imageUrl: null,
                     isUnesco: false,
                     aiEnriched: false,
+                    estimatedHours: null,
                     marker: newMarker,
                     isSaved: false,
                 };
@@ -287,6 +289,7 @@ export function useMapInteractions({
                     imageUrl: null,
                     isUnesco: false,
                     aiEnriched: false,
+                    estimatedHours: null,
                     marker: newMarker,
                     isSaved: false,
                 };
@@ -377,6 +380,7 @@ export function useMapInteractions({
                 imageUrl: null,
                 isUnesco: false,
                 aiEnriched: false,
+                estimatedHours: null,
                 marker: marker,
                 isSaved: false,
             };

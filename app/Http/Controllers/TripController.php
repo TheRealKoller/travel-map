@@ -148,6 +148,7 @@ class TripController extends Controller
                     'notes' => $marker->notes,
                     'url' => $marker->url,
                     'is_unesco' => $marker->is_unesco,
+                    'estimated_hours' => $marker->estimated_hours,
                 ];
             })->toArray();
 

@@ -55,6 +55,7 @@ export function useMarkers({
                         image_url: string | null;
                         is_unesco: boolean;
                         ai_enriched: boolean;
+                        estimated_hours: number | null;
                     }) => {
                         // Saved markers use isTemporary=false (default z-index)
                         const el = createMarkerElement(
@@ -88,6 +89,7 @@ export function useMarkers({
                             imageUrl: dbMarker.image_url || null,
                             isUnesco: dbMarker.is_unesco || false,
                             aiEnriched: dbMarker.ai_enriched || false,
+                            estimatedHours: dbMarker.estimated_hours ?? null,
                             marker: marker,
                             isSaved: true,
                         };
@@ -115,6 +117,7 @@ export function useMarkers({
             url: string,
             isUnesco: boolean,
             aiEnriched: boolean,
+            estimatedHours: number | null,
         ) => {
             try {
                 // Get current markers from state
@@ -136,6 +139,7 @@ export function useMarkers({
                         url,
                         is_unesco: isUnesco,
                         ai_enriched: aiEnriched,
+                        estimated_hours: estimatedHours,
                     });
                 } else {
                     // Create new marker in database
@@ -150,6 +154,7 @@ export function useMarkers({
                         trip_id: selectedTripId,
                         is_unesco: isUnesco,
                         ai_enriched: aiEnriched,
+                        estimated_hours: estimatedHours,
                     };
 
                     // If a tour is selected, attach the marker to it
@@ -209,6 +214,7 @@ export function useMarkers({
                                           url,
                                           isUnesco,
                                           aiEnriched,
+                                          estimatedHours,
                                           isSaved: true,
                                           marker: newMarker,
                                       }
@@ -228,6 +234,7 @@ export function useMarkers({
                                   url,
                                   isUnesco,
                                   aiEnriched,
+                                  estimatedHours,
                                   isSaved: true,
                               }
                             : m,
@@ -250,7 +257,14 @@ export function useMarkers({
                 alert('Failed to save marker. Please try again.');
             }
         },
-        [markers, selectedTripId, mapInstance, onMarkerClick],
+        [
+            markers,
+            selectedTripId,
+            mapInstance,
+            onMarkerClick,
+            selectedTourId,
+            onMarkerSaved,
+        ],
     );
 
     const handleDeleteMarker = useCallback(
