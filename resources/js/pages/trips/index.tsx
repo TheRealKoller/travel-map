@@ -41,6 +41,37 @@ export default function TripsIndex() {
         return country?.name || null;
     };
 
+    const formatPlannedPeriod = (
+        year: number | null | undefined,
+        month: number | null | undefined,
+        day: number | null | undefined,
+    ): string => {
+        if (!year) return '';
+
+        const monthNames = [
+            'January',
+            'February',
+            'March',
+            'April',
+            'May',
+            'June',
+            'July',
+            'August',
+            'September',
+            'October',
+            'November',
+            'December',
+        ];
+
+        if (day && month) {
+            return `${monthNames[month - 1]} ${day}, ${year}`;
+        } else if (month) {
+            return `${monthNames[month - 1]} ${year}`;
+        } else {
+            return year.toString();
+        }
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Select trip" />
@@ -116,6 +147,47 @@ export default function TripsIndex() {
                                         >
                                             {getCountryName(trip.country)}
                                         </p>
+                                    )}
+                                    {(trip.planned_start_year ||
+                                        trip.planned_end_year ||
+                                        trip.planned_duration_days) && (
+                                        <div className="mt-2 space-y-1 rounded-md border border-gray-200 bg-gray-50 p-2 text-xs dark:border-gray-700 dark:bg-gray-800">
+                                            {(trip.planned_start_year ||
+                                                trip.planned_end_year) && (
+                                                <div className="text-gray-700 dark:text-gray-300">
+                                                    <span className="font-medium">
+                                                        Period:{' '}
+                                                    </span>
+                                                    {formatPlannedPeriod(
+                                                        trip.planned_start_year,
+                                                        trip.planned_start_month,
+                                                        trip.planned_start_day,
+                                                    )}
+                                                    {trip.planned_end_year && (
+                                                        <>
+                                                            {' → '}
+                                                            {formatPlannedPeriod(
+                                                                trip.planned_end_year,
+                                                                trip.planned_end_month,
+                                                                trip.planned_end_day,
+                                                            )}
+                                                        </>
+                                                    )}
+                                                </div>
+                                            )}
+                                            {trip.planned_duration_days && (
+                                                <div className="text-gray-700 dark:text-gray-300">
+                                                    <span className="font-medium">
+                                                        Duration:{' '}
+                                                    </span>
+                                                    {trip.planned_duration_days}{' '}
+                                                    {trip.planned_duration_days ===
+                                                    1
+                                                        ? 'day'
+                                                        : 'days'}
+                                                </div>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
 

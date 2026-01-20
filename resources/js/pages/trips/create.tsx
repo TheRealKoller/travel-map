@@ -68,6 +68,29 @@ export default function CreateTrip({ trip }: CreateTripProps) {
     const [error, setError] = useState<string | null>(null);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
+    // Planned period and duration state
+    const [plannedStartYear, setPlannedStartYear] = useState<string>(
+        trip?.planned_start_year?.toString() || '',
+    );
+    const [plannedStartMonth, setPlannedStartMonth] = useState<string>(
+        trip?.planned_start_month?.toString() || '',
+    );
+    const [plannedStartDay, setPlannedStartDay] = useState<string>(
+        trip?.planned_start_day?.toString() || '',
+    );
+    const [plannedEndYear, setPlannedEndYear] = useState<string>(
+        trip?.planned_end_year?.toString() || '',
+    );
+    const [plannedEndMonth, setPlannedEndMonth] = useState<string>(
+        trip?.planned_end_month?.toString() || '',
+    );
+    const [plannedEndDay, setPlannedEndDay] = useState<string>(
+        trip?.planned_end_day?.toString() || '',
+    );
+    const [plannedDurationDays, setPlannedDurationDays] = useState<string>(
+        trip?.planned_duration_days?.toString() || '',
+    );
+
     // Auto-fetch image when both name and country are available
     useEffect(() => {
         // Auto-fetch image when editing existing trips without images.
@@ -133,6 +156,13 @@ export default function CreateTrip({ trip }: CreateTripProps) {
                 viewport_latitude?: number | null;
                 viewport_longitude?: number | null;
                 viewport_zoom?: number | null;
+                planned_start_year?: number | null;
+                planned_start_month?: number | null;
+                planned_start_day?: number | null;
+                planned_end_year?: number | null;
+                planned_end_month?: number | null;
+                planned_end_day?: number | null;
+                planned_duration_days?: number | null;
             } = {
                 name: name.trim(),
                 country: country || null,
@@ -140,6 +170,27 @@ export default function CreateTrip({ trip }: CreateTripProps) {
                 viewport_latitude: viewport?.latitude ?? null,
                 viewport_longitude: viewport?.longitude ?? null,
                 viewport_zoom: viewport?.zoom ?? null,
+                planned_start_year: plannedStartYear
+                    ? parseInt(plannedStartYear, 10)
+                    : null,
+                planned_start_month: plannedStartMonth
+                    ? parseInt(plannedStartMonth, 10)
+                    : null,
+                planned_start_day: plannedStartDay
+                    ? parseInt(plannedStartDay, 10)
+                    : null,
+                planned_end_year: plannedEndYear
+                    ? parseInt(plannedEndYear, 10)
+                    : null,
+                planned_end_month: plannedEndMonth
+                    ? parseInt(plannedEndMonth, 10)
+                    : null,
+                planned_end_day: plannedEndDay
+                    ? parseInt(plannedEndDay, 10)
+                    : null,
+                planned_duration_days: plannedDurationDays
+                    ? parseInt(plannedDurationDays, 10)
+                    : null,
             };
 
             if (isEditMode) {
@@ -316,6 +367,149 @@ export default function CreateTrip({ trip }: CreateTripProps) {
                                 <p className="text-xs text-muted-foreground">
                                     Search results will be filtered to this
                                     country
+                                </p>
+                            </div>
+
+                            {/* Planned Period Section */}
+                            <div className="space-y-3 rounded-md border border-gray-200 p-3">
+                                <Label className="text-sm font-medium text-gray-700">
+                                    Planned period (optional)
+                                </Label>
+                                <p className="text-xs text-muted-foreground">
+                                    Specify when you plan to travel. You can
+                                    enter year only, year and month, or full
+                                    date.
+                                </p>
+
+                                {/* Start Date */}
+                                <div>
+                                    <Label className="mb-1 block text-xs font-medium text-gray-600">
+                                        From
+                                    </Label>
+                                    <div className="flex gap-2">
+                                        <Input
+                                            type="number"
+                                            value={plannedStartYear}
+                                            onChange={(e) =>
+                                                setPlannedStartYear(
+                                                    e.target.value,
+                                                )
+                                            }
+                                            placeholder="Year"
+                                            min="1000"
+                                            max="9999"
+                                            className="w-24"
+                                            data-testid="planned-start-year"
+                                        />
+                                        <Input
+                                            type="number"
+                                            value={plannedStartMonth}
+                                            onChange={(e) =>
+                                                setPlannedStartMonth(
+                                                    e.target.value,
+                                                )
+                                            }
+                                            placeholder="Month"
+                                            min="1"
+                                            max="12"
+                                            className="w-20"
+                                            data-testid="planned-start-month"
+                                        />
+                                        <Input
+                                            type="number"
+                                            value={plannedStartDay}
+                                            onChange={(e) =>
+                                                setPlannedStartDay(
+                                                    e.target.value,
+                                                )
+                                            }
+                                            placeholder="Day"
+                                            min="1"
+                                            max="31"
+                                            className="w-20"
+                                            data-testid="planned-start-day"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* End Date */}
+                                <div>
+                                    <Label className="mb-1 block text-xs font-medium text-gray-600">
+                                        To
+                                    </Label>
+                                    <div className="flex gap-2">
+                                        <Input
+                                            type="number"
+                                            value={plannedEndYear}
+                                            onChange={(e) =>
+                                                setPlannedEndYear(
+                                                    e.target.value,
+                                                )
+                                            }
+                                            placeholder="Year"
+                                            min="1000"
+                                            max="9999"
+                                            className="w-24"
+                                            data-testid="planned-end-year"
+                                        />
+                                        <Input
+                                            type="number"
+                                            value={plannedEndMonth}
+                                            onChange={(e) =>
+                                                setPlannedEndMonth(
+                                                    e.target.value,
+                                                )
+                                            }
+                                            placeholder="Month"
+                                            min="1"
+                                            max="12"
+                                            className="w-20"
+                                            data-testid="planned-end-month"
+                                        />
+                                        <Input
+                                            type="number"
+                                            value={plannedEndDay}
+                                            onChange={(e) =>
+                                                setPlannedEndDay(e.target.value)
+                                            }
+                                            placeholder="Day"
+                                            min="1"
+                                            max="31"
+                                            className="w-20"
+                                            data-testid="planned-end-day"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Planned Duration */}
+                            <div className="space-y-2">
+                                <Label htmlFor="planned-duration">
+                                    Planned duration (optional)
+                                </Label>
+                                <div className="flex items-center gap-2">
+                                    <Input
+                                        id="planned-duration"
+                                        type="number"
+                                        value={plannedDurationDays}
+                                        onChange={(e) =>
+                                            setPlannedDurationDays(
+                                                e.target.value,
+                                            )
+                                        }
+                                        placeholder="Number of days"
+                                        min="1"
+                                        max="9999"
+                                        className="w-32"
+                                        data-testid="planned-duration-days"
+                                    />
+                                    <span className="text-sm text-gray-600">
+                                        days
+                                    </span>
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                    The duration doesn't need to match the
+                                    planned period
                                 </p>
                             </div>
 

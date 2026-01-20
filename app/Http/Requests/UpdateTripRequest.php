@@ -28,6 +28,13 @@ class UpdateTripRequest extends FormRequest
             'viewport_latitude' => 'sometimes|nullable|numeric|between:-90,90',
             'viewport_longitude' => 'sometimes|nullable|numeric|between:-180,180',
             'viewport_zoom' => 'sometimes|nullable|numeric|between:0,22',
+            'planned_start_year' => 'sometimes|nullable|integer|min:1000|max:9999',
+            'planned_start_month' => 'sometimes|nullable|integer|min:1|max:12',
+            'planned_start_day' => 'sometimes|nullable|integer|min:1|max:31',
+            'planned_end_year' => 'sometimes|nullable|integer|min:1000|max:9999',
+            'planned_end_month' => 'sometimes|nullable|integer|min:1|max:12',
+            'planned_end_day' => 'sometimes|nullable|integer|min:1|max:31',
+            'planned_duration_days' => 'sometimes|nullable|integer|min:1|max:9999',
         ];
     }
 }

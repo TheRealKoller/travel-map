@@ -19,6 +19,13 @@ class Trip extends Model
         'viewport_longitude',
         'viewport_zoom',
         'viewport_static_image_url',
+        'planned_start_year',
+        'planned_start_month',
+        'planned_start_day',
+        'planned_end_year',
+        'planned_end_month',
+        'planned_end_day',
+        'planned_duration_days',
     ];
 
     public function user(): BelongsTo

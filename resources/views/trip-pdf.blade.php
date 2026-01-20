@@ -157,6 +157,56 @@
     <div class="container">
         <div class="header">
             <h1 class="trip-name">{{ $trip->name }}</h1>
+            
+            @if($trip->planned_start_year || $trip->planned_end_year || $trip->planned_duration_days)
+                @php
+                $monthNames = [
+                    1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April',
+                    5 => 'May', 6 => 'June', 7 => 'July', 8 => 'August',
+                    9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December'
+                ];
+                
+                $startPeriod = '';
+                if ($trip->planned_start_year) {
+                    if ($trip->planned_start_day && $trip->planned_start_month) {
+                        $startPeriod = $monthNames[$trip->planned_start_month] . ' ' . $trip->planned_start_day . ', ' . $trip->planned_start_year;
+                    } elseif ($trip->planned_start_month) {
+                        $startPeriod = $monthNames[$trip->planned_start_month] . ' ' . $trip->planned_start_year;
+                    } else {
+                        $startPeriod = (string) $trip->planned_start_year;
+                    }
+                }
+                
+                $endPeriod = '';
+                if ($trip->planned_end_year) {
+                    if ($trip->planned_end_day && $trip->planned_end_month) {
+                        $endPeriod = $monthNames[$trip->planned_end_month] . ' ' . $trip->planned_end_day . ', ' . $trip->planned_end_year;
+                    } elseif ($trip->planned_end_month) {
+                        $endPeriod = $monthNames[$trip->planned_end_month] . ' ' . $trip->planned_end_year;
+                    } else {
+                        $endPeriod = (string) $trip->planned_end_year;
+                    }
+                }
+                @endphp
+                
+                <div class="planning-section">
+                    <div class="planning-label">Planning</div>
+                    @if($startPeriod || $endPeriod)
+                        <div class="planning-detail">
+                            <strong>Period:</strong> 
+                            {{ $startPeriod }}
+                            @if($endPeriod)
+                                → {{ $endPeriod }}
+                            @endif
+                        </div>
+                    @endif
+                    @if($trip->planned_duration_days)
+                        <div class="planning-detail">
+                            <strong>Duration:</strong> {{ $trip->planned_duration_days }} {{ $trip->planned_duration_days == 1 ? 'day' : 'days' }}
+                        </div>
+                    @endif
+                </div>
+            @endif
         </div>
 
         <div class="section">
