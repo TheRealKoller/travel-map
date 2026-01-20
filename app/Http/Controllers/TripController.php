@@ -205,6 +205,7 @@ class TripController extends Controller
                 'name' => $tour->name,
                 'markers' => $tourMarkers,
                 'mapUrl' => $tourMapBase64,
+                'estimated_duration_hours' => $tour->estimated_duration_hours,
             ];
         }
 

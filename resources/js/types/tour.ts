@@ -6,5 +6,6 @@ export interface Tour {
     trip_id: number;
     created_at: string;
     updated_at: string;
+    estimated_duration_hours?: number;
     markers?: MarkerData[];
 }

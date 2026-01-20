@@ -29,7 +29,7 @@ class TourController extends Controller
         $this->authorize('view', $trip);
 
         $tours = $trip->tours()
-            ->with(['markers'])
+            ->with(['markers', 'routes'])
             ->orderBy('created_at', 'asc')
             ->get();
 
@@ -48,14 +48,14 @@ class TourController extends Controller
             'name' => $validated['name'],
         ]);
 
-        return response()->json(new TourResource($tour->load(['markers'])), 201);
+        return response()->json(new TourResource($tour->load(['markers', 'routes'])), 201);
     }
 
     public function show(Tour $tour): JsonResponse
     {
         $this->authorize('view', $tour);
 
-        return response()->json(new TourResource($tour->load(['markers'])));
+        return response()->json(new TourResource($tour->load(['markers', 'routes'])));
     }
 
     public function update(UpdateTourRequest $request, Tour $tour): JsonResponse
@@ -66,7 +66,7 @@ class TourController extends Controller
 
         $tour->update(['name' => $validated['name']]);
 
-        return response()->json(new TourResource($tour->load(['markers'])));
+        return response()->json(new TourResource($tour->load(['markers', 'routes'])));
     }
 
     public function destroy(Tour $tour): JsonResponse
@@ -97,7 +97,7 @@ class TourController extends Controller
         $maxPosition = $tour->markers()->max('position') ?? -1;
         $tour->markers()->attach($marker->id, ['position' => $maxPosition + 1]);
 
-        return response()->json(new TourResource($tour->load(['markers'])));
+        return response()->json(new TourResource($tour->load(['markers', 'routes'])));
     }
 
     public function detachMarker(Request $request, Tour $tour): JsonResponse
@@ -122,7 +122,7 @@ class TourController extends Controller
                 ->delete();
         }
 
-        return response()->json(new TourResource($tour->load(['markers'])));
+        return response()->json(new TourResource($tour->load(['markers', 'routes'])));
     }
 
     public function reorderMarkers(Request $request, Tour $tour): JsonResponse
@@ -144,6 +144,6 @@ class TourController extends Controller
             $tour->markers()->attach($markerId, ['position' => $index]);
         }
 
-        return response()->json(new TourResource($tour->load(['markers'])));
+        return response()->json(new TourResource($tour->load(['markers', 'routes'])));
     }
 }

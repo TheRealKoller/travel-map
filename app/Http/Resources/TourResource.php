@@ -20,6 +20,7 @@ class TourResource extends JsonResource
             'trip_id' => $this->trip_id,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'estimated_duration_hours' => $this->estimated_duration_hours,
             'markers' => $this->markers->map(function ($marker) {
                 return [
                     'id' => $marker->id,
@@ -32,6 +33,7 @@ class TourResource extends JsonResource
                     'notes' => $marker->notes,
                     'url' => $marker->url,
                     'is_unesco' => $marker->is_unesco,
+                    'estimated_hours' => $marker->estimated_hours,
                     'trip_id' => $marker->trip_id,
                     'created_at' => $marker->created_at,
                     'updated_at' => $marker->updated_at,

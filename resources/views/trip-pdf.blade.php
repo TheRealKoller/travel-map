@@ -262,6 +262,27 @@
             <div class="section">
                 <h2 class="tour-header">{{ $tour['name'] }}</h2>
                 
+                @if(isset($tour['estimated_duration_hours']) && $tour['estimated_duration_hours'] > 0)
+                    @php
+                    $hours = $tour['estimated_duration_hours'];
+                    $wholeHours = floor($hours);
+                    $minutes = round(($hours - $wholeHours) * 60);
+                    $durationText = '';
+                    if ($wholeHours > 0) {
+                        $durationText .= $wholeHours . ' ' . ($wholeHours == 1 ? 'hour' : 'hours');
+                    }
+                    if ($minutes > 0) {
+                        if ($wholeHours > 0) {
+                            $durationText .= ' ';
+                        }
+                        $durationText .= $minutes . ' ' . ($minutes == 1 ? 'minute' : 'minutes');
+                    }
+                    @endphp
+                    <div class="markers-info" style="margin-bottom: 15px;">
+                        Estimated duration: {{ $durationText }}
+                    </div>
+                @endif
+                
                 @if($tour['mapUrl'])
                     <div class="image-container">
                         <img src="{{ $tour['mapUrl'] }}" alt="Tour map: {{ $tour['name'] }}">

@@ -33,6 +33,19 @@ interface TourTabProps {
 }
 
 function TourTab({ tour, markerCount }: TourTabProps) {
+    const formatDuration = (hours: number): string => {
+        if (hours === 0) return '';
+        if (hours < 1) {
+            return `${Math.round(hours * 60)}min`;
+        }
+        const wholeHours = Math.floor(hours);
+        const minutes = Math.round((hours - wholeHours) * 60);
+        if (minutes === 0) {
+            return `${wholeHours}h`;
+        }
+        return `${wholeHours}h ${minutes}min`;
+    };
+
     return (
         <div className="inline-flex" style={{ minHeight: '40px' }}>
             <TabsTrigger value={tour.id.toString()} data-testid="tour-tab">
@@ -42,6 +55,12 @@ function TourTab({ tour, markerCount }: TourTabProps) {
                         ({markerCount})
                     </span>
                 )}
+                {tour.estimated_duration_hours !== undefined &&
+                    tour.estimated_duration_hours > 0 && (
+                        <span className="ml-1 text-xs text-blue-600">
+                            {formatDuration(tour.estimated_duration_hours)}
+                        </span>
+                    )}
             </TabsTrigger>
         </div>
     );
@@ -162,10 +181,32 @@ function TourCard({
     onRemoveMarkerFromTour,
     onRequestRoute,
 }: TourCardProps) {
+    const formatDuration = (hours: number): string => {
+        if (hours === 0) return '';
+        if (hours < 1) {
+            return `${Math.round(hours * 60)}min`;
+        }
+        const wholeHours = Math.floor(hours);
+        const minutes = Math.round((hours - wholeHours) * 60);
+        if (minutes === 0) {
+            return `${wholeHours}h`;
+        }
+        return `${wholeHours}h ${minutes}min`;
+    };
+
     return (
         <Card className="flex-1 overflow-auto p-4">
             <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-sm font-semibold">{tour.name}</h3>
+                <div className="flex flex-col">
+                    <h3 className="text-sm font-semibold">{tour.name}</h3>
+                    {tour.estimated_duration_hours !== undefined &&
+                        tour.estimated_duration_hours > 0 && (
+                            <span className="text-xs text-blue-600">
+                                Estimated duration:{' '}
+                                {formatDuration(tour.estimated_duration_hours)}
+                            </span>
+                        )}
+                </div>
                 <Button
                     variant="ghost"
                     size="icon"
