@@ -49,6 +49,7 @@ export default function MapPage() {
         setSelectedTourId,
         createTour,
         deleteTour,
+        loadTours,
     } = useTours(selectedTripId);
 
     const {
@@ -110,6 +111,7 @@ export default function MapPage() {
                 tours={tours}
                 trips={trips}
                 onToursUpdate={setTours}
+                onReloadTours={loadTours}
                 onSelectTour={setSelectedTourId}
                 onCreateTour={openCreateTourModal}
                 onDeleteTour={handleOpenDeleteTourDialog}

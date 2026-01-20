@@ -30,6 +30,7 @@ class StoreMarkerRequest extends FormRequest
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
             'trip_id' => 'nullable|integer|exists:trips,id',
+            'tour_id' => 'nullable|integer|exists:tours,id',
             'is_unesco' => 'boolean',
             'ai_enriched' => 'boolean',
         ];
