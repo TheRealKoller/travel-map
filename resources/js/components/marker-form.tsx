@@ -18,6 +18,7 @@ interface MarkerFormProps {
         url: string,
         isUnesco: boolean,
         aiEnriched: boolean,
+        estimatedHours: number | null,
     ) => void;
     onDeleteMarker: (id: string) => void;
     onClose: () => void;
@@ -51,6 +52,9 @@ export default function MarkerForm({
     const [url, setUrl] = useState(marker?.url || '');
     const [isUnesco, setIsUnesco] = useState(marker?.isUnesco || false);
     const [aiEnriched, setAiEnriched] = useState(marker?.aiEnriched || false);
+    const [estimatedHours, setEstimatedHours] = useState<number | null>(
+        marker?.estimatedHours ?? null,
+    );
     const [isEnriching, setIsEnriching] = useState(false);
     const [enrichmentError, setEnrichmentError] = useState<string | null>(null);
 
@@ -168,7 +172,16 @@ export default function MarkerForm({
 
     const handleSave = () => {
         if (marker) {
-            onSave(marker.id, name, type, notes, url, isUnesco, aiEnriched);
+            onSave(
+                marker.id,
+                name,
+                type,
+                notes,
+                url,
+                isUnesco,
+                aiEnriched,
+                estimatedHours,
+            );
             setIsEditMode(false);
         }
     };
@@ -196,6 +209,7 @@ export default function MarkerForm({
             setUrl(marker.url || '');
             setIsUnesco(marker.isUnesco || false);
             setAiEnriched(marker.aiEnriched || false);
+            setEstimatedHours(marker.estimatedHours ?? null);
         }
         setIsEditMode(false);
         setEnrichmentError(null);
@@ -277,6 +291,13 @@ export default function MarkerForm({
             if (data.url && !url.trim()) {
                 // Only set URL if it's currently empty
                 setUrl(data.url);
+            }
+
+            if (
+                data.estimated_hours !== undefined &&
+                data.estimated_hours !== null
+            ) {
+                setEstimatedHours(data.estimated_hours);
             }
 
             // Mark this marker as AI enriched
@@ -406,6 +427,17 @@ export default function MarkerForm({
                                     __html: marked.parse(notes) as string,
                                 }}
                             />
+                        </div>
+                    )}
+                    {estimatedHours !== null && (
+                        <div>
+                            <label className="mb-1 block text-sm font-medium text-gray-700">
+                                Estimated time
+                            </label>
+                            <p className="text-gray-900">
+                                {estimatedHours}{' '}
+                                {estimatedHours === 1 ? 'hour' : 'hours'}
+                            </p>
                         </div>
                     )}
                     {tours.length > 0 && onToggleMarkerInTour && (
@@ -562,6 +594,35 @@ export default function MarkerForm({
                                     UNESCO World Heritage Site
                                 </span>
                             </label>
+                        </div>
+                        <div>
+                            <label
+                                htmlFor="marker-estimated-hours"
+                                className="mb-2 block text-sm font-medium text-gray-700"
+                            >
+                                Estimated time (hours)
+                            </label>
+                            <input
+                                id="marker-estimated-hours"
+                                type="number"
+                                min="0"
+                                max="999.99"
+                                step="0.25"
+                                value={estimatedHours ?? ''}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setEstimatedHours(
+                                        value === '' ? null : parseFloat(value),
+                                    );
+                                }}
+                                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                placeholder="e.g., 1.5"
+                                data-testid="input-estimated-hours"
+                            />
+                            <p className="mt-1 text-xs text-gray-500">
+                                How many hours do you expect to spend here?
+                                (e.g., 1.5 for 1.5 hours)
+                            </p>
                         </div>
                         <div>
                             <button

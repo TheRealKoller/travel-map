@@ -19,6 +19,7 @@ class Marker extends Model
         'longitude' => 'float',
         'is_unesco' => 'boolean',
         'ai_enriched' => 'boolean',
+        'estimated_hours' => 'float',
     ];
 
     public $incrementing = false;

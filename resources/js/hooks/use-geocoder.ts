@@ -101,6 +101,7 @@ export function useGeocoder({
                     imageUrl: null,
                     isUnesco: false,
                     aiEnriched: false,
+                    estimatedHours: null,
                     marker: marker,
                     isSaved: false, // Mark as unsaved
                 };

@@ -30,6 +30,7 @@ class UpdateMarkerRequest extends FormRequest
             'longitude' => 'sometimes|numeric|between:-180,180',
             'is_unesco' => 'sometimes|boolean',
             'ai_enriched' => 'sometimes|boolean',
+            'estimated_hours' => 'sometimes|nullable|numeric|min:0|max:999.99',
         ];
     }
 }

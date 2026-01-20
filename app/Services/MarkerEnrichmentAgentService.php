@@ -18,7 +18,7 @@ class MarkerEnrichmentAgentService
      * @param  string  $markerName  The name/location to enrich
      * @param  float  $latitude  The latitude coordinate
      * @param  float  $longitude  The longitude coordinate
-     * @return array{success: bool, data?: array{type?: string, is_unesco?: bool, notes?: string, url?: string}, error?: string}
+     * @return array{success: bool, data?: array{type?: string, is_unesco?: bool, notes?: string, url?: string, estimated_hours?: float}, error?: string}
      */
     public function enrichMarkerInfo(string $markerName, float $latitude, float $longitude): array
     {
@@ -127,7 +127,8 @@ Please provide the following information in valid JSON format:
   "type": "one of: restaurant, point_of_interest, hotel, museum, ruin, temple_church, sightseeing, natural_attraction, city, village, region, question, tip, festival_party, leisure",
   "is_unesco": true or false (whether this is a UNESCO World Heritage Site),
   "notes": "Interesting facts, historical context, and useful information about this location IN GERMAN LANGUAGE",
-  "url": "Official website or relevant link (prefer German language websites if available, otherwise international sites)"
+  "url": "Official website or relevant link (prefer German language websites if available, otherwise international sites)",
+  "estimated_hours": number (estimated time in hours to experience this location, e.g., 1.5 for a restaurant meal, 2 for a museum visit, 0.5 for a quick view)
 }
 
 Rules:
@@ -138,6 +139,13 @@ Rules:
 - Write natural, fluent German text in the notes field
 - For url, prefer German language official websites when available, otherwise international sites
 - If a German Wikipedia page exists, prefer it over the English version
+- For estimated_hours, provide a reasonable time estimation in hours (can use decimals like 0.5, 1.5, 2.5)
+  * Restaurants: 1-2 hours typically
+  * Museums: 1-3 hours depending on size
+  * Quick viewpoints/monuments: 0.25-0.5 hours
+  * Cities/regions: 4-8 hours for a day visit
+  * Natural attractions: 1-4 hours depending on trails/activities
+  * Hotels: not applicable, use null
 
 PROMPT;
     }
@@ -145,7 +153,7 @@ PROMPT;
     /**
      * Parse the JSON response from the agent.
      *
-     * @return array{type?: string, is_unesco?: bool, notes?: string, url?: string}|null
+     * @return array{type?: string, is_unesco?: bool, notes?: string, url?: string, estimated_hours?: float}|null
      */
     private function parseAgentResponse(string $content): ?array
     {
@@ -174,6 +182,7 @@ PROMPT;
                 'is_unesco' => isset($data['is_unesco']) ? (bool) $data['is_unesco'] : null,
                 'notes' => isset($data['notes']) ? (string) $data['notes'] : null,
                 'url' => isset($data['url']) ? (string) $data['url'] : null,
+                'estimated_hours' => isset($data['estimated_hours']) ? (float) $data['estimated_hours'] : null,
             ];
         } catch (\JsonException $e) {
             Log::error('Failed to parse agent JSON response', [

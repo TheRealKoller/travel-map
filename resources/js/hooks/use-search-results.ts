@@ -89,6 +89,7 @@ export function useSearchResults({
                         imageUrl: null,
                         isUnesco: false,
                         aiEnriched: false,
+                        estimatedHours: null,
                         marker: newMarker,
                         isSaved: false,
                     };

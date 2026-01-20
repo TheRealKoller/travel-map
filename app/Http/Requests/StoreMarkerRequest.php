@@ -33,6 +33,7 @@ class StoreMarkerRequest extends FormRequest
             'tour_id' => 'nullable|integer|exists:tours,id',
             'is_unesco' => 'boolean',
             'ai_enriched' => 'boolean',
+            'estimated_hours' => 'nullable|numeric|min:0|max:999.99',
         ];
     }
 }
