@@ -18,13 +18,6 @@ interface MarkerFormProps {
         url: string,
         isUnesco: boolean,
         aiEnriched: boolean,
-        plannedStartYear: number | null,
-        plannedStartMonth: number | null,
-        plannedStartDay: number | null,
-        plannedEndYear: number | null,
-        plannedEndMonth: number | null,
-        plannedEndDay: number | null,
-        plannedDurationDays: number | null,
     ) => void;
     onDeleteMarker: (id: string) => void;
     onClose: () => void;
@@ -60,29 +53,6 @@ export default function MarkerForm({
     const [aiEnriched, setAiEnriched] = useState(marker?.aiEnriched || false);
     const [isEnriching, setIsEnriching] = useState(false);
     const [enrichmentError, setEnrichmentError] = useState<string | null>(null);
-
-    // Planned period and duration state
-    const [plannedStartYear, setPlannedStartYear] = useState<string>(
-        marker?.plannedStartYear?.toString() || '',
-    );
-    const [plannedStartMonth, setPlannedStartMonth] = useState<string>(
-        marker?.plannedStartMonth?.toString() || '',
-    );
-    const [plannedStartDay, setPlannedStartDay] = useState<string>(
-        marker?.plannedStartDay?.toString() || '',
-    );
-    const [plannedEndYear, setPlannedEndYear] = useState<string>(
-        marker?.plannedEndYear?.toString() || '',
-    );
-    const [plannedEndMonth, setPlannedEndMonth] = useState<string>(
-        marker?.plannedEndMonth?.toString() || '',
-    );
-    const [plannedEndDay, setPlannedEndDay] = useState<string>(
-        marker?.plannedEndDay?.toString() || '',
-    );
-    const [plannedDurationDays, setPlannedDurationDays] = useState<string>(
-        marker?.plannedDurationDays?.toString() || '',
-    );
 
     // Configure marked once globally
     if (
@@ -164,37 +134,6 @@ export default function MarkerForm({
         return typeLabels[type] || type;
     };
 
-    const formatPlannedPeriod = (
-        year: number | null | undefined,
-        month: number | null | undefined,
-        day: number | null | undefined,
-    ): string => {
-        if (!year) return '';
-
-        const monthNames = [
-            'January',
-            'February',
-            'March',
-            'April',
-            'May',
-            'June',
-            'July',
-            'August',
-            'September',
-            'October',
-            'November',
-            'December',
-        ];
-
-        if (day && month) {
-            return `${monthNames[month - 1]} ${day}, ${year}`;
-        } else if (month) {
-            return `${monthNames[month - 1]} ${year}`;
-        } else {
-            return year.toString();
-        }
-    };
-
     const isValidUrl = (urlString: string): boolean => {
         if (!urlString.trim()) return false;
         try {
@@ -229,22 +168,7 @@ export default function MarkerForm({
 
     const handleSave = () => {
         if (marker) {
-            onSave(
-                marker.id,
-                name,
-                type,
-                notes,
-                url,
-                isUnesco,
-                aiEnriched,
-                plannedStartYear ? parseInt(plannedStartYear, 10) : null,
-                plannedStartMonth ? parseInt(plannedStartMonth, 10) : null,
-                plannedStartDay ? parseInt(plannedStartDay, 10) : null,
-                plannedEndYear ? parseInt(plannedEndYear, 10) : null,
-                plannedEndMonth ? parseInt(plannedEndMonth, 10) : null,
-                plannedEndDay ? parseInt(plannedEndDay, 10) : null,
-                plannedDurationDays ? parseInt(plannedDurationDays, 10) : null,
-            );
+            onSave(marker.id, name, type, notes, url, isUnesco, aiEnriched);
             setIsEditMode(false);
         }
     };
@@ -272,15 +196,6 @@ export default function MarkerForm({
             setUrl(marker.url || '');
             setIsUnesco(marker.isUnesco || false);
             setAiEnriched(marker.aiEnriched || false);
-            setPlannedStartYear(marker.plannedStartYear?.toString() || '');
-            setPlannedStartMonth(marker.plannedStartMonth?.toString() || '');
-            setPlannedStartDay(marker.plannedStartDay?.toString() || '');
-            setPlannedEndYear(marker.plannedEndYear?.toString() || '');
-            setPlannedEndMonth(marker.plannedEndMonth?.toString() || '');
-            setPlannedEndDay(marker.plannedEndDay?.toString() || '');
-            setPlannedDurationDays(
-                marker.plannedDurationDays?.toString() || '',
-            );
         }
         setIsEditMode(false);
         setEnrichmentError(null);
@@ -491,49 +406,6 @@ export default function MarkerForm({
                                     __html: marked.parse(notes) as string,
                                 }}
                             />
-                        </div>
-                    )}
-                    {(marker?.plannedStartYear ||
-                        marker?.plannedEndYear ||
-                        marker?.plannedDurationDays) && (
-                        <div className="space-y-2 rounded-md border border-gray-200 bg-gray-50 p-3">
-                            <label className="block text-sm font-medium text-gray-700">
-                                Planning
-                            </label>
-                            {(marker?.plannedStartYear ||
-                                marker?.plannedEndYear) && (
-                                <div className="text-sm text-gray-900">
-                                    <span className="font-medium">
-                                        Period:{' '}
-                                    </span>
-                                    {formatPlannedPeriod(
-                                        marker?.plannedStartYear,
-                                        marker?.plannedStartMonth,
-                                        marker?.plannedStartDay,
-                                    )}
-                                    {marker?.plannedEndYear && (
-                                        <>
-                                            {' → '}
-                                            {formatPlannedPeriod(
-                                                marker?.plannedEndYear,
-                                                marker?.plannedEndMonth,
-                                                marker?.plannedEndDay,
-                                            )}
-                                        </>
-                                    )}
-                                </div>
-                            )}
-                            {marker?.plannedDurationDays && (
-                                <div className="text-sm text-gray-900">
-                                    <span className="font-medium">
-                                        Duration:{' '}
-                                    </span>
-                                    {marker.plannedDurationDays}{' '}
-                                    {marker.plannedDurationDays === 1
-                                        ? 'day'
-                                        : 'days'}
-                                </div>
-                            )}
                         </div>
                     )}
                     {tours.length > 0 && onToggleMarkerInTour && (
@@ -782,141 +654,6 @@ export default function MarkerForm({
                                 </button>
                             </div>
                         </div>
-
-                        {/* Planned Period Section */}
-                        <div className="space-y-3 rounded-md border border-gray-200 p-3">
-                            <label className="block text-sm font-medium text-gray-700">
-                                Planned period (optional)
-                            </label>
-                            <p className="text-xs text-gray-500">
-                                Specify when you plan to visit this location.
-                                You can enter year only, year and month, or full
-                                date.
-                            </p>
-
-                            {/* Start Date */}
-                            <div>
-                                <label className="mb-1 block text-xs font-medium text-gray-600">
-                                    From
-                                </label>
-                                <div className="flex gap-2">
-                                    <input
-                                        type="number"
-                                        value={plannedStartYear}
-                                        onChange={(e) =>
-                                            setPlannedStartYear(e.target.value)
-                                        }
-                                        placeholder="Year"
-                                        min="1000"
-                                        max="9999"
-                                        className="w-24 rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                        data-testid="planned-start-year"
-                                    />
-                                    <input
-                                        type="number"
-                                        value={plannedStartMonth}
-                                        onChange={(e) =>
-                                            setPlannedStartMonth(e.target.value)
-                                        }
-                                        placeholder="Month"
-                                        min="1"
-                                        max="12"
-                                        className="w-20 rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                        data-testid="planned-start-month"
-                                    />
-                                    <input
-                                        type="number"
-                                        value={plannedStartDay}
-                                        onChange={(e) =>
-                                            setPlannedStartDay(e.target.value)
-                                        }
-                                        placeholder="Day"
-                                        min="1"
-                                        max="31"
-                                        className="w-20 rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                        data-testid="planned-start-day"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* End Date */}
-                            <div>
-                                <label className="mb-1 block text-xs font-medium text-gray-600">
-                                    To
-                                </label>
-                                <div className="flex gap-2">
-                                    <input
-                                        type="number"
-                                        value={plannedEndYear}
-                                        onChange={(e) =>
-                                            setPlannedEndYear(e.target.value)
-                                        }
-                                        placeholder="Year"
-                                        min="1000"
-                                        max="9999"
-                                        className="w-24 rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                        data-testid="planned-end-year"
-                                    />
-                                    <input
-                                        type="number"
-                                        value={plannedEndMonth}
-                                        onChange={(e) =>
-                                            setPlannedEndMonth(e.target.value)
-                                        }
-                                        placeholder="Month"
-                                        min="1"
-                                        max="12"
-                                        className="w-20 rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                        data-testid="planned-end-month"
-                                    />
-                                    <input
-                                        type="number"
-                                        value={plannedEndDay}
-                                        onChange={(e) =>
-                                            setPlannedEndDay(e.target.value)
-                                        }
-                                        placeholder="Day"
-                                        min="1"
-                                        max="31"
-                                        className="w-20 rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                        data-testid="planned-end-day"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Planned Duration */}
-                        <div>
-                            <label
-                                htmlFor="planned-duration"
-                                className="mb-2 block text-sm font-medium text-gray-700"
-                            >
-                                Planned duration (optional)
-                            </label>
-                            <div className="flex items-center gap-2">
-                                <input
-                                    id="planned-duration"
-                                    type="number"
-                                    value={plannedDurationDays}
-                                    onChange={(e) =>
-                                        setPlannedDurationDays(e.target.value)
-                                    }
-                                    placeholder="Number of days"
-                                    min="1"
-                                    max="9999"
-                                    className="w-32 rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                    data-testid="planned-duration-days"
-                                />
-                                <span className="text-sm text-gray-600">
-                                    days
-                                </span>
-                            </div>
-                            <p className="mt-1 text-xs text-gray-500">
-                                The duration doesn't need to match the planned
-                                period
-                            </p>
-                        </div>
-
                         <div>
                             <label className="mb-2 block text-sm font-medium text-gray-700">
                                 Notes

@@ -30,13 +30,6 @@ class UpdateMarkerRequest extends FormRequest
             'longitude' => 'sometimes|numeric|between:-180,180',
             'is_unesco' => 'sometimes|boolean',
             'ai_enriched' => 'sometimes|boolean',
-            'planned_start_year' => 'sometimes|nullable|integer|min:1000|max:9999',
-            'planned_start_month' => 'sometimes|nullable|integer|min:1|max:12',
-            'planned_start_day' => 'sometimes|nullable|integer|min:1|max:31',
-            'planned_end_year' => 'sometimes|nullable|integer|min:1000|max:9999',
-            'planned_end_month' => 'sometimes|nullable|integer|min:1|max:12',
-            'planned_end_day' => 'sometimes|nullable|integer|min:1|max:31',
-            'planned_duration_days' => 'sometimes|nullable|integer|min:1|max:9999',
         ];
     }
 }

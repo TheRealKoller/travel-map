@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('markers', function (Blueprint $table) {
+        Schema::table('trips', function (Blueprint $table) {
             // Planned start period (can be year only, year+month, or year+month+day)
-            $table->unsignedSmallInteger('planned_start_year')->nullable()->after('ai_enriched');
+            $table->unsignedSmallInteger('planned_start_year')->nullable()->after('viewport_static_image_url');
             $table->unsignedTinyInteger('planned_start_month')->nullable()->after('planned_start_year');
             $table->unsignedTinyInteger('planned_start_day')->nullable()->after('planned_start_month');
 
@@ -32,7 +32,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('markers', function (Blueprint $table) {
+        Schema::table('trips', function (Blueprint $table) {
             $table->dropColumn([
                 'planned_start_year',
                 'planned_start_month',

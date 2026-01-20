@@ -19,13 +19,6 @@ class Marker extends Model
         'longitude' => 'float',
         'is_unesco' => 'boolean',
         'ai_enriched' => 'boolean',
-        'planned_start_year' => 'integer',
-        'planned_start_month' => 'integer',
-        'planned_start_day' => 'integer',
-        'planned_end_year' => 'integer',
-        'planned_end_month' => 'integer',
-        'planned_end_day' => 'integer',
-        'planned_duration_days' => 'integer',
     ];
 
     public $incrementing = false;

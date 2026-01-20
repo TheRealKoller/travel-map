@@ -51,13 +51,6 @@ export function useMarkers({
                         image_url: string | null;
                         is_unesco: boolean;
                         ai_enriched: boolean;
-                        planned_start_year: number | null;
-                        planned_start_month: number | null;
-                        planned_start_day: number | null;
-                        planned_end_year: number | null;
-                        planned_end_month: number | null;
-                        planned_end_day: number | null;
-                        planned_duration_days: number | null;
                     }) => {
                         // Saved markers use isTemporary=false (default z-index)
                         const el = createMarkerElement(
@@ -93,13 +86,6 @@ export function useMarkers({
                             aiEnriched: dbMarker.ai_enriched || false,
                             marker: marker,
                             isSaved: true,
-                            plannedStartYear: dbMarker.planned_start_year,
-                            plannedStartMonth: dbMarker.planned_start_month,
-                            plannedStartDay: dbMarker.planned_start_day,
-                            plannedEndYear: dbMarker.planned_end_year,
-                            plannedEndMonth: dbMarker.planned_end_month,
-                            plannedEndDay: dbMarker.planned_end_day,
-                            plannedDurationDays: dbMarker.planned_duration_days,
                         };
                     },
                 );
@@ -125,13 +111,6 @@ export function useMarkers({
             url: string,
             isUnesco: boolean,
             aiEnriched: boolean,
-            plannedStartYear: number | null,
-            plannedStartMonth: number | null,
-            plannedStartDay: number | null,
-            plannedEndYear: number | null,
-            plannedEndMonth: number | null,
-            plannedEndDay: number | null,
-            plannedDurationDays: number | null,
         ) => {
             try {
                 // Get current markers from state
@@ -153,13 +132,6 @@ export function useMarkers({
                         url,
                         is_unesco: isUnesco,
                         ai_enriched: aiEnriched,
-                        planned_start_year: plannedStartYear,
-                        planned_start_month: plannedStartMonth,
-                        planned_start_day: plannedStartDay,
-                        planned_end_year: plannedEndYear,
-                        planned_end_month: plannedEndMonth,
-                        planned_end_day: plannedEndDay,
-                        planned_duration_days: plannedDurationDays,
                     });
                 } else {
                     // Create new marker in database
@@ -174,13 +146,6 @@ export function useMarkers({
                         trip_id: selectedTripId,
                         is_unesco: isUnesco,
                         ai_enriched: aiEnriched,
-                        planned_start_year: plannedStartYear,
-                        planned_start_month: plannedStartMonth,
-                        planned_start_day: plannedStartDay,
-                        planned_end_year: plannedEndYear,
-                        planned_end_month: plannedEndMonth,
-                        planned_end_day: plannedEndDay,
-                        planned_duration_days: plannedDurationDays,
                     });
                 }
 
@@ -235,13 +200,6 @@ export function useMarkers({
                                           aiEnriched,
                                           isSaved: true,
                                           marker: newMarker,
-                                          plannedStartYear,
-                                          plannedStartMonth,
-                                          plannedStartDay,
-                                          plannedEndYear,
-                                          plannedEndMonth,
-                                          plannedEndDay,
-                                          plannedDurationDays,
                                       }
                                     : m,
                             );
@@ -260,13 +218,6 @@ export function useMarkers({
                                   isUnesco,
                                   aiEnriched,
                                   isSaved: true,
-                                  plannedStartYear,
-                                  plannedStartMonth,
-                                  plannedStartDay,
-                                  plannedEndYear,
-                                  plannedEndMonth,
-                                  plannedEndDay,
-                                  plannedDurationDays,
                               }
                             : m,
                     );

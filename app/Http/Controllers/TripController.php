@@ -148,13 +148,6 @@ class TripController extends Controller
                     'notes' => $marker->notes,
                     'url' => $marker->url,
                     'is_unesco' => $marker->is_unesco,
-                    'planned_start_year' => $marker->planned_start_year,
-                    'planned_start_month' => $marker->planned_start_month,
-                    'planned_start_day' => $marker->planned_start_day,
-                    'planned_end_year' => $marker->planned_end_year,
-                    'planned_end_month' => $marker->planned_end_month,
-                    'planned_end_day' => $marker->planned_end_day,
-                    'planned_duration_days' => $marker->planned_duration_days,
                 ];
             })->toArray();
 

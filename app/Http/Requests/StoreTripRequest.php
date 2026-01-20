@@ -28,6 +28,13 @@ class StoreTripRequest extends FormRequest
             'viewport_latitude' => 'nullable|numeric|between:-90,90',
             'viewport_longitude' => 'nullable|numeric|between:-180,180',
             'viewport_zoom' => 'nullable|numeric|between:0,22',
+            'planned_start_year' => 'nullable|integer|min:1000|max:9999',
+            'planned_start_month' => 'nullable|integer|min:1|max:12',
+            'planned_start_day' => 'nullable|integer|min:1|max:31',
+            'planned_end_year' => 'nullable|integer|min:1000|max:9999',
+            'planned_end_month' => 'nullable|integer|min:1|max:12',
+            'planned_end_day' => 'nullable|integer|min:1|max:31',
+            'planned_duration_days' => 'nullable|integer|min:1|max:9999',
         ];
     }
 }
