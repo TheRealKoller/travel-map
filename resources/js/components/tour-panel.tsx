@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getMarkerTypeIcon, UnescoIcon } from '@/lib/marker-icons';
+import { formatDuration } from '@/lib/utils';
 import { MarkerData } from '@/types/marker';
 import { Tour } from '@/types/tour';
 import {
@@ -33,19 +34,6 @@ interface TourTabProps {
 }
 
 function TourTab({ tour, markerCount }: TourTabProps) {
-    const formatDuration = (hours: number): string => {
-        if (hours === 0) return '';
-        if (hours < 1) {
-            return `${Math.round(hours * 60)}min`;
-        }
-        const wholeHours = Math.floor(hours);
-        const minutes = Math.round((hours - wholeHours) * 60);
-        if (minutes === 0) {
-            return `${wholeHours}h`;
-        }
-        return `${wholeHours}h ${minutes}min`;
-    };
-
     return (
         <div className="inline-flex" style={{ minHeight: '40px' }}>
             <TabsTrigger value={tour.id.toString()} data-testid="tour-tab">
@@ -181,19 +169,6 @@ function TourCard({
     onRemoveMarkerFromTour,
     onRequestRoute,
 }: TourCardProps) {
-    const formatDuration = (hours: number): string => {
-        if (hours === 0) return '';
-        if (hours < 1) {
-            return `${Math.round(hours * 60)}min`;
-        }
-        const wholeHours = Math.floor(hours);
-        const minutes = Math.round((hours - wholeHours) * 60);
-        if (minutes === 0) {
-            return `${wholeHours}h`;
-        }
-        return `${wholeHours}h ${minutes}min`;
-    };
-
     return (
         <Card className="flex-1 overflow-auto p-4">
             <div className="mb-3 flex items-center justify-between">
