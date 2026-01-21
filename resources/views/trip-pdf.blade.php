@@ -199,6 +199,12 @@
         <div class="header">
             <h1 class="trip-name">{{ $trip->name }}</h1>
             
+            @if($tripImageUrl)
+                <div class="image-container" style="margin-bottom: 20px;">
+                    <img src="{{ $tripImageUrl }}" alt="{{ $trip->name }}" style="max-height: 300px;">
+                </div>
+            @endif
+            
             @if($trip->planned_start_year || $trip->planned_end_year || $trip->planned_duration_days)
                 @php
                 $monthNames = [
@@ -335,6 +341,11 @@
                         <h3 class="section-title">Markers</h3>
                         @foreach($tour['markers'] as $marker)
                             <div class="marker-item">
+                                @if(!empty($marker['image_base64']))
+                                    <div class="image-container" style="margin-bottom: 10px;">
+                                        <img src="{{ $marker['image_base64'] }}" alt="{{ $marker['name'] }}" style="max-height: 200px; border-radius: 4px;">
+                                    </div>
+                                @endif
                                 <div class="marker-content">
                                     <div class="marker-left">
                                         <div class="marker-name">

@@ -123,6 +123,18 @@ class TripController extends Controller
     {
         $this->authorize('view', $trip);
 
+        // Track trip image download as per Unsplash guidelines
+        if ($trip->unsplash_download_location) {
+            try {
+                $this->unsplashService->trackDownload($trip->unsplash_download_location);
+            } catch (\Exception $e) {
+                Log::warning('Failed to track trip image download', [
+                    'trip_id' => $trip->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
         // Load markers for the trip
         $markers = $trip->markers()->get(['latitude', 'longitude'])->toArray();
 
@@ -144,6 +156,24 @@ class TripController extends Controller
         $toursData = [];
         foreach ($tours as $tour) {
             $tourMarkers = $tour->markers->map(function ($marker) {
+                // Track marker image download as per Unsplash guidelines
+                if ($marker->unsplash_download_location) {
+                    try {
+                        $this->unsplashService->trackDownload($marker->unsplash_download_location);
+                    } catch (\Exception $e) {
+                        Log::warning('Failed to track marker image download', [
+                            'marker_id' => $marker->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }
+
+                // Convert marker image to base64 for PDF
+                $markerImageBase64 = null;
+                if ($marker->image_url) {
+                    $markerImageBase64 = $this->convertImageToBase64($marker->image_url);
+                }
+
                 return [
                     'id' => $marker->id,
                     'name' => $marker->name,
@@ -155,6 +185,7 @@ class TripController extends Controller
                     'is_unesco' => $marker->is_unesco,
                     'estimated_hours' => $marker->estimated_hours,
                     'qr_code' => $marker->url ? $this->generateQrCode($marker->url) : null,
+                    'image_base64' => $markerImageBase64,
                 ];
             })->toArray();
 
@@ -218,9 +249,11 @@ class TripController extends Controller
         // Convert external URLs to base64 data URIs for DomPDF compatibility
         $viewportImageUrl = $trip->viewport_static_image_url ? $this->convertImageToBase64($trip->viewport_static_image_url) : null;
         $markersOverviewBase64 = $markersOverviewUrl ? $this->convertImageToBase64($markersOverviewUrl) : null;
+        $tripImageBase64 = $trip->image_url ? $this->convertImageToBase64($trip->image_url) : null;
 
         $pdf = Pdf::loadView('trip-pdf', [
             'trip' => $trip,
+            'tripImageUrl' => $tripImageBase64,
             'viewportImageUrl' => $viewportImageUrl,
             'markersOverviewUrl' => $markersOverviewBase64,
             'markersCount' => count($markers),
@@ -254,9 +287,10 @@ class TripController extends Controller
             $this->unsplashService->trackDownload($photoData['download_location']);
         }
 
-        // Update the trip with the image URL (hotlinked from Unsplash)
+        // Update the trip with the image URL and download location (hotlinked from Unsplash)
         $trip->update([
             'image_url' => $photoData['urls']['regular'] ?? null,
+            'unsplash_download_location' => $photoData['download_location'] ?? null,
         ]);
 
         return response()->json([
@@ -280,9 +314,10 @@ class TripController extends Controller
                     $this->unsplashService->trackDownload($photoData['download_location']);
                 }
 
-                // Update the trip with the image URL
+                // Update the trip with the image URL and download location
                 $trip->update([
                     'image_url' => $photoData['urls']['regular'],
+                    'unsplash_download_location' => $photoData['download_location'] ?? null,
                 ]);
             }
         } catch (\Exception $e) {
