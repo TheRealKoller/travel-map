@@ -814,3 +814,136 @@ test('PDF export includes QR codes for markers with URLs', function () {
     // Verify the response contains a PDF
     expect($response->getContent())->toContain('%PDF');
 });
+
+test('trip image fetch stores download_location', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Paris Trip',
+        'country' => 'FR',
+    ]);
+
+    // Mock the Unsplash service to return photo data with download_location
+    $photoData = [
+        'urls' => [
+            'regular' => 'https://images.unsplash.com/photo-123',
+        ],
+        'download_location' => 'https://api.unsplash.com/photos/abc123/download?ixid=test',
+    ];
+
+    $mockService = Mockery::mock(\App\Services\UnsplashService::class);
+    $mockService->shouldReceive('getPhotoForTrip')
+        ->once()
+        ->with('Paris Trip', 'FR')
+        ->andReturn($photoData);
+    $mockService->shouldReceive('trackDownload')
+        ->once()
+        ->with('https://api.unsplash.com/photos/abc123/download?ixid=test')
+        ->andReturn(true);
+
+    $this->app->instance(\App\Services\UnsplashService::class, $mockService);
+
+    $response = $this->actingAs($this->user)->postJson("/trips/{$trip->id}/fetch-image");
+
+    $response->assertStatus(200);
+
+    $trip->refresh();
+    expect($trip->image_url)->toBe('https://images.unsplash.com/photo-123')
+        ->and($trip->unsplash_download_location)->toBe('https://api.unsplash.com/photos/abc123/download?ixid=test');
+});
+
+test('marker image fetch stores download_location', function () {
+    $trip = Trip::factory()->create(['user_id' => $this->user->id]);
+    $marker = Marker::factory()->create([
+        'trip_id' => $trip->id,
+        'user_id' => $this->user->id,
+        'name' => 'Eiffel Tower',
+        'type' => 'monument',
+    ]);
+
+    // Mock the Unsplash service
+    $photoData = [
+        'urls' => [
+            'regular' => 'https://images.unsplash.com/photo-456',
+        ],
+        'download_location' => 'https://api.unsplash.com/photos/xyz789/download?ixid=test',
+    ];
+
+    $mockService = Mockery::mock(\App\Services\UnsplashService::class);
+    $mockService->shouldReceive('getPhotoForMarker')
+        ->once()
+        ->with('Eiffel Tower', 'monument')
+        ->andReturn($photoData);
+    $mockService->shouldReceive('trackDownload')
+        ->once()
+        ->with('https://api.unsplash.com/photos/xyz789/download?ixid=test')
+        ->andReturn(true);
+
+    $this->app->instance(\App\Services\UnsplashService::class, $mockService);
+
+    $response = $this->actingAs($this->user)->postJson("/markers/{$marker->id}/fetch-image");
+
+    $response->assertStatus(200);
+
+    $marker->refresh();
+    expect($marker->image_url)->toBe('https://images.unsplash.com/photo-456')
+        ->and($marker->unsplash_download_location)->toBe('https://api.unsplash.com/photos/xyz789/download?ixid=test');
+});
+
+test('PDF export tracks trip image download', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Test Trip',
+        'image_url' => 'https://images.unsplash.com/photo-test',
+        'unsplash_download_location' => 'https://api.unsplash.com/photos/test123/download?ixid=test',
+    ]);
+
+    // Mock the Unsplash service to verify trackDownload is called
+    $mockService = Mockery::mock(\App\Services\UnsplashService::class);
+    $mockService->shouldReceive('trackDownload')
+        ->once()
+        ->with('https://api.unsplash.com/photos/test123/download?ixid=test')
+        ->andReturn(true);
+
+    $this->app->instance(\App\Services\UnsplashService::class, $mockService);
+
+    $response = $this->actingAs($this->user)->get("/trips/{$trip->id}/export-pdf");
+
+    $response->assertStatus(200)
+        ->assertHeader('content-type', 'application/pdf');
+});
+
+test('PDF export tracks marker image downloads', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Test Trip',
+    ]);
+
+    $tour = Tour::factory()->create([
+        'trip_id' => $trip->id,
+        'name' => 'Day 1',
+    ]);
+
+    $marker = Marker::factory()->create([
+        'trip_id' => $trip->id,
+        'user_id' => $this->user->id,
+        'name' => 'Test Marker',
+        'image_url' => 'https://images.unsplash.com/photo-marker',
+        'unsplash_download_location' => 'https://api.unsplash.com/photos/marker123/download?ixid=test',
+    ]);
+
+    $tour->markers()->attach($marker->id, ['position' => 0]);
+
+    // Mock the Unsplash service to verify trackDownload is called for marker
+    $mockService = Mockery::mock(\App\Services\UnsplashService::class);
+    $mockService->shouldReceive('trackDownload')
+        ->once()
+        ->with('https://api.unsplash.com/photos/marker123/download?ixid=test')
+        ->andReturn(true);
+
+    $this->app->instance(\App\Services\UnsplashService::class, $mockService);
+
+    $response = $this->actingAs($this->user)->get("/trips/{$trip->id}/export-pdf");
+
+    $response->assertStatus(200)
+        ->assertHeader('content-type', 'application/pdf');
+});
