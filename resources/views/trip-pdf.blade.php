@@ -182,8 +182,8 @@
         .qr-code-container img {
             display: block;
             margin: 0 auto;
-            width: 120px;
-            height: 120px;
+            width: 60px;
+            height: 60px;
         }
         
         .qr-code-url {
