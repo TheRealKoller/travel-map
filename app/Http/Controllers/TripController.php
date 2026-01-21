@@ -7,7 +7,7 @@ use App\Http\Requests\UpdateTripRequest;
 use App\Models\Trip;
 use App\Services\MapboxStaticImageService;
 use App\Services\UnsplashService;
-use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\Image\ImagickImageBackEnd;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Writer;
@@ -356,23 +356,23 @@ class TripController extends Controller
 
     /**
      * Generate a QR code for a given URL.
-     * Returns an SVG data URI that can be embedded directly in the PDF.
+     * Returns a PNG data URI that can be embedded directly in the PDF.
      *
      * @param  string  $url  The URL to encode in the QR code
-     * @return string The SVG data URI
+     * @return string The PNG data URI
      */
     private function generateQrCode(string $url): string
     {
         try {
             $renderer = new ImageRenderer(
                 new RendererStyle(200, 0),
-                new SvgImageBackEnd
+                new ImagickImageBackEnd
             );
             $writer = new Writer($renderer);
-            $qrCodeSvg = $writer->writeString($url);
+            $qrCodePng = $writer->writeString($url);
 
-            // Convert SVG to data URI
-            return 'data:image/svg+xml;base64,'.base64_encode($qrCodeSvg);
+            // Convert PNG to data URI
+            return 'data:image/png;base64,'.base64_encode($qrCodePng);
         } catch (\Exception $e) {
             \Log::error('Error generating QR code', [
                 'url' => $url,
