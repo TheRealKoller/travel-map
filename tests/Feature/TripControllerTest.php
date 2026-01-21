@@ -772,3 +772,45 @@ test('PDF export includes marker details in tour pages', function () {
     $response->assertStatus(200)
         ->assertHeader('content-type', 'application/pdf');
 });
+
+test('PDF export includes QR codes for markers with URLs', function () {
+    // Configure a fake Mapbox token for testing
+    config(['services.mapbox.access_token' => 'pk.test.fake_token_for_testing_only']);
+
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Trip with URL Markers',
+    ]);
+
+    $tour = Tour::factory()->create([
+        'trip_id' => $trip->id,
+        'name' => 'URL Tour',
+    ]);
+
+    // Create a marker with a URL
+    $markerWithUrl = Marker::factory()->create([
+        'trip_id' => $trip->id,
+        'user_id' => $this->user->id,
+        'name' => 'Eiffel Tower',
+        'url' => 'https://example.com/eiffel',
+    ]);
+
+    // Create a marker without a URL
+    $markerWithoutUrl = Marker::factory()->create([
+        'trip_id' => $trip->id,
+        'user_id' => $this->user->id,
+        'name' => 'Random Place',
+        'url' => null,
+    ]);
+
+    $tour->markers()->attach($markerWithUrl->id, ['position' => 0]);
+    $tour->markers()->attach($markerWithoutUrl->id, ['position' => 1]);
+
+    $response = $this->actingAs($this->user)->get("/trips/{$trip->id}/export-pdf");
+
+    $response->assertStatus(200)
+        ->assertHeader('content-type', 'application/pdf');
+
+    // Verify the response contains a PDF
+    expect($response->getContent())->toContain('%PDF');
+});

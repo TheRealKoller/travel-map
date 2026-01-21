@@ -151,6 +151,47 @@
             margin-left: 8px;
             font-weight: bold;
         }
+        
+        .marker-content {
+            display: table;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .marker-left {
+            display: table-cell;
+            width: 60%;
+            vertical-align: top;
+            padding-right: 15px;
+        }
+        
+        .marker-right {
+            display: table-cell;
+            width: 40%;
+            vertical-align: top;
+            text-align: center;
+        }
+        
+        .qr-code-container {
+            padding: 10px;
+            background-color: #ffffff;
+            border-radius: 4px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .qr-code-container img {
+            display: block;
+            margin: 0 auto;
+            width: 60px;
+            height: 60px;
+        }
+        
+        .qr-code-url {
+            margin-top: 6px;
+            font-size: 9px;
+            color: #6b7280;
+            word-break: break-all;
+        }
     </style>
 </head>
 <body>
@@ -294,28 +335,37 @@
                         <h3 class="section-title">Markers</h3>
                         @foreach($tour['markers'] as $marker)
                             <div class="marker-item">
-                                <div class="marker-name">
-                                    {{ $marker['name'] }}
-                                    @if($marker['is_unesco'])
-                                        <span class="unesco-badge">UNESCO</span>
+                                <div class="marker-content">
+                                    <div class="marker-left">
+                                        <div class="marker-name">
+                                            {{ $marker['name'] }}
+                                            @if($marker['is_unesco'])
+                                                <span class="unesco-badge">UNESCO</span>
+                                            @endif
+                                        </div>
+                                        @if($marker['type'])
+                                            <div class="marker-type">{{ $marker['type'] }}</div>
+                                        @endif
+                                        <div class="marker-detail">
+                                            Coordinates: {{ number_format($marker['latitude'], 6) }}, {{ number_format($marker['longitude'], 6) }}
+                                        </div>
+                                        @if($marker['estimated_hours'])
+                                            <div class="marker-detail">
+                                                Estimated time: {{ number_format($marker['estimated_hours'], 1) }} {{ $marker['estimated_hours'] == 1 ? 'hour' : 'hours' }}
+                                            </div>
+                                        @endif
+                                    </div>
+                                    @if($marker['url'])
+                                        <div class="marker-right">
+                                            <div class="qr-code-container">
+                                                @if(!empty($marker['qr_code']))
+                                                    <img src="{{ $marker['qr_code'] }}" alt="QR Code for {{ $marker['url'] }}">
+                                                @endif
+                                                <div class="qr-code-url">{{ $marker['url'] }}</div>
+                                            </div>
+                                        </div>
                                     @endif
                                 </div>
-                                @if($marker['type'])
-                                    <div class="marker-type">{{ $marker['type'] }}</div>
-                                @endif
-                                <div class="marker-detail">
-                                    Coordinates: {{ number_format($marker['latitude'], 6) }}, {{ number_format($marker['longitude'], 6) }}
-                                </div>
-                                @if($marker['url'])
-                                    <div class="marker-detail">
-                                        URL: {{ $marker['url'] }}
-                                    </div>
-                                @endif
-                                @if($marker['estimated_hours'])
-                                    <div class="marker-detail">
-                                        Estimated time: {{ number_format($marker['estimated_hours'], 1) }} {{ $marker['estimated_hours'] == 1 ? 'hour' : 'hours' }}
-                                    </div>
-                                @endif
                                 @if($marker['notes'])
                                     <div class="marker-notes">
                                         <strong>Notes:</strong> {{ $marker['notes'] }}
