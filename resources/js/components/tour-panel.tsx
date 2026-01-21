@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getMarkerTypeIcon, UnescoIcon } from '@/lib/marker-icons';
+import { formatDuration } from '@/lib/utils';
 import { MarkerData } from '@/types/marker';
 import { Tour } from '@/types/tour';
 import {
@@ -42,6 +43,12 @@ function TourTab({ tour, markerCount }: TourTabProps) {
                         ({markerCount})
                     </span>
                 )}
+                {tour.estimated_duration_hours !== undefined &&
+                    tour.estimated_duration_hours > 0 && (
+                        <span className="ml-1 text-xs text-blue-600">
+                            {formatDuration(tour.estimated_duration_hours)}
+                        </span>
+                    )}
             </TabsTrigger>
         </div>
     );
@@ -165,7 +172,16 @@ function TourCard({
     return (
         <Card className="flex-1 overflow-auto p-4">
             <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-sm font-semibold">{tour.name}</h3>
+                <div className="flex flex-col">
+                    <h3 className="text-sm font-semibold">{tour.name}</h3>
+                    {tour.estimated_duration_hours !== undefined &&
+                        tour.estimated_duration_hours > 0 && (
+                            <span className="text-xs text-blue-600">
+                                Estimated duration:{' '}
+                                {formatDuration(tour.estimated_duration_hours)}
+                            </span>
+                        )}
+                </div>
                 <Button
                     variant="ghost"
                     size="icon"
