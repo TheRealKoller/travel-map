@@ -16,6 +16,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -190,16 +191,16 @@ class TripController extends Controller
                     }
 
                     if ($tourMapUrl) {
-                        \Log::info('Generated tour map URL', ['tour' => $tour->name, 'url_length' => strlen($tourMapUrl)]);
+                        Log::info('Generated tour map URL', ['tour' => $tour->name, 'url_length' => strlen($tourMapUrl)]);
                         $tourMapBase64 = $this->convertImageToBase64($tourMapUrl);
                         if (! $tourMapBase64) {
-                            \Log::warning('Failed to convert tour map to base64', ['tour' => $tour->name]);
+                            Log::warning('Failed to convert tour map to base64', ['tour' => $tour->name]);
                         }
                     } else {
-                        \Log::warning('Tour map URL is null', ['tour' => $tour->name]);
+                        Log::warning('Tour map URL is null', ['tour' => $tour->name]);
                     }
                 } catch (\Exception $e) {
-                    \Log::error('Error generating tour map', [
+                    Log::error('Error generating tour map', [
                         'tour' => $tour->name,
                         'error' => $e->getMessage(),
                     ]);
@@ -287,7 +288,7 @@ class TripController extends Controller
         } catch (\Exception $e) {
             // Silently fail - image fetching is optional
             // The trip will still be created/updated without an image
-            \Log::info('Failed to auto-fetch image for trip', [
+            Log::info('Failed to auto-fetch image for trip', [
                 'trip_id' => $trip->id,
                 'error' => $e->getMessage(),
             ]);
@@ -331,7 +332,7 @@ class TripController extends Controller
             $imageContent = file_get_contents($url);
 
             if ($imageContent === false) {
-                \Log::warning('Failed to download image for PDF', ['url' => $url]);
+                Log::warning('Failed to download image for PDF', ['url' => $url]);
 
                 return null;
             }
@@ -345,7 +346,7 @@ class TripController extends Controller
 
             return "data:{$mimeType};base64,{$base64}";
         } catch (\Exception $e) {
-            \Log::error('Error converting image to base64 for PDF', [
+            Log::error('Error converting image to base64 for PDF', [
                 'url' => $url,
                 'error' => $e->getMessage(),
             ]);
@@ -374,7 +375,7 @@ class TripController extends Controller
             // Convert PNG to data URI
             return 'data:image/png;base64,'.base64_encode($qrCodePng);
         } catch (\Exception $e) {
-            \Log::error('Error generating QR code', [
+            Log::error('Error generating QR code', [
                 'url' => $url,
                 'error' => $e->getMessage(),
             ]);
