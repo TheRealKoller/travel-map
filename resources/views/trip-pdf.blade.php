@@ -151,6 +151,29 @@
             margin-left: 8px;
             font-weight: bold;
         }
+        
+        .qr-code-container {
+            margin-top: 10px;
+            padding: 10px;
+            text-align: center;
+            background-color: #ffffff;
+            border-radius: 4px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .qr-code-container img {
+            display: block;
+            margin: 0 auto;
+            width: 120px;
+            height: 120px;
+        }
+        
+        .qr-code-url {
+            margin-top: 6px;
+            font-size: 9px;
+            color: #6b7280;
+            word-break: break-all;
+        }
     </style>
 </head>
 <body>
@@ -306,11 +329,6 @@
                                 <div class="marker-detail">
                                     Coordinates: {{ number_format($marker['latitude'], 6) }}, {{ number_format($marker['longitude'], 6) }}
                                 </div>
-                                @if($marker['url'])
-                                    <div class="marker-detail">
-                                        URL: {{ $marker['url'] }}
-                                    </div>
-                                @endif
                                 @if($marker['estimated_hours'])
                                     <div class="marker-detail">
                                         Estimated time: {{ number_format($marker['estimated_hours'], 1) }} {{ $marker['estimated_hours'] == 1 ? 'hour' : 'hours' }}
@@ -319,6 +337,14 @@
                                 @if($marker['notes'])
                                     <div class="marker-notes">
                                         <strong>Notes:</strong> {{ $marker['notes'] }}
+                                    </div>
+                                @endif
+                                @if($marker['url'])
+                                    <div class="qr-code-container">
+                                        @if(!empty($marker['qr_code']))
+                                            <img src="{{ $marker['qr_code'] }}" alt="QR Code for {{ $marker['url'] }}">
+                                        @endif
+                                        <div class="qr-code-url">{{ $marker['url'] }}</div>
                                     </div>
                                 @endif
                             </div>

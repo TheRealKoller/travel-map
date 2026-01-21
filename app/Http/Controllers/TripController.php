@@ -7,6 +7,10 @@ use App\Http\Requests\UpdateTripRequest;
 use App\Models\Trip;
 use App\Services\MapboxStaticImageService;
 use App\Services\UnsplashService;
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Writer;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
@@ -149,6 +153,7 @@ class TripController extends Controller
                     'url' => $marker->url,
                     'is_unesco' => $marker->is_unesco,
                     'estimated_hours' => $marker->estimated_hours,
+                    'qr_code' => $marker->url ? $this->generateQrCode($marker->url) : null,
                 ];
             })->toArray();
 
@@ -346,6 +351,35 @@ class TripController extends Controller
             ]);
 
             return null;
+        }
+    }
+
+    /**
+     * Generate a QR code for a given URL.
+     * Returns an SVG data URI that can be embedded directly in the PDF.
+     *
+     * @param  string  $url  The URL to encode in the QR code
+     * @return string The SVG data URI
+     */
+    private function generateQrCode(string $url): string
+    {
+        try {
+            $renderer = new ImageRenderer(
+                new RendererStyle(200, 0),
+                new SvgImageBackEnd
+            );
+            $writer = new Writer($renderer);
+            $qrCodeSvg = $writer->writeString($url);
+
+            // Convert SVG to data URI
+            return 'data:image/svg+xml;base64,'.base64_encode($qrCodeSvg);
+        } catch (\Exception $e) {
+            \Log::error('Error generating QR code', [
+                'url' => $url,
+                'error' => $e->getMessage(),
+            ]);
+
+            return '';
         }
     }
 }
