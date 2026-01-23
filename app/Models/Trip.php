@@ -15,6 +15,7 @@ class Trip extends Model
         'name',
         'country',
         'image_url',
+        'unsplash_download_location',
         'viewport_latitude',
         'viewport_longitude',
         'viewport_zoom',

@@ -147,9 +147,10 @@ class MarkerController extends Controller
             $this->unsplashService->trackDownload($photoData['download_location']);
         }
 
-        // Update the marker with the image URL (hotlinked from Unsplash)
+        // Update the marker with the image URL and download location (hotlinked from Unsplash)
         $marker->update([
             'image_url' => $photoData['urls']['regular'] ?? null,
+            'unsplash_download_location' => $photoData['download_location'] ?? null,
         ]);
 
         return response()->json([
