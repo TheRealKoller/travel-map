@@ -12,7 +12,6 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
-use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -66,9 +65,7 @@ class TripController extends Controller
         $this->updateViewportStaticImage($trip);
 
         // Auto-fetch image if both name and country are provided and no image_url yet
-        if ($trip->name && $trip->country && ! $trip->image_url) {
-            $this->autoFetchImage($trip);
-        }
+        $this->unsplashService->autoFetchTripImage($trip);
 
         return response()->json($trip->fresh(), 201);
     }
@@ -101,9 +98,7 @@ class TripController extends Controller
         $this->updateViewportStaticImage($trip);
 
         // Auto-fetch image if both name and country are provided and no image_url yet
-        if ($trip->name && $trip->country && ! $trip->image_url) {
-            $this->autoFetchImage($trip);
-        }
+        $this->unsplashService->autoFetchTripImage($trip);
 
         return response()->json($trip->fresh());
     }
@@ -159,37 +154,6 @@ class TripController extends Controller
             'photo' => $photoData,
             'trip' => $trip->fresh(),
         ]);
-    }
-
-    /**
-     * Automatically fetch an Unsplash image for a trip.
-     * This is called internally when creating/updating a trip.
-     */
-    private function autoFetchImage(Trip $trip): void
-    {
-        try {
-            $photoData = $this->unsplashService->getPhotoForTrip($trip->name, $trip->country);
-
-            if ($photoData && isset($photoData['urls']['regular'])) {
-                // Track the download to increment view count
-                if (isset($photoData['download_location'])) {
-                    $this->unsplashService->trackDownload($photoData['download_location']);
-                }
-
-                // Update the trip with the image URL and download location
-                $trip->update([
-                    'image_url' => $photoData['urls']['regular'],
-                    'unsplash_download_location' => $photoData['download_location'] ?? null,
-                ]);
-            }
-        } catch (\Exception $e) {
-            // Silently fail - image fetching is optional
-            // The trip will still be created/updated without an image
-            Log::info('Failed to auto-fetch image for trip', [
-                'trip_id' => $trip->id,
-                'error' => $e->getMessage(),
-            ]);
-        }
     }
 
     /**

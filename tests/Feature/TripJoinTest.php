@@ -14,7 +14,7 @@ test('authenticated user can view trip preview with invitation token', function 
         'invitation_token' => 'test-token-123',
     ]);
 
-    $response = $this->actingAs($this->user)->get("/trips/preview/test-token-123");
+    $response = $this->actingAs($this->user)->get('/trips/preview/test-token-123');
 
     $response->assertStatus(200)
         ->assertInertia(fn ($page) => $page
@@ -33,7 +33,7 @@ test('authenticated user can join a trip using invitation token', function () {
         'invitation_token' => 'test-token-456',
     ]);
 
-    $response = $this->actingAs($this->user)->postJson("/trips/preview/test-token-456/join");
+    $response = $this->actingAs($this->user)->postJson('/trips/preview/test-token-456/join');
 
     $response->assertStatus(200)
         ->assertJsonFragment(['message' => 'Successfully joined the trip']);
@@ -53,7 +53,7 @@ test('user cannot join trip they already own', function () {
         'invitation_token' => 'test-token-789',
     ]);
 
-    $response = $this->actingAs($this->user)->postJson("/trips/preview/test-token-789/join");
+    $response = $this->actingAs($this->user)->postJson('/trips/preview/test-token-789/join');
 
     $response->assertStatus(400)
         ->assertJsonFragment(['message' => 'You are already the owner of this trip']);
@@ -76,7 +76,7 @@ test('user cannot join trip they are already a collaborator on', function () {
     // Add user as collaborator first
     $trip->sharedUsers()->attach($this->user->id, ['role' => 'editor']);
 
-    $response = $this->actingAs($this->user)->postJson("/trips/preview/test-token-abc/join");
+    $response = $this->actingAs($this->user)->postJson('/trips/preview/test-token-abc/join');
 
     $response->assertStatus(400)
         ->assertJsonFragment(['message' => 'You are already a collaborator on this trip']);
@@ -91,7 +91,7 @@ test('joined trip appears in users trip list', function () {
     ]);
 
     // Join the trip
-    $this->actingAs($this->user)->postJson("/trips/preview/test-token-xyz/join");
+    $this->actingAs($this->user)->postJson('/trips/preview/test-token-xyz/join');
 
     // Verify trip appears in user's accessible trips
     $response = $this->actingAs($this->user)->getJson('/trips');
@@ -112,7 +112,7 @@ test('collaborator sees correct status on preview page', function () {
     // Add user as collaborator
     $trip->sharedUsers()->attach($this->user->id, ['role' => 'editor']);
 
-    $response = $this->actingAs($this->user)->get("/trips/preview/test-token-def");
+    $response = $this->actingAs($this->user)->get('/trips/preview/test-token-def');
 
     $response->assertStatus(200)
         ->assertInertia(fn ($page) => $page
@@ -127,13 +127,13 @@ test('unauthenticated user cannot join trip', function () {
         'invitation_token' => 'test-token-ghi',
     ]);
 
-    $response = $this->postJson("/trips/preview/test-token-ghi/join");
+    $response = $this->postJson('/trips/preview/test-token-ghi/join');
 
     $response->assertStatus(401);
 });
 
 test('joining trip with invalid token returns 404', function () {
-    $response = $this->actingAs($this->user)->postJson("/trips/preview/invalid-token/join");
+    $response = $this->actingAs($this->user)->postJson('/trips/preview/invalid-token/join');
 
     $response->assertStatus(404);
 });
@@ -145,7 +145,7 @@ test('owner sees collaborator status on their own trip preview', function () {
         'invitation_token' => 'test-token-owner',
     ]);
 
-    $response = $this->actingAs($this->user)->get("/trips/preview/test-token-owner");
+    $response = $this->actingAs($this->user)->get('/trips/preview/test-token-owner');
 
     $response->assertStatus(200)
         ->assertInertia(fn ($page) => $page

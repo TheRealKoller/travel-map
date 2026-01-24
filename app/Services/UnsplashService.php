@@ -216,6 +216,52 @@ class UnsplashService
     }
 
     /**
+     * Automatically fetch and update a trip's image if name and country are provided.
+     * This method will fetch an Unsplash image, track the download, and update the trip.
+     * Silently fails if image fetching is unsuccessful - trip remains without image.
+     *
+     * @param  \App\Models\Trip  $trip  The trip to fetch an image for
+     * @return bool Whether an image was successfully fetched and updated
+     */
+    public function autoFetchTripImage(\App\Models\Trip $trip): bool
+    {
+        // Only fetch if name and country are provided, and no image_url yet
+        if (! $trip->name || ! $trip->country || $trip->image_url) {
+            return false;
+        }
+
+        try {
+            $photoData = $this->getPhotoForTrip($trip->name, $trip->country);
+
+            if ($photoData && isset($photoData['urls']['regular'])) {
+                // Track the download to increment view count
+                if (isset($photoData['download_location'])) {
+                    $this->trackDownload($photoData['download_location']);
+                }
+
+                // Update the trip with the image URL and download location
+                $trip->update([
+                    'image_url' => $photoData['urls']['regular'],
+                    'unsplash_download_location' => $photoData['download_location'] ?? null,
+                ]);
+
+                return true;
+            }
+
+            return false;
+        } catch (\Exception $e) {
+            // Silently fail - image fetching is optional
+            // The trip will still be created/updated without an image
+            Log::info('Failed to auto-fetch image for trip', [
+                'trip_id' => $trip->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
+    }
+
+    /**
      * Convert country code to country name for better search results.
      *
      * @param  string  $countryCode  ISO 3166-1 alpha-2 country code
