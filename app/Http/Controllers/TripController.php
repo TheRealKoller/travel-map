@@ -31,7 +31,12 @@ class TripController extends Controller
 
     public function index(Request $request): JsonResponse|Response
     {
-        $trips = auth()->user()->trips()->orderBy('created_at', 'asc')->get();
+        $user = auth()->user();
+
+        // Get all accessible trips (both owned and shared) in a single query
+        $trips = $user->allAccessibleTrips()
+            ->orderBy('created_at', 'asc')
+            ->get();
 
         // If this is an API request (has Accept: application/json), return JSON
         if ($request->expectsJson()) {

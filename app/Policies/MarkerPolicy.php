@@ -21,7 +21,7 @@ class MarkerPolicy
      */
     public function view(User $user, Marker $marker): bool
     {
-        return $user->id === $marker->user_id;
+        return $this->canAccessMarker($user, $marker);
     }
 
     /**
@@ -38,7 +38,7 @@ class MarkerPolicy
      */
     public function update(User $user, Marker $marker): bool
     {
-        return $user->id === $marker->user_id;
+        return $this->canAccessMarker($user, $marker);
     }
 
     /**
@@ -46,7 +46,7 @@ class MarkerPolicy
      */
     public function delete(User $user, Marker $marker): bool
     {
-        return $user->id === $marker->user_id;
+        return $this->canAccessMarker($user, $marker);
     }
 
     /**
@@ -64,6 +64,24 @@ class MarkerPolicy
      */
     public function forceDelete(User $user, Marker $marker): bool
     {
+        return false;
+    }
+
+    /**
+     * Check if a user can access a marker (either owns it or has access to its trip).
+     */
+    private function canAccessMarker(User $user, Marker $marker): bool
+    {
+        // Check if user owns the marker directly
+        if ($user->id === $marker->user_id) {
+            return true;
+        }
+
+        // If marker belongs to a trip, check if user has access to that trip
+        if ($marker->trip_id && $marker->trip) {
+            return $marker->trip->hasAccess($user);
+        }
+
         return false;
     }
 }

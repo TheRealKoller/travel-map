@@ -26,7 +26,14 @@ class TripService
     public function getActiveTrip(User $user, ?int $tripId = null): Trip
     {
         if ($tripId) {
+            // Check owned trips first
             $trip = $user->trips()->find($tripId);
+            if ($trip) {
+                return $trip;
+            }
+
+            // Check shared trips
+            $trip = $user->sharedTrips()->find($tripId);
             if ($trip) {
                 return $trip;
             }
@@ -39,13 +46,13 @@ class TripService
      * Find a trip for a specific user.
      *
      * @throws ModelNotFoundException If the trip is not found
-     * @throws AuthorizationException If the trip does not belong to the user
+     * @throws AuthorizationException If the trip does not belong to the user and is not shared
      */
     public function findTripForUser(User $user, int $tripId): Trip
     {
         $trip = Trip::findOrFail($tripId);
 
-        if ($trip->user_id !== $user->id) {
+        if (! $trip->hasAccess($user)) {
             throw new AuthorizationException('This action is unauthorized.');
         }
 

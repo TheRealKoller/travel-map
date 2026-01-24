@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Trip extends Model
@@ -47,5 +48,28 @@ class Trip extends Model
     public function routes(): HasMany
     {
         return $this->hasMany(Route::class);
+    }
+
+    public function sharedUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'trip_user')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    /**
+     * Check if a user has access to this trip (is owner or shared user).
+     */
+    public function hasAccess(User $user): bool
+    {
+        return $this->user_id === $user->id || $this->sharedUsers()->where('user_id', $user->id)->exists();
+    }
+
+    /**
+     * Check if a user is the owner of this trip.
+     */
+    public function isOwner(User $user): bool
+    {
+        return $this->user_id === $user->id;
     }
 }

@@ -6,6 +6,7 @@ use App\Http\Controllers\MapboxController;
 use App\Http\Controllers\MarkerController;
 use App\Http\Controllers\RouteController;
 use App\Http\Controllers\TourController;
+use App\Http\Controllers\TripCollaboratorController;
 use App\Http\Controllers\TripController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -30,10 +31,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/trips/{trip}/fetch-image', [TripController::class, 'fetchImage'])->name('trips.fetch-image');
     Route::get('/trips/{trip}/export-pdf', [TripController::class, 'exportPdf'])->name('trips.export-pdf');
 
+    // Trip collaborator routes
+    Route::get('/trips/{trip}/collaborators', [TripCollaboratorController::class, 'index'])->name('trips.collaborators.index');
+    Route::post('/trips/{trip}/collaborators', [TripCollaboratorController::class, 'store'])->name('trips.collaborators.store');
+    Route::delete('/trips/{trip}/collaborators/{user}', [TripCollaboratorController::class, 'destroy'])->name('trips.collaborators.destroy');
+
     // Map route - show map for a specific trip
     Route::get('/map/{trip}', function (\App\Models\Trip $trip) {
-        // Authorize access to the trip
-        if ($trip->user_id !== auth()->id()) {
+        // Authorize access to the trip (owner or shared user)
+        if (! $trip->hasAccess(auth()->user())) {
             abort(403);
         }
 
