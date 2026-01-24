@@ -86,10 +86,8 @@ class TripPdfExportService
 
     /**
      * Prepare tour data with markers, routes, and static maps.
-     *
-     * @param  \Illuminate\Database\Eloquent\Collection  $tours
      */
-    private function prepareToursData($tours): array
+    private function prepareToursData(\Illuminate\Database\Eloquent\Collection $tours): array
     {
         $toursData = [];
 
