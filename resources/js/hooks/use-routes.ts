@@ -124,9 +124,9 @@ export function useRoutes({
             if (route.transport_mode.value === 'driving-car') {
                 color = '#e74c3c'; // Red for car
             } else if (route.transport_mode.value === 'cycling-regular') {
-                color = '#f39c12'; // Orange for bike
+                color = '#ff6b00'; // Bright orange for bike (more visible)
             } else if (route.transport_mode.value === 'foot-walking') {
-                color = '#27ae60'; // Green for walking
+                color = '#9333ea'; // Purple for walking (stands out from map background)
             } else if (route.transport_mode.value === 'public-transport') {
                 color = '#3498db'; // Blue for public transport
             }
@@ -168,8 +168,8 @@ export function useRoutes({
                     },
                     paint: {
                         'line-color': color,
-                        'line-width': isHighlighted ? 5 : 3,
-                        'line-opacity': isHighlighted ? 0.9 : 0.6,
+                        'line-width': isHighlighted ? 7 : 5,
+                        'line-opacity': isHighlighted ? 0.9 : 0.7,
                     },
                 },
                 beforeLayerId,
@@ -187,7 +187,7 @@ export function useRoutes({
                     },
                     paint: {
                         'line-color': color,
-                        'line-width': 5,
+                        'line-width': 7,
                         'line-opacity': 0,
                     },
                 },

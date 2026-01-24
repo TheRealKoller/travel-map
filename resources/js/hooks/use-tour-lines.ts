@@ -173,8 +173,8 @@ export function useTourLines({
                     },
                     paint: {
                         'line-color': '#3b82f6', // Blue color
-                        'line-width': 3,
-                        'line-opacity': 0.6,
+                        'line-width': 5,
+                        'line-opacity': 0.7,
                     },
                 },
                 beforeLayerId,
@@ -192,7 +192,7 @@ export function useTourLines({
                     },
                     paint: {
                         'line-color': '#3b82f6', // Same blue for hover
-                        'line-width': 5,
+                        'line-width': 7,
                         'line-opacity': 0,
                     },
                 },
