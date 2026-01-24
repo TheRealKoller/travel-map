@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import axios from 'axios';
 import { Check, Copy } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface InvitationDialogProps {
     tripId: number;
@@ -32,13 +32,7 @@ export default function InvitationDialog({
     const [isCopied, setIsCopied] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        if (isOpen && !invitationUrl) {
-            generateInvitationLink();
-        }
-    }, [isOpen]);
-
-    const generateInvitationLink = async () => {
+    const generateInvitationLink = useCallback(async () => {
         setIsLoading(true);
         setError(null);
 
@@ -53,7 +47,13 @@ export default function InvitationDialog({
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [tripId]);
+
+    useEffect(() => {
+        if (isOpen && !invitationUrl) {
+            generateInvitationLink();
+        }
+    }, [isOpen, invitationUrl, generateInvitationLink]);
 
     const handleCopyToClipboard = async () => {
         if (!invitationUrl) return;

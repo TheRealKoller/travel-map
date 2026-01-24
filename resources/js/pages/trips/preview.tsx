@@ -5,7 +5,7 @@ import { type BreadcrumbItem, type PageProps } from '@/types';
 import { Head } from '@inertiajs/react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 interface Marker {
     id: string;
@@ -90,6 +90,35 @@ export default function TripPreview({ trip }: TripPreviewProps) {
         }
     };
 
+    const addMarkersToMap = useCallback(
+        (map: mapboxgl.Map) => {
+            trip.markers.forEach((marker) => {
+                // Create a custom marker element
+                const el = document.createElement('div');
+                el.className = 'custom-marker';
+                el.style.width = '30px';
+                el.style.height = '30px';
+                el.style.backgroundColor = '#3b82f6';
+                el.style.borderRadius = '50%';
+                el.style.border = '2px solid white';
+                el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
+                el.style.cursor = 'default';
+
+                // Create and add the marker
+                new mapboxgl.Marker(el)
+                    .setLngLat([marker.longitude, marker.latitude])
+                    .setPopup(
+                        new mapboxgl.Popup({ offset: 25 }).setHTML(
+                            `<h3 style="font-weight: bold; margin-bottom: 4px;">${marker.name}</h3>
+                        <p style="color: #666; font-size: 12px;">${marker.type}</p>`,
+                        ),
+                    )
+                    .addTo(map);
+            });
+        },
+        [trip.markers],
+    );
+
     useEffect(() => {
         if (!mapRef.current) return;
 
@@ -168,33 +197,7 @@ export default function TripPreview({ trip }: TripPreviewProps) {
         return () => {
             map.remove();
         };
-    }, [trip]);
-
-    const addMarkersToMap = (map: mapboxgl.Map) => {
-        trip.markers.forEach((marker) => {
-            // Create a custom marker element
-            const el = document.createElement('div');
-            el.className = 'custom-marker';
-            el.style.width = '30px';
-            el.style.height = '30px';
-            el.style.backgroundColor = '#3b82f6';
-            el.style.borderRadius = '50%';
-            el.style.border = '2px solid white';
-            el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
-            el.style.cursor = 'default';
-
-            // Create and add the marker
-            new mapboxgl.Marker(el)
-                .setLngLat([marker.longitude, marker.latitude])
-                .setPopup(
-                    new mapboxgl.Popup({ offset: 25 }).setHTML(
-                        `<h3 style="font-weight: bold; margin-bottom: 4px;">${marker.name}</h3>
-                        <p style="color: #666; font-size: 12px;">${marker.type}</p>`,
-                    ),
-                )
-                .addTo(map);
-        });
-    };
+    }, [trip, addMarkersToMap]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
