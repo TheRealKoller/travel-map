@@ -128,6 +128,12 @@ function MarkerItem({
                     {markerData.lat.toFixed(6)},
                     <span className="ml-2 font-medium">Lng:</span>{' '}
                     {markerData.lng.toFixed(6)}
+                    {markerData.estimatedHours !== null &&
+                        markerData.estimatedHours !== undefined && (
+                            <span className="ml-2 text-gray-500">
+                                ~{markerData.estimatedHours}h
+                            </span>
+                        )}
                 </div>
                 {isSelected && markerData.notes && (
                     <div
