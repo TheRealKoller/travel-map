@@ -153,14 +153,14 @@
         
         .marker-left {
             display: table-cell;
-            width: 40%;
+            width: 50%;
             vertical-align: top;
             padding-right: 15px;
         }
         
         .marker-right {
             display: table-cell;
-            width: 60%;
+            width: 50%;
             vertical-align: top;
         }
         
@@ -352,9 +352,6 @@
                             <div class="marker-item">
                                 <div class="marker-name" style="margin-bottom: 10px;">
                                     {{ $marker['name'] }}
-                                    @if($marker['is_unesco'])
-                                        <span class="unesco-badge">UNESCO</span>
-                                    @endif
                                 </div>
                                 <div class="marker-content">
                                     <div class="marker-left">
@@ -370,6 +367,9 @@
                                         @if($marker['type'])
                                             <div class="marker-detail">
                                                 <strong>Type:</strong> {{ $marker['type'] }}
+                                                @if($marker['is_unesco'])
+                                                    <span class="unesco-badge">UNESCO</span>
+                                                @endif
                                             </div>
                                         @endif
                                         <div class="marker-detail">
