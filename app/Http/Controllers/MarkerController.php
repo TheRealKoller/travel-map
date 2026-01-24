@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreMarkerRequest;
 use App\Http\Requests\UpdateMarkerRequest;
 use App\Models\Marker;
-use App\Models\Tour;
 use App\Services\MapboxPlacesService;
+use App\Services\TourMarkerService;
 use App\Services\TripService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
@@ -19,7 +19,8 @@ class MarkerController extends Controller
     public function __construct(
         private readonly TripService $tripService,
         private readonly MapboxPlacesService $mapboxPlacesService,
-        private readonly \App\Services\UnsplashService $unsplashService
+        private readonly \App\Services\UnsplashService $unsplashService,
+        private readonly TourMarkerService $tourMarkerService
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -50,14 +51,7 @@ class MarkerController extends Controller
 
         // If a tour_id was provided, attach the marker to that tour
         if ($tourId) {
-            $tour = Tour::find($tourId);
-
-            // Verify tour belongs to the same trip
-            if ($tour && $tour->trip_id === $trip->id) {
-                // Get the highest position and add 1
-                $maxPosition = $tour->markers()->max('position') ?? -1;
-                $tour->markers()->attach($marker->id, ['position' => $maxPosition + 1]);
-            }
+            $this->tourMarkerService->attachMarkerToTour($marker, $tourId, $trip);
         }
 
         return response()->json($marker, 201);
