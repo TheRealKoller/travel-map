@@ -60,6 +60,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Register TripObserver to handle viewport static image updates
+        \App\Models\Trip::observe(\App\Observers\TripObserver::class);
+
         // Protect Laravel Boost browser logs endpoint with authentication
         // Laravel Boost (dev dependency) provides a browser logging endpoint that should
         // be protected to prevent unauthorized access if accidentally enabled in production.
