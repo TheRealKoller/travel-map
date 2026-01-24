@@ -1,8 +1,9 @@
+import { Button } from '@/components/ui/button';
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
 import { COUNTRIES } from '@/lib/countries';
 import { type BreadcrumbItem, type PageProps } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useCallback, useEffect, useRef } from 'react';
@@ -40,6 +41,7 @@ interface Trip {
 
 interface TripPreviewProps extends PageProps {
     trip: Trip;
+    isCollaborator: boolean;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -49,9 +51,28 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function TripPreview({ trip }: TripPreviewProps) {
+export default function TripPreview({ trip, isCollaborator }: TripPreviewProps) {
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstance = useRef<mapboxgl.Map | null>(null);
+
+    const handleJoinTrip = () => {
+        // Extract token from current URL
+        const pathParts = window.location.pathname.split('/');
+        const token = pathParts[pathParts.length - 1];
+
+        router.post(
+            `/trips/preview/${token}/join`,
+            {},
+            {
+                onSuccess: () => {
+                    router.visit('/trips');
+                },
+                onError: (errors) => {
+                    console.error('Failed to join trip:', errors);
+                },
+            },
+        );
+    };
 
     const getCountryName = (countryCode: string | null): string | null => {
         if (!countryCode) return null;
@@ -202,10 +223,25 @@ export default function TripPreview({ trip }: TripPreviewProps) {
             <Head title={`${trip.name} - Preview`} />
             <div className="flex h-full flex-1 flex-col gap-6 p-6">
                 <div>
-                    <h1 className="text-3xl font-semibold">{trip.name}</h1>
-                    <p className="mt-2 text-muted-foreground">
-                        Trip preview - View only
-                    </p>
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <h1 className="text-3xl font-semibold">{trip.name}</h1>
+                            <p className="mt-2 text-muted-foreground">
+                                {isCollaborator
+                                    ? 'You have access to this trip'
+                                    : 'Trip preview - View only'}
+                            </p>
+                        </div>
+                        {!isCollaborator && (
+                            <Button
+                                onClick={handleJoinTrip}
+                                size="lg"
+                                data-testid="join-trip-button"
+                            >
+                                Join trip
+                            </Button>
+                        )}
+                    </div>
                 </div>
 
                 <div className="grid gap-6 lg:grid-cols-2">

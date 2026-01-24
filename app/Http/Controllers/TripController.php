@@ -450,7 +450,43 @@ class TripController extends Controller
         // Load the trip with its markers
         $trip->load(['markers']);
 
+        // Check if user is already a collaborator or owner
+        $isCollaborator = $trip->hasAccess(auth()->user());
+
         return Inertia::render('trips/preview', [
+            'trip' => $trip,
+            'isCollaborator' => $isCollaborator,
+        ]);
+    }
+
+    /**
+     * Join a trip using the invitation token.
+     * Adds the authenticated user as a collaborator to the trip.
+     */
+    public function joinTrip(string $token): JsonResponse
+    {
+        $trip = Trip::where('invitation_token', $token)->firstOrFail();
+        $user = auth()->user();
+
+        // Check if user is already the owner
+        if ($trip->isOwner($user)) {
+            return response()->json([
+                'message' => 'You are already the owner of this trip',
+            ], 400);
+        }
+
+        // Check if user is already a collaborator
+        if ($trip->sharedUsers()->where('user_id', $user->id)->exists()) {
+            return response()->json([
+                'message' => 'You are already a collaborator on this trip',
+            ], 400);
+        }
+
+        // Add user as collaborator with 'editor' role
+        $trip->sharedUsers()->attach($user->id, ['role' => 'editor']);
+
+        return response()->json([
+            'message' => 'Successfully joined the trip',
             'trip' => $trip,
         ]);
     }

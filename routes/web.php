@@ -34,6 +34,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Trip preview route (accessible with invitation token)
     Route::get('/trips/preview/{token}', [TripController::class, 'showPreview'])->name('trips.preview');
+    Route::post('/trips/preview/{token}/join', [TripController::class, 'joinTrip'])->name('trips.join');
 
     // Trip collaborator routes
     Route::get('/trips/{trip}/collaborators', [TripCollaboratorController::class, 'index'])->name('trips.collaborators.index');
