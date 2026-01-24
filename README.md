@@ -35,6 +35,7 @@ This project follows the **GitHub Flow** branching strategy for a streamlined de
 - **[Quick Reference](./docs/QUICK_REFERENCE.md)** - Common commands and troubleshooting
 - **[Mapbox Geocoder Feature](./docs/GEOCODER_FEATURE.md)** - Location search functionality documentation
 - **[Mapbox Migration Guide](./docs/MAPBOX_MIGRATION.md)** - Migration from Leaflet to Mapbox GL JS
+- **[Trip Collaboration](./docs/TRIP-COLLABORATION.md)** - Multi-user trip collaboration feature documentation
 
 ### 🚀 Quick Start
 
