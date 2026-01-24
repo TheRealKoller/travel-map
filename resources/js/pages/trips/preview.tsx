@@ -122,10 +122,8 @@ export default function TripPreview({ trip }: TripPreviewProps) {
     useEffect(() => {
         if (!mapRef.current) return;
 
-        // Get Mapbox token from meta tag
-        const mapboxToken = document
-            .querySelector('meta[name="mapbox-token"]')
-            ?.getAttribute('content');
+        // Get Mapbox token from environment variables
+        const mapboxToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '';
 
         if (!mapboxToken) {
             console.error('Mapbox token not found');
