@@ -126,6 +126,7 @@ export default function TravelMap({
         mapInstance,
         selectedTripId,
         selectedTourId,
+        tours,
         expandedRoutes,
         highlightedRouteId,
         onRouteClick: (routeId: number) => {
