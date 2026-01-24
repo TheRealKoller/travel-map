@@ -166,7 +166,10 @@ test('collaborator can create markers in shared trip', function () {
     $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
     $trip->sharedUsers()->attach($this->collaborator->id, ['role' => 'editor']);
 
+    $markerId = \Illuminate\Support\Str::uuid()->toString();
+
     $response = $this->actingAs($this->collaborator)->postJson('/markers', [
+        'id' => $markerId,
         'trip_id' => $trip->id,
         'name' => 'Shared Marker',
         'type' => 'city',
