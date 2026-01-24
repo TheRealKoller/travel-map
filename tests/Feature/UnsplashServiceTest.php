@@ -96,3 +96,46 @@ test('searchPhoto uses different cache keys for different orientations', functio
     expect($result)->toBeArray();
     expect($result['urls']['regular'])->toBe('https://example.com/portrait.jpg');
 });
+
+test('autoFetchTripImage returns false when trip has no country', function () {
+    $service = new UnsplashService('test-access-key', 'TestApp');
+    $trip = \App\Models\Trip::factory()->create([
+        'name' => 'Berlin Trip',
+        'country' => null,
+        'image_url' => null,
+    ]);
+
+    $result = $service->autoFetchTripImage($trip);
+
+    expect($result)->toBeFalse();
+    expect($trip->fresh()->image_url)->toBeNull();
+});
+
+test('autoFetchTripImage returns false when trip already has image_url', function () {
+    $service = new UnsplashService('test-access-key', 'TestApp');
+    $trip = \App\Models\Trip::factory()->create([
+        'name' => 'Paris Trip',
+        'country' => 'FR',
+        'image_url' => 'https://example.com/existing-image.jpg',
+    ]);
+
+    $result = $service->autoFetchTripImage($trip);
+
+    expect($result)->toBeFalse();
+    expect($trip->fresh()->image_url)->toBe('https://example.com/existing-image.jpg');
+});
+
+test('autoFetchTripImage returns false when no photo data is found', function () {
+    $service = new UnsplashService('test-access-key', 'TestApp');
+    $trip = \App\Models\Trip::factory()->create([
+        'name' => 'Test Trip',
+        'country' => 'DE',
+        'image_url' => null,
+    ]);
+
+    // Without actual API key, service will return null for getPhotoForTrip
+    $result = $service->autoFetchTripImage($trip);
+
+    expect($result)->toBeFalse();
+    expect($trip->fresh()->image_url)->toBeNull();
+});
