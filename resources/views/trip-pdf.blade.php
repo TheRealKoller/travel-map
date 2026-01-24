@@ -367,11 +367,6 @@
                                         @endif
                                     </div>
                                     <div class="marker-right">
-                                        @if($marker['is_unesco'])
-                                            <div class="marker-detail" style="margin-bottom: 6px;">
-                                                <strong>UNESCO World Heritage Site</strong>
-                                            </div>
-                                        @endif
                                         @if($marker['type'])
                                             <div class="marker-detail">
                                                 <strong>Type:</strong> {{ $marker['type'] }}
