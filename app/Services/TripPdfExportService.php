@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Trip;
+use App\Support\ImageHelper;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
@@ -48,9 +49,9 @@ class TripPdfExportService
         $toursData = $this->prepareToursData($tours);
 
         // Convert external URLs to base64 data URIs for DomPDF compatibility
-        $viewportImageUrl = $trip->viewport_static_image_url ? $this->convertImageToBase64($trip->viewport_static_image_url) : null;
-        $markersOverviewBase64 = $markersOverviewUrl ? $this->convertImageToBase64($markersOverviewUrl) : null;
-        $tripImageBase64 = $trip->image_url ? $this->convertImageToBase64($trip->image_url) : null;
+        $viewportImageUrl = $trip->viewport_static_image_url ? ImageHelper::convertToBase64($trip->viewport_static_image_url) : null;
+        $markersOverviewBase64 = $markersOverviewUrl ? ImageHelper::convertToBase64($markersOverviewUrl) : null;
+        $tripImageBase64 = $trip->image_url ? ImageHelper::convertToBase64($trip->image_url) : null;
 
         $pdf = Pdf::loadView('trip-pdf', [
             'trip' => $trip,
@@ -108,7 +109,7 @@ class TripPdfExportService
                 // Convert marker image to base64 for PDF
                 $markerImageBase64 = null;
                 if ($marker->image_url) {
-                    $markerImageBase64 = $this->convertImageToBase64($marker->image_url);
+                    $markerImageBase64 = ImageHelper::convertToBase64($marker->image_url);
                 }
 
                 return [
@@ -182,7 +183,7 @@ class TripPdfExportService
 
                 if ($tourMapUrl) {
                     Log::info('Generated tour map URL', ['tour' => $tour->name, 'url_length' => strlen($tourMapUrl)]);
-                    $tourMapBase64 = $this->convertImageToBase64($tourMapUrl);
+                    $tourMapBase64 = ImageHelper::convertToBase64($tourMapUrl);
                     if (! $tourMapBase64) {
                         Log::warning('Failed to convert tour map to base64', ['tour' => $tour->name]);
                     }
@@ -198,43 +199,6 @@ class TripPdfExportService
         }
 
         return $tourMapBase64;
-    }
-
-    /**
-     * Convert an image URL to a base64 data URI.
-     * DomPDF cannot load external URLs directly, so we download the image and convert it to base64.
-     *
-     * @param  string  $url  The image URL to convert
-     * @return string|null The base64 data URI or null if conversion fails
-     */
-    private function convertImageToBase64(string $url): ?string
-    {
-        try {
-            // Download the image
-            $imageContent = file_get_contents($url);
-
-            if ($imageContent === false) {
-                Log::warning('Failed to download image for PDF', ['url' => $url]);
-
-                return null;
-            }
-
-            // Detect MIME type from image content
-            $finfo = new \finfo(FILEINFO_MIME_TYPE);
-            $mimeType = $finfo->buffer($imageContent);
-
-            // Convert to base64 data URI
-            $base64 = base64_encode($imageContent);
-
-            return "data:{$mimeType};base64,{$base64}";
-        } catch (\Exception $e) {
-            Log::error('Error converting image to base64 for PDF', [
-                'url' => $url,
-                'error' => $e->getMessage(),
-            ]);
-
-            return null;
-        }
     }
 
     /**
