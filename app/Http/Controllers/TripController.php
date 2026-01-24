@@ -33,12 +33,10 @@ class TripController extends Controller
     {
         $user = auth()->user();
 
-        // Get both owned and shared trips
-        $ownedTrips = $user->trips()->orderBy('created_at', 'asc')->get();
-        $sharedTrips = $user->sharedTrips()->orderBy('created_at', 'asc')->get();
-
-        // Merge and ensure unique trips (in case of duplicates)
-        $trips = $ownedTrips->merge($sharedTrips)->unique('id')->sortBy('created_at')->values();
+        // Get all accessible trips (both owned and shared) in a single query
+        $trips = $user->allAccessibleTrips()
+            ->orderBy('created_at', 'asc')
+            ->get();
 
         // If this is an API request (has Accept: application/json), return JSON
         if ($request->expectsJson()) {
