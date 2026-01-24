@@ -78,28 +78,28 @@ export function useRoutes({
         // Filter routes by selected tour (if a tour is selected)
         // If no tour is selected, only show expanded routes
         let visibleRoutes: Route[];
-        
+
         if (selectedTourId !== null) {
             // Find the selected tour
             const selectedTour = tours.find((t) => t.id === selectedTourId);
-            
+
             if (selectedTour && selectedTour.markers) {
                 // Create a set of valid consecutive marker pairs in the current tour order
                 const validPairs = new Set<string>();
                 const tourMarkerIds = selectedTour.markers.map((m) => m.id);
-                
+
                 for (let i = 0; i < tourMarkerIds.length - 1; i++) {
                     const startId = tourMarkerIds[i];
                     const endId = tourMarkerIds[i + 1];
                     // Create a unique key for this pair
                     validPairs.add(`${startId}-${endId}`);
                 }
-                
+
                 // Filter routes: only show routes that match consecutive markers in the tour
                 visibleRoutes = routes.filter((route) => {
                     // Only show routes belonging to this tour
                     if (route.tour_id !== selectedTourId) return false;
-                    
+
                     // Check if this route matches a consecutive pair in the tour
                     const pairKey = `${route.start_marker.id}-${route.end_marker.id}`;
                     return validPairs.has(pairKey);
@@ -110,7 +110,9 @@ export function useRoutes({
             }
         } else {
             // No tour selected, show only expanded routes
-            visibleRoutes = routes.filter((route) => expandedRoutes.has(route.id));
+            visibleRoutes = routes.filter((route) =>
+                expandedRoutes.has(route.id),
+            );
         }
 
         // Render each route as a line layer

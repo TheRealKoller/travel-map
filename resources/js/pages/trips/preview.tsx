@@ -51,7 +51,10 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function TripPreview({ trip, isCollaborator }: TripPreviewProps) {
+export default function TripPreview({
+    trip,
+    isCollaborator,
+}: TripPreviewProps) {
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstance = useRef<mapboxgl.Map | null>(null);
 
@@ -225,7 +228,9 @@ export default function TripPreview({ trip, isCollaborator }: TripPreviewProps) 
                 <div>
                     <div className="flex items-start justify-between">
                         <div>
-                            <h1 className="text-3xl font-semibold">{trip.name}</h1>
+                            <h1 className="text-3xl font-semibold">
+                                {trip.name}
+                            </h1>
                             <p className="mt-2 text-muted-foreground">
                                 {isCollaborator
                                     ? 'You have access to this trip'
