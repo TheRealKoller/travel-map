@@ -120,13 +120,6 @@
             margin-bottom: 4px;
         }
         
-        .marker-type {
-            font-size: 11px;
-            color: #6b7280;
-            font-style: italic;
-            margin-bottom: 6px;
-        }
-        
         .marker-detail {
             font-size: 11px;
             color: #4b5563;
@@ -160,16 +153,32 @@
         
         .marker-left {
             display: table-cell;
-            width: 60%;
+            width: 40%;
             vertical-align: top;
             padding-right: 15px;
         }
         
         .marker-right {
             display: table-cell;
-            width: 40%;
+            width: 60%;
             vertical-align: top;
+        }
+        
+        .marker-image {
+            width: 100%;
+            max-height: 200px;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+        
+        .marker-image-placeholder {
+            background-color: #f3f4f6;
+            border: 2px dashed #d1d5db;
+            border-radius: 4px;
+            padding: 40px 10px;
             text-align: center;
+            color: #9ca3af;
+            font-size: 11px;
         }
         
         .qr-code-container {
@@ -341,41 +350,50 @@
                         <h3 class="section-title">Markers</h3>
                         @foreach($tour['markers'] as $marker)
                             <div class="marker-item">
-                                @if(!empty($marker['image_base64']))
-                                    <div class="image-container" style="margin-bottom: 10px;">
-                                        <img src="{{ $marker['image_base64'] }}" alt="{{ $marker['name'] }}" style="max-height: 200px; border-radius: 4px;">
-                                    </div>
-                                @endif
+                                <div class="marker-name" style="margin-bottom: 10px;">
+                                    {{ $marker['name'] }}
+                                    @if($marker['is_unesco'])
+                                        <span class="unesco-badge">UNESCO</span>
+                                    @endif
+                                </div>
                                 <div class="marker-content">
                                     <div class="marker-left">
-                                        <div class="marker-name">
-                                            {{ $marker['name'] }}
-                                            @if($marker['is_unesco'])
-                                                <span class="unesco-badge">UNESCO</span>
-                                            @endif
-                                        </div>
-                                        @if($marker['type'])
-                                            <div class="marker-type">{{ $marker['type'] }}</div>
-                                        @endif
-                                        <div class="marker-detail">
-                                            Coordinates: {{ number_format($marker['latitude'], 6) }}, {{ number_format($marker['longitude'], 6) }}
-                                        </div>
-                                        @if($marker['estimated_hours'])
-                                            <div class="marker-detail">
-                                                Estimated time: {{ number_format($marker['estimated_hours'], 1) }} {{ $marker['estimated_hours'] == 1 ? 'hour' : 'hours' }}
+                                        @if(!empty($marker['image_base64']))
+                                            <img src="{{ $marker['image_base64'] }}" alt="{{ $marker['name'] }}" class="marker-image">
+                                        @else
+                                            <div class="marker-image-placeholder">
+                                                No image available
                                             </div>
                                         @endif
                                     </div>
-                                    @if($marker['url'])
-                                        <div class="marker-right">
-                                            <div class="qr-code-container">
+                                    <div class="marker-right">
+                                        @if($marker['is_unesco'])
+                                            <div class="marker-detail" style="margin-bottom: 6px;">
+                                                <strong>UNESCO World Heritage Site</strong>
+                                            </div>
+                                        @endif
+                                        @if($marker['type'])
+                                            <div class="marker-detail">
+                                                <strong>Type:</strong> {{ $marker['type'] }}
+                                            </div>
+                                        @endif
+                                        <div class="marker-detail">
+                                            <strong>Coordinates:</strong> {{ number_format($marker['latitude'], 6) }}, {{ number_format($marker['longitude'], 6) }}
+                                        </div>
+                                        @if($marker['estimated_hours'])
+                                            <div class="marker-detail">
+                                                <strong>Estimated time:</strong> {{ number_format($marker['estimated_hours'], 1) }} {{ $marker['estimated_hours'] == 1 ? 'hour' : 'hours' }}
+                                            </div>
+                                        @endif
+                                        @if($marker['url'])
+                                            <div class="qr-code-container" style="margin-top: 10px;">
                                                 @if(!empty($marker['qr_code']))
                                                     <img src="{{ $marker['qr_code'] }}" alt="QR Code for {{ $marker['url'] }}">
                                                 @endif
                                                 <div class="qr-code-url">{{ $marker['url'] }}</div>
                                             </div>
-                                        </div>
-                                    @endif
+                                        @endif
+                                    </div>
                                 </div>
                                 @if($marker['notes'])
                                     <div class="marker-notes">
