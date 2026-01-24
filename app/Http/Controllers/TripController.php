@@ -423,4 +423,35 @@ class TripController extends Controller
             return '';
         }
     }
+
+    /**
+     * Generate or refresh the invitation token for a trip.
+     */
+    public function generateInvitationToken(Trip $trip): JsonResponse
+    {
+        $this->authorize('update', $trip);
+
+        $token = $trip->generateInvitationToken();
+
+        return response()->json([
+            'token' => $token,
+            'url' => $trip->getInvitationUrl(),
+        ]);
+    }
+
+    /**
+     * Show the trip preview page using the invitation token.
+     * This page is accessible to authenticated users only.
+     */
+    public function showPreview(string $token): Response
+    {
+        $trip = Trip::where('invitation_token', $token)->firstOrFail();
+
+        // Load the trip with its markers
+        $trip->load(['markers']);
+
+        return Inertia::render('trips/preview', [
+            'trip' => $trip,
+        ]);
+    }
 }

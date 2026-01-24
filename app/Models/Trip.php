@@ -28,6 +28,7 @@ class Trip extends Model
         'planned_end_month',
         'planned_end_day',
         'planned_duration_days',
+        'invitation_token',
     ];
 
     public function user(): BelongsTo
@@ -71,5 +72,28 @@ class Trip extends Model
     public function isOwner(User $user): bool
     {
         return $this->user_id === $user->id;
+    }
+
+    /**
+     * Generate or refresh the invitation token for this trip.
+     */
+    public function generateInvitationToken(): string
+    {
+        $token = bin2hex(random_bytes(32));
+        $this->update(['invitation_token' => $token]);
+
+        return $token;
+    }
+
+    /**
+     * Get the invitation URL for this trip.
+     */
+    public function getInvitationUrl(): ?string
+    {
+        if (! $this->invitation_token) {
+            return null;
+        }
+
+        return url("/trips/preview/{$this->invitation_token}");
     }
 }
