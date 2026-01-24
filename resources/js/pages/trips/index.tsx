@@ -1,10 +1,12 @@
+import InvitationDialog from '@/components/invitation-dialog';
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import { useTrips } from '@/hooks/use-trips';
 import AppLayout from '@/layouts/app-layout';
 import { COUNTRIES } from '@/lib/countries';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { FileDown, Pencil, Plus } from 'lucide-react';
+import { FileDown, Pencil, Plus, UserPlus } from 'lucide-react';
+import { useState } from 'react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -15,6 +17,11 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function TripsIndex() {
     const { trips } = useTrips();
+    const [invitationDialogOpen, setInvitationDialogOpen] = useState(false);
+    const [selectedTripForInvitation, setSelectedTripForInvitation] = useState<{
+        id: number;
+        name: string;
+    } | null>(null);
 
     const handleSelectTrip = (tripId: number) => {
         router.visit(`/map/${tripId}`);
@@ -29,6 +36,16 @@ export default function TripsIndex() {
         e.stopPropagation();
         // Open PDF in a new tab
         window.open(`/trips/${tripId}/export-pdf`, '_blank');
+    };
+
+    const handleInvite = (
+        e: React.MouseEvent,
+        tripId: number,
+        tripName: string,
+    ) => {
+        e.stopPropagation();
+        setSelectedTripForInvitation({ id: tripId, name: tripName });
+        setInvitationDialogOpen(true);
     };
 
     const handleCreateTrip = () => {
@@ -91,6 +108,18 @@ export default function TripsIndex() {
                         >
                             {/* Action Buttons */}
                             <div className="absolute top-3 right-3 z-10 flex gap-2">
+                                {/* Invite Button */}
+                                <button
+                                    data-testid={`invite-button-${trip.id}`}
+                                    onClick={(e) =>
+                                        handleInvite(e, trip.id, trip.name)
+                                    }
+                                    className="flex size-8 items-center justify-center rounded-lg bg-background/80 text-muted-foreground opacity-0 backdrop-blur-sm transition-all group-hover:opacity-100 hover:bg-background hover:text-foreground"
+                                    aria-label="Invite users"
+                                    title="Invite users"
+                                >
+                                    <UserPlus className="size-4" />
+                                </button>
                                 {/* PDF Export Button */}
                                 <button
                                     data-testid={`export-pdf-button-${trip.id}`}
@@ -221,6 +250,16 @@ export default function TripsIndex() {
                         </div>
                     </button>
                 </div>
+
+                {/* Invitation Dialog */}
+                {selectedTripForInvitation && (
+                    <InvitationDialog
+                        tripId={selectedTripForInvitation.id}
+                        tripName={selectedTripForInvitation.name}
+                        isOpen={invitationDialogOpen}
+                        onClose={() => setInvitationDialogOpen(false)}
+                    />
+                )}
             </div>
         </AppLayout>
     );

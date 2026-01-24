@@ -30,6 +30,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/trips/{trip}', [TripController::class, 'destroy'])->name('trips.destroy');
     Route::post('/trips/{trip}/fetch-image', [TripController::class, 'fetchImage'])->name('trips.fetch-image');
     Route::get('/trips/{trip}/export-pdf', [TripController::class, 'exportPdf'])->name('trips.export-pdf');
+    Route::post('/trips/{trip}/generate-invitation-token', [TripController::class, 'generateInvitationToken'])->name('trips.generate-invitation-token');
+
+    // Trip preview route (accessible with invitation token)
+    Route::get('/trips/preview/{token}', [TripController::class, 'showPreview'])->name('trips.preview');
 
     // Trip collaborator routes
     Route::get('/trips/{trip}/collaborators', [TripCollaboratorController::class, 'index'])->name('trips.collaborators.index');
