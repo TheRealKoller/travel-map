@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -59,5 +60,23 @@ class User extends Authenticatable
     public function trips(): HasMany
     {
         return $this->hasMany(Trip::class);
+    }
+
+    public function sharedTrips(): BelongsToMany
+    {
+        return $this->belongsToMany(Trip::class, 'trip_user')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get all trips accessible to this user (owned + shared).
+     */
+    public function allAccessibleTrips()
+    {
+        return Trip::where('user_id', $this->id)
+            ->orWhereHas('sharedUsers', function ($query) {
+                $query->where('user_id', $this->id);
+            });
     }
 }

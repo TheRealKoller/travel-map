@@ -20,7 +20,7 @@ class TripPolicy
      */
     public function view(User $user, Trip $trip): bool
     {
-        return $trip->user_id === $user->id;
+        return $trip->hasAccess($user);
     }
 
     /**
@@ -36,15 +36,16 @@ class TripPolicy
      */
     public function update(User $user, Trip $trip): bool
     {
-        return $trip->user_id === $user->id;
+        return $trip->hasAccess($user);
     }
 
     /**
      * Determine whether the user can delete the model.
+     * Only the owner can delete a trip.
      */
     public function delete(User $user, Trip $trip): bool
     {
-        return $trip->user_id === $user->id;
+        return $trip->isOwner($user);
     }
 
     /**

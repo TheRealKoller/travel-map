@@ -20,7 +20,7 @@ class TourPolicy
      */
     public function view(User $user, Tour $tour): bool
     {
-        return $tour->trip->user_id === $user->id;
+        return $tour->trip->hasAccess($user);
     }
 
     /**
@@ -36,7 +36,7 @@ class TourPolicy
      */
     public function update(User $user, Tour $tour): bool
     {
-        return $tour->trip->user_id === $user->id;
+        return $tour->trip->hasAccess($user);
     }
 
     /**
@@ -44,7 +44,7 @@ class TourPolicy
      */
     public function delete(User $user, Tour $tour): bool
     {
-        return $tour->trip->user_id === $user->id;
+        return $tour->trip->hasAccess($user);
     }
 
     /**

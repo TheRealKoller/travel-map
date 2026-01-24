@@ -31,7 +31,14 @@ class TripController extends Controller
 
     public function index(Request $request): JsonResponse|Response
     {
-        $trips = auth()->user()->trips()->orderBy('created_at', 'asc')->get();
+        $user = auth()->user();
+
+        // Get both owned and shared trips
+        $ownedTrips = $user->trips()->orderBy('created_at', 'asc')->get();
+        $sharedTrips = $user->sharedTrips()->orderBy('created_at', 'asc')->get();
+
+        // Merge and ensure unique trips (in case of duplicates)
+        $trips = $ownedTrips->merge($sharedTrips)->unique('id')->sortBy('created_at')->values();
 
         // If this is an API request (has Accept: application/json), return JSON
         if ($request->expectsJson()) {

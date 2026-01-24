@@ -21,7 +21,17 @@ class MarkerPolicy
      */
     public function view(User $user, Marker $marker): bool
     {
-        return $user->id === $marker->user_id;
+        // Check if user owns the marker directly or has access to the marker's trip
+        if ($user->id === $marker->user_id) {
+            return true;
+        }
+
+        // If marker belongs to a trip, check if user has access to that trip
+        if ($marker->trip_id && $marker->trip) {
+            return $marker->trip->hasAccess($user);
+        }
+
+        return false;
     }
 
     /**
@@ -38,7 +48,17 @@ class MarkerPolicy
      */
     public function update(User $user, Marker $marker): bool
     {
-        return $user->id === $marker->user_id;
+        // Check if user owns the marker directly or has access to the marker's trip
+        if ($user->id === $marker->user_id) {
+            return true;
+        }
+
+        // If marker belongs to a trip, check if user has access to that trip
+        if ($marker->trip_id && $marker->trip) {
+            return $marker->trip->hasAccess($user);
+        }
+
+        return false;
     }
 
     /**
@@ -46,7 +66,17 @@ class MarkerPolicy
      */
     public function delete(User $user, Marker $marker): bool
     {
-        return $user->id === $marker->user_id;
+        // Check if user owns the marker directly or has access to the marker's trip
+        if ($user->id === $marker->user_id) {
+            return true;
+        }
+
+        // If marker belongs to a trip, check if user has access to that trip
+        if ($marker->trip_id && $marker->trip) {
+            return $marker->trip->hasAccess($user);
+        }
+
+        return false;
     }
 
     /**
