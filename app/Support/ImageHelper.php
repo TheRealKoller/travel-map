@@ -16,8 +16,8 @@ class ImageHelper
     public static function convertToBase64(string $url): ?string
     {
         try {
-            // Suppress warnings for file_get_contents as we handle errors via return value and exceptions
-            $imageContent = @file_get_contents($url);
+            // Download the image
+            $imageContent = file_get_contents($url);
 
             if ($imageContent === false) {
                 Log::warning('Failed to download image', ['url' => $url]);
