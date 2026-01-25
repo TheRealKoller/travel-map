@@ -1,3 +1,5 @@
+import DeleteRouteDialog from '@/components/delete-route-dialog';
+import OptimizeTourDialog from '@/components/optimize-tour-dialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -69,6 +71,8 @@ export default function RoutePanel({
     const [isCreating, setIsCreating] = useState(false);
     const [isSorting, setIsSorting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [deleteRouteId, setDeleteRouteId] = useState<number | null>(null);
+    const [showOptimizeTourDialog, setShowOptimizeTourDialog] = useState(false);
 
     // Update marker IDs when initialStartMarkerId or initialEndMarkerId changes
     useEffect(() => {
@@ -146,17 +150,15 @@ export default function RoutePanel({
     };
 
     const handleDeleteRoute = async (routeId: number) => {
-        if (
-            !confirm(
-                'Are you sure you want to delete this route? This action cannot be undone.',
-            )
-        ) {
-            return;
-        }
+        setDeleteRouteId(routeId);
+    };
+
+    const handleConfirmDeleteRoute = async () => {
+        if (deleteRouteId === null) return;
 
         try {
-            await axios.delete(`/routes/${routeId}`);
-            onRoutesUpdate(routes.filter((r) => r.id !== routeId));
+            await axios.delete(`/routes/${deleteRouteId}`);
+            onRoutesUpdate(routes.filter((r) => r.id !== deleteRouteId));
         } catch (err) {
             console.error('Failed to delete route:', err);
             toast.error('Failed to delete route. Please try again.');
@@ -181,11 +183,16 @@ export default function RoutePanel({
             return;
         }
 
-        if (
-            !confirm(
-                `This will automatically reorder the ${tour.markers.length} markers in your tour based on walking distances. Continue?`,
-            )
-        ) {
+        setShowOptimizeTourDialog(true);
+    };
+
+    const handleConfirmOptimizeTour = async () => {
+        if (!tourId) {
+            return;
+        }
+
+        const tour = tours.find((t) => t.id === tourId);
+        if (!tour) {
             return;
         }
 
@@ -723,6 +730,26 @@ export default function RoutePanel({
                     </div>
                 </Card>
             )}
+
+            <DeleteRouteDialog
+                open={deleteRouteId !== null}
+                onOpenChange={(open) => {
+                    if (!open) setDeleteRouteId(null);
+                }}
+                onConfirm={handleConfirmDeleteRoute}
+            />
+
+            <OptimizeTourDialog
+                open={showOptimizeTourDialog}
+                onOpenChange={setShowOptimizeTourDialog}
+                onConfirm={handleConfirmOptimizeTour}
+                markerCount={
+                    tourId
+                        ? tours.find((t) => t.id === tourId)?.markers?.length ||
+                          0
+                        : 0
+                }
+            />
         </div>
     );
 }
