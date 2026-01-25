@@ -12,6 +12,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Log;
 use League\CommonMark\CommonMarkConverter;
+use League\CommonMark\Exception\CommonMarkException;
 
 class TripPdfExportService
 {
@@ -218,7 +219,7 @@ class TripPdfExportService
             ]);
 
             return $converter->convert($markdown)->getContent();
-        } catch (\Exception $e) {
+        } catch (CommonMarkException $e) {
             Log::warning('Failed to convert Markdown to HTML', [
                 'error' => $e->getMessage(),
             ]);
