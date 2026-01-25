@@ -1,0 +1,13 @@
+{
+    "settings": {
+        "language": {
+            "title": "Language",
+            "description": "Select your preferred language for the application.",
+            "select_label": "Select language",
+            "languages": {
+                "de": "Deutsch",
+                "en": "English"
+            }
+        }
+    }
+}
