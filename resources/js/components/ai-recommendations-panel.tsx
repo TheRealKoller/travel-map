@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
+import { useLanguage } from '@/hooks/use-language';
 import { MarkerData } from '@/types/marker';
 import { Tour } from '@/types/tour';
 import { Bot, Map, MapPin, Route } from 'lucide-react';
@@ -31,6 +32,7 @@ export function AiRecommendationsPanel({
     markers,
     mapBounds,
 }: AiRecommendationsPanelProps) {
+    const { language } = useLanguage();
     const [recommendation, setRecommendation] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -140,6 +142,7 @@ export function AiRecommendationsPanel({
                 body: JSON.stringify({
                     context,
                     data: requestData,
+                    language: language,
                 }),
             });
 

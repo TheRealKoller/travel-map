@@ -80,7 +80,7 @@ it('validates markers array is required', function () {
     $response->assertJsonValidationErrors(['data.markers']);
 });
 
-it('successfully gets recommendations for trip context', function () {
+it('successfully gets recommendations for trip context with German language', function () {
     actingAs($this->user);
 
     // Mock the HTTP response from Le Chat API
@@ -108,12 +108,51 @@ it('successfully gets recommendations for trip context', function () {
                 ],
             ],
         ],
+        'language' => 'de',
     ]);
 
     $response->assertSuccessful();
     $response->assertJson([
         'success' => true,
         'recommendation' => 'Das sind tolle Empfehlungen für deine Reise! Du solltest unbedingt den Eiffelturm besuchen...',
+    ]);
+});
+
+it('successfully gets recommendations for trip context with English language', function () {
+    actingAs($this->user);
+
+    // Mock the HTTP response from Le Chat API
+    Http::fake([
+        'api.mistral.ai/v1/agents/completions' => Http::response([
+            'choices' => [
+                [
+                    'message' => [
+                        'content' => 'These are great recommendations for your trip! You should definitely visit the Eiffel Tower...',
+                    ],
+                ],
+            ],
+        ], 200),
+    ]);
+
+    $response = postJson('/recommendations', [
+        'context' => 'trip',
+        'data' => [
+            'trip_name' => 'Paris Trip',
+            'markers' => [
+                [
+                    'name' => 'Eiffel Tower',
+                    'latitude' => 48.8584,
+                    'longitude' => 2.2945,
+                ],
+            ],
+        ],
+        'language' => 'en',
+    ]);
+
+    $response->assertSuccessful();
+    $response->assertJson([
+        'success' => true,
+        'recommendation' => 'These are great recommendations for your trip! You should definitely visit the Eiffel Tower...',
     ]);
 });
 

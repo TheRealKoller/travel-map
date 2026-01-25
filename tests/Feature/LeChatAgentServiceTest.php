@@ -11,12 +11,12 @@ beforeEach(function () {
     );
 });
 
-it('builds the correct prompt with location data', function () {
+it('builds the correct prompt with location data for German language', function () {
     $reflection = new ReflectionClass($this->service);
     $method = $reflection->getMethod('buildPrompt');
     $method->setAccessible(true);
 
-    $prompt = $method->invoke($this->service, 'Eiffel Tower', 48.8584, 2.2945);
+    $prompt = $method->invoke($this->service, 'Eiffel Tower', 48.8584, 2.2945, 'de');
 
     expect($prompt)
         ->toContain('Eiffel Tower')
@@ -25,7 +25,26 @@ it('builds the correct prompt with location data', function () {
         ->toContain('JSON format')
         ->toContain('is_unesco')
         ->toContain('IN GERMAN')
-        ->toContain('GERMAN LANGUAGE');
+        ->toContain('GERMAN LANGUAGE')
+        ->toContain('Deutsch');
+});
+
+it('builds the correct prompt with location data for English language', function () {
+    $reflection = new ReflectionClass($this->service);
+    $method = $reflection->getMethod('buildPrompt');
+    $method->setAccessible(true);
+
+    $prompt = $method->invoke($this->service, 'Eiffel Tower', 48.8584, 2.2945, 'en');
+
+    expect($prompt)
+        ->toContain('Eiffel Tower')
+        ->toContain('48.8584')
+        ->toContain('2.2945')
+        ->toContain('JSON format')
+        ->toContain('is_unesco')
+        ->toContain('IN ENGLISH')
+        ->toContain('ENGLISH LANGUAGE')
+        ->toContain('English');
 });
 
 it('successfully enriches marker info with valid API response', function () {

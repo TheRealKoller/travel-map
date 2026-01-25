@@ -48,7 +48,94 @@ it('validates latitude and longitude ranges', function () {
     $response->assertJsonValidationErrors(['latitude', 'longitude']);
 });
 
-it('successfully enriches marker with valid data', function () {
+it('successfully enriches marker with valid data using German language', function () {
+    actingAs($this->user);
+
+    // Mock the HTTP response from Le Chat API with German text
+    Http::fake([
+        'api.mistral.ai/v1/agents/completions' => Http::response([
+            'choices' => [
+                [
+                    'message' => [
+                        'content' => json_encode([
+                            'type' => 'sightseeing',
+                            'is_unesco' => false,
+                            'notes' => 'Der Eiffelturm ist ein ikonisches Eisenfachwerkgerüst in Paris.',
+                            'url' => 'https://www.toureiffel.paris/de',
+                        ]),
+                    ],
+                ],
+            ],
+        ], 200),
+    ]);
+
+    $response = postJson('/markers/enrich', [
+        'name' => 'Eiffel Tower',
+        'latitude' => 48.8584,
+        'longitude' => 2.2945,
+        'language' => 'de',
+    ]);
+
+    $response->assertSuccessful();
+    $response->assertJson([
+        'success' => true,
+        'data' => [
+            'type' => 'sightseeing',
+            'is_unesco' => false,
+            'notes' => 'Der Eiffelturm ist ein ikonisches Eisenfachwerkgerüst in Paris.',
+            'url' => 'https://www.toureiffel.paris/de',
+        ],
+    ]);
+
+    // Verify the HTTP request was made
+    Http::assertSent(function ($request) {
+        return $request->url() === 'https://api.mistral.ai/v1/agents/completions' &&
+            $request->hasHeader('Authorization') &&
+            $request->hasHeader('Content-Type', 'application/json');
+    });
+});
+
+it('successfully enriches marker with valid data using English language', function () {
+    actingAs($this->user);
+
+    // Mock the HTTP response from Le Chat API with English text
+    Http::fake([
+        'api.mistral.ai/v1/agents/completions' => Http::response([
+            'choices' => [
+                [
+                    'message' => [
+                        'content' => json_encode([
+                            'type' => 'sightseeing',
+                            'is_unesco' => false,
+                            'notes' => 'The Eiffel Tower is an iconic iron lattice tower in Paris.',
+                            'url' => 'https://www.toureiffel.paris/en',
+                        ]),
+                    ],
+                ],
+            ],
+        ], 200),
+    ]);
+
+    $response = postJson('/markers/enrich', [
+        'name' => 'Eiffel Tower',
+        'latitude' => 48.8584,
+        'longitude' => 2.2945,
+        'language' => 'en',
+    ]);
+
+    $response->assertSuccessful();
+    $response->assertJson([
+        'success' => true,
+        'data' => [
+            'type' => 'sightseeing',
+            'is_unesco' => false,
+            'notes' => 'The Eiffel Tower is an iconic iron lattice tower in Paris.',
+            'url' => 'https://www.toureiffel.paris/en',
+        ],
+    ]);
+});
+
+it('defaults to German when language parameter is not provided', function () {
     actingAs($this->user);
 
     // Mock the HTTP response from Le Chat API with German text
@@ -76,22 +163,6 @@ it('successfully enriches marker with valid data', function () {
     ]);
 
     $response->assertSuccessful();
-    $response->assertJson([
-        'success' => true,
-        'data' => [
-            'type' => 'sightseeing',
-            'is_unesco' => false,
-            'notes' => 'Der Eiffelturm ist ein ikonisches Eisenfachwerkgerüst in Paris.',
-            'url' => 'https://www.toureiffel.paris/de',
-        ],
-    ]);
-
-    // Verify the HTTP request was made
-    Http::assertSent(function ($request) {
-        return $request->url() === 'https://api.mistral.ai/v1/agents/completions' &&
-            $request->hasHeader('Authorization') &&
-            $request->hasHeader('Content-Type', 'application/json');
-    });
 });
 
 it('handles Le Chat API errors gracefully', function () {
