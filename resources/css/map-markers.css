@@ -88,6 +88,10 @@
     background-color: #808000; /* olive */
 }
 
+.mapbox-marker--haltestelle {
+    background-color: #dc143c; /* crimson */
+}
+
 /* Highlighted marker (selected) */
 .mapbox-marker--highlighted {
     box-shadow: white 0 0 10px 3px;

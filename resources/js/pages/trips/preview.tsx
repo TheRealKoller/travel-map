@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
 import { COUNTRIES } from '@/lib/countries';
-import { type BreadcrumbItem, type PageProps } from '@/types';
+import type { BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -39,7 +39,7 @@ interface Trip {
     markers: Marker[];
 }
 
-interface TripPreviewProps extends PageProps {
+interface TripPreviewProps {
     trip: Trip;
     isCollaborator: boolean;
 }

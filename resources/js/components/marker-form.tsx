@@ -136,6 +136,7 @@ export default function MarkerForm({
             [MarkerType.City]: 'City',
             [MarkerType.Village]: 'Village',
             [MarkerType.Region]: 'Region',
+            [MarkerType.Haltestelle]: 'Haltestelle',
         };
         return typeLabels[type] || type;
     };
