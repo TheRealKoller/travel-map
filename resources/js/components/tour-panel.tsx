@@ -273,7 +273,8 @@ function TourCard({
                                                         : formatDuration(
                                                               existingRoute
                                                                   .duration
-                                                                  .minutes / 60,
+                                                                  .seconds /
+                                                                  3600,
                                                           )}
                                                 </span>
                                             )}
