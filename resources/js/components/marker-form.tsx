@@ -1,4 +1,5 @@
 import '@/../../resources/css/markdown-preview.css';
+import DeleteMarkerDialog from '@/components/delete-marker-dialog';
 import { Icon } from '@/components/ui/icon';
 import { getMarkerTypeIcon, UnescoIcon } from '@/lib/marker-icons';
 import { MarkerData, MarkerType } from '@/types/marker';
@@ -57,6 +58,7 @@ export default function MarkerForm({
     );
     const [isEnriching, setIsEnriching] = useState(false);
     const [enrichmentError, setEnrichmentError] = useState<string | null>(null);
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
     // Configure marked once globally
     if (
@@ -187,13 +189,12 @@ export default function MarkerForm({
     };
 
     const handleDelete = () => {
-        if (
-            window.confirm(
-                `Are you sure you want to delete "${name || 'this marker'}"? This action cannot be undone.`,
-            )
-        ) {
-            onDeleteMarker(marker.id);
-        }
+        setShowDeleteDialog(true);
+    };
+
+    const handleConfirmDelete = () => {
+        onDeleteMarker(marker.id);
+        setShowDeleteDialog(false);
     };
 
     const handleEnterEditMode = () => {
@@ -800,6 +801,13 @@ export default function MarkerForm({
                     </div>
                 </>
             )}
+
+            <DeleteMarkerDialog
+                open={showDeleteDialog}
+                onOpenChange={setShowDeleteDialog}
+                onConfirm={handleConfirmDelete}
+                markerName={name || 'this marker'}
+            />
         </div>
     );
 }
