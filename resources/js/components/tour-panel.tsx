@@ -107,9 +107,14 @@ function MarkerItem({
                     <div className="font-medium text-gray-900">
                         {marker.name || 'Unnamed Location'}
                     </div>
-                    <div className="text-xs text-gray-600">
-                        {marker.lat.toFixed(6)}, {marker.lng.toFixed(6)}
-                    </div>
+                    {marker.estimatedHours && (
+                        <div className="text-xs text-gray-600">
+                            <span className="font-medium">
+                                Estimated duration:
+                            </span>{' '}
+                            ~{marker.estimatedHours}h
+                        </div>
+                    )}
                 </div>
                 <div className="flex items-center gap-1.5">
                     {onRemove && (
