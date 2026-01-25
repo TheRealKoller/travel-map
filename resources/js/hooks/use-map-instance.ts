@@ -51,12 +51,6 @@ export function useMapInstance(options: UseMapInstanceOptions = {}) {
         // Add navigation controls
         map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-        // Set language after map loads
-        map.on('load', () => {
-            // Set language for Mapbox Standard Style labels and place names
-            map.setConfigProperty('basemap', 'language', language);
-        });
-
         // Cleanup on unmount
         return () => {
             if (mapInstanceRef.current) {
@@ -66,23 +60,19 @@ export function useMapInstance(options: UseMapInstanceOptions = {}) {
         };
     }, []);
 
-    // Update map language when language changes without recreating the map
+    // Set and update map language when map is loaded or language changes
     useEffect(() => {
         const map = mapInstanceRef.current;
         if (!map) return;
 
-        // Wait for map to be loaded before updating language
+        // Wait for map to be loaded before setting/updating language
         if (map.isStyleLoaded()) {
             map.setConfigProperty('basemap', 'language', language);
         } else {
             // If map is not yet loaded, wait for load event
-            const handleLoad = () => {
+            map.once('load', () => {
                 map.setConfigProperty('basemap', 'language', language);
-            };
-            map.once('load', handleLoad);
-            return () => {
-                map.off('load', handleLoad);
-            };
+            });
         }
     }, [language]);
 
