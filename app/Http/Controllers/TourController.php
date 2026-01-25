@@ -27,7 +27,7 @@ class TourController extends Controller
         $tripId = $request->query('trip_id');
 
         if (! $tripId) {
-            return response()->json(['error' => 'trip_id is required'], 400);
+            throw new \App\Exceptions\BusinessLogicException('trip_id is required', 400);
         }
 
         $trip = Trip::findOrFail($tripId);
@@ -95,7 +95,7 @@ class TourController extends Controller
 
         // Verify marker belongs to same trip
         if ($marker->trip_id !== $tour->trip_id) {
-            return response()->json(['error' => 'Marker does not belong to this tour\'s trip'], 422);
+            throw new \App\Exceptions\BusinessLogicException('Marker does not belong to this tour\'s trip');
         }
 
         // Get the highest position and add 1
@@ -165,15 +165,11 @@ class TourController extends Controller
         $markers = $tour->markers()->get()->all();
 
         if (count($markers) < 2) {
-            return response()->json([
-                'error' => 'Tour must have at least 2 markers to sort',
-            ], 422);
+            throw new \App\Exceptions\BusinessLogicException('Tour must have at least 2 markers to sort');
         }
 
         if (count($markers) > 25) {
-            return response()->json([
-                'error' => 'Tour has too many markers. Maximum is 25 markers for automatic sorting.',
-            ], 422);
+            throw new \App\Exceptions\BusinessLogicException('Tour has too many markers. Maximum is 25 markers for automatic sorting.');
         }
 
         try {
@@ -202,16 +198,14 @@ class TourController extends Controller
         } catch (RoutingProviderException $e) {
             return response()->json(['error' => $e->getMessage()], 503);
         } catch (\InvalidArgumentException $e) {
-            return response()->json(['error' => $e->getMessage()], 422);
+            throw new \App\Exceptions\BusinessLogicException($e->getMessage());
         } catch (\Exception $e) {
             Log::error('Failed to sort tour markers', [
                 'tour_id' => $tour->id,
                 'error' => $e->getMessage(),
             ]);
 
-            return response()->json([
-                'error' => 'Failed to sort markers. Please try again.',
-            ], 500);
+            throw new \App\Exceptions\BusinessLogicException('Failed to sort markers. Please try again.', 500);
         }
     }
 }

@@ -56,7 +56,10 @@ test('user cannot join trip they already own', function () {
     $response = $this->actingAs($this->user)->postJson('/trips/preview/test-token-789/join');
 
     $response->assertStatus(400)
-        ->assertJsonFragment(['message' => 'You are already the owner of this trip']);
+        ->assertJson([
+            'success' => false,
+            'error' => 'You are already the owner of this trip',
+        ]);
 
     // Verify no duplicate entry in trip_user
     $this->assertDatabaseMissing('trip_user', [
@@ -79,7 +82,10 @@ test('user cannot join trip they are already a collaborator on', function () {
     $response = $this->actingAs($this->user)->postJson('/trips/preview/test-token-abc/join');
 
     $response->assertStatus(400)
-        ->assertJsonFragment(['message' => 'You are already a collaborator on this trip']);
+        ->assertJson([
+            'success' => false,
+            'error' => 'You are already a collaborator on this trip',
+        ]);
 });
 
 test('joined trip appears in users trip list', function () {

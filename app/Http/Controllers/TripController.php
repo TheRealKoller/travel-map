@@ -126,9 +126,7 @@ class TripController extends Controller
         $photoData = $this->unsplashService->getPhotoForTrip($trip->name, $trip->country);
 
         if (! $photoData) {
-            return response()->json([
-                'error' => 'No image found for this trip',
-            ], 404);
+            throw new \App\Exceptions\BusinessLogicException('No image found for this trip', 404);
         }
 
         // Track the download to increment view count
@@ -194,16 +192,12 @@ class TripController extends Controller
 
         // Check if user is already the owner
         if ($trip->isOwner($user)) {
-            return response()->json([
-                'message' => 'You are already the owner of this trip',
-            ], 400);
+            throw new \App\Exceptions\BusinessLogicException('You are already the owner of this trip', 400);
         }
 
         // Check if user is already a collaborator
         if ($trip->sharedUsers()->where('user_id', $user->id)->exists()) {
-            return response()->json([
-                'message' => 'You are already a collaborator on this trip',
-            ], 400);
+            throw new \App\Exceptions\BusinessLogicException('You are already a collaborator on this trip', 400);
         }
 
         // Add user as collaborator with 'editor' role
