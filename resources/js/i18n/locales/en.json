@@ -1,13 +1,312 @@
 {
+    "auth": {
+        "login": {
+            "title": "Log in to your account",
+            "description": "Enter your email and password below to log in",
+            "page_title": "Log in",
+            "email_label": "Email address",
+            "email_placeholder": "email@example.com",
+            "password_label": "Password",
+            "password_placeholder": "Password",
+            "forgot_password": "Forgot password?",
+            "remember_me": "Remember me",
+            "login_button": "Log in",
+            "no_account": "Don't have an account?",
+            "sign_up": "Sign up"
+        },
+        "register": {
+            "title": "Create an account",
+            "description": "Enter your details below to create your account",
+            "page_title": "Register",
+            "name_label": "Name",
+            "name_placeholder": "Full name",
+            "email_label": "Email address",
+            "email_placeholder": "email@example.com",
+            "password_label": "Password",
+            "password_placeholder": "Password",
+            "password_confirmation_label": "Confirm password",
+            "password_confirmation_placeholder": "Confirm password",
+            "register_button": "Create account",
+            "have_account": "Already have an account?",
+            "log_in": "Log in"
+        },
+        "forgot_password": {
+            "title": "Forgot password",
+            "description": "Enter your email to receive a password reset link",
+            "page_title": "Forgot password",
+            "email_label": "Email address",
+            "email_placeholder": "email@example.com",
+            "submit_button": "Email password reset link",
+            "return_to": "Or, return to",
+            "log_in": "log in"
+        },
+        "reset_password": {
+            "title": "Reset password",
+            "description": "Please enter your new password below",
+            "page_title": "Reset password",
+            "email_label": "Email address",
+            "password_label": "Password",
+            "password_confirmation_label": "Confirm password",
+            "submit_button": "Reset password"
+        },
+        "verify_email": {
+            "title": "Verify email",
+            "description": "Please verify your email address by clicking on the link we just emailed to you",
+            "page_title": "Email verification",
+            "verification_sent": "A new verification link has been sent to the email address you provided during registration",
+            "resend_button": "Resend verification email",
+            "logout_button": "Log out"
+        },
+        "confirm_password": {
+            "title": "Confirm your password",
+            "description": "This is a secure area of the application. Please confirm your password before continuing.",
+            "page_title": "Confirm password",
+            "password_label": "Password",
+            "password_placeholder": "Password",
+            "confirm_button": "Confirm password"
+        },
+        "two_factor_challenge": {
+            "recovery_code_title": "Recovery Code",
+            "recovery_code_description": "Please confirm access to your account by entering one of your emergency recovery codes",
+            "recovery_code_label": "Recovery Code",
+            "use_auth_code": "login using an authentication code",
+            "auth_code_title": "Authentication Code",
+            "auth_code_description": "Enter the authentication code provided by your authenticator application",
+            "auth_code_label": "Authentication Code",
+            "use_recovery_code": "login using a recovery code",
+            "continue_button": "Continue",
+            "or_text": "or you can"
+        }
+    },
+    "navigation": {
+        "dashboard": "Dashboard",
+        "map": "Map",
+        "breadcrumb": "breadcrumb",
+        "toggle_sidebar": "Toggle Sidebar"
+    },
+    "dashboard": {
+        "title": "Dashboard"
+    },
+    "trips": {
+        "select_trip": "Select trip",
+        "choose_trip": "Choose a trip to view or create a new one",
+        "select_trip_label": "Select a trip",
+        "period": "Period",
+        "duration": "Duration",
+        "day": "day",
+        "days": "days",
+        "create_new": "Create new trip",
+        "edit_trip": "Edit trip",
+        "invite_users": "Invite users",
+        "export_pdf": "Export as PDF",
+        "create_modal": {
+            "title": "Create new trip",
+            "description": "Give your trip a name and optionally select a country to filter search results.",
+            "trip_name_label": "Trip name",
+            "trip_name_placeholder": "e.g., Summer 2024, Japan Trip",
+            "country_label": "Country (optional)",
+            "country_placeholder": "Select a country...",
+            "country_help": "Search results will be filtered to this country",
+            "cancel_button": "Cancel",
+            "create_button": "Create trip",
+            "creating_button": "Creating..."
+        },
+        "rename_modal": {
+            "title": "Rename trip",
+            "description": "Change the name of your trip",
+            "trip_name_label": "Trip name",
+            "cancel_button": "Cancel",
+            "save_button": "Save",
+            "saving_button": "Saving..."
+        },
+        "delete_dialog": {
+            "title": "Delete trip",
+            "description": "Are you sure you want to delete the trip",
+            "warning": "This will permanently delete the trip and all associated data including markers, tours, and routes. This action cannot be undone.",
+            "cancel_button": "Cancel",
+            "delete_button": "Delete trip",
+            "deleting_button": "Deleting..."
+        },
+        "notes_modal": {
+            "title": "Trip notes",
+            "description": "Add notes about your trip. Markdown is supported for formatting.",
+            "cancel_button": "Cancel",
+            "save_button": "Save notes",
+            "saving_button": "Saving..."
+        },
+        "invite_modal": {
+            "title": "Invite to trip",
+            "invitation_link_label": "Invitation link",
+            "link_valid_info": "This link will remain valid as long as the trip exists.",
+            "share_info": "Share this link with others to let them preview",
+            "access_info": "Anyone with this link and an account can view the trip details and markers.",
+            "try_again_button": "Try again",
+            "close_button": "Close"
+        }
+    },
+    "tours": {
+        "create_modal": {
+            "title": "Create new tour",
+            "description": "Create a new tour to organize your markers",
+            "name_label": "Name",
+            "name_placeholder": "e.g., Day 1 - Tokyo",
+            "name_required": "Tour name is required",
+            "create_failed": "Failed to create tour. Please try again.",
+            "cancel_button": "Cancel",
+            "create_button": "Create tour",
+            "creating_button": "Creating..."
+        },
+        "actions": {
+            "move_up": "Move up",
+            "move_down": "Move down",
+            "remove_from_tour": "Remove from tour",
+            "delete_tour": "Delete tour"
+        },
+        "delete_dialog": {
+            "title": "Delete tour",
+            "description": "Are you sure you want to delete the tour",
+            "warning": "The markers will remain in your trip, but the tour organization will be removed.",
+            "cancel_button": "Cancel",
+            "delete_button": "Delete tour",
+            "deleting_button": "Deleting..."
+        },
+        "sort": {
+            "min_markers_error": "Tour must have at least 2 markers to sort",
+            "success": "Markers sorted successfully!",
+            "failed": "Failed to sort markers. Please try again."
+        }
+    },
+    "markers": {
+        "add_to_tour": "Add to tour",
+        "ai_enriched": "AI enriched marker",
+        "toggle_filter": "Toggle filter menu",
+        "filter_active": "Filter active",
+        "select_type": "Select type",
+        "select_unesco": "Select UNESCO filter",
+        "name_placeholder": "Enter marker name",
+        "rating_placeholder": "e.g., 1.5",
+        "url_placeholder": "https://example.com",
+        "open_url_new_tab": "Open URL in new tab",
+        "open_url": "Open URL",
+        "unesco_site": "UNESCO World Heritage Site",
+        "ai_enriched_info": "This marker has been enriched with AI",
+        "notes_placeholder": "Add notes about this location (Markdown supported)...",
+        "click_to_load_image": "Click to load image",
+        "unnamed_location": "Unnamed Location",
+        "lat_lng_coordinates": "Lat/Lng coordinates",
+        "delete_dialog": {
+            "title": "Delete marker",
+            "description": "Are you sure you want to delete",
+            "warning": "This action cannot be undone.",
+            "cancel_button": "Cancel",
+            "delete_button": "Delete marker",
+            "deleting_button": "Deleting..."
+        },
+        "types": {
+            "restaurant": "Restaurant",
+            "poi": "Point of Interest",
+            "question": "Question",
+            "tip": "Tip",
+            "hotel": "Hotel",
+            "museum": "Museum",
+            "ruin": "Ruin",
+            "temple": "Temple/Church",
+            "festival": "Festival/Party",
+            "leisure": "Leisure",
+            "sightseeing": "Sightseeing",
+            "nature": "Natural Attraction",
+            "city": "City",
+            "village": "Village",
+            "region": "Region",
+            "stop": "Haltestelle"
+        }
+    },
+    "routes": {
+        "select_start": "Select start marker",
+        "select_end": "Select end marker",
+        "calculate_route": "Calculate route",
+        "select_both_error": "Please select both start and end markers",
+        "different_markers_error": "Start and end markers must be different",
+        "create_failed": "Failed to create route. Please try again.",
+        "delete_failed": "Failed to delete route. Please try again.",
+        "estimated_duration": "Estimated duration",
+        "estimated_hours": "~{{hours}}h",
+        "search_radius_label": "Search radius in kilometers"
+    },
     "settings": {
         "language": {
             "title": "Language",
             "description": "Select your preferred language for the application.",
             "select_label": "Select language",
+            "page_title": "Language settings",
             "languages": {
                 "de": "Deutsch",
                 "en": "English"
             }
+        },
+        "profile": {
+            "title": "Profile settings",
+            "description": "Update your name and email address",
+            "page_title": "Profile settings",
+            "section_title": "Profile information",
+            "name_label": "Name",
+            "email_label": "Email address",
+            "email_unverified": "Your email address is unverified.",
+            "save_button": "Save",
+            "saving_button": "Saving...",
+            "delete_account": "Delete account",
+            "delete_description": "Delete your account and all of its resources",
+            "delete_warning_title": "Warning",
+            "delete_warning": "Please proceed with caution, this cannot be undone.",
+            "delete_confirmation": "Are you sure you want to delete your account?",
+            "delete_confirmation_info": "Once your account is deleted, all of its resources and data will also be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.",
+            "password_label": "Password",
+            "cancel_button": "Cancel",
+            "delete_button": "Delete account",
+            "deleting_button": "Deleting..."
+        },
+        "password": {
+            "title": "Password settings",
+            "description": "Ensure your account is using a long, random password to stay secure",
+            "page_title": "Password settings",
+            "section_title": "Update password",
+            "current_password_label": "Current password",
+            "new_password_label": "New password",
+            "password_confirmation_label": "Confirm password",
+            "save_button": "Save",
+            "saving_button": "Saving..."
+        },
+        "two_factor": {
+            "title": "Two-Factor Authentication",
+            "description": "Manage your two-factor authentication settings",
+            "page_title": "Two-Factor Authentication",
+            "enabled": "Enabled",
+            "enabled_info": "With two-factor authentication enabled, you will be prompted for a secure, random pin during login, which you can retrieve from the TOTP-supported application on your phone.",
+            "disable_button": "Disable 2FA",
+            "disabled": "Disabled",
+            "disabled_info": "When you enable two-factor authentication, you will be prompted for a secure pin during login. This pin can be retrieved from a TOTP-supported application on your phone.",
+            "continue_setup_button": "Continue Setup",
+            "enable_button": "Enable 2FA",
+            "enter_code_manually": "or, enter the code manually",
+            "loading_recovery_codes": "Loading recovery codes",
+            "loading": "Loading"
+        },
+        "appearance": {
+            "title": "Appearance",
+            "description": "Customize how the application looks",
+            "page_title": "Appearance settings"
         }
+    },
+    "common": {
+        "cancel": "Cancel",
+        "save": "Save",
+        "saving": "Saving...",
+        "delete": "Delete",
+        "deleting": "Deleting...",
+        "close": "Close",
+        "loading": "Loading",
+        "search_placeholder": "Search for places...",
+        "markdown_supported": "Markdown supported",
+        "try_again": "Try again"
     }
 }
