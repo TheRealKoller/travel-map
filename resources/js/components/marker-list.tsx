@@ -1,11 +1,18 @@
 import '@/../../resources/css/markdown-preview.css';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { getMarkerTypeIcon, UnescoIcon } from '@/lib/marker-icons';
-import { MarkerData } from '@/types/marker';
+import { MarkerData, MarkerType } from '@/types/marker';
 import { ArrowRight, Filter, Image, Loader2 } from 'lucide-react';
 import { marked } from 'marked';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 interface MarkerListProps {
     markers: MarkerData[];
@@ -199,7 +206,26 @@ export default function MarkerList({
     onMarkerImageFetched,
 }: MarkerListProps) {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [selectedType, setSelectedType] = useState<string>('all');
+    const [appliedType, setAppliedType] = useState<string>('all');
     const showAddToTourButtons = selectedTourId !== null;
+
+    // Get all unique marker types from the markers
+    const allMarkerTypes = useMemo(() => {
+        return Object.values(MarkerType);
+    }, []);
+
+    // Filter markers based on applied type
+    const filteredMarkers = useMemo(() => {
+        if (appliedType === 'all') {
+            return markers;
+        }
+        return markers.filter((marker) => marker.type === appliedType);
+    }, [markers, appliedType]);
+
+    const handleApplyFilter = () => {
+        setAppliedType(selectedType);
+    };
 
     return (
         <div
@@ -208,7 +234,7 @@ export default function MarkerList({
         >
             <div className="mb-3 flex items-center justify-between">
                 <h2 className="text-base font-semibold">
-                    Markers ({markers.length})
+                    Markers ({filteredMarkers.length})
                 </h2>
                 <Button
                     variant="ghost"
@@ -223,15 +249,58 @@ export default function MarkerList({
             </div>
             {isFilterOpen && (
                 <div
-                    className="mb-3 rounded border border-gray-200 bg-gray-50 p-3 text-sm text-gray-600"
+                    className="mb-3 rounded border border-gray-200 bg-gray-50 p-3"
                     data-testid="filter-menu"
                 >
-                    Filter options will be added here
+                    <div className="flex flex-col gap-2">
+                        <label className="text-sm font-medium text-gray-700">
+                            Filter by type
+                        </label>
+                        <Select
+                            value={selectedType}
+                            onValueChange={setSelectedType}
+                        >
+                            <SelectTrigger
+                                className="w-full"
+                                data-testid="type-filter-dropdown"
+                            >
+                                <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem
+                                    value="all"
+                                    data-testid="type-filter-option-all"
+                                >
+                                    All types
+                                </SelectItem>
+                                {allMarkerTypes.map((type) => (
+                                    <SelectItem
+                                        key={type}
+                                        value={type}
+                                        data-testid={`type-filter-option-${type}`}
+                                    >
+                                        {type.charAt(0).toUpperCase() +
+                                            type.slice(1)}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <Button
+                            onClick={handleApplyFilter}
+                            className="w-full"
+                            size="sm"
+                            data-testid="apply-filter-button"
+                        >
+                            Apply filter
+                        </Button>
+                    </div>
                 </div>
             )}
-            {markers.length === 0 ? (
+            {filteredMarkers.length === 0 ? (
                 <p className="text-sm text-gray-500">
-                    Click on the map to add markers
+                    {markers.length === 0
+                        ? 'Click on the map to add markers'
+                        : 'No markers match the selected filter'}
                 </p>
             ) : (
                 <>
@@ -241,7 +310,7 @@ export default function MarkerList({
                         </p>
                     )}
                     <ul className="space-y-1.5" data-testid="marker-list-items">
-                        {markers.map((markerData) => (
+                        {filteredMarkers.map((markerData) => (
                             <MarkerItem
                                 key={markerData.id}
                                 markerData={markerData}
