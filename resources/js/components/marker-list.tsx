@@ -208,21 +208,37 @@ export default function MarkerList({
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [selectedType, setSelectedType] = useState<string>('all');
     const [appliedType, setAppliedType] = useState<string>('all');
+    const [selectedUnescoFilter, setSelectedUnescoFilter] =
+        useState<string>('all');
+    const [appliedUnescoFilter, setAppliedUnescoFilter] =
+        useState<string>('all');
     const showAddToTourButtons = selectedTourId !== null;
 
     // Get all marker types from the enum
     const allMarkerTypes = Object.values(MarkerType);
 
-    // Filter markers based on applied type
+    // Filter markers based on applied type and UNESCO filter
     const filteredMarkers = useMemo(() => {
-        if (appliedType === 'all') {
-            return markers;
+        let result = markers;
+
+        // Apply type filter
+        if (appliedType !== 'all') {
+            result = result.filter((marker) => marker.type === appliedType);
         }
-        return markers.filter((marker) => marker.type === appliedType);
-    }, [markers, appliedType]);
+
+        // Apply UNESCO filter
+        if (appliedUnescoFilter === 'unesco') {
+            result = result.filter((marker) => marker.isUnesco);
+        } else if (appliedUnescoFilter === 'non-unesco') {
+            result = result.filter((marker) => !marker.isUnesco);
+        }
+
+        return result;
+    }, [markers, appliedType, appliedUnescoFilter]);
 
     const handleApplyFilter = () => {
         setAppliedType(selectedType);
+        setAppliedUnescoFilter(selectedUnescoFilter);
     };
 
     return (
@@ -243,7 +259,8 @@ export default function MarkerList({
                     className="relative h-8 w-8"
                 >
                     <Filter className="h-4 w-4" />
-                    {appliedType !== 'all' && (
+                    {(appliedType !== 'all' ||
+                        appliedUnescoFilter !== 'all') && (
                         <span
                             className="absolute top-1 right-1 h-2 w-2 rounded-full bg-blue-600"
                             data-testid="filter-active-indicator"
@@ -293,6 +310,40 @@ export default function MarkerList({
                                         </SelectItem>
                                     );
                                 })}
+                            </SelectContent>
+                        </Select>
+                        <label className="text-sm font-medium text-gray-700">
+                            Filter by UNESCO
+                        </label>
+                        <Select
+                            value={selectedUnescoFilter}
+                            onValueChange={setSelectedUnescoFilter}
+                        >
+                            <SelectTrigger
+                                className="w-full"
+                                data-testid="unesco-filter-dropdown"
+                            >
+                                <SelectValue placeholder="Select UNESCO filter" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem
+                                    value="all"
+                                    data-testid="unesco-filter-option-all"
+                                >
+                                    All markers
+                                </SelectItem>
+                                <SelectItem
+                                    value="unesco"
+                                    data-testid="unesco-filter-option-unesco"
+                                >
+                                    UNESCO only
+                                </SelectItem>
+                                <SelectItem
+                                    value="non-unesco"
+                                    data-testid="unesco-filter-option-non-unesco"
+                                >
+                                    Non-UNESCO only
+                                </SelectItem>
                             </SelectContent>
                         </Select>
                         <Button
