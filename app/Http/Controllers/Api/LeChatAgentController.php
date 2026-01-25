@@ -8,6 +8,7 @@ use App\Services\TravelRecommendationAgentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class LeChatAgentController extends Controller
 {
@@ -28,11 +29,7 @@ class LeChatAgentController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
+            throw new ValidationException($validator);
         }
 
         $result = $this->markerEnrichmentService->enrichMarkerInfo(
@@ -64,11 +61,7 @@ class LeChatAgentController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
+            throw new ValidationException($validator);
         }
 
         $context = $request->input('context');
@@ -76,17 +69,11 @@ class LeChatAgentController extends Controller
 
         // Validate context-specific fields
         if ($context === 'tour' && ! isset($data['tour_name'])) {
-            return response()->json([
-                'success' => false,
-                'error' => 'tour_name is required for tour context',
-            ], 422);
+            throw new \App\Exceptions\BusinessLogicException('tour_name is required for tour context');
         }
 
         if ($context === 'map_view' && ! isset($data['bounds'])) {
-            return response()->json([
-                'success' => false,
-                'error' => 'bounds is required for map_view context',
-            ], 422);
+            throw new \App\Exceptions\BusinessLogicException('bounds is required for map_view context');
         }
 
         $result = $this->travelRecommendationService->getTravelRecommendations($context, $data);

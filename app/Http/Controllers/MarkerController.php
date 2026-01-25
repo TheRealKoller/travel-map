@@ -131,9 +131,7 @@ class MarkerController extends Controller
         $photoData = $this->unsplashService->getPhotoForMarker($marker->name, $marker->type);
 
         if (! $photoData) {
-            return response()->json([
-                'error' => 'No image found for this marker',
-            ], 404);
+            throw new \App\Exceptions\BusinessLogicException('No image found for this marker', 404);
         }
 
         // Track the download to increment view count

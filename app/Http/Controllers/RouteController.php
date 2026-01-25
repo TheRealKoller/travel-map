@@ -50,7 +50,7 @@ class RouteController extends Controller
         $endMarker = Marker::findOrFail($validated['end_marker_id']);
 
         if (! $this->tripService->assertMarkersBelongToTrip($trip, $startMarker, $endMarker)) {
-            return response()->json(['error' => 'Markers must belong to the same trip'], 422);
+            throw new \App\Exceptions\BusinessLogicException('Markers must belong to the same trip');
         }
 
         try {

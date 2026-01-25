@@ -40,4 +40,29 @@ return Application::configure(basePath: dirname(__DIR__))
                 'trace' => $e->getTraceAsString(),
             ]);
         });
+
+        // Handle custom BusinessLogicException
+        $exceptions->render(function (\App\Exceptions\BusinessLogicException $e, \Illuminate\Http\Request $request) {
+            $response = [
+                'success' => false,
+                'error' => $e->getMessage(),
+            ];
+
+            if ($e->getErrors()) {
+                $response['errors'] = $e->getErrors();
+            }
+
+            return response()->json($response, $e->getStatusCode());
+        });
+
+        // Handle Laravel's ValidationException for custom validation
+        $exceptions->render(function (\Illuminate\Validation\ValidationException $e, \Illuminate\Http\Request $request) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Validation failed',
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+        });
     })->create();
