@@ -25,19 +25,39 @@ test('convertToBase64 returns base64 data URI for valid image URL', function () 
 test('convertToBase64 returns null for invalid URL', function () {
     Log::shouldReceive('warning')
         ->once()
-        ->with('Failed to download image', ['url' => 'https://invalid-url-that-does-not-exist.com/image.jpg']);
+        ->with('Failed to download image', Mockery::on(function ($context) {
+            return isset($context['url']) && str_contains($context['url'], 'nonexistent_file_');
+        }));
 
-    $result = ImageHelper::convertToBase64('https://invalid-url-that-does-not-exist.com/image.jpg');
+    // Suppress PHP warnings using error handler
+    set_error_handler(function () {});
+
+    // Use a nonexistent local file path
+    $nonexistentFile = '/tmp/nonexistent_file_'.uniqid().'.jpg';
+    $result = ImageHelper::convertToBase64($nonexistentFile);
+
+    // Restore error handler
+    restore_error_handler();
 
     expect($result)->toBeNull();
 });
 
 test('convertToBase64 handles file_get_contents failure gracefully', function () {
     Log::shouldReceive('warning')
-        ->once();
+        ->once()
+        ->with('Failed to download image', Mockery::on(function ($context) {
+            return isset($context['url']) && str_contains($context['url'], 'nonexistent_file_');
+        }));
 
-    // Use a URL that will fail
-    $result = ImageHelper::convertToBase64('http://localhost:99999/nonexistent.jpg');
+    // Suppress PHP warnings using error handler
+    set_error_handler(function () {});
+
+    // Use a nonexistent local file path
+    $nonexistentFile = '/tmp/nonexistent_file_'.uniqid().'.jpg';
+    $result = ImageHelper::convertToBase64($nonexistentFile);
+
+    // Restore error handler
+    restore_error_handler();
 
     expect($result)->toBeNull();
 });
@@ -69,8 +89,14 @@ test('convertToBase64 logs error on exception', function () {
                 && isset($context['error']);
         });
 
+    // Suppress PHP warnings using error handler
+    set_error_handler(function () {});
+
     // Use an invalid protocol that will cause an exception
     $result = ImageHelper::convertToBase64('invalid://protocol/image.jpg');
+
+    // Restore error handler
+    restore_error_handler();
 
     expect($result)->toBeNull();
 });

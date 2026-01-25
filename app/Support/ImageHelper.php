@@ -17,7 +17,8 @@ class ImageHelper
     {
         try {
             // Download the image
-            $imageContent = file_get_contents($url);
+            // Suppress PHP warnings as we handle errors through return value checking
+            $imageContent = @file_get_contents($url);
 
             if ($imageContent === false) {
                 Log::warning('Failed to download image', ['url' => $url]);
