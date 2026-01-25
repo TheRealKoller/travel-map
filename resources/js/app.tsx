@@ -7,6 +7,7 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
+import './i18n/config';
 
 // Configure Axios to send CSRF token with every request
 const csrfToken = document.head.querySelector('meta[name="csrf-token"]');
