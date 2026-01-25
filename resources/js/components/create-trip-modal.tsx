@@ -65,25 +65,35 @@ export default function CreateTripModal({
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="tripName">{t('trips.create_modal.trip_name_label')}</Label>
+                            <Label htmlFor="tripName">
+                                {t('trips.create_modal.trip_name_label')}
+                            </Label>
                             <Input
                                 id="tripName"
                                 value={tripName}
                                 onChange={(e) => setTripName(e.target.value)}
-                                placeholder={t('trips.create_modal.trip_name_placeholder')}
+                                placeholder={t(
+                                    'trips.create_modal.trip_name_placeholder',
+                                )}
                                 disabled={isSubmitting}
                                 autoFocus
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="country">{t('trips.create_modal.country_label')}</Label>
+                            <Label htmlFor="country">
+                                {t('trips.create_modal.country_label')}
+                            </Label>
                             <Select
                                 value={country}
                                 onValueChange={setCountry}
                                 disabled={isSubmitting}
                             >
                                 <SelectTrigger id="country">
-                                    <SelectValue placeholder={t('trips.create_modal.country_placeholder')} />
+                                    <SelectValue
+                                        placeholder={t(
+                                            'trips.create_modal.country_placeholder',
+                                        )}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {COUNTRIES.map((c) => (
@@ -111,7 +121,9 @@ export default function CreateTripModal({
                             type="submit"
                             disabled={isSubmitting || !tripName.trim()}
                         >
-                            {isSubmitting ? t('trips.create_modal.creating_button') : t('trips.create_modal.create_button')}
+                            {isSubmitting
+                                ? t('trips.create_modal.creating_button')
+                                : t('trips.create_modal.create_button')}
                         </Button>
                     </DialogFooter>
                 </form>

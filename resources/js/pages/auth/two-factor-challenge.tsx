@@ -27,7 +27,9 @@ export default function TwoFactorChallenge() {
         if (showRecoveryInput) {
             return {
                 title: t('auth.two_factor_challenge.recovery_code_title'),
-                description: t('auth.two_factor_challenge.recovery_code_description'),
+                description: t(
+                    'auth.two_factor_challenge.recovery_code_description',
+                ),
                 toggleText: t('auth.two_factor_challenge.use_auth_code'),
             };
         }
@@ -111,7 +113,11 @@ export default function TwoFactorChallenge() {
                             </Button>
 
                             <div className="text-center text-sm text-muted-foreground">
-                                <span>{t('auth.two_factor_challenge.or_text')} </span>
+                                <span>
+                                    {t(
+                                        'auth.two_factor_challenge.or_text',
+                                    )}{' '}
+                                </span>
                                 <button
                                     type="button"
                                     className="cursor-pointer text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"

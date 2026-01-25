@@ -32,7 +32,9 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                 {({ processing, errors }) => (
                     <div className="grid gap-6">
                         <div className="grid gap-2">
-                            <Label htmlFor="email">{t('auth.reset_password.email_label')}</Label>
+                            <Label htmlFor="email">
+                                {t('auth.reset_password.email_label')}
+                            </Label>
                             <Input
                                 id="email"
                                 type="email"
@@ -49,7 +51,9 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="password">{t('auth.reset_password.password_label')}</Label>
+                            <Label htmlFor="password">
+                                {t('auth.reset_password.password_label')}
+                            </Label>
                             <Input
                                 id="password"
                                 type="password"
@@ -63,7 +67,9 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
 
                         <div className="grid gap-2">
                             <Label htmlFor="password_confirmation">
-                                {t('auth.reset_password.password_confirmation_label')}
+                                {t(
+                                    'auth.reset_password.password_confirmation_label',
+                                )}
                             </Label>
                             <Input
                                 id="password_confirmation"

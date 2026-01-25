@@ -2,8 +2,8 @@
 import { login } from '@/routes';
 import { email } from '@/routes/password';
 import { Form, Head } from '@inertiajs/react';
-import { useTranslation } from 'react-i18next';
 import { LoaderCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
@@ -33,14 +33,18 @@ export default function ForgotPassword({ status }: { status?: string }) {
                     {({ processing, errors }) => (
                         <>
                             <div className="grid gap-2">
-                                <Label htmlFor="email">{t('auth.forgot_password.email_label')}</Label>
+                                <Label htmlFor="email">
+                                    {t('auth.forgot_password.email_label')}
+                                </Label>
                                 <Input
                                     id="email"
                                     type="email"
                                     name="email"
                                     autoComplete="off"
                                     autoFocus
-                                    placeholder={t('auth.forgot_password.email_placeholder')}
+                                    placeholder={t(
+                                        'auth.forgot_password.email_placeholder',
+                                    )}
                                 />
 
                                 <InputError message={errors.email} />
@@ -64,7 +68,9 @@ export default function ForgotPassword({ status }: { status?: string }) {
 
                 <div className="space-x-1 text-center text-sm text-muted-foreground">
                     <span>{t('auth.forgot_password.return_to')}</span>
-                    <TextLink href={login()}>{t('auth.forgot_password.log_in')}</TextLink>
+                    <TextLink href={login()}>
+                        {t('auth.forgot_password.log_in')}
+                    </TextLink>
                 </div>
             </div>
         </AuthLayout>

@@ -30,7 +30,9 @@ export default function Register() {
                     <>
                         <div className="grid gap-6">
                             <div className="grid gap-2">
-                                <Label htmlFor="name">{t('auth.register.name_label')}</Label>
+                                <Label htmlFor="name">
+                                    {t('auth.register.name_label')}
+                                </Label>
                                 <Input
                                     id="name"
                                     type="text"
@@ -39,7 +41,9 @@ export default function Register() {
                                     tabIndex={1}
                                     autoComplete="name"
                                     name="name"
-                                    placeholder={t('auth.register.name_placeholder')}
+                                    placeholder={t(
+                                        'auth.register.name_placeholder',
+                                    )}
                                 />
                                 <InputError
                                     message={errors.name}
@@ -48,7 +52,9 @@ export default function Register() {
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="email">{t('auth.register.email_label')}</Label>
+                                <Label htmlFor="email">
+                                    {t('auth.register.email_label')}
+                                </Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -56,13 +62,17 @@ export default function Register() {
                                     tabIndex={2}
                                     autoComplete="email"
                                     name="email"
-                                    placeholder={t('auth.register.email_placeholder')}
+                                    placeholder={t(
+                                        'auth.register.email_placeholder',
+                                    )}
                                 />
                                 <InputError message={errors.email} />
                             </div>
 
                             <div className="grid gap-2">
-                                <Label htmlFor="password">{t('auth.register.password_label')}</Label>
+                                <Label htmlFor="password">
+                                    {t('auth.register.password_label')}
+                                </Label>
                                 <Input
                                     id="password"
                                     type="password"
@@ -70,14 +80,18 @@ export default function Register() {
                                     tabIndex={3}
                                     autoComplete="new-password"
                                     name="password"
-                                    placeholder={t('auth.register.password_placeholder')}
+                                    placeholder={t(
+                                        'auth.register.password_placeholder',
+                                    )}
                                 />
                                 <InputError message={errors.password} />
                             </div>
 
                             <div className="grid gap-2">
                                 <Label htmlFor="password_confirmation">
-                                    {t('auth.register.password_confirmation_label')}
+                                    {t(
+                                        'auth.register.password_confirmation_label',
+                                    )}
                                 </Label>
                                 <Input
                                     id="password_confirmation"
@@ -86,7 +100,9 @@ export default function Register() {
                                     tabIndex={4}
                                     autoComplete="new-password"
                                     name="password_confirmation"
-                                    placeholder={t('auth.register.password_confirmation_placeholder')}
+                                    placeholder={t(
+                                        'auth.register.password_confirmation_placeholder',
+                                    )}
                                 />
                                 <InputError
                                     message={errors.password_confirmation}
