@@ -240,9 +240,16 @@ export default function MarkerList({
                     onClick={() => setIsFilterOpen(!isFilterOpen)}
                     title="Toggle filter menu"
                     data-testid="filter-toggle-button"
-                    className="h-8 w-8"
+                    className="relative h-8 w-8"
                 >
                     <Filter className="h-4 w-4" />
+                    {appliedType !== 'all' && (
+                        <span
+                            className="absolute top-1 right-1 h-2 w-2 rounded-full bg-blue-600"
+                            data-testid="filter-active-indicator"
+                            title="Filter active"
+                        />
+                    )}
                 </Button>
             </div>
             {isFilterOpen && (
