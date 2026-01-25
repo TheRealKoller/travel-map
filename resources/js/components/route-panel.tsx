@@ -14,17 +14,27 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { MarkerData } from '@/types/marker';
-import { Route, TransportMode } from '@/types/route';
+import {
+    AlternativeRoute,
+    Route,
+    TransitDetails,
+    TransportMode,
+} from '@/types/route';
 import { Tour } from '@/types/tour';
 import axios from 'axios';
 import {
     ArrowDownUp,
+    ArrowRight,
     Bike,
+    Bus,
     Car,
     ChevronDown,
     ChevronUp,
+    Clock,
+    MapPin,
     PersonStanding,
     Train,
+    TramFront,
     Trash2,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -297,6 +307,217 @@ export default function RoutePanel({
         const durationHours = durationMinutes / 60;
         const speed = distanceKm / durationHours;
         return `${speed.toFixed(1)} km/h`;
+    };
+
+    const getVehicleIcon = (vehicleType: string | null) => {
+        if (!vehicleType) return <Train className="h-4 w-4" />;
+
+        const type = vehicleType.toLowerCase();
+        if (type.includes('bus')) return <Bus className="h-4 w-4" />;
+        if (type.includes('tram') || type.includes('streetcar'))
+            return <TramFront className="h-4 w-4" />;
+        if (
+            type.includes('train') ||
+            type.includes('rail') ||
+            type.includes('subway') ||
+            type.includes('metro')
+        )
+            return <Train className="h-4 w-4" />;
+        return <Train className="h-4 w-4" />;
+    };
+
+    const formatTime = (timestamp: number | null): string => {
+        if (!timestamp) return 'N/A';
+        const date = new Date(timestamp * 1000);
+        return date.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+    };
+
+    const formatDurationFromSeconds = (seconds: number): string => {
+        const minutes = Math.round(seconds / 60);
+        return formatDuration(minutes);
+    };
+
+    const renderTransitDetails = (transitDetails: TransitDetails | null) => {
+        if (!transitDetails || !transitDetails.steps) return null;
+
+        return (
+            <div className="mt-3 space-y-3 rounded-lg border bg-muted/50 p-3">
+                <div className="flex items-center justify-between">
+                    <h5 className="text-sm font-semibold">Transit itinerary</h5>
+                    {transitDetails.departure_time &&
+                        transitDetails.arrival_time && (
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <Clock className="h-3 w-3" />
+                                <span>
+                                    {transitDetails.departure_time} →{' '}
+                                    {transitDetails.arrival_time}
+                                </span>
+                            </div>
+                        )}
+                </div>
+
+                <div className="space-y-2">
+                    {transitDetails.steps.map((step, index) => {
+                        if (step.travel_mode === 'TRANSIT' && step.transit) {
+                            const transit = step.transit;
+                            return (
+                                <div
+                                    key={index}
+                                    className="rounded-md border bg-background p-3"
+                                >
+                                    <div className="flex items-start gap-3">
+                                        <div
+                                            className="flex-shrink-0 rounded-full p-2"
+                                            style={{
+                                                backgroundColor: transit.line
+                                                    .color
+                                                    ? `#${transit.line.color}`
+                                                    : '#3b82f6',
+                                                color: '#ffffff',
+                                            }}
+                                        >
+                                            {getVehicleIcon(
+                                                transit.line.vehicle_type,
+                                            )}
+                                        </div>
+                                        <div className="flex-1 space-y-2">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-semibold">
+                                                    {transit.line.short_name ||
+                                                        transit.line.name ||
+                                                        'Transit'}
+                                                </span>
+                                                {transit.headsign && (
+                                                    <span className="text-xs text-muted-foreground">
+                                                        → {transit.headsign}
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <div className="space-y-1 text-xs">
+                                                <div className="flex items-start gap-2">
+                                                    <MapPin className="mt-0.5 h-3 w-3 flex-shrink-0 text-green-600" />
+                                                    <div>
+                                                        <div className="font-medium">
+                                                            {transit
+                                                                .departure_stop
+                                                                .name ||
+                                                                'Departure Stop'}
+                                                        </div>
+                                                        {transit.departure_time && (
+                                                            <div className="text-muted-foreground">
+                                                                Departs at:{' '}
+                                                                {formatTime(
+                                                                    transit.departure_time,
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center gap-2 pl-5 text-muted-foreground">
+                                                    <ArrowRight className="h-3 w-3" />
+                                                    <span>
+                                                        {transit.num_stops}{' '}
+                                                        {transit.num_stops === 1
+                                                            ? 'stop'
+                                                            : 'stops'}{' '}
+                                                        •{' '}
+                                                        {formatDurationFromSeconds(
+                                                            step.duration,
+                                                        )}
+                                                    </span>
+                                                </div>
+
+                                                <div className="flex items-start gap-2">
+                                                    <MapPin className="mt-0.5 h-3 w-3 flex-shrink-0 text-red-600" />
+                                                    <div>
+                                                        <div className="font-medium">
+                                                            {transit
+                                                                .arrival_stop
+                                                                .name ||
+                                                                'Arrival Stop'}
+                                                        </div>
+                                                        {transit.arrival_time && (
+                                                            <div className="text-muted-foreground">
+                                                                Arrives at:{' '}
+                                                                {formatTime(
+                                                                    transit.arrival_time,
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        } else if (step.travel_mode === 'WALK') {
+                            return (
+                                <div
+                                    key={index}
+                                    className="flex items-center gap-2 rounded-md bg-background/50 p-2 text-xs"
+                                >
+                                    <PersonStanding className="h-4 w-4 text-muted-foreground" />
+                                    <span className="text-muted-foreground">
+                                        Walk for{' '}
+                                        {formatDurationFromSeconds(
+                                            step.duration,
+                                        )}{' '}
+                                        ({(step.distance / 1000).toFixed(2)} km)
+                                    </span>
+                                </div>
+                            );
+                        }
+                        return null;
+                    })}
+                </div>
+            </div>
+        );
+    };
+
+    const renderAlternatives = (alternatives: AlternativeRoute[] | null) => {
+        if (!alternatives || alternatives.length === 0) return null;
+
+        return (
+            <div className="mt-3 space-y-2 rounded-lg border bg-muted/50 p-3">
+                <h5 className="text-sm font-semibold">
+                    Alternative routes ({alternatives.length})
+                </h5>
+                <div className="space-y-2">
+                    {alternatives.map((alt, index) => (
+                        <div
+                            key={index}
+                            className="flex items-center justify-between rounded-md bg-background p-2 text-xs"
+                        >
+                            <span className="font-medium">
+                                Option {index + 2}
+                            </span>
+                            <div className="flex items-center gap-3 text-muted-foreground">
+                                <span>
+                                    {(alt.distance / 1000).toFixed(2)} km
+                                </span>
+                                <span>•</span>
+                                <span>
+                                    {formatDurationFromSeconds(alt.duration)}
+                                </span>
+                                <span>•</span>
+                                <span>
+                                    {alt.num_transfers}{' '}
+                                    {alt.num_transfers === 1
+                                        ? 'transfer'
+                                        : 'transfers'}
+                                </span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
     };
 
     const toggleRouteExpansion = (routeId: number) => {
@@ -679,27 +900,52 @@ export default function RoutePanel({
                                                     {route.transport_mode
                                                         .value ===
                                                         'public-transport' && (
-                                                        <div className="mt-3 rounded bg-blue-50 p-2 text-xs dark:bg-blue-900/20">
-                                                            <div className="font-medium text-blue-900 dark:text-blue-300">
-                                                                ℹ️ Public
-                                                                transport
-                                                                information
-                                                            </div>
-                                                            <div className="mt-1 text-blue-800 dark:text-blue-400">
-                                                                This route uses
-                                                                public transport
-                                                                mode. Detailed
-                                                                information
-                                                                about specific
-                                                                transport types,
-                                                                transfers, and
-                                                                schedules may
-                                                                not be available
-                                                                through the
-                                                                current routing
-                                                                provider.
-                                                            </div>
-                                                        </div>
+                                                        <>
+                                                            {route.transit_details ? (
+                                                                <>
+                                                                    {renderTransitDetails(
+                                                                        route.transit_details,
+                                                                    )}
+                                                                    {renderAlternatives(
+                                                                        route.alternatives,
+                                                                    )}
+                                                                </>
+                                                            ) : (
+                                                                <div className="mt-3 rounded bg-blue-50 p-2 text-xs dark:bg-blue-900/20">
+                                                                    <div className="font-medium text-blue-900 dark:text-blue-300">
+                                                                        ℹ️
+                                                                        Public
+                                                                        transport
+                                                                        information
+                                                                    </div>
+                                                                    <div className="mt-1 text-blue-800 dark:text-blue-400">
+                                                                        This
+                                                                        route
+                                                                        uses
+                                                                        public
+                                                                        transport
+                                                                        mode.
+                                                                        Detailed
+                                                                        information
+                                                                        about
+                                                                        specific
+                                                                        transport
+                                                                        types,
+                                                                        transfers,
+                                                                        and
+                                                                        schedules
+                                                                        may not
+                                                                        be
+                                                                        available
+                                                                        through
+                                                                        the
+                                                                        current
+                                                                        routing
+                                                                        provider.
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </>
                                                     )}
                                                 </div>
 
