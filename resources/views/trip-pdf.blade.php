@@ -342,6 +342,15 @@
             @endif
         </div>
 
+        @if($tripNotesHtml)
+            <div class="section">
+                <h2 class="section-title">Trip notes</h2>
+                <div class="marker-notes">
+                    {!! $tripNotesHtml !!}
+                </div>
+            </div>
+        @endif
+
         <div class="section">
             <h2 class="section-title">Map viewport</h2>
             <div class="image-container">

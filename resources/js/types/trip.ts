@@ -16,6 +16,7 @@ export interface Trip {
     planned_end_month?: number | null;
     planned_end_day?: number | null;
     planned_duration_days?: number | null;
+    notes?: string | null;
     created_at: string;
     updated_at: string;
 }

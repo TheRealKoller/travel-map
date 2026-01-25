@@ -35,6 +35,7 @@ class UpdateTripRequest extends FormRequest
             'planned_end_month' => 'sometimes|nullable|integer|min:1|max:12',
             'planned_end_day' => 'sometimes|nullable|integer|min:1|max:31',
             'planned_duration_days' => 'sometimes|nullable|integer|min:1|max:9999',
+            'notes' => 'sometimes|nullable|string',
         ];
     }
 }

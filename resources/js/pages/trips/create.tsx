@@ -23,7 +23,11 @@ import {
 import { type BreadcrumbItem, type Trip } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { ImageIcon, Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { marked } from 'marked';
+import SimpleMDE from 'react-simplemde-editor';
+import 'easymde/dist/easymde.min.css';
+import '@/../../resources/css/markdown-preview.css';
 
 interface CreateTripProps {
     trip?: Trip;
@@ -90,6 +94,7 @@ export default function CreateTrip({ trip }: CreateTripProps) {
     const [plannedDurationDays, setPlannedDurationDays] = useState<string>(
         trip?.planned_duration_days?.toString() || '',
     );
+    const [notes, setNotes] = useState<string>(trip?.notes || '');
 
     // Auto-fetch image when both name and country are available
     useEffect(() => {
@@ -163,6 +168,7 @@ export default function CreateTrip({ trip }: CreateTripProps) {
                 planned_end_month?: number | null;
                 planned_end_day?: number | null;
                 planned_duration_days?: number | null;
+                notes?: string | null;
             } = {
                 name: name.trim(),
                 country: country || null,
@@ -191,6 +197,7 @@ export default function CreateTrip({ trip }: CreateTripProps) {
                 planned_duration_days: plannedDurationDays
                     ? parseInt(plannedDurationDays, 10)
                     : null,
+                notes: notes || null,
             };
 
             if (isEditMode) {
@@ -296,6 +303,60 @@ export default function CreateTrip({ trip }: CreateTripProps) {
             );
         }
     };
+
+    // Configure marked once globally
+    if (
+        typeof window !== 'undefined' &&
+        !(window as unknown as Record<string, unknown>).__markedConfigured
+    ) {
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+        });
+        (window as unknown as Record<string, unknown>).__markedConfigured =
+            true;
+    }
+
+    // Define mdeOptions for SimpleMDE editor
+    const mdeOptions = useMemo(() => {
+        type ToolbarButton =
+            | 'bold'
+            | 'italic'
+            | 'heading'
+            | '|'
+            | 'quote'
+            | 'unordered-list'
+            | 'ordered-list'
+            | 'link'
+            | 'image'
+            | 'preview'
+            | 'guide';
+
+        return {
+            spellChecker: false,
+            placeholder: 'Add notes about this trip (Markdown supported)...',
+            status: false,
+            previewRender: (text: string) => {
+                return marked.parse(text) as string;
+            },
+            toolbar: [
+                'bold',
+                'italic',
+                'heading',
+                '|',
+                'quote',
+                'unordered-list',
+                'ordered-list',
+                '|',
+                'link',
+                'image',
+                '|',
+                'preview',
+                '|',
+                'guide',
+            ] as ToolbarButton[],
+        };
+    }, []);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -563,6 +624,20 @@ export default function CreateTrip({ trip }: CreateTripProps) {
                                     The map will automatically search for the
                                     trip name. Adjust the view to show the
                                     desired area.
+                                </p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="notes">Notes (optional)</Label>
+                                <SimpleMDE
+                                    id="notes"
+                                    value={notes}
+                                    onChange={setNotes}
+                                    options={mdeOptions}
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                    Add notes about your trip. Markdown is
+                                    supported for formatting.
                                 </p>
                             </div>
                         </div>

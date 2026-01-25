@@ -55,9 +55,13 @@ class TripPdfExportService
         $markersOverviewBase64 = $markersOverviewUrl ? ImageHelper::convertToBase64($markersOverviewUrl) : null;
         $tripImageBase64 = $trip->image_url ? ImageHelper::convertToBase64($trip->image_url) : null;
 
+        // Convert trip notes from Markdown to HTML if they exist
+        $tripNotesHtml = $trip->notes ? $this->convertMarkdownToHtml($trip->notes) : null;
+
         $pdf = Pdf::loadView('trip-pdf', [
             'trip' => $trip,
             'tripImageUrl' => $tripImageBase64,
+            'tripNotesHtml' => $tripNotesHtml,
             'viewportImageUrl' => $viewportImageUrl,
             'markersOverviewUrl' => $markersOverviewBase64,
             'markersCount' => count($markers),
