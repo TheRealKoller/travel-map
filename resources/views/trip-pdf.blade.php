@@ -134,6 +134,83 @@
             border-top: 1px solid #e5e7eb;
         }
         
+        /* Markdown formatting styles for notes */
+        .marker-notes p {
+            margin-bottom: 8px;
+        }
+        
+        .marker-notes ul,
+        .marker-notes ol {
+            margin-left: 20px;
+            margin-bottom: 8px;
+        }
+        
+        .marker-notes li {
+            margin-bottom: 4px;
+        }
+        
+        .marker-notes strong {
+            font-weight: bold;
+            color: #1f2937;
+        }
+        
+        .marker-notes em {
+            font-style: italic;
+        }
+        
+        .marker-notes code {
+            background-color: #f3f4f6;
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+        }
+        
+        .marker-notes pre {
+            background-color: #f3f4f6;
+            padding: 8px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin-bottom: 8px;
+        }
+        
+        .marker-notes pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        
+        .marker-notes blockquote {
+            border-left: 3px solid #d1d5db;
+            padding-left: 10px;
+            margin-left: 10px;
+            color: #6b7280;
+            font-style: italic;
+        }
+        
+        .marker-notes a {
+            color: #3b82f6;
+            text-decoration: underline;
+        }
+        
+        .marker-notes h1,
+        .marker-notes h2,
+        .marker-notes h3,
+        .marker-notes h4,
+        .marker-notes h5,
+        .marker-notes h6 {
+            font-weight: bold;
+            color: #1f2937;
+            margin-top: 8px;
+            margin-bottom: 4px;
+        }
+        
+        .marker-notes h1 { font-size: 14px; }
+        .marker-notes h2 { font-size: 13px; }
+        .marker-notes h3 { font-size: 12px; }
+        .marker-notes h4,
+        .marker-notes h5,
+        .marker-notes h6 { font-size: 11px; }
+        
         .unesco-badge {
             display: inline-block;
             background-color: #fef3c7;
@@ -390,9 +467,9 @@
                                         @endif
                                     </div>
                                 </div>
-                                @if($marker['notes'])
+                                @if($marker['notes_html'])
                                     <div class="marker-notes">
-                                        <strong>Notes:</strong> {{ $marker['notes'] }}
+                                        {!! $marker['notes_html'] !!}
                                     </div>
                                 @endif
                             </div>
