@@ -29,6 +29,7 @@ export function useRoutes({
 }: UseRoutesOptions) {
     const [routes, setRoutes] = useState<Route[]>([]);
     const routeLayerIdsRef = useRef<Map<number, string>>(new Map());
+    const transitStopLayerIdsRef = useRef<Map<number, string>>(new Map());
     const onRouteClickRef = useRef(onRouteClick); // Store callback in ref to avoid re-rendering
 
     // Update ref when callback changes
@@ -74,6 +75,17 @@ export function useRoutes({
             }
         });
         routeLayerIdsRef.current.clear();
+
+        // Clear existing transit stop layers
+        transitStopLayerIdsRef.current.forEach((layerId) => {
+            if (mapInstance.getLayer(layerId)) {
+                mapInstance.removeLayer(layerId);
+            }
+            if (mapInstance.getSource(layerId)) {
+                mapInstance.removeSource(layerId);
+            }
+        });
+        transitStopLayerIdsRef.current.clear();
 
         // Filter routes by selected tour (if a tour is selected)
         // If no tour is selected, only show expanded routes
@@ -241,6 +253,99 @@ export function useRoutes({
             });
 
             routeLayerIdsRef.current.set(route.id, layerId);
+
+            // Add transit waypoint markers for public transport routes
+            if (
+                route.transport_mode.value === 'public-transport' &&
+                route.transit_details &&
+                route.transit_details.steps
+            ) {
+                const transitStops: [number, number][] = [];
+
+                // Extract all transit stops from the route steps
+                route.transit_details.steps.forEach((step) => {
+                    if (step.transit) {
+                        // Add departure stop
+                        if (
+                            step.transit.departure_stop.location?.latLng
+                                ?.longitude &&
+                            step.transit.departure_stop.location?.latLng
+                                ?.latitude
+                        ) {
+                            transitStops.push([
+                                step.transit.departure_stop.location.latLng
+                                    .longitude,
+                                step.transit.departure_stop.location.latLng
+                                    .latitude,
+                            ]);
+                        }
+
+                        // Add arrival stop
+                        if (
+                            step.transit.arrival_stop.location?.latLng
+                                ?.longitude &&
+                            step.transit.arrival_stop.location?.latLng?.latitude
+                        ) {
+                            transitStops.push([
+                                step.transit.arrival_stop.location.latLng
+                                    .longitude,
+                                step.transit.arrival_stop.location.latLng
+                                    .latitude,
+                            ]);
+                        }
+                    }
+                });
+
+                // Remove duplicates by converting to unique coordinates
+                const uniqueStops = transitStops.filter(
+                    (stop, index, self) =>
+                        index ===
+                        self.findIndex(
+                            (s) => s[0] === stop[0] && s[1] === stop[1],
+                        ),
+                );
+
+                // Only add markers if we have stops
+                if (uniqueStops.length > 0) {
+                    const stopsLayerId = `route-${route.id}-stops`;
+
+                    // Create a GeoJSON source with points for all stops
+                    mapInstance.addSource(stopsLayerId, {
+                        type: 'geojson',
+                        data: {
+                            type: 'FeatureCollection',
+                            features: uniqueStops.map((stop) => ({
+                                type: 'Feature',
+                                properties: {},
+                                geometry: {
+                                    type: 'Point',
+                                    coordinates: stop,
+                                },
+                            })),
+                        },
+                    });
+
+                    // Add a circle layer for the stops
+                    mapInstance.addLayer(
+                        {
+                            id: stopsLayerId,
+                            type: 'circle',
+                            source: stopsLayerId,
+                            paint: {
+                                'circle-radius': 8, // Slightly larger than route line width
+                                'circle-color': color, // Same color as route
+                                'circle-opacity': isHighlighted ? 0.9 : 0.7, // Match route opacity
+                                'circle-stroke-width': 1,
+                                'circle-stroke-color': '#ffffff',
+                                'circle-stroke-opacity': 0.8,
+                            },
+                        },
+                        beforeLayerId,
+                    );
+
+                    transitStopLayerIdsRef.current.set(route.id, stopsLayerId);
+                }
+            }
         });
 
         // Ensure proper layer ordering after adding all routes
