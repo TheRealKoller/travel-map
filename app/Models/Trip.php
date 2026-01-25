@@ -29,6 +29,7 @@ class Trip extends Model
         'planned_end_day',
         'planned_duration_days',
         'invitation_token',
+        'notes',
     ];
 
     public function user(): BelongsTo

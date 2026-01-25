@@ -50,14 +50,7 @@ class TripController extends Controller
     {
         $validated = $request->validated();
 
-        $trip = auth()->user()->trips()->create([
-            'name' => $validated['name'],
-            'country' => $validated['country'] ?? null,
-            'image_url' => $validated['image_url'] ?? null,
-            'viewport_latitude' => $validated['viewport_latitude'] ?? null,
-            'viewport_longitude' => $validated['viewport_longitude'] ?? null,
-            'viewport_zoom' => $validated['viewport_zoom'] ?? null,
-        ]);
+        $trip = auth()->user()->trips()->create($validated);
 
         // Auto-fetch image if both name and country are provided and no image_url yet
         $this->unsplashService->autoFetchTripImage($trip);

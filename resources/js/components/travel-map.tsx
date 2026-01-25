@@ -6,6 +6,8 @@ import MarkerForm from '@/components/marker-form';
 import MarkerList from '@/components/marker-list';
 import RoutePanel from '@/components/route-panel';
 import TourPanel from '@/components/tour-panel';
+import TripNotesModal from '@/components/trip-notes-modal';
+import { Button } from '@/components/ui/button';
 import { useGeocoder } from '@/hooks/use-geocoder';
 import { useMapInstance } from '@/hooks/use-map-instance';
 import { useMapInteractions } from '@/hooks/use-map-interactions';
@@ -21,9 +23,10 @@ import { useSearchResults } from '@/hooks/use-search-results';
 import { useTourLines } from '@/hooks/use-tour-lines';
 import { useTourMarkers } from '@/hooks/use-tour-markers';
 import { getBoundingBoxFromTrip } from '@/lib/map-utils';
+import { update as tripsUpdate } from '@/routes/trips';
 import { Tour } from '@/types/tour';
 import { Trip } from '@/types/trip';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, FileText } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -99,6 +102,9 @@ export default function TravelMap({
         isRoutePanelCollapsed,
         setIsRoutePanelCollapsed,
     } = usePanelCollapse({ mapInstance });
+
+    // Trip notes modal state
+    const [isTripNotesModalOpen, setIsTripNotesModalOpen] = useState(false);
 
     // State for pre-filling route form from tour view
     const [routeRequest, setRouteRequest] = useState<{
@@ -390,6 +396,38 @@ export default function TravelMap({
     const selectedMarker =
         markers.find((m) => m.id === selectedMarkerId) || null;
 
+    // Handler for saving trip notes
+    const handleSaveTripNotes = async (notes: string) => {
+        if (!selectedTripId) return;
+
+        try {
+            const response = await fetch(tripsUpdate.url(selectedTripId), {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN':
+                        document
+                            .querySelector('meta[name="csrf-token"]')
+                            ?.getAttribute('content') || '',
+                },
+                body: JSON.stringify({ notes }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update trip notes');
+            }
+
+            // Update the local trips state with the new notes
+            const trip = trips.find((t) => t.id === selectedTripId);
+            if (trip) {
+                trip.notes = notes;
+            }
+        } catch (error) {
+            console.error('Failed to save trip notes:', error);
+            throw error;
+        }
+    };
+
     return (
         <div className="flex h-full flex-col gap-4">
             {/* AI Recommendations Panel - Full width above the 4 existing areas */}
@@ -549,8 +587,8 @@ export default function TravelMap({
                     className="flex w-full flex-1 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm lg:ml-4"
                     data-testid="map-panel"
                 >
-                    {/* Top area for debug info */}
-                    <div className="mb-2 min-h-[40px] flex-shrink-0 rounded-lg bg-white p-2 shadow">
+                    {/* Top area for debug info and trip notes button */}
+                    <div className="mb-2 flex min-h-[40px] flex-shrink-0 items-center justify-between gap-2 rounded-lg bg-white p-2 shadow">
                         <MapDebugInfo
                             tripViewport={
                                 selectedTrip
@@ -566,6 +604,18 @@ export default function TravelMap({
                             currentMapBounds={currentMapViewport}
                             searchBbox={getBoundingBoxFromTrip(selectedTrip)}
                         />
+                        {selectedTrip && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setIsTripNotesModalOpen(true)}
+                                className="flex items-center gap-2"
+                                data-testid="trip-notes-button"
+                            >
+                                <FileText className="h-4 w-4" />
+                                <span className="hidden sm:inline">Notes</span>
+                            </Button>
+                        )}
                     </div>
 
                     {/* Map area */}
@@ -601,6 +651,17 @@ export default function TravelMap({
                     </div>
                 </div>
             </div>
+
+            {/* Trip Notes Modal */}
+            {selectedTrip && (
+                <TripNotesModal
+                    isOpen={isTripNotesModalOpen}
+                    onClose={() => setIsTripNotesModalOpen(false)}
+                    initialNotes={selectedTrip.notes || null}
+                    onSave={handleSaveTripNotes}
+                    tripName={selectedTrip.name}
+                />
+            )}
         </div>
     );
 }
