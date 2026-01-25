@@ -7,13 +7,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Map',
-        href: '/',
-    },
-];
+import { useTranslation } from 'react-i18next';
 
 interface MapPageProps {
     trip?: {
@@ -24,6 +18,14 @@ interface MapPageProps {
 
 export default function MapPage() {
     const { trip } = usePage<MapPageProps>().props;
+    const { t } = useTranslation();
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: t('navigation.map'),
+            href: '/',
+        },
+    ];
 
     const {
         trips,
