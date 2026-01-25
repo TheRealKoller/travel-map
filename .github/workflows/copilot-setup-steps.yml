@@ -56,6 +56,9 @@ jobs:
 
       - name: Add ShadCN Slider Component
         run: npx shadcn@latest add slider --overwrite
+
+      - name: Add ShadCN Toast Component
+        run: npx shadcn@latest add toast -y
         
       - name: Verify Setup
         run: |
