@@ -1,3 +1,4 @@
+import '@/../../resources/css/markdown-preview.css';
 import AlertError from '@/components/alert-error';
 import DeleteTripDialog from '@/components/delete-trip-dialog';
 import { Button } from '@/components/ui/button';
@@ -22,12 +23,11 @@ import {
 } from '@/routes/trips';
 import { type BreadcrumbItem, type Trip } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { ImageIcon, Loader2 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
-import { marked } from 'marked';
-import SimpleMDE from 'react-simplemde-editor';
 import 'easymde/dist/easymde.min.css';
-import '@/../../resources/css/markdown-preview.css';
+import { ImageIcon, Loader2 } from 'lucide-react';
+import { marked } from 'marked';
+import { useEffect, useMemo, useState } from 'react';
+import SimpleMDE from 'react-simplemde-editor';
 
 interface CreateTripProps {
     trip?: Trip;

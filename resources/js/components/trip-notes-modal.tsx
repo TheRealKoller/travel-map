@@ -8,10 +8,10 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import 'easymde/dist/easymde.min.css';
 import { marked } from 'marked';
 import { useMemo, useState } from 'react';
 import SimpleMDE from 'react-simplemde-editor';
-import 'easymde/dist/easymde.min.css';
 
 interface TripNotesModalProps {
     isOpen: boolean;
@@ -104,7 +104,7 @@ export default function TripNotesModal({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Trip notes - {tripName}</DialogTitle>
                     <DialogDescription>
