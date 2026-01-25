@@ -14,9 +14,12 @@ class MapboxMatrixService
 
     private const MAX_LOCATIONS = 25; // Mapbox Matrix API limit
 
-    public function __construct(
-        private readonly MapboxRequestLimiter $limiter = new MapboxRequestLimiter
-    ) {}
+    private readonly MapboxRequestLimiter $limiter;
+
+    public function __construct(?MapboxRequestLimiter $limiter = null)
+    {
+        $this->limiter = $limiter ?? app(MapboxRequestLimiter::class);
+    }
 
     /**
      * Calculate distance and duration matrix between markers using Mapbox Matrix API.
