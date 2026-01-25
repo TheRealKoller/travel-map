@@ -11,6 +11,7 @@ use BaconQrCode\Writer;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Log;
+use League\CommonMark\CommonMarkConverter;
 
 class TripPdfExportService
 {
@@ -119,6 +120,7 @@ class TripPdfExportService
                     'latitude' => $marker->latitude,
                     'longitude' => $marker->longitude,
                     'notes' => $marker->notes,
+                    'notes_html' => $marker->notes ? $this->convertMarkdownToHtml($marker->notes) : null,
                     'url' => $marker->url,
                     'is_unesco' => $marker->is_unesco,
                     'estimated_hours' => $marker->estimated_hours,
@@ -199,6 +201,31 @@ class TripPdfExportService
         }
 
         return $tourMapBase64;
+    }
+
+    /**
+     * Convert Markdown text to HTML.
+     *
+     * @param  string  $markdown  The Markdown text to convert
+     * @return string The converted HTML
+     */
+    private function convertMarkdownToHtml(string $markdown): string
+    {
+        try {
+            $converter = new CommonMarkConverter([
+                'html_input' => 'strip',
+                'allow_unsafe_links' => false,
+            ]);
+
+            return $converter->convert($markdown)->getContent();
+        } catch (\Exception $e) {
+            Log::warning('Failed to convert Markdown to HTML', [
+                'error' => $e->getMessage(),
+            ]);
+
+            // Return plain text as fallback
+            return htmlspecialchars($markdown);
+        }
     }
 
     /**

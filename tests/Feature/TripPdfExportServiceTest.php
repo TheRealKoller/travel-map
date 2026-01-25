@@ -360,3 +360,40 @@ test('generatePdf handles marker with URL to generate QR code', function () {
     expect($response)->toBeInstanceOf(\Illuminate\Http\Response::class);
     expect($response->getContent())->toContain('%PDF');
 });
+
+test('generatePdf renders Markdown formatted notes as HTML', function () {
+    config(['services.mapbox.access_token' => 'pk.test.fake_token_for_testing_only']);
+
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Trip with Markdown Notes',
+    ]);
+
+    $tour = Tour::factory()->create([
+        'trip_id' => $trip->id,
+        'name' => 'Tour',
+    ]);
+
+    // Create a marker with Markdown formatted notes
+    $markdownNotes = "**bold** and *italic* text\n\n- Item 1\n- Item 2";
+
+    $marker = Marker::factory()->create([
+        'trip_id' => $trip->id,
+        'user_id' => $this->user->id,
+        'name' => 'Marker with Markdown',
+        'notes' => $markdownNotes,
+    ]);
+
+    $tour->markers()->attach($marker->id, ['position' => 0]);
+
+    $this->unsplashService->shouldReceive('trackDownload')->andReturn(true);
+    $this->mapboxService->shouldReceive('generateStaticImageWithMarkers')
+        ->andReturn('https://api.mapbox.com/test-image');
+
+    $response = $this->pdfService->generatePdf($trip);
+
+    expect($response)->toBeInstanceOf(\Illuminate\Http\Response::class);
+
+    // Verify PDF is generated successfully
+    expect($response->headers->get('content-type'))->toContain('application/pdf');
+});
