@@ -130,12 +130,17 @@ function MarkerItem({
                 <div className="mb-0.5 text-sm font-medium text-gray-900">
                     {markerData.name || 'Unnamed Location'}
                 </div>
-                {markerData.estimatedHours && (
-                    <div className="mb-1 text-xs text-gray-600">
-                        <span className="font-medium">Estimated duration:</span>{' '}
-                        ~{markerData.estimatedHours}h
-                    </div>
-                )}
+                <div className="mb-1 text-xs text-gray-600">
+                    <span className="font-medium">Lat:</span>{' '}
+                    {markerData.lat.toFixed(6)},
+                    <span className="ml-2 font-medium">Lng:</span>{' '}
+                    {markerData.lng.toFixed(6)}
+                    {markerData.estimatedHours && (
+                        <span className="ml-2 text-gray-500">
+                            ~{markerData.estimatedHours}h
+                        </span>
+                    )}
+                </div>
                 {isSelected && markerData.notes && (
                     <div
                         className="markdown-preview mt-1.5 border-t border-blue-300 pt-1.5 text-xs text-gray-700"
