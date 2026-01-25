@@ -210,10 +210,8 @@ export default function MarkerList({
     const [appliedType, setAppliedType] = useState<string>('all');
     const showAddToTourButtons = selectedTourId !== null;
 
-    // Get all unique marker types from the markers
-    const allMarkerTypes = useMemo(() => {
-        return Object.values(MarkerType);
-    }, []);
+    // Get all marker types from the enum
+    const allMarkerTypes = Object.values(MarkerType);
 
     // Filter markers based on applied type
     const filteredMarkers = useMemo(() => {
@@ -273,16 +271,21 @@ export default function MarkerList({
                                 >
                                     All types
                                 </SelectItem>
-                                {allMarkerTypes.map((type) => (
-                                    <SelectItem
-                                        key={type}
-                                        value={type}
-                                        data-testid={`type-filter-option-${type}`}
-                                    >
-                                        {type.charAt(0).toUpperCase() +
-                                            type.slice(1)}
-                                    </SelectItem>
-                                ))}
+                                {allMarkerTypes.map((type) => {
+                                    // Capitalize first letter of each type
+                                    const displayName =
+                                        type.charAt(0).toUpperCase() +
+                                        type.slice(1);
+                                    return (
+                                        <SelectItem
+                                            key={type}
+                                            value={type}
+                                            data-testid={`type-filter-option-${type}`}
+                                        >
+                                            {displayName}
+                                        </SelectItem>
+                                    );
+                                })}
                             </SelectContent>
                         </Select>
                         <Button
