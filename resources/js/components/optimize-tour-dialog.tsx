@@ -23,7 +23,6 @@ export default function OptimizeTourDialog({
 }: OptimizeTourDialogProps) {
     const handleConfirm = async () => {
         await onConfirm();
-        onOpenChange(false);
     };
 
     return (

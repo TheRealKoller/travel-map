@@ -21,7 +21,6 @@ export default function DeleteRouteDialog({
 }: DeleteRouteDialogProps) {
     const handleConfirm = async () => {
         await onConfirm();
-        onOpenChange(false);
     };
 
     return (

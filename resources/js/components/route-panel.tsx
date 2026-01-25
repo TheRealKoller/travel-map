@@ -159,9 +159,11 @@ export default function RoutePanel({
         try {
             await axios.delete(`/routes/${deleteRouteId}`);
             onRoutesUpdate(routes.filter((r) => r.id !== deleteRouteId));
+            setDeleteRouteId(null);
         } catch (err) {
             console.error('Failed to delete route:', err);
             toast.error('Failed to delete route. Please try again.');
+            setDeleteRouteId(null);
         }
     };
 
@@ -188,11 +190,13 @@ export default function RoutePanel({
 
     const handleConfirmOptimizeTour = async () => {
         if (!tourId) {
+            setShowOptimizeTourDialog(false);
             return;
         }
 
         const tour = tours.find((t) => t.id === tourId);
         if (!tour) {
+            setShowOptimizeTourDialog(false);
             return;
         }
 
@@ -218,6 +222,7 @@ export default function RoutePanel({
 
             // Show success message
             toast.success('Markers sorted successfully!');
+            setShowOptimizeTourDialog(false);
         } catch (err) {
             console.error('Failed to sort markers:', err);
             if (axios.isAxiosError(err)) {
@@ -229,6 +234,7 @@ export default function RoutePanel({
             } else {
                 setError('Failed to sort markers. Please try again.');
             }
+            setShowOptimizeTourDialog(false);
         } finally {
             setIsSorting(false);
         }

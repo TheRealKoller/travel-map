@@ -194,6 +194,7 @@ export default function MarkerForm({
 
     const handleConfirmDelete = () => {
         onDeleteMarker(marker.id);
+        setShowDeleteDialog(false);
     };
 
     const handleEnterEditMode = () => {

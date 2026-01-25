@@ -23,7 +23,6 @@ export default function DeleteMarkerDialog({
 }: DeleteMarkerDialogProps) {
     const handleConfirm = () => {
         onConfirm();
-        onOpenChange(false);
     };
 
     return (
