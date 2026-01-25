@@ -17,12 +17,13 @@ class TravelRecommendationAgentService
      *
      * @param  string  $context  The context type: 'trip', 'tour', or 'map_view'
      * @param  array  $data  The context data (trip name, markers, coordinates, etc.)
+     * @param  string  $language  The language for the response ('de' or 'en')
      * @return array{success: bool, recommendation?: string, error?: string}
      */
-    public function getTravelRecommendations(string $context, array $data): array
+    public function getTravelRecommendations(string $context, array $data, string $language = 'de'): array
     {
         try {
-            $prompt = $this->buildRecommendationPrompt($context, $data);
+            $prompt = $this->buildRecommendationPrompt($context, $data, $language);
 
             $response = Http::timeout(30)
                 ->withHeaders([
@@ -93,51 +94,120 @@ class TravelRecommendationAgentService
     /**
      * Build the prompt for travel recommendations.
      */
-    private function buildRecommendationPrompt(string $context, array $data): string
+    private function buildRecommendationPrompt(string $context, array $data, string $language): string
     {
-        $prompt = "Du bist ein hilfreicher Reiseberater. Gib mir Empfehlungen in einem informellen, freundlichen Ton auf Deutsch.\n\n";
+        $prompts = $this->getLanguagePrompts($language);
+
+        $prompt = "{$prompts['intro']}\n\n";
 
         switch ($context) {
             case 'trip':
-                $prompt .= "Kontext: Gesamte Reise\n";
-                $prompt .= "Reisename: {$data['trip_name']}\n\n";
-                $prompt .= "Marker in dieser Reise:\n";
+                $prompt .= "{$prompts['trip_context']}\n";
+                $prompt .= "{$prompts['trip_name']}: {$data['trip_name']}\n\n";
+                $prompt .= "{$prompts['markers_in_trip']}:\n";
                 foreach ($data['markers'] as $marker) {
-                    $prompt .= "- {$marker['name']} (Koordinaten: {$marker['latitude']}, {$marker['longitude']})\n";
+                    $prompt .= "- {$marker['name']} ({$prompts['coordinates']}: {$marker['latitude']}, {$marker['longitude']})\n";
                 }
-                $prompt .= "\nBitte gib mir Empfehlungen für diese Reise. Was sollte ich mir ansehen? Welche Sehenswürdigkeiten sind empfehlenswert? Gibt es besondere Dinge zu beachten?\n";
+                $prompt .= "\n{$prompts['trip_question']}\n";
                 break;
 
             case 'tour':
-                $prompt .= "Kontext: Ausgewählte Tour\n";
-                $prompt .= "Reisename: {$data['trip_name']}\n";
-                $prompt .= "Tourname: {$data['tour_name']}\n\n";
-                $prompt .= "Marker in dieser Tour:\n";
+                $prompt .= "{$prompts['tour_context']}\n";
+                $prompt .= "{$prompts['trip_name']}: {$data['trip_name']}\n";
+                $prompt .= "{$prompts['tour_name']}: {$data['tour_name']}\n\n";
+                $prompt .= "{$prompts['markers_in_tour']}:\n";
                 foreach ($data['markers'] as $marker) {
-                    $prompt .= "- {$marker['name']} (Koordinaten: {$marker['latitude']}, {$marker['longitude']})\n";
+                    $prompt .= "- {$marker['name']} ({$prompts['coordinates']}: {$marker['latitude']}, {$marker['longitude']})\n";
                 }
-                $prompt .= "\nBitte gib mir Empfehlungen für diese Tour. Was kann ich in dieser Route erleben? Welche Highlights gibt es? Was sollte ich beachten?\n";
+                $prompt .= "\n{$prompts['tour_question']}\n";
                 break;
 
             case 'map_view':
-                $prompt .= "Kontext: Aktueller Kartenausschnitt\n";
-                $prompt .= "Reisename: {$data['trip_name']}\n";
-                $prompt .= "Kartenbereich: Nord {$data['bounds']['north']}, Süd {$data['bounds']['south']}, Ost {$data['bounds']['east']}, West {$data['bounds']['west']}\n\n";
-                $prompt .= "Sichtbare Marker:\n";
+                $prompt .= "{$prompts['map_context']}\n";
+                $prompt .= "{$prompts['trip_name']}: {$data['trip_name']}\n";
+                $prompt .= "{$prompts['map_area']}: {$prompts['north']} {$data['bounds']['north']}, {$prompts['south']} {$data['bounds']['south']}, {$prompts['east']} {$data['bounds']['east']}, {$prompts['west']} {$data['bounds']['west']}\n\n";
+                $prompt .= "{$prompts['visible_markers']}:\n";
                 foreach ($data['markers'] as $marker) {
-                    $prompt .= "- {$marker['name']} (Koordinaten: {$marker['latitude']}, {$marker['longitude']})\n";
+                    $prompt .= "- {$marker['name']} ({$prompts['coordinates']}: {$marker['latitude']}, {$marker['longitude']})\n";
                 }
-                $prompt .= "\nBitte gib mir Empfehlungen für diesen Bereich. Was gibt es hier zu entdecken? Welche Sehenswürdigkeiten sind interessant? Was sollte man in dieser Gegend wissen?\n";
+                $prompt .= "\n{$prompts['map_question']}\n";
                 break;
         }
 
-        $prompt .= "\nDeine Antwort sollte:\n";
-        $prompt .= "- Informell und freundlich sein\n";
-        $prompt .= "- Auf Deutsch verfasst sein\n";
-        $prompt .= "- Konkrete Vorschläge und Empfehlungen enthalten\n";
-        $prompt .= "- Sehenswürdigkeiten und Besonderheiten nennen\n";
-        $prompt .= "- Praktische Tipps geben\n";
+        $prompt .= "\n{$prompts['answer_requirements']}\n";
 
         return $prompt;
+    }
+
+    /**
+     * Get language-specific prompt texts.
+     */
+    private function getLanguagePrompts(string $language): array
+    {
+        return match ($language) {
+            'de' => [
+                'intro' => 'Du bist ein hilfreicher Reiseberater. Gib mir Empfehlungen in einem informellen, freundlichen Ton auf Deutsch.',
+                'trip_context' => 'Kontext: Gesamte Reise',
+                'tour_context' => 'Kontext: Ausgewählte Tour',
+                'map_context' => 'Kontext: Aktueller Kartenausschnitt',
+                'trip_name' => 'Reisename',
+                'tour_name' => 'Tourname',
+                'map_area' => 'Kartenbereich',
+                'coordinates' => 'Koordinaten',
+                'north' => 'Nord',
+                'south' => 'Süd',
+                'east' => 'Ost',
+                'west' => 'West',
+                'markers_in_trip' => 'Marker in dieser Reise',
+                'markers_in_tour' => 'Marker in dieser Tour',
+                'visible_markers' => 'Sichtbare Marker',
+                'trip_question' => 'Bitte gib mir Empfehlungen für diese Reise. Was sollte ich mir ansehen? Welche Sehenswürdigkeiten sind empfehlenswert? Gibt es besondere Dinge zu beachten?',
+                'tour_question' => 'Bitte gib mir Empfehlungen für diese Tour. Was kann ich in dieser Route erleben? Welche Highlights gibt es? Was sollte ich beachten?',
+                'map_question' => 'Bitte gib mir Empfehlungen für diesen Bereich. Was gibt es hier zu entdecken? Welche Sehenswürdigkeiten sind interessant? Was sollte man in dieser Gegend wissen?',
+                'answer_requirements' => "Deine Antwort sollte:\n- Informell und freundlich sein\n- Auf Deutsch verfasst sein\n- Konkrete Vorschläge und Empfehlungen enthalten\n- Sehenswürdigkeiten und Besonderheiten nennen\n- Praktische Tipps geben",
+            ],
+            'en' => [
+                'intro' => 'You are a helpful travel advisor. Give me recommendations in an informal, friendly tone in English.',
+                'trip_context' => 'Context: Entire trip',
+                'tour_context' => 'Context: Selected tour',
+                'map_context' => 'Context: Current map view',
+                'trip_name' => 'Trip name',
+                'tour_name' => 'Tour name',
+                'map_area' => 'Map area',
+                'coordinates' => 'Coordinates',
+                'north' => 'North',
+                'south' => 'South',
+                'east' => 'East',
+                'west' => 'West',
+                'markers_in_trip' => 'Markers in this trip',
+                'markers_in_tour' => 'Markers in this tour',
+                'visible_markers' => 'Visible markers',
+                'trip_question' => 'Please give me recommendations for this trip. What should I see? Which attractions are recommended? Are there any special things to consider?',
+                'tour_question' => 'Please give me recommendations for this tour. What can I experience on this route? What are the highlights? What should I pay attention to?',
+                'map_question' => 'Please give me recommendations for this area. What is there to discover? Which sights are interesting? What should you know about this region?',
+                'answer_requirements' => "Your answer should:\n- Be informal and friendly\n- Be written in English\n- Contain concrete suggestions and recommendations\n- Mention attractions and special features\n- Provide practical tips",
+            ],
+            default => [
+                'intro' => 'Du bist ein hilfreicher Reiseberater. Gib mir Empfehlungen in einem informellen, freundlichen Ton auf Deutsch.',
+                'trip_context' => 'Kontext: Gesamte Reise',
+                'tour_context' => 'Kontext: Ausgewählte Tour',
+                'map_context' => 'Kontext: Aktueller Kartenausschnitt',
+                'trip_name' => 'Reisename',
+                'tour_name' => 'Tourname',
+                'map_area' => 'Kartenbereich',
+                'coordinates' => 'Koordinaten',
+                'north' => 'Nord',
+                'south' => 'Süd',
+                'east' => 'Ost',
+                'west' => 'West',
+                'markers_in_trip' => 'Marker in dieser Reise',
+                'markers_in_tour' => 'Marker in dieser Tour',
+                'visible_markers' => 'Sichtbare Marker',
+                'trip_question' => 'Bitte gib mir Empfehlungen für diese Reise. Was sollte ich mir ansehen? Welche Sehenswürdigkeiten sind empfehlenswert? Gibt es besondere Dinge zu beachten?',
+                'tour_question' => 'Bitte gib mir Empfehlungen für diese Tour. Was kann ich in dieser Route erleben? Welche Highlights gibt es? Was sollte ich beachten?',
+                'map_question' => 'Bitte gib mir Empfehlungen für diesen Bereich. Was gibt es hier zu entdecken? Welche Sehenswürdigkeiten sind interessant? Was sollte man in dieser Gegend wissen?',
+                'answer_requirements' => "Deine Antwort sollte:\n- Informell und freundlich sein\n- Auf Deutsch verfasst sein\n- Konkrete Vorschläge und Empfehlungen enthalten\n- Sehenswürdigkeiten und Besonderheiten nennen\n- Praktische Tipps geben",
+            ],
+        };
     }
 }

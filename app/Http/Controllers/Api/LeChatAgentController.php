@@ -26,16 +26,20 @@ class LeChatAgentController extends Controller
             'name' => 'required|string|max:255',
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
+            'language' => 'nullable|string|in:de,en',
         ]);
 
         if ($validator->fails()) {
             throw new ValidationException($validator);
         }
 
+        $language = $request->input('language', $request->cookie('language', 'de'));
+
         $result = $this->markerEnrichmentService->enrichMarkerInfo(
             $request->input('name'),
             $request->input('latitude'),
-            $request->input('longitude')
+            $request->input('longitude'),
+            $language
         );
 
         if (! $result['success']) {
@@ -58,6 +62,7 @@ class LeChatAgentController extends Controller
             'data.markers.*.name' => 'required|string',
             'data.markers.*.latitude' => 'required|numeric|between:-90,90',
             'data.markers.*.longitude' => 'required|numeric|between:-180,180',
+            'language' => 'nullable|string|in:de,en',
         ]);
 
         if ($validator->fails()) {
@@ -66,6 +71,7 @@ class LeChatAgentController extends Controller
 
         $context = $request->input('context');
         $data = $request->input('data');
+        $language = $request->input('language', $request->cookie('language', 'de'));
 
         // Validate context-specific fields
         if ($context === 'tour' && ! isset($data['tour_name'])) {
@@ -76,7 +82,7 @@ class LeChatAgentController extends Controller
             throw new \App\Exceptions\BusinessLogicException('bounds is required for map_view context');
         }
 
-        $result = $this->travelRecommendationService->getTravelRecommendations($context, $data);
+        $result = $this->travelRecommendationService->getTravelRecommendations($context, $data, $language);
 
         if (! $result['success']) {
             return response()->json($result, 500);
