@@ -406,7 +406,7 @@ export default function TravelMap({
             <div className="flex flex-1 flex-col overflow-hidden lg:flex-row">
                 {/* Part 1: Marker list or form */}
                 <div
-                    className="flex w-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm lg:max-w-[25%]"
+                    className="flex w-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm lg:w-[16.67%]"
                     data-testid="marker-panel"
                 >
                     <div className="flex-1 overflow-y-auto">
@@ -444,7 +444,7 @@ export default function TravelMap({
 
                 {/* Part 2: Tour panel with collapse button */}
                 <div
-                    className={`flex w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm ${isTourPanelCollapsed ? 'lg:w-auto' : 'lg:max-w-[min(25%,300px)]'}`}
+                    className={`flex w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm ${isTourPanelCollapsed ? 'lg:w-auto' : 'lg:w-[16.67%]'}`}
                     data-testid="tour-panel"
                 >
                     {!isTourPanelCollapsed && (
@@ -490,7 +490,7 @@ export default function TravelMap({
                 {/* Part 3: Route panel with collapse button */}
                 {selectedTripId && (
                     <div
-                        className={`flex w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm ${isRoutePanelCollapsed ? 'lg:w-auto' : 'lg:max-w-[min(25%,300px)]'}`}
+                        className={`flex w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm ${isRoutePanelCollapsed ? 'lg:w-auto' : 'lg:w-[16.67%]'}`}
                         data-testid="route-panel"
                     >
                         {!isRoutePanelCollapsed && (
