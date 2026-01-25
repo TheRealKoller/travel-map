@@ -28,6 +28,7 @@ import {
     Trash2,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface RoutePanelProps {
     tripId: number;
@@ -158,7 +159,7 @@ export default function RoutePanel({
             onRoutesUpdate(routes.filter((r) => r.id !== routeId));
         } catch (err) {
             console.error('Failed to delete route:', err);
-            alert('Failed to delete route. Please try again.');
+            toast.error('Failed to delete route. Please try again.');
         }
     };
 
@@ -169,12 +170,12 @@ export default function RoutePanel({
 
         const tour = tours.find((t) => t.id === tourId);
         if (!tour || !tour.markers || tour.markers.length < 2) {
-            alert('Tour must have at least 2 markers to sort.');
+            toast.error('Tour must have at least 2 markers to sort.');
             return;
         }
 
         if (tour.markers.length > 25) {
-            alert(
+            toast.error(
                 'Tour has too many markers. Maximum is 25 markers for automatic sorting.',
             );
             return;
@@ -209,7 +210,7 @@ export default function RoutePanel({
             }
 
             // Show success message
-            alert('Markers sorted successfully!');
+            toast.success('Markers sorted successfully!');
         } catch (err) {
             console.error('Failed to sort markers:', err);
             if (axios.isAxiosError(err)) {

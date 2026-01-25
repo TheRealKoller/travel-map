@@ -1,6 +1,7 @@
 import { Tour } from '@/types/tour';
 import axios from 'axios';
 import { useCallback } from 'react';
+import { toast } from 'sonner';
 
 interface UseTourMarkersOptions {
     selectedTripId: number | null;
@@ -43,11 +44,11 @@ export function useTourMarkers({
                     error,
                 );
                 if (axios.isAxiosError(error) && error.response) {
-                    alert(
+                    toast.error(
                         `Failed to update marker tour assignment: ${error.response.data.error || error.response.data.message || 'Unknown error'}`,
                     );
                 } else {
-                    alert(
+                    toast.error(
                         'Failed to update marker tour assignment. Please try again.',
                     );
                 }
@@ -75,7 +76,7 @@ export function useTourMarkers({
                 }
             } catch (error) {
                 console.error('Failed to add marker to tour:', error);
-                alert('Failed to add marker to tour. Please try again.');
+                toast.error('Failed to add marker to tour. Please try again.');
             }
         },
         [selectedTourId, selectedTripId, onToursUpdate],
@@ -127,7 +128,7 @@ export function useTourMarkers({
                 }
             } catch (error) {
                 console.error('Failed to reorder markers:', error);
-                alert(
+                toast.error(
                     'Failed to reorder markers. The order has been reverted.',
                 );
                 // Revert the optimistic update on error
@@ -192,7 +193,7 @@ export function useTourMarkers({
                 }
             } catch (error) {
                 console.error('Failed to reorder markers:', error);
-                alert(
+                toast.error(
                     'Failed to reorder markers. The order has been reverted.',
                 );
                 // Revert the optimistic update on error
@@ -226,7 +227,9 @@ export function useTourMarkers({
                 }
             } catch (error) {
                 console.error('Failed to remove marker from tour:', error);
-                alert('Failed to remove marker from tour. Please try again.');
+                toast.error(
+                    'Failed to remove marker from tour. Please try again.',
+                );
             }
         },
         [selectedTourId, selectedTripId, onToursUpdate],

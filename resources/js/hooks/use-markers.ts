@@ -3,6 +3,7 @@ import { MarkerData, MarkerType } from '@/types/marker';
 import axios from 'axios';
 import mapboxgl from 'mapbox-gl';
 import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface UseMarkersOptions {
     mapInstance: mapboxgl.Map | null;
@@ -100,7 +101,7 @@ export function useMarkers({
                 setSelectedMarkerId(null);
             } catch (error) {
                 console.error('Failed to load markers:', error);
-                alert('Failed to load markers. Please refresh the page.');
+                toast.error('Failed to load markers. Please refresh the page.');
             }
         };
 
@@ -126,7 +127,7 @@ export function useMarkers({
 
                 if (!markerToSave) {
                     console.error('Marker not found:', id);
-                    alert('Marker not found. Please try again.');
+                    toast.error('Marker not found. Please try again.');
                     return;
                 }
 
@@ -254,7 +255,7 @@ export function useMarkers({
                 setSelectedMarkerId(null);
             } catch (error) {
                 console.error('Failed to save marker:', error);
-                alert('Failed to save marker. Please try again.');
+                toast.error('Failed to save marker. Please try again.');
             }
         },
         [
@@ -291,7 +292,7 @@ export function useMarkers({
                 }
             } catch (error) {
                 console.error('Failed to delete marker:', error);
-                alert('Failed to delete marker. Please try again.');
+                toast.error('Failed to delete marker. Please try again.');
 
                 // Re-add marker to map if deletion failed
                 setMarkers((prev) => {
