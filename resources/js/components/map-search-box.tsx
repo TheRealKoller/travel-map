@@ -1,3 +1,4 @@
+import { useLanguage } from '@/hooks/use-language';
 import { SearchBoxRetrieveResponse } from '@mapbox/search-js-core';
 import { SearchBox } from '@mapbox/search-js-react';
 import { useMemo } from 'react';
@@ -34,6 +35,8 @@ export function MapSearchBox({
     types,
     bbox,
 }: MapSearchBoxProps) {
+    const { language } = useLanguage();
+
     // Validate and memoize bbox to avoid unnecessary re-renders
     const validatedBbox = useMemo(() => {
         if (bbox && bbox.every((val) => isFinite(val))) {
@@ -41,6 +44,11 @@ export function MapSearchBox({
         }
         return undefined;
     }, [bbox]);
+
+    // Memoize language configuration with English as fallback
+    const languageConfig = useMemo(() => {
+        return language === 'de' ? 'de,en' : 'en';
+    }, [language]);
 
     // Early return if no access token
     if (!accessToken) {
@@ -55,7 +63,7 @@ export function MapSearchBox({
             <SearchBox
                 accessToken={accessToken}
                 options={{
-                    language: 'de,en',
+                    language: languageConfig,
                     bbox: validatedBbox,
                     country: countries?.join(','),
                     types: types?.join(','),

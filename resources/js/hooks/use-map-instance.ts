@@ -1,8 +1,14 @@
+import { Language } from '@/hooks/use-language';
 import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from '@/lib/map-constants';
 import mapboxgl from 'mapbox-gl';
 import { useEffect, useRef, useState } from 'react';
 
-export function useMapInstance() {
+interface UseMapInstanceOptions {
+    language?: Language;
+}
+
+export function useMapInstance(options: UseMapInstanceOptions = {}) {
+    const { language = 'de' } = options;
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
     const [, setMapInitialized] = useState(false);
@@ -45,6 +51,13 @@ export function useMapInstance() {
         // Add navigation controls
         map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
+        // Set language after map loads
+        map.on('load', () => {
+            // Set language for Mapbox Standard Style
+            // Uses 'worldview' to display appropriate borders and place names
+            map.setConfigProperty('basemap', 'language', language);
+        });
+
         // Cleanup on unmount
         return () => {
             if (mapInstanceRef.current) {
@@ -52,7 +65,7 @@ export function useMapInstance() {
                 mapInstanceRef.current = null;
             }
         };
-    }, []);
+    }, [language]);
 
     return {
         mapRef,
