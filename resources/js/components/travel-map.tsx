@@ -457,6 +457,7 @@ export default function TravelMap({
                                     onCreateTour={onCreateTour}
                                     onDeleteTour={onDeleteTour}
                                     markers={markers}
+                                    routes={routes}
                                     onMoveMarkerUp={handleMoveMarkerUp}
                                     onMoveMarkerDown={handleMoveMarkerDown}
                                     onRemoveMarkerFromTour={

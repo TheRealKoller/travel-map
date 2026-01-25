@@ -5,6 +5,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getMarkerTypeIcon, UnescoIcon } from '@/lib/marker-icons';
 import { formatDuration } from '@/lib/utils';
 import { MarkerData } from '@/types/marker';
+import { Route } from '@/types/route';
 import { Tour } from '@/types/tour';
 import {
     ArrowDown,
@@ -22,6 +23,7 @@ interface TourPanelProps {
     onCreateTour: () => void;
     onDeleteTour: (tourId: number) => void;
     markers: MarkerData[];
+    routes: Route[];
     onMoveMarkerUp?: (markerId: string) => void;
     onMoveMarkerDown?: (markerId: string) => void;
     onRemoveMarkerFromTour?: (markerId: string) => void;
@@ -153,6 +155,7 @@ function MarkerItem({
 interface TourCardProps {
     tour: Tour;
     markers: MarkerData[];
+    routes: Route[];
     onDeleteTour: (tourId: number) => void;
     onMoveMarkerUp?: (markerId: string) => void;
     onMoveMarkerDown?: (markerId: string) => void;
@@ -163,6 +166,7 @@ interface TourCardProps {
 function TourCard({
     tour,
     markers,
+    routes,
     onDeleteTour,
     onMoveMarkerUp,
     onMoveMarkerDown,
@@ -223,26 +227,59 @@ function TourCard({
                                 }
                             />
                             {/* Route button between consecutive markers */}
-                            {index < markers.length - 1 && onRequestRoute && (
-                                <div className="my-1 flex justify-center">
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() =>
-                                            onRequestRoute(
-                                                marker.id,
-                                                markers[index + 1].id,
-                                            )
-                                        }
-                                        className="h-6 gap-1 px-2 text-xs text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-                                        title="Calculate route"
-                                        data-testid={`route-button-${index}`}
-                                    >
-                                        <RouteIcon className="h-3 w-3" />
-                                        <span>Route</span>
-                                    </Button>
-                                </div>
-                            )}
+                            {index < markers.length - 1 &&
+                                onRequestRoute &&
+                                (() => {
+                                    const nextMarker = markers[index + 1];
+                                    // Find existing route between these markers
+                                    const existingRoute = routes.find(
+                                        (route) =>
+                                            (route.start_marker.id ===
+                                                marker.id &&
+                                                route.end_marker.id ===
+                                                    nextMarker.id) ||
+                                            (route.start_marker.id ===
+                                                nextMarker.id &&
+                                                route.end_marker.id ===
+                                                    marker.id),
+                                    );
+
+                                    return (
+                                        <div className="my-1 flex items-center justify-center gap-1.5">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() =>
+                                                    onRequestRoute(
+                                                        marker.id,
+                                                        nextMarker.id,
+                                                    )
+                                                }
+                                                className="h-6 gap-1 px-2 text-xs text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                                                title="Calculate route"
+                                                data-testid={`route-button-${index}`}
+                                            >
+                                                <RouteIcon className="h-3 w-3" />
+                                                <span>Route</span>
+                                            </Button>
+                                            {existingRoute && (
+                                                <span
+                                                    className="text-xs text-gray-600"
+                                                    data-testid={`route-duration-${index}`}
+                                                >
+                                                    {existingRoute.duration
+                                                        .minutes < 60
+                                                        ? `${existingRoute.duration.minutes}min`
+                                                        : formatDuration(
+                                                              existingRoute
+                                                                  .duration
+                                                                  .minutes / 60,
+                                                          )}
+                                                </span>
+                                            )}
+                                        </div>
+                                    );
+                                })()}
                         </li>
                     ))}
                 </ul>
@@ -258,6 +295,7 @@ export default function TourPanel({
     onCreateTour,
     onDeleteTour,
     markers,
+    routes,
     onMoveMarkerUp,
     onMoveMarkerDown,
     onRemoveMarkerFromTour,
@@ -331,6 +369,7 @@ export default function TourPanel({
                 <TourCard
                     tour={selectedTour}
                     markers={selectedTourMarkers}
+                    routes={routes}
                     onDeleteTour={onDeleteTour}
                     onMoveMarkerUp={onMoveMarkerUp}
                     onMoveMarkerDown={onMoveMarkerDown}
