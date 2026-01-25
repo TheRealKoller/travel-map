@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { getMarkerTypeIcon, UnescoIcon } from '@/lib/marker-icons';
 import { MarkerData } from '@/types/marker';
-import { ArrowRight, Image, Loader2 } from 'lucide-react';
+import { ArrowRight, Filter, Image, Loader2 } from 'lucide-react';
 import { marked } from 'marked';
 import { useEffect, useState } from 'react';
 
@@ -198,17 +198,7 @@ export default function MarkerList({
     onAddMarkerToTour,
     onMarkerImageFetched,
 }: MarkerListProps) {
-    if (markers.length === 0) {
-        return (
-            <div className="rounded-lg bg-white p-3 shadow">
-                <h2 className="mb-3 text-base font-semibold">Markers (0)</h2>
-                <p className="text-sm text-gray-500">
-                    Click on the map to add markers
-                </p>
-            </div>
-        );
-    }
-
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
     const showAddToTourButtons = selectedTourId !== null;
 
     return (
@@ -216,27 +206,55 @@ export default function MarkerList({
             className="rounded-lg bg-white p-3 shadow"
             data-testid="marker-list"
         >
-            <h2 className="mb-3 text-base font-semibold">
-                Markers ({markers.length})
-            </h2>
-            {showAddToTourButtons && (
-                <p className="mb-2 text-xs text-gray-500">
-                    Click the arrow to add a marker to the current tour
-                </p>
+            <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-base font-semibold">
+                    Markers ({markers.length})
+                </h2>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsFilterOpen(!isFilterOpen)}
+                    title="Toggle filter menu"
+                    data-testid="filter-toggle-button"
+                    className="h-8 w-8"
+                >
+                    <Filter className="h-4 w-4" />
+                </Button>
+            </div>
+            {isFilterOpen && (
+                <div
+                    className="mb-3 rounded border border-gray-200 bg-gray-50 p-3 text-sm text-gray-600"
+                    data-testid="filter-menu"
+                >
+                    Filter options will be added here
+                </div>
             )}
-            <ul className="space-y-1.5" data-testid="marker-list-items">
-                {markers.map((markerData) => (
-                    <MarkerItem
-                        key={markerData.id}
-                        markerData={markerData}
-                        isSelected={selectedMarkerId === markerData.id}
-                        onSelect={onSelectMarker}
-                        showAddToTourButton={showAddToTourButtons}
-                        onAddToTour={onAddMarkerToTour}
-                        onImageFetched={onMarkerImageFetched}
-                    />
-                ))}
-            </ul>
+            {markers.length === 0 ? (
+                <p className="text-sm text-gray-500">
+                    Click on the map to add markers
+                </p>
+            ) : (
+                <>
+                    {showAddToTourButtons && (
+                        <p className="mb-2 text-xs text-gray-500">
+                            Click the arrow to add a marker to the current tour
+                        </p>
+                    )}
+                    <ul className="space-y-1.5" data-testid="marker-list-items">
+                        {markers.map((markerData) => (
+                            <MarkerItem
+                                key={markerData.id}
+                                markerData={markerData}
+                                isSelected={selectedMarkerId === markerData.id}
+                                onSelect={onSelectMarker}
+                                showAddToTourButton={showAddToTourButtons}
+                                onAddToTour={onAddMarkerToTour}
+                                onImageFetched={onMarkerImageFetched}
+                            />
+                        ))}
+                    </ul>
+                </>
+            )}
         </div>
     );
 }
