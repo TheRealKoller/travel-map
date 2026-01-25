@@ -13,7 +13,6 @@ i18n.use(LanguageDetector)
             en: { translation: en },
         },
         fallbackLng: 'de', // German is the default language
-        lng: 'de',
         interpolation: {
             escapeValue: false,
         },

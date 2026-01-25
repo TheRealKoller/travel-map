@@ -14,7 +14,9 @@ const setCookie = (name: string, value: string, days = 365) => {
 
 export function useLanguage() {
     const { i18n } = useTranslation();
-    const [language, setLanguage] = useState<Language>('de');
+    const [language, setLanguage] = useState<Language>(
+        (i18n.language as Language) || 'de',
+    );
 
     const updateLanguage = useCallback(
         (lang: Language) => {
@@ -33,12 +35,17 @@ export function useLanguage() {
     );
 
     useEffect(() => {
-        const savedLanguage =
-            (localStorage.getItem('language') as Language) || 'de';
+        // Listen for i18next language changes
+        const handleLanguageChange = (lng: string) => {
+            setLanguage((lng as Language) || 'de');
+        };
 
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        updateLanguage(savedLanguage);
-    }, [updateLanguage]);
+        i18n.on('languageChanged', handleLanguageChange);
+
+        return () => {
+            i18n.off('languageChanged', handleLanguageChange);
+        };
+    }, [i18n]);
 
     return { language, updateLanguage } as const;
 }
