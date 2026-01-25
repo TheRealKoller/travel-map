@@ -268,6 +268,17 @@ export default function TravelMap({
         [selectedTourId, handleToggleMarkerInTour],
     );
 
+    // Handler for updating a single tour after sorting
+    const handleTourUpdate = useCallback(
+        (updatedTour: Tour) => {
+            const updatedTours = tours.map((tour) =>
+                tour.id === updatedTour.id ? updatedTour : tour,
+            );
+            onToursUpdate(updatedTours);
+        },
+        [tours, onToursUpdate],
+    );
+
     // Tour lines - draw curved lines between markers in selected tour
     useTourLines({
         mapInstance,
@@ -506,6 +517,7 @@ export default function TravelMap({
                                         onHighlightedRouteIdChange={
                                             setHighlightedRouteId
                                         }
+                                        onTourUpdate={handleTourUpdate}
                                     />
                                 </div>
                             </div>

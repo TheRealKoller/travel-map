@@ -18,6 +18,7 @@ import { Route, TransportMode } from '@/types/route';
 import { Tour } from '@/types/tour';
 import axios from 'axios';
 import {
+    ArrowDownUp,
     Bike,
     Car,
     ChevronDown,
@@ -41,6 +42,7 @@ interface RoutePanelProps {
     expandedRoutes: Set<number>;
     onExpandedRoutesChange: (expandedRoutes: Set<number>) => void;
     onHighlightedRouteIdChange?: (routeId: number | null) => void;
+    onTourUpdate?: (tour: Tour) => void;
 }
 
 export default function RoutePanel({
@@ -56,6 +58,7 @@ export default function RoutePanel({
     expandedRoutes,
     onExpandedRoutesChange,
     onHighlightedRouteIdChange,
+    onTourUpdate,
 }: RoutePanelProps) {
     const [startMarkerId, setStartMarkerId] =
         useState<string>(initialStartMarkerId);
@@ -63,6 +66,7 @@ export default function RoutePanel({
     const [transportMode, setTransportMode] =
         useState<TransportMode>('driving-car');
     const [isCreating, setIsCreating] = useState(false);
+    const [isSorting, setIsSorting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     // Update marker IDs when initialStartMarkerId or initialEndMarkerId changes
@@ -155,6 +159,70 @@ export default function RoutePanel({
         } catch (err) {
             console.error('Failed to delete route:', err);
             alert('Failed to delete route. Please try again.');
+        }
+    };
+
+    const handleSortMarkers = async () => {
+        if (!tourId) {
+            return;
+        }
+
+        const tour = tours.find((t) => t.id === tourId);
+        if (!tour || !tour.markers || tour.markers.length < 2) {
+            alert('Tour must have at least 2 markers to sort.');
+            return;
+        }
+
+        if (tour.markers.length > 25) {
+            alert(
+                'Tour has too many markers. Maximum is 25 markers for automatic sorting.',
+            );
+            return;
+        }
+
+        if (
+            !confirm(
+                `This will automatically reorder the ${tour.markers.length} markers in your tour based on walking distances. Continue?`,
+            )
+        ) {
+            return;
+        }
+
+        setIsSorting(true);
+        setError(null);
+
+        try {
+            const response = await axios.post(
+                `/tours/${tourId}/markers/sort`,
+                {},
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Accept: 'application/json',
+                    },
+                },
+            );
+
+            // Update the tour with the sorted markers
+            if (onTourUpdate && response.data) {
+                onTourUpdate(response.data);
+            }
+
+            // Show success message
+            alert('Markers sorted successfully!');
+        } catch (err) {
+            console.error('Failed to sort markers:', err);
+            if (axios.isAxiosError(err)) {
+                if (err.response?.data?.error) {
+                    setError(err.response.data.error);
+                } else {
+                    setError('Failed to sort markers. Please try again.');
+                }
+            } else {
+                setError('Failed to sort markers. Please try again.');
+            }
+        } finally {
+            setIsSorting(false);
         }
     };
 
@@ -396,6 +464,44 @@ export default function RoutePanel({
                     </Button>
                 </div>
             </Card>
+
+            {tourId && tours.find((t) => t.id === tourId) && (
+                <Card className="p-4">
+                    <h3 className="mb-4 text-lg font-semibold">
+                        Tour optimization
+                    </h3>
+
+                    <div className="space-y-3">
+                        <p className="text-sm text-muted-foreground">
+                            Automatically reorder markers in your tour to
+                            minimize walking distance between locations.
+                        </p>
+
+                        <Button
+                            onClick={handleSortMarkers}
+                            disabled={
+                                isSorting ||
+                                !tours.find((t) => t.id === tourId)?.markers ||
+                                (tours.find((t) => t.id === tourId)?.markers
+                                    ?.length ?? 0) < 2
+                            }
+                            variant="outline"
+                            className="w-full"
+                            data-testid="sort-markers-button"
+                        >
+                            <ArrowDownUp className="mr-2 h-4 w-4" />
+                            {isSorting
+                                ? 'Sorting markers...'
+                                : 'Sort markers by distance'}
+                        </Button>
+
+                        <p className="text-xs text-muted-foreground">
+                            Uses Mapbox Matrix API to calculate walking
+                            distances and finds the optimal order.
+                        </p>
+                    </div>
+                </Card>
+            )}
 
             {filteredRoutes.length > 0 && (
                 <Card className="p-4">
