@@ -9,6 +9,7 @@ import TourPanel from '@/components/tour-panel';
 import TripNotesModal from '@/components/trip-notes-modal';
 import { Button } from '@/components/ui/button';
 import { useGeocoder } from '@/hooks/use-geocoder';
+import { useLanguage } from '@/hooks/use-language';
 import { useMapInstance } from '@/hooks/use-map-instance';
 import { useMapInteractions } from '@/hooks/use-map-interactions';
 import { useMarkerHighlight } from '@/hooks/use-marker-highlight';
@@ -59,8 +60,11 @@ export default function TravelMap({
     onDeleteTour,
     onSetViewport,
 }: TravelMapProps) {
-    // Initialize map instance
-    const { mapRef, mapInstance } = useMapInstance();
+    // Get current language setting
+    const { language } = useLanguage();
+
+    // Initialize map instance with language support
+    const { mapRef, mapInstance } = useMapInstance({ language });
 
     // Get the selected trip to access its country
     const selectedTrip = trips.find((t) => t.id === selectedTripId);

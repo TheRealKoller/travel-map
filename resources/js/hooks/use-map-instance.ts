@@ -1,8 +1,14 @@
+import { Language } from '@/hooks/use-language';
 import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from '@/lib/map-constants';
 import mapboxgl from 'mapbox-gl';
 import { useEffect, useRef, useState } from 'react';
 
-export function useMapInstance() {
+interface UseMapInstanceOptions {
+    language?: Language;
+}
+
+export function useMapInstance(options: UseMapInstanceOptions = {}) {
+    const { language = 'de' } = options;
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
     const [, setMapInitialized] = useState(false);
@@ -53,6 +59,22 @@ export function useMapInstance() {
             }
         };
     }, []);
+
+    // Set and update map language when map is loaded or language changes
+    useEffect(() => {
+        const map = mapInstanceRef.current;
+        if (!map) return;
+
+        // Wait for map to be loaded before setting/updating language
+        if (map.isStyleLoaded()) {
+            map.setConfigProperty('basemap', 'language', language);
+        } else {
+            // If map is not yet loaded, wait for load event
+            map.once('load', () => {
+                map.setConfigProperty('basemap', 'language', language);
+            });
+        }
+    }, [language]);
 
     return {
         mapRef,
