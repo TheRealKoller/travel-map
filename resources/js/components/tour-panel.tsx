@@ -291,7 +291,7 @@ export default function TourPanel({
         : [];
 
     return (
-        <div className="flex h-full flex-col gap-4" data-testid="tour-panel">
+        <div className="flex flex-col gap-4 p-4" data-testid="tour-panel">
             <Tabs
                 value={
                     selectedTourId === null ? 'all' : selectedTourId.toString()

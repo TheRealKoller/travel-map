@@ -288,7 +288,7 @@ export default function RoutePanel({
     const filteredRoutes = getFilteredRoutes();
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-4 p-4">
             <Card className="p-4">
                 <h3 className="mb-4 text-lg font-semibold">Create Route</h3>
 
