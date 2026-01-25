@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/select';
 import { COUNTRIES } from '@/lib/countries';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface CreateTripModalProps {
     open: boolean;
@@ -33,6 +34,7 @@ export default function CreateTripModal({
     const [tripName, setTripName] = useState('');
     const [country, setCountry] = useState<string>('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const { t } = useTranslation();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -55,34 +57,43 @@ export default function CreateTripModal({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Create new trip</DialogTitle>
+                    <DialogTitle>{t('trips.create_modal.title')}</DialogTitle>
                     <DialogDescription>
-                        Give your trip a name and optionally select a country to
-                        filter search results.
+                        {t('trips.create_modal.description')}
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="tripName">Trip name</Label>
+                            <Label htmlFor="tripName">
+                                {t('trips.create_modal.trip_name_label')}
+                            </Label>
                             <Input
                                 id="tripName"
                                 value={tripName}
                                 onChange={(e) => setTripName(e.target.value)}
-                                placeholder="e.g., Summer 2024, Japan Trip"
+                                placeholder={t(
+                                    'trips.create_modal.trip_name_placeholder',
+                                )}
                                 disabled={isSubmitting}
                                 autoFocus
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="country">Country (optional)</Label>
+                            <Label htmlFor="country">
+                                {t('trips.create_modal.country_label')}
+                            </Label>
                             <Select
                                 value={country}
                                 onValueChange={setCountry}
                                 disabled={isSubmitting}
                             >
                                 <SelectTrigger id="country">
-                                    <SelectValue placeholder="Select a country..." />
+                                    <SelectValue
+                                        placeholder={t(
+                                            'trips.create_modal.country_placeholder',
+                                        )}
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {COUNTRIES.map((c) => (
@@ -93,7 +104,7 @@ export default function CreateTripModal({
                                 </SelectContent>
                             </Select>
                             <p className="text-xs text-muted-foreground">
-                                Search results will be filtered to this country
+                                {t('trips.create_modal.country_help')}
                             </p>
                         </div>
                     </div>
@@ -104,13 +115,15 @@ export default function CreateTripModal({
                             onClick={() => onOpenChange(false)}
                             disabled={isSubmitting}
                         >
-                            Cancel
+                            {t('trips.create_modal.cancel_button')}
                         </Button>
                         <Button
                             type="submit"
                             disabled={isSubmitting || !tripName.trim()}
                         >
-                            {isSubmitting ? 'Creating...' : 'Create trip'}
+                            {isSubmitting
+                                ? t('trips.create_modal.creating_button')
+                                : t('trips.create_modal.create_button')}
                         </Button>
                     </DialogFooter>
                 </form>

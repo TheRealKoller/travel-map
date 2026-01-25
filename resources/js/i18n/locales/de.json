@@ -1,13 +1,312 @@
 {
+    "auth": {
+        "login": {
+            "title": "Bei deinem Konto anmelden",
+            "description": "Gib unten deine E-Mail-Adresse und dein Passwort ein, um dich anzumelden",
+            "page_title": "Anmelden",
+            "email_label": "E-Mail-Adresse",
+            "email_placeholder": "email@beispiel.de",
+            "password_label": "Passwort",
+            "password_placeholder": "Passwort",
+            "forgot_password": "Passwort vergessen?",
+            "remember_me": "Angemeldet bleiben",
+            "login_button": "Anmelden",
+            "no_account": "Noch kein Konto?",
+            "sign_up": "Registrieren"
+        },
+        "register": {
+            "title": "Konto erstellen",
+            "description": "Gib deine Daten ein, um dein Konto zu erstellen",
+            "page_title": "Registrieren",
+            "name_label": "Name",
+            "name_placeholder": "Vollständiger Name",
+            "email_label": "E-Mail-Adresse",
+            "email_placeholder": "email@beispiel.de",
+            "password_label": "Passwort",
+            "password_placeholder": "Passwort",
+            "password_confirmation_label": "Passwort bestätigen",
+            "password_confirmation_placeholder": "Passwort bestätigen",
+            "register_button": "Konto erstellen",
+            "have_account": "Bereits ein Konto?",
+            "log_in": "Anmelden"
+        },
+        "forgot_password": {
+            "title": "Passwort vergessen",
+            "description": "Gib deine E-Mail-Adresse ein, um einen Link zum Zurücksetzen des Passworts zu erhalten",
+            "page_title": "Passwort vergessen",
+            "email_label": "E-Mail-Adresse",
+            "email_placeholder": "email@beispiel.de",
+            "submit_button": "Link zum Zurücksetzen senden",
+            "return_to": "Oder zurück zur",
+            "log_in": "Anmeldung"
+        },
+        "reset_password": {
+            "title": "Passwort zurücksetzen",
+            "description": "Bitte gib unten dein neues Passwort ein",
+            "page_title": "Passwort zurücksetzen",
+            "email_label": "E-Mail-Adresse",
+            "password_label": "Passwort",
+            "password_confirmation_label": "Passwort bestätigen",
+            "submit_button": "Passwort zurücksetzen"
+        },
+        "verify_email": {
+            "title": "E-Mail bestätigen",
+            "description": "Bitte bestätige deine E-Mail-Adresse, indem du auf den Link klickst, den wir dir gerade per E-Mail gesendet haben",
+            "page_title": "E-Mail-Bestätigung",
+            "verification_sent": "Ein neuer Bestätigungslink wurde an die E-Mail-Adresse gesendet, die du bei der Registrierung angegeben hast",
+            "resend_button": "Bestätigungs-E-Mail erneut senden",
+            "logout_button": "Abmelden"
+        },
+        "confirm_password": {
+            "title": "Passwort bestätigen",
+            "description": "Dies ist ein gesicherter Bereich der Anwendung. Bitte bestätige dein Passwort, bevor du fortfährst.",
+            "page_title": "Passwort bestätigen",
+            "password_label": "Passwort",
+            "password_placeholder": "Passwort",
+            "confirm_button": "Passwort bestätigen"
+        },
+        "two_factor_challenge": {
+            "recovery_code_title": "Wiederherstellungscode",
+            "recovery_code_description": "Bitte bestätige den Zugriff auf dein Konto, indem du einen deiner Notfall-Wiederherstellungscodes eingibst",
+            "recovery_code_label": "Wiederherstellungscode",
+            "use_auth_code": "mit Authentifizierungscode anmelden",
+            "auth_code_title": "Authentifizierungscode",
+            "auth_code_description": "Gib den Authentifizierungscode ein, der von deiner Authentifizierungs-App bereitgestellt wird",
+            "auth_code_label": "Authentifizierungscode",
+            "use_recovery_code": "mit Wiederherstellungscode anmelden",
+            "continue_button": "Fortfahren",
+            "or_text": "oder du kannst"
+        }
+    },
+    "navigation": {
+        "dashboard": "Dashboard",
+        "map": "Karte",
+        "breadcrumb": "Navigation",
+        "toggle_sidebar": "Seitenleiste umschalten"
+    },
+    "dashboard": {
+        "title": "Dashboard"
+    },
+    "trips": {
+        "select_trip": "Reise auswählen",
+        "choose_trip": "Wähle eine Reise zum Anzeigen oder erstelle eine neue",
+        "select_trip_label": "Reise auswählen",
+        "period": "Zeitraum",
+        "duration": "Dauer",
+        "day": "Tag",
+        "days": "Tage",
+        "create_new": "Neue Reise erstellen",
+        "edit_trip": "Reise bearbeiten",
+        "invite_users": "Benutzer einladen",
+        "export_pdf": "Als PDF exportieren",
+        "create_modal": {
+            "title": "Neue Reise erstellen",
+            "description": "Gib deiner Reise einen Namen und wähle optional ein Land aus, um die Suchergebnisse zu filtern.",
+            "trip_name_label": "Reisename",
+            "trip_name_placeholder": "z.B. Sommer 2024, Japan-Reise",
+            "country_label": "Land (optional)",
+            "country_placeholder": "Land auswählen...",
+            "country_help": "Suchergebnisse werden auf dieses Land gefiltert",
+            "cancel_button": "Abbrechen",
+            "create_button": "Reise erstellen",
+            "creating_button": "Wird erstellt..."
+        },
+        "rename_modal": {
+            "title": "Reise umbenennen",
+            "description": "Ändere den Namen deiner Reise",
+            "trip_name_label": "Reisename",
+            "cancel_button": "Abbrechen",
+            "save_button": "Speichern",
+            "saving_button": "Wird gespeichert..."
+        },
+        "delete_dialog": {
+            "title": "Reise löschen",
+            "description": "Bist du sicher, dass du die Reise löschen möchtest",
+            "warning": "Dies wird die Reise und alle zugehörigen Daten, einschließlich Markierungen, Touren und Routen, dauerhaft löschen. Diese Aktion kann nicht rückgängig gemacht werden.",
+            "cancel_button": "Abbrechen",
+            "delete_button": "Reise löschen",
+            "deleting_button": "Wird gelöscht..."
+        },
+        "notes_modal": {
+            "title": "Reisenotizen",
+            "description": "Füge Notizen zu deiner Reise hinzu. Markdown wird zur Formatierung unterstützt.",
+            "cancel_button": "Abbrechen",
+            "save_button": "Notizen speichern",
+            "saving_button": "Wird gespeichert..."
+        },
+        "invite_modal": {
+            "title": "Zur Reise einladen",
+            "invitation_link_label": "Einladungslink",
+            "link_valid_info": "Dieser Link bleibt gültig, solange die Reise existiert.",
+            "share_info": "Teile diesen Link mit anderen, um ihnen eine Vorschau zu ermöglichen",
+            "access_info": "Jeder mit diesem Link und einem Konto kann die Reisedetails und Markierungen ansehen.",
+            "try_again_button": "Erneut versuchen",
+            "close_button": "Schließen"
+        }
+    },
+    "tours": {
+        "create_modal": {
+            "title": "Neue Tour erstellen",
+            "description": "Erstelle eine neue Tour, um deine Markierungen zu organisieren",
+            "name_label": "Name",
+            "name_placeholder": "z.B. Tag 1 - Tokio",
+            "name_required": "Tourname ist erforderlich",
+            "create_failed": "Tour konnte nicht erstellt werden. Bitte versuche es erneut.",
+            "cancel_button": "Abbrechen",
+            "create_button": "Tour erstellen",
+            "creating_button": "Wird erstellt..."
+        },
+        "actions": {
+            "move_up": "Nach oben verschieben",
+            "move_down": "Nach unten verschieben",
+            "remove_from_tour": "Aus Tour entfernen",
+            "delete_tour": "Tour löschen"
+        },
+        "delete_dialog": {
+            "title": "Tour löschen",
+            "description": "Bist du sicher, dass du die Tour löschen möchtest",
+            "warning": "Die Markierungen bleiben in deiner Reise erhalten, aber die Tourorganisation wird entfernt.",
+            "cancel_button": "Abbrechen",
+            "delete_button": "Tour löschen",
+            "deleting_button": "Wird gelöscht..."
+        },
+        "sort": {
+            "min_markers_error": "Tour muss mindestens 2 Markierungen haben, um sortiert zu werden",
+            "success": "Markierungen erfolgreich sortiert!",
+            "failed": "Markierungen konnten nicht sortiert werden. Bitte versuche es erneut."
+        }
+    },
+    "markers": {
+        "add_to_tour": "Zu Tour hinzufügen",
+        "ai_enriched": "KI-angereicherte Markierung",
+        "toggle_filter": "Filtermenü umschalten",
+        "filter_active": "Filter aktiv",
+        "select_type": "Typ auswählen",
+        "select_unesco": "UNESCO-Filter auswählen",
+        "name_placeholder": "Markierungsnamen eingeben",
+        "rating_placeholder": "z.B. 1,5",
+        "url_placeholder": "https://beispiel.de",
+        "open_url_new_tab": "URL in neuem Tab öffnen",
+        "open_url": "URL öffnen",
+        "unesco_site": "UNESCO-Weltkulturerbe",
+        "ai_enriched_info": "Diese Markierung wurde mit KI angereichert",
+        "notes_placeholder": "Notizen zu diesem Ort hinzufügen (Markdown unterstützt)...",
+        "click_to_load_image": "Zum Laden des Bildes klicken",
+        "unnamed_location": "Unbenannter Ort",
+        "lat_lng_coordinates": "Lat/Lng-Koordinaten",
+        "delete_dialog": {
+            "title": "Markierung löschen",
+            "description": "Bist du sicher, dass du löschen möchtest",
+            "warning": "Diese Aktion kann nicht rückgängig gemacht werden.",
+            "cancel_button": "Abbrechen",
+            "delete_button": "Markierung löschen",
+            "deleting_button": "Wird gelöscht..."
+        },
+        "types": {
+            "restaurant": "Restaurant",
+            "poi": "Sehenswürdigkeit",
+            "question": "Frage",
+            "tip": "Tipp",
+            "hotel": "Hotel",
+            "museum": "Museum",
+            "ruin": "Ruine",
+            "temple": "Tempel/Kirche",
+            "festival": "Festival/Party",
+            "leisure": "Freizeit",
+            "sightseeing": "Besichtigung",
+            "nature": "Naturattraktion",
+            "city": "Stadt",
+            "village": "Dorf",
+            "region": "Region",
+            "stop": "Haltestelle"
+        }
+    },
+    "routes": {
+        "select_start": "Startmarkierung auswählen",
+        "select_end": "Zielmarkierung auswählen",
+        "calculate_route": "Route berechnen",
+        "select_both_error": "Bitte wähle sowohl Start- als auch Zielmarkierung aus",
+        "different_markers_error": "Start- und Zielmarkierung müssen unterschiedlich sein",
+        "create_failed": "Route konnte nicht erstellt werden. Bitte versuche es erneut.",
+        "delete_failed": "Route konnte nicht gelöscht werden. Bitte versuche es erneut.",
+        "estimated_duration": "Geschätzte Dauer",
+        "estimated_hours": "~{{hours}}h",
+        "search_radius_label": "Suchradius in Kilometern"
+    },
     "settings": {
         "language": {
             "title": "Sprache",
             "description": "Wähle deine bevorzugte Sprache für die Anwendung.",
             "select_label": "Sprache auswählen",
+            "page_title": "Spracheinstellungen",
             "languages": {
                 "de": "Deutsch",
                 "en": "English"
             }
+        },
+        "profile": {
+            "title": "Profileinstellungen",
+            "description": "Aktualisiere deinen Namen und deine E-Mail-Adresse",
+            "page_title": "Profileinstellungen",
+            "section_title": "Profilinformationen",
+            "name_label": "Name",
+            "email_label": "E-Mail-Adresse",
+            "email_unverified": "Deine E-Mail-Adresse ist nicht bestätigt.",
+            "save_button": "Speichern",
+            "saving_button": "Wird gespeichert...",
+            "delete_account": "Konto löschen",
+            "delete_description": "Lösche dein Konto und alle zugehörigen Ressourcen",
+            "delete_warning_title": "Warnung",
+            "delete_warning": "Bitte sei vorsichtig, dies kann nicht rückgängig gemacht werden.",
+            "delete_confirmation": "Bist du sicher, dass du dein Konto löschen möchtest?",
+            "delete_confirmation_info": "Sobald dein Konto gelöscht ist, werden auch alle zugehörigen Ressourcen und Daten dauerhaft gelöscht. Bitte gib dein Passwort ein, um zu bestätigen, dass du dein Konto dauerhaft löschen möchtest.",
+            "password_label": "Passwort",
+            "cancel_button": "Abbrechen",
+            "delete_button": "Konto löschen",
+            "deleting_button": "Wird gelöscht..."
+        },
+        "password": {
+            "title": "Passworteinstellungen",
+            "description": "Stelle sicher, dass dein Konto ein langes, zufälliges Passwort verwendet, um sicher zu bleiben",
+            "page_title": "Passworteinstellungen",
+            "section_title": "Passwort aktualisieren",
+            "current_password_label": "Aktuelles Passwort",
+            "new_password_label": "Neues Passwort",
+            "password_confirmation_label": "Passwort bestätigen",
+            "save_button": "Speichern",
+            "saving_button": "Wird gespeichert..."
+        },
+        "two_factor": {
+            "title": "Zwei-Faktor-Authentifizierung",
+            "description": "Verwalte deine Einstellungen für die Zwei-Faktor-Authentifizierung",
+            "page_title": "Zwei-Faktor-Authentifizierung",
+            "enabled": "Aktiviert",
+            "enabled_info": "Mit aktivierter Zwei-Faktor-Authentifizierung wirst du beim Anmelden zur Eingabe einer sicheren, zufälligen PIN aufgefordert, die du von der TOTP-unterstützten Anwendung auf deinem Telefon abrufen kannst.",
+            "disable_button": "2FA deaktivieren",
+            "disabled": "Deaktiviert",
+            "disabled_info": "Wenn du die Zwei-Faktor-Authentifizierung aktivierst, wirst du beim Anmelden zur Eingabe einer sicheren PIN aufgefordert. Diese PIN kann von einer TOTP-unterstützten Anwendung auf deinem Telefon abgerufen werden.",
+            "continue_setup_button": "Einrichtung fortsetzen",
+            "enable_button": "2FA aktivieren",
+            "enter_code_manually": "oder gib den Code manuell ein",
+            "loading_recovery_codes": "Wiederherstellungscodes werden geladen",
+            "loading": "Wird geladen"
+        },
+        "appearance": {
+            "title": "Erscheinungsbild",
+            "description": "Passe an, wie die Anwendung aussieht",
+            "page_title": "Erscheinungseinstellungen"
         }
+    },
+    "common": {
+        "cancel": "Abbrechen",
+        "save": "Speichern",
+        "saving": "Wird gespeichert...",
+        "delete": "Löschen",
+        "deleting": "Wird gelöscht...",
+        "close": "Schließen",
+        "loading": "Wird geladen",
+        "search_placeholder": "Nach Orten suchen...",
+        "markdown_supported": "Markdown unterstützt",
+        "try_again": "Erneut versuchen"
     }
 }
