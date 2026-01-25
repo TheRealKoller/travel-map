@@ -16,6 +16,7 @@ export enum MarkerType {
     City = 'city',
     Village = 'village',
     Region = 'region',
+    Haltestelle = 'haltestelle',
 }
 
 export interface MarkerData {

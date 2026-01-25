@@ -15,6 +15,7 @@ import {
     Mountain,
     Palmtree,
     PartyPopper,
+    Train,
     Utensils,
 } from 'lucide-react';
 
@@ -37,6 +38,7 @@ export const markerTypeIcons: Record<MarkerType, LucideIcon> = {
     [MarkerType.City]: Building,
     [MarkerType.Village]: Home,
     [MarkerType.Region]: Map,
+    [MarkerType.Haltestelle]: Train,
 };
 
 /**

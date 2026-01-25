@@ -41,6 +41,8 @@ export const getIconSvgForType = (type: MarkerType): string => {
             '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
         [MarkerType.Region]:
             '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></svg>',
+        [MarkerType.Haltestelle]:
+            '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="M17 2v4"/><path d="M7 2v4"/><rect width="18" height="12" x="3" y="8" rx="2"/><path d="M3 14h18"/><path d="M8 20l-2-2"/><path d="M18 18l-2 2"/></svg>',
     };
     return svgIcons[type] || svgIcons[MarkerType.PointOfInterest];
 };
@@ -67,6 +69,7 @@ export const getMarkerTypeClass = (type: MarkerType): string => {
         [MarkerType.City]: 'mapbox-marker--city',
         [MarkerType.Village]: 'mapbox-marker--village',
         [MarkerType.Region]: 'mapbox-marker--region',
+        [MarkerType.Haltestelle]: 'mapbox-marker--haltestelle',
     };
     return typeMap[type] || 'mapbox-marker--point-of-interest';
 };
@@ -192,6 +195,21 @@ export const getMarkerTypeFromOSMType = (osmType?: string): MarkerType => {
         type === 'theme_park'
     ) {
         return MarkerType.Sightseeing;
+    }
+
+    // Haltestelle (stop/station) category
+    if (
+        type === 'bus_station' ||
+        type === 'bus_stop' ||
+        type === 'train_station' ||
+        type === 'railway_station' ||
+        type === 'station' ||
+        type === 'halt' ||
+        type === 'subway_entrance' ||
+        type === 'tram_stop' ||
+        type === 'ferry_terminal'
+    ) {
+        return MarkerType.Haltestelle;
     }
 
     // Default to Point of Interest for anything else

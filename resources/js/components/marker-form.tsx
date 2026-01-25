@@ -136,6 +136,7 @@ export default function MarkerForm({
             [MarkerType.City]: 'City',
             [MarkerType.Village]: 'Village',
             [MarkerType.Region]: 'Region',
+            [MarkerType.Haltestelle]: 'Haltestelle',
         };
         return typeLabels[type] || type;
     };
@@ -268,6 +269,7 @@ export default function MarkerForm({
                     tip: MarkerType.Tip,
                     festival_party: MarkerType.FestivalParty,
                     leisure: MarkerType.Leisure,
+                    haltestelle: MarkerType.Haltestelle,
                 };
 
                 const mappedType = typeMap[data.type];
@@ -578,6 +580,9 @@ export default function MarkerForm({
                                 </option>
                                 <option value={MarkerType.Region}>
                                     Region
+                                </option>
+                                <option value={MarkerType.Haltestelle}>
+                                    Haltestelle
                                 </option>
                             </select>
                         </div>
