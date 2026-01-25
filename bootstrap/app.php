@@ -64,5 +64,8 @@ return Application::configure(basePath: dirname(__DIR__))
                     'errors' => $e->errors(),
                 ], 422);
             }
+
+            // Let Laravel handle non-JSON requests with its default behavior
+            return null;
         });
     })->create();
