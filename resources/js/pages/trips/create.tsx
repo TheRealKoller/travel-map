@@ -361,7 +361,7 @@ export default function CreateTrip({ trip }: CreateTripProps) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={isEditMode ? 'Edit trip' : 'Create trip'} />
-            <div className="flex h-full flex-1 items-center justify-center p-4">
+            <div className="flex h-full flex-1 items-start justify-center p-4">
                 <div className="w-full max-w-2xl space-y-6 rounded-xl border border-sidebar-border/70 bg-card p-6 dark:border-sidebar-border">
                     <div>
                         <h1 className="text-2xl font-semibold">
