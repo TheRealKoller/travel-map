@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\FetchTripImageRequest;
 use App\Http\Requests\StoreTripRequest;
 use App\Http\Requests\UpdateTripRequest;
 use App\Models\Trip;
@@ -136,6 +137,29 @@ class TripController extends Controller
         return response()->json([
             'photo' => $photoData,
             'trip' => $trip->fresh(),
+        ]);
+    }
+
+    /**
+     * Fetch multiple Unsplash images for a trip without persisting them.
+     * Used to preview/refresh images before saving a trip.
+     */
+    public function fetchImagePreview(FetchTripImageRequest $request): JsonResponse
+    {
+        $validated = $request->validated();
+
+        $photos = $this->unsplashService->getMultiplePhotosForTrip(
+            $validated['name'],
+            $validated['country'] ?? null,
+            10
+        );
+
+        if (empty($photos)) {
+            throw new \App\Exceptions\BusinessLogicException('No images found for this trip', 404);
+        }
+
+        return response()->json([
+            'photos' => $photos,
         ]);
     }
 

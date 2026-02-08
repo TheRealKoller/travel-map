@@ -24,7 +24,7 @@ import {
 import { type BreadcrumbItem, type Trip } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import 'easymde/dist/easymde.min.css';
-import { ImageIcon, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ImageIcon, Loader2 } from 'lucide-react';
 import { marked } from 'marked';
 import { useEffect, useMemo, useState } from 'react';
 import SimpleMDE from 'react-simplemde-editor';
@@ -52,6 +52,10 @@ export default function CreateTrip({ trip }: CreateTripProps) {
     const [imageUrl, setImageUrl] = useState<string | null>(
         trip?.image_url || null,
     );
+    const [photos, setPhotos] = useState<
+        Array<{ id: string; urls: { regular: string } }>
+    >([]);
+    const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
     const [isLoadingImage, setIsLoadingImage] = useState(false);
     const [viewport, setViewport] = useState<{
         latitude: number;
@@ -270,6 +274,68 @@ export default function CreateTrip({ trip }: CreateTripProps) {
 
     const handleCancel = () => {
         router.visit('/trips');
+    };
+
+    const handleRefreshImage = async () => {
+        if (!name.trim() || isLoadingImage) return;
+
+        setIsLoadingImage(true);
+        setError(null);
+
+        try {
+            const response = await fetch('/trips/fetch-image-preview', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN':
+                        document
+                            .querySelector('meta[name="csrf-token"]')
+                            ?.getAttribute('content') || '',
+                },
+                body: JSON.stringify({
+                    name: name.trim(),
+                    country: country || null,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Failed to load images');
+            }
+
+            const data = await response.json();
+
+            if (data.photos && data.photos.length > 0) {
+                setPhotos(data.photos);
+                setCurrentPhotoIndex(0);
+                setImageUrl(data.photos[0].urls.regular);
+            }
+        } catch (error) {
+            const errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : 'Failed to load images';
+            setError(errorMessage);
+            console.error('Failed to refresh trip image:', error);
+        } finally {
+            setIsLoadingImage(false);
+        }
+    };
+
+    const handlePreviousPhoto = () => {
+        if (photos.length === 0) return;
+        const newIndex =
+            currentPhotoIndex > 0 ? currentPhotoIndex - 1 : photos.length - 1;
+        setCurrentPhotoIndex(newIndex);
+        setImageUrl(photos[newIndex].urls.regular);
+    };
+
+    const handleNextPhoto = () => {
+        if (photos.length === 0) return;
+        const newIndex =
+            currentPhotoIndex < photos.length - 1 ? currentPhotoIndex + 1 : 0;
+        setCurrentPhotoIndex(newIndex);
+        setImageUrl(photos[newIndex].urls.regular);
     };
 
     const handleDelete = async () => {
@@ -584,15 +650,49 @@ export default function CreateTrip({ trip }: CreateTripProps) {
                                         <div className="flex size-full items-center justify-center">
                                             <Loader2 className="size-8 animate-spin text-muted-foreground" />
                                             <span className="ml-2 text-sm text-muted-foreground">
-                                                Loading image...
+                                                Loading images...
                                             </span>
                                         </div>
                                     ) : imageUrl ? (
-                                        <img
-                                            src={imageUrl}
-                                            alt={name || 'Trip image'}
-                                            className="size-full object-cover"
-                                        />
+                                        <>
+                                            <img
+                                                src={imageUrl}
+                                                alt={name || 'Trip image'}
+                                                className="size-full object-cover"
+                                            />
+                                            {photos.length > 1 && (
+                                                <>
+                                                    <Button
+                                                        type="button"
+                                                        variant="secondary"
+                                                        size="icon"
+                                                        className="absolute top-1/2 left-2 -translate-y-1/2 opacity-80 hover:opacity-100"
+                                                        onClick={
+                                                            handlePreviousPhoto
+                                                        }
+                                                        data-testid="previous-photo-button"
+                                                    >
+                                                        <ChevronLeft className="size-4" />
+                                                    </Button>
+                                                    <Button
+                                                        type="button"
+                                                        variant="secondary"
+                                                        size="icon"
+                                                        className="absolute top-1/2 right-2 -translate-y-1/2 opacity-80 hover:opacity-100"
+                                                        onClick={
+                                                            handleNextPhoto
+                                                        }
+                                                        data-testid="next-photo-button"
+                                                    >
+                                                        <ChevronRight className="size-4" />
+                                                    </Button>
+                                                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-black/50 px-2 py-1 text-xs text-white">
+                                                        {currentPhotoIndex + 1}{' '}
+                                                        / {photos.length}
+                                                    </div>
+                                                </>
+                                            )}
+                                        </>
                                     ) : (
                                         <div className="flex size-full flex-col items-center justify-center gap-2">
                                             <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
@@ -604,6 +704,25 @@ export default function CreateTrip({ trip }: CreateTripProps) {
                                             </p>
                                         </div>
                                     )}
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <p className="text-xs text-muted-foreground">
+                                        Click the button to load new Unsplash
+                                        images
+                                    </p>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={handleRefreshImage}
+                                        disabled={
+                                            isLoadingImage || !name.trim()
+                                        }
+                                        data-testid="refresh-trip-image-button"
+                                    >
+                                        {isLoadingImage
+                                            ? 'Loading images...'
+                                            : 'Load new images'}
+                                    </Button>
                                 </div>
                                 <p className="text-xs text-muted-foreground">
                                     Images are automatically fetched from

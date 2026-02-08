@@ -216,6 +216,91 @@ class UnsplashService
     }
 
     /**
+     * Get multiple photos for a trip by name and optional country.
+     *
+     * @param  string  $tripName  Name of the trip
+     * @param  string|null  $countryCode  Optional country code (e.g., 'DE', 'US')
+     * @param  int  $count  Number of photos to return (default: 10)
+     * @return array Array of photo data
+     */
+    public function getMultiplePhotosForTrip(string $tripName, ?string $countryCode = null, int $count = 10): array
+    {
+        if (! $this->initialized) {
+            Log::warning('Unsplash API not initialized - missing access key or UTM source');
+
+            return [];
+        }
+
+        // Build query with trip name
+        $query = $tripName;
+
+        // Add country name to query if country code is provided
+        if ($countryCode) {
+            $countryName = $this->getCountryName($countryCode);
+            if ($countryName) {
+                $query = $countryName.' '.$query;
+            }
+        }
+
+        // Enhance query with travel-related terms for better results
+        $query .= ' travel destination';
+
+        Log::info('Calling Unsplash API for multiple photos', ['query' => $query, 'count' => $count]);
+
+        try {
+            $searchResults = Search::photos($query, 1, $count, 'landscape');
+            $results = $searchResults->getResults();
+
+            Log::debug('Unsplash API response received', [
+                'query' => $query,
+                'result_count' => count($results),
+            ]);
+
+            if (empty($results)) {
+                Log::info('No Unsplash photos found for query', ['query' => $query]);
+
+                return [];
+            }
+
+            $photos = [];
+            foreach ($results as $photo) {
+                $photos[] = [
+                    'id' => $photo['id'] ?? $photo->id ?? null,
+                    'urls' => [
+                        'raw' => $photo['urls']['raw'] ?? $photo->urls['raw'] ?? null,
+                        'full' => $photo['urls']['full'] ?? $photo->urls['full'] ?? null,
+                        'regular' => $photo['urls']['regular'] ?? $photo->urls['regular'] ?? null,
+                        'small' => $photo['urls']['small'] ?? $photo->urls['small'] ?? null,
+                        'thumb' => $photo['urls']['thumb'] ?? $photo->urls['thumb'] ?? null,
+                    ],
+                    'download_location' => $photo['links']['download_location'] ?? $photo->links['download_location'] ?? null,
+                    'user' => [
+                        'name' => $photo['user']['name'] ?? $photo->user['name'] ?? null,
+                        'username' => $photo['user']['username'] ?? $photo->user['username'] ?? null,
+                        'profile_link' => $photo['user']['links']['html'] ?? $photo->user['links']['html'] ?? null,
+                    ],
+                    'alt_description' => $photo['alt_description'] ?? $photo->alt_description ?? $photo['description'] ?? $photo->description ?? null,
+                ];
+            }
+
+            Log::info('Unsplash photos retrieved', [
+                'query' => $query,
+                'photo_count' => count($photos),
+            ]);
+
+            return $photos;
+        } catch (\Exception $e) {
+            Log::error('Unsplash API exception', [
+                'message' => $e->getMessage(),
+                'query' => $query,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return [];
+        }
+    }
+
+    /**
      * Automatically fetch and update a trip's image if name and country are provided.
      * This method will fetch an Unsplash image, track the download, and update the trip.
      * Silently fails if image fetching is unsuccessful - trip remains without image.

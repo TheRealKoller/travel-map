@@ -24,6 +24,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/trips', [TripController::class, 'index'])->name('trips.index');
     Route::get('/trips/create', [TripController::class, 'create'])->name('trips.create');
     Route::post('/trips', [TripController::class, 'store'])->name('trips.store');
+    Route::post('/trips/fetch-image-preview', [TripController::class, 'fetchImagePreview'])->name('trips.fetch-image-preview');
     Route::get('/trips/{trip}', [TripController::class, 'show'])->name('trips.show');
     Route::get('/trips/{trip}/edit', [TripController::class, 'edit'])->name('trips.edit');
     Route::put('/trips/{trip}', [TripController::class, 'update'])->name('trips.update');

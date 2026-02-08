@@ -851,6 +851,52 @@ test('trip image fetch stores download_location', function () {
         ->and($trip->unsplash_download_location)->toBe('https://api.unsplash.com/photos/abc123/download?ixid=test');
 });
 
+test('trip image preview returns photo data', function () {
+    $photos = [
+        [
+            'id' => 'photo1',
+            'urls' => [
+                'regular' => 'https://images.unsplash.com/photo-preview-1',
+            ],
+            'download_location' => 'https://api.unsplash.com/photos/preview1/download?ixid=test',
+        ],
+        [
+            'id' => 'photo2',
+            'urls' => [
+                'regular' => 'https://images.unsplash.com/photo-preview-2',
+            ],
+            'download_location' => 'https://api.unsplash.com/photos/preview2/download?ixid=test',
+        ],
+    ];
+
+    $mockService = Mockery::mock(\App\Services\UnsplashService::class);
+    $mockService->shouldReceive('getMultiplePhotosForTrip')
+        ->once()
+        ->with('Preview Trip', 'FR', 10)
+        ->andReturn($photos);
+
+    $this->app->instance(\App\Services\UnsplashService::class, $mockService);
+
+    $response = $this->actingAs($this->user)->postJson('/trips/fetch-image-preview', [
+        'name' => 'Preview Trip',
+        'country' => 'FR',
+    ]);
+
+    $response->assertStatus(200)
+        ->assertJsonPath('photos.0.urls.regular', 'https://images.unsplash.com/photo-preview-1')
+        ->assertJsonPath('photos.1.urls.regular', 'https://images.unsplash.com/photo-preview-2')
+        ->assertJsonCount(2, 'photos');
+});
+
+test('trip image preview validates required name', function () {
+    $response = $this->actingAs($this->user)->postJson('/trips/fetch-image-preview', [
+        'name' => '',
+    ]);
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors('name');
+});
+
 test('marker image fetch stores download_location', function () {
     $trip = Trip::factory()->create(['user_id' => $this->user->id]);
     $marker = Marker::factory()->create([
