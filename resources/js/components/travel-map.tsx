@@ -4,6 +4,9 @@ import MapOptionsMenu from '@/components/map-options-menu';
 import { MapSearchBox } from '@/components/map-search-box';
 import MarkerForm from '@/components/marker-form';
 import MarkerList from '@/components/marker-list';
+import MobileBottomNavigation, {
+    PanelType,
+} from '@/components/mobile-bottom-navigation';
 import RoutePanel from '@/components/route-panel';
 import TourPanel from '@/components/tour-panel';
 import TripNotesModal from '@/components/trip-notes-modal';
@@ -21,6 +24,7 @@ import { useRoutes } from '@/hooks/use-routes';
 import { useSearchMode } from '@/hooks/use-search-mode';
 import { useSearchRadius } from '@/hooks/use-search-radius';
 import { useSearchResults } from '@/hooks/use-search-results';
+import { useSwipeGesture } from '@/hooks/use-swipe-gesture';
 import { useTourLines } from '@/hooks/use-tour-lines';
 import { useTourMarkers } from '@/hooks/use-tour-markers';
 import { getBoundingBoxFromTrip } from '@/lib/map-utils';
@@ -106,6 +110,27 @@ export default function TravelMap({
         isRoutePanelCollapsed,
         setIsRoutePanelCollapsed,
     } = usePanelCollapse({ mapInstance });
+
+    // Mobile panel navigation state
+    const [activeMobilePanel, setActiveMobilePanel] =
+        useState<PanelType>('markers');
+
+    // Swipe gesture support for mobile panel navigation
+    const panels: PanelType[] = ['markers', 'tours', 'routes'];
+    useSwipeGesture({
+        onSwipeLeft: () => {
+            const currentIndex = panels.indexOf(activeMobilePanel);
+            if (currentIndex < panels.length - 1) {
+                setActiveMobilePanel(panels[currentIndex + 1]);
+            }
+        },
+        onSwipeRight: () => {
+            const currentIndex = panels.indexOf(activeMobilePanel);
+            if (currentIndex > 0) {
+                setActiveMobilePanel(panels[currentIndex - 1]);
+            }
+        },
+    });
 
     // Trip notes modal state
     const [isTripNotesModalOpen, setIsTripNotesModalOpen] = useState(false);
@@ -433,7 +458,7 @@ export default function TravelMap({
     };
 
     return (
-        <div className="flex h-full flex-col gap-4">
+        <div className="flex h-full flex-col gap-4 pb-0 md:pb-0">
             {/* AI Recommendations Panel - Full width above the 4 existing areas */}
             <AiRecommendationsPanel
                 tripId={selectedTripId}
@@ -517,7 +542,7 @@ export default function TravelMap({
 
                 {/* Marker panel - Mobile: 2nd, Desktop: 1st */}
                 <div
-                    className="order-2 flex h-[40vh] w-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 md:order-1 md:h-auto md:w-[16.67%]"
+                    className={`order-2 flex h-[40vh] w-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 md:order-1 md:h-auto md:w-[16.67%] ${activeMobilePanel !== 'markers' ? 'hidden md:flex' : ''}`}
                     data-testid="marker-panel"
                 >
                     <div className="flex-1 overflow-y-auto">
@@ -555,7 +580,7 @@ export default function TravelMap({
 
                 {/* Tour panel - Mobile: 3rd, Desktop: 2nd */}
                 <div
-                    className={`order-3 flex h-[40vh] w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 md:order-2 md:h-auto ${isTourPanelCollapsed ? 'md:w-auto' : 'md:w-[16.67%]'}`}
+                    className={`order-3 flex h-[40vh] w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 md:order-2 md:h-auto ${isTourPanelCollapsed ? 'md:w-auto' : 'md:w-[16.67%]'} ${activeMobilePanel !== 'tours' ? 'hidden md:flex' : ''}`}
                     data-testid="tour-panel"
                 >
                     {!isTourPanelCollapsed && (
@@ -602,7 +627,7 @@ export default function TravelMap({
                 {/* Route panel - Mobile: 4th, Desktop: 3rd */}
                 {selectedTripId && (
                     <div
-                        className={`order-4 flex h-[40vh] w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 md:order-3 md:h-auto ${isRoutePanelCollapsed ? 'md:w-auto' : 'md:w-[16.67%]'}`}
+                        className={`order-4 flex h-[40vh] w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 md:order-3 md:h-auto ${isRoutePanelCollapsed ? 'md:w-auto' : 'md:w-[16.67%]'} ${activeMobilePanel !== 'routes' ? 'hidden md:flex' : ''}`}
                         data-testid="route-panel"
                     >
                         {!isRoutePanelCollapsed && (
@@ -655,6 +680,12 @@ export default function TravelMap({
                     </div>
                 )}
             </div>
+
+            {/* Mobile Bottom Navigation */}
+            <MobileBottomNavigation
+                activePanel={activeMobilePanel}
+                onPanelChange={setActiveMobilePanel}
+            />
 
             {/* Trip Notes Modal */}
             {selectedTrip && (
