@@ -828,10 +828,10 @@ export default function RoutePanel({
                                                 onClick={() =>
                                                     handleDeleteRoute(route.id)
                                                 }
-                                                className="ml-2 h-8 w-8 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                                className="ml-2 text-red-600 hover:bg-red-50 hover:text-red-700"
                                                 data-testid={`route-${route.id}-delete`}
                                             >
-                                                <Trash2 className="h-4 w-4" />
+                                                <Trash2 className="h-5 w-5" />
                                             </Button>
                                         </div>
 

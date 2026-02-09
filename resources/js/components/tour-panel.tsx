@@ -82,24 +82,24 @@ function MarkerItem({
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-5 w-5 p-0 text-gray-400 hover:text-blue-600 disabled:opacity-30"
+                        className="h-11 w-11 p-0 text-gray-400 hover:text-blue-600 disabled:opacity-30"
                         onClick={onMoveUp}
                         disabled={isFirst}
                         title="Move up"
                         data-testid="move-marker-up"
                     >
-                        <ArrowUp className="h-3 w-3" />
+                        <ArrowUp className="h-4 w-4" />
                     </Button>
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-5 w-5 p-0 text-gray-400 hover:text-blue-600 disabled:opacity-30"
+                        className="h-11 w-11 p-0 text-gray-400 hover:text-blue-600 disabled:opacity-30"
                         onClick={onMoveDown}
                         disabled={isLast}
                         title="Move down"
                         data-testid="move-marker-down"
                     >
-                        <ArrowDown className="h-3 w-3" />
+                        <ArrowDown className="h-4 w-4" />
                     </Button>
                 </div>
                 <span className="font-medium text-gray-500">{index + 1}.</span>
@@ -121,12 +121,12 @@ function MarkerItem({
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-5 w-5 p-0 text-gray-400 hover:text-red-600"
+                            className="h-11 w-11 p-0 text-gray-400 hover:text-red-600"
                             onClick={onRemove}
                             title="Remove from tour"
                             data-testid="remove-marker-from-tour"
                         >
-                            <ArrowLeft className="h-3 w-3" />
+                            <ArrowLeft className="h-4 w-4" />
                         </Button>
                     )}
                     <Icon
@@ -143,12 +143,12 @@ function MarkerItem({
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-5 w-5 p-0 text-gray-400 hover:text-red-600"
+                            className="h-11 w-11 p-0 text-gray-400 hover:text-red-600"
                             onClick={onRemove}
                             title="Remove from tour"
                             data-testid="remove-marker-from-tour"
                         >
-                            <Trash2 className="h-3 w-3" />
+                            <Trash2 className="h-4 w-4" />
                         </Button>
                     )}
                 </div>
@@ -195,10 +195,10 @@ function TourCard({
                     variant="ghost"
                     size="icon"
                     onClick={() => onDeleteTour(tour.id)}
-                    className="h-7 w-7 text-gray-500 hover:text-red-600"
+                    className="text-gray-500 hover:text-red-600"
                     title="Delete tour"
                 >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-5 w-5" />
                 </Button>
             </div>
             {markers.length === 0 ? (

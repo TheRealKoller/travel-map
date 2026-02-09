@@ -583,7 +583,7 @@ export default function TravelMap({
                         onClick={() =>
                             setIsTourPanelCollapsed(!isTourPanelCollapsed)
                         }
-                        className={`flex items-center bg-white px-1 shadow-md hover:bg-gray-100 ${isTourPanelCollapsed ? 'rounded-lg' : 'rounded-r-lg'}`}
+                        className={`flex min-h-11 min-w-11 items-center justify-center bg-white shadow-md hover:bg-gray-100 ${isTourPanelCollapsed ? 'rounded-lg px-3' : 'rounded-r-lg px-2'}`}
                         title={
                             isTourPanelCollapsed
                                 ? 'Expand Tours'
@@ -592,9 +592,9 @@ export default function TravelMap({
                         data-testid="tour-panel-toggle"
                     >
                         {isTourPanelCollapsed ? (
-                            <ChevronRight className="h-5 w-5 text-gray-600" />
+                            <ChevronRight className="h-6 w-6 text-gray-600" />
                         ) : (
-                            <ChevronLeft className="h-5 w-5 text-gray-600" />
+                            <ChevronLeft className="h-6 w-6 text-gray-600" />
                         )}
                     </button>
                 </div>
@@ -638,7 +638,7 @@ export default function TravelMap({
                             onClick={() =>
                                 setIsRoutePanelCollapsed(!isRoutePanelCollapsed)
                             }
-                            className={`flex items-center bg-white px-1 shadow-md hover:bg-gray-100 ${isRoutePanelCollapsed ? 'rounded-lg' : 'rounded-r-lg'}`}
+                            className={`flex min-h-11 min-w-11 items-center justify-center bg-white shadow-md hover:bg-gray-100 ${isRoutePanelCollapsed ? 'rounded-lg px-3' : 'rounded-r-lg px-2'}`}
                             title={
                                 isRoutePanelCollapsed
                                     ? 'Expand Routes'
@@ -647,9 +647,9 @@ export default function TravelMap({
                             data-testid="route-panel-toggle"
                         >
                             {isRoutePanelCollapsed ? (
-                                <ChevronRight className="h-5 w-5 text-gray-600" />
+                                <ChevronRight className="h-6 w-6 text-gray-600" />
                             ) : (
-                                <ChevronLeft className="h-5 w-5 text-gray-600" />
+                                <ChevronLeft className="h-6 w-6 text-gray-600" />
                             )}
                         </button>
                     </div>
