@@ -444,151 +444,11 @@ export default function TravelMap({
                 mapBounds={mapBounds}
             />
 
-            {/* Existing 4 panels in a row */}
-            <div className="flex flex-1 flex-col overflow-hidden lg:flex-row">
-                {/* Part 1: Marker list or form */}
+            {/* Responsive layout: Mobile stacks vertically, Desktop uses row */}
+            <div className="flex flex-1 flex-col gap-4 overflow-hidden md:flex-row md:gap-0">
+                {/* Mobile: Map first (60vh), Desktop: Last in row */}
                 <div
-                    className="flex w-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm lg:w-[16.67%]"
-                    data-testid="marker-panel"
-                >
-                    <div className="flex-1 overflow-y-auto">
-                        {selectedMarkerId ? (
-                            <MarkerForm
-                                key={selectedMarkerId}
-                                marker={selectedMarker}
-                                onSave={handleSaveMarker}
-                                onDeleteMarker={handleDeleteMarker}
-                                onClose={handleCloseForm}
-                                tours={tours}
-                                onToggleMarkerInTour={handleToggleMarkerInTour}
-                            />
-                        ) : (
-                            <MarkerList
-                                markers={markers}
-                                selectedMarkerId={selectedMarkerId}
-                                onSelectMarker={setSelectedMarkerId}
-                                selectedTourId={selectedTourId}
-                                onAddMarkerToTour={handleAddMarkerToTour}
-                                onMarkerImageFetched={(markerId, imageUrl) => {
-                                    // Update markers state directly with the new imageUrl
-                                    const updatedMarkers = markers.map((m) =>
-                                        m.id === markerId
-                                            ? { ...m, imageUrl }
-                                            : m,
-                                    );
-                                    // Force update by creating a new array reference
-                                    setMarkers([...updatedMarkers]);
-                                }}
-                            />
-                        )}
-                    </div>
-                </div>
-
-                {/* Part 2: Tour panel with collapse button */}
-                <div
-                    className={`flex w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm ${isTourPanelCollapsed ? 'lg:w-auto' : 'lg:w-[16.67%]'}`}
-                    data-testid="tour-panel"
-                >
-                    {!isTourPanelCollapsed && (
-                        <div className="flex h-full flex-1 flex-col overflow-hidden rounded-l-lg">
-                            <div className="flex-1 overflow-y-auto">
-                                <TourPanel
-                                    tours={tours}
-                                    selectedTourId={selectedTourId}
-                                    onSelectTour={onSelectTour}
-                                    onCreateTour={onCreateTour}
-                                    onDeleteTour={onDeleteTour}
-                                    markers={markers}
-                                    routes={routes}
-                                    onMoveMarkerUp={handleMoveMarkerUp}
-                                    onMoveMarkerDown={handleMoveMarkerDown}
-                                    onRemoveMarkerFromTour={
-                                        handleRemoveMarkerFromTour
-                                    }
-                                    onRequestRoute={handleRequestRoute}
-                                />
-                            </div>
-                        </div>
-                    )}
-                    <button
-                        onClick={() =>
-                            setIsTourPanelCollapsed(!isTourPanelCollapsed)
-                        }
-                        className={`flex items-center bg-white px-1 shadow-md hover:bg-gray-100 ${isTourPanelCollapsed ? 'rounded-lg' : 'rounded-r-lg'}`}
-                        title={
-                            isTourPanelCollapsed
-                                ? 'Expand Tours'
-                                : 'Collapse Tours'
-                        }
-                        data-testid="tour-panel-toggle"
-                    >
-                        {isTourPanelCollapsed ? (
-                            <ChevronRight className="h-5 w-5 text-gray-600" />
-                        ) : (
-                            <ChevronLeft className="h-5 w-5 text-gray-600" />
-                        )}
-                    </button>
-                </div>
-
-                {/* Part 3: Route panel with collapse button */}
-                {selectedTripId && (
-                    <div
-                        className={`flex w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm ${isRoutePanelCollapsed ? 'lg:w-auto' : 'lg:w-[16.67%]'}`}
-                        data-testid="route-panel"
-                    >
-                        {!isRoutePanelCollapsed && (
-                            <div className="flex h-full flex-1 flex-col overflow-hidden rounded-l-lg">
-                                <div className="flex-1 overflow-y-auto">
-                                    <RoutePanel
-                                        tripId={selectedTripId}
-                                        tourId={selectedTourId}
-                                        markers={markers}
-                                        routes={routes}
-                                        onRoutesUpdate={setRoutes}
-                                        initialStartMarkerId={
-                                            routeRequest?.startMarkerId
-                                        }
-                                        initialEndMarkerId={
-                                            routeRequest?.endMarkerId
-                                        }
-                                        tours={tours}
-                                        highlightedRouteId={highlightedRouteId}
-                                        expandedRoutes={expandedRoutes}
-                                        onExpandedRoutesChange={
-                                            setExpandedRoutes
-                                        }
-                                        onHighlightedRouteIdChange={
-                                            setHighlightedRouteId
-                                        }
-                                        onTourUpdate={handleTourUpdate}
-                                    />
-                                </div>
-                            </div>
-                        )}
-                        <button
-                            onClick={() =>
-                                setIsRoutePanelCollapsed(!isRoutePanelCollapsed)
-                            }
-                            className={`flex items-center bg-white px-1 shadow-md hover:bg-gray-100 ${isRoutePanelCollapsed ? 'rounded-lg' : 'rounded-r-lg'}`}
-                            title={
-                                isRoutePanelCollapsed
-                                    ? 'Expand Routes'
-                                    : 'Collapse Routes'
-                            }
-                            data-testid="route-panel-toggle"
-                        >
-                            {isRoutePanelCollapsed ? (
-                                <ChevronRight className="h-5 w-5 text-gray-600" />
-                            ) : (
-                                <ChevronLeft className="h-5 w-5 text-gray-600" />
-                            )}
-                        </button>
-                    </div>
-                )}
-
-                {/* Part 4: Map with top control area */}
-                <div
-                    className="flex w-full flex-1 flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm lg:ml-4"
+                    className="order-1 flex h-[60vh] w-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 md:order-4 md:ml-4 md:h-auto md:flex-1"
                     data-testid="map-panel"
                 >
                     {/* Top area for debug info and trip notes button */}
@@ -654,6 +514,146 @@ export default function TravelMap({
                         />
                     </div>
                 </div>
+
+                {/* Marker panel - Mobile: 2nd, Desktop: 1st */}
+                <div
+                    className="order-2 flex h-[40vh] w-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 md:order-1 md:h-auto md:w-[16.67%]"
+                    data-testid="marker-panel"
+                >
+                    <div className="flex-1 overflow-y-auto">
+                        {selectedMarkerId ? (
+                            <MarkerForm
+                                key={selectedMarkerId}
+                                marker={selectedMarker}
+                                onSave={handleSaveMarker}
+                                onDeleteMarker={handleDeleteMarker}
+                                onClose={handleCloseForm}
+                                tours={tours}
+                                onToggleMarkerInTour={handleToggleMarkerInTour}
+                            />
+                        ) : (
+                            <MarkerList
+                                markers={markers}
+                                selectedMarkerId={selectedMarkerId}
+                                onSelectMarker={setSelectedMarkerId}
+                                selectedTourId={selectedTourId}
+                                onAddMarkerToTour={handleAddMarkerToTour}
+                                onMarkerImageFetched={(markerId, imageUrl) => {
+                                    // Update markers state directly with the new imageUrl
+                                    const updatedMarkers = markers.map((m) =>
+                                        m.id === markerId
+                                            ? { ...m, imageUrl }
+                                            : m,
+                                    );
+                                    // Force update by creating a new array reference
+                                    setMarkers([...updatedMarkers]);
+                                }}
+                            />
+                        )}
+                    </div>
+                </div>
+
+                {/* Tour panel - Mobile: 3rd, Desktop: 2nd */}
+                <div
+                    className={`order-3 flex h-[40vh] w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 md:order-2 md:h-auto ${isTourPanelCollapsed ? 'md:w-auto' : 'md:w-[16.67%]'}`}
+                    data-testid="tour-panel"
+                >
+                    {!isTourPanelCollapsed && (
+                        <div className="flex h-full flex-1 flex-col overflow-hidden rounded-l-lg">
+                            <div className="flex-1 overflow-y-auto">
+                                <TourPanel
+                                    tours={tours}
+                                    selectedTourId={selectedTourId}
+                                    onSelectTour={onSelectTour}
+                                    onCreateTour={onCreateTour}
+                                    onDeleteTour={onDeleteTour}
+                                    markers={markers}
+                                    routes={routes}
+                                    onMoveMarkerUp={handleMoveMarkerUp}
+                                    onMoveMarkerDown={handleMoveMarkerDown}
+                                    onRemoveMarkerFromTour={
+                                        handleRemoveMarkerFromTour
+                                    }
+                                    onRequestRoute={handleRequestRoute}
+                                />
+                            </div>
+                        </div>
+                    )}
+                    <button
+                        onClick={() =>
+                            setIsTourPanelCollapsed(!isTourPanelCollapsed)
+                        }
+                        className={`flex items-center bg-white px-1 shadow-md hover:bg-gray-100 ${isTourPanelCollapsed ? 'rounded-lg' : 'rounded-r-lg'}`}
+                        title={
+                            isTourPanelCollapsed
+                                ? 'Expand Tours'
+                                : 'Collapse Tours'
+                        }
+                        data-testid="tour-panel-toggle"
+                    >
+                        {isTourPanelCollapsed ? (
+                            <ChevronRight className="h-5 w-5 text-gray-600" />
+                        ) : (
+                            <ChevronLeft className="h-5 w-5 text-gray-600" />
+                        )}
+                    </button>
+                </div>
+
+                {/* Route panel - Mobile: 4th, Desktop: 3rd */}
+                {selectedTripId && (
+                    <div
+                        className={`order-4 flex h-[40vh] w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 md:order-3 md:h-auto ${isRoutePanelCollapsed ? 'md:w-auto' : 'md:w-[16.67%]'}`}
+                        data-testid="route-panel"
+                    >
+                        {!isRoutePanelCollapsed && (
+                            <div className="flex h-full flex-1 flex-col overflow-hidden rounded-l-lg">
+                                <div className="flex-1 overflow-y-auto">
+                                    <RoutePanel
+                                        tripId={selectedTripId}
+                                        tourId={selectedTourId}
+                                        markers={markers}
+                                        routes={routes}
+                                        onRoutesUpdate={setRoutes}
+                                        initialStartMarkerId={
+                                            routeRequest?.startMarkerId
+                                        }
+                                        initialEndMarkerId={
+                                            routeRequest?.endMarkerId
+                                        }
+                                        tours={tours}
+                                        highlightedRouteId={highlightedRouteId}
+                                        expandedRoutes={expandedRoutes}
+                                        onExpandedRoutesChange={
+                                            setExpandedRoutes
+                                        }
+                                        onHighlightedRouteIdChange={
+                                            setHighlightedRouteId
+                                        }
+                                        onTourUpdate={handleTourUpdate}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                        <button
+                            onClick={() =>
+                                setIsRoutePanelCollapsed(!isRoutePanelCollapsed)
+                            }
+                            className={`flex items-center bg-white px-1 shadow-md hover:bg-gray-100 ${isRoutePanelCollapsed ? 'rounded-lg' : 'rounded-r-lg'}`}
+                            title={
+                                isRoutePanelCollapsed
+                                    ? 'Expand Routes'
+                                    : 'Collapse Routes'
+                            }
+                            data-testid="route-panel-toggle"
+                        >
+                            {isRoutePanelCollapsed ? (
+                                <ChevronRight className="h-5 w-5 text-gray-600" />
+                            ) : (
+                                <ChevronLeft className="h-5 w-5 text-gray-600" />
+                            )}
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Trip Notes Modal */}
