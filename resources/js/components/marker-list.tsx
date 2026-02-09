@@ -112,7 +112,7 @@ function MarkerItem({
             ) : (
                 <button
                     onClick={handleFetchImage}
-                    className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded bg-gray-200 transition-colors hover:bg-gray-300"
+                    className="flex h-16 min-h-11 w-16 min-w-11 flex-shrink-0 items-center justify-center rounded bg-gray-200 transition-colors hover:bg-gray-300"
                     title="Click to load image"
                     disabled={loadingImage}
                 >
@@ -155,12 +155,12 @@ function MarkerItem({
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6 text-gray-600 hover:text-blue-600"
+                        className="h-11 w-11 text-gray-600 hover:text-blue-600"
                         onClick={handleAddToTour}
                         title="Add to tour"
                         data-testid="add-marker-to-tour-button"
                     >
-                        <ArrowRight className="h-4 w-4" />
+                        <ArrowRight className="h-5 w-5" />
                     </Button>
                 )}
                 {markerData.aiEnriched && (
