@@ -18,12 +18,13 @@ class MarkerEnrichmentAgentService
      * @param  string  $markerName  The name/location to enrich
      * @param  float  $latitude  The latitude coordinate
      * @param  float  $longitude  The longitude coordinate
+     * @param  string  $language  The language for the response ('de' or 'en')
      * @return array{success: bool, data?: array{type?: string, is_unesco?: bool, notes?: string, url?: string, estimated_hours?: float}, error?: string}
      */
-    public function enrichMarkerInfo(string $markerName, float $latitude, float $longitude): array
+    public function enrichMarkerInfo(string $markerName, float $latitude, float $longitude, string $language = 'de'): array
     {
         try {
-            $prompt = $this->buildPrompt($markerName, $latitude, $longitude);
+            $prompt = $this->buildPrompt($markerName, $latitude, $longitude, $language);
 
             $response = Http::timeout(30)
                 ->withHeaders([
@@ -114,8 +115,10 @@ class MarkerEnrichmentAgentService
     /**
      * Build the prompt for the Marker Enrichment Agent.
      */
-    private function buildPrompt(string $markerName, float $latitude, float $longitude): string
+    private function buildPrompt(string $markerName, float $latitude, float $longitude, string $language): string
     {
+        $languageInstructions = $this->getLanguageInstructions($language);
+
         return <<<PROMPT
 Analyze the following location and provide enriched information in JSON format:
 
@@ -126,8 +129,8 @@ Please provide the following information in valid JSON format:
 {
   "type": "one of: restaurant, point_of_interest, hotel, museum, ruin, temple_church, sightseeing, natural_attraction, city, village, region, question, tip, festival_party, leisure",
   "is_unesco": true or false (whether this is a UNESCO World Heritage Site),
-  "notes": "Interesting facts, historical context, and useful information about this location IN GERMAN LANGUAGE",
-  "url": "Official website or relevant link (prefer German language websites if available, otherwise international sites)",
+  "notes": "Interesting facts, historical context, and useful information about this location IN {$languageInstructions['language_name']}",
+  "url": "Official website or relevant link (prefer {$languageInstructions['language_name']} websites if available, otherwise international sites)",
   "estimated_hours": number (estimated time in hours to experience this location, e.g., 1.5 for a restaurant meal, 2 for a museum visit, 0.5 for a quick view)
 }
 
@@ -135,10 +138,10 @@ Rules:
 - Return ONLY valid JSON, no additional text
 - If a field cannot be determined, use null
 - For type, choose the most appropriate category
-- For notes, provide 2-3 sentences of relevant information IN GERMAN (Deutsch)
-- Write natural, fluent German text in the notes field
-- For url, prefer German language official websites when available, otherwise international sites
-- If a German Wikipedia page exists, prefer it over the English version
+- For notes, provide 2-3 sentences of relevant information IN {$languageInstructions['language_name']} ({$languageInstructions['native_name']})
+- Write natural, fluent {$languageInstructions['language_name']} text in the notes field
+- For url, prefer {$languageInstructions['language_name']} official websites when available, otherwise international sites
+- If a {$languageInstructions['language_name']} Wikipedia page exists, prefer it over other language versions
 - For estimated_hours, provide a reasonable time estimation in hours (can use decimals like 0.5, 1.5, 2.5)
   * Restaurants: 1-2 hours typically
   * Museums: 1-3 hours depending on size
@@ -148,6 +151,29 @@ Rules:
   * Hotels: not applicable, use null
 
 PROMPT;
+    }
+
+    /**
+     * Get language-specific instructions for the prompt.
+     *
+     * @return array{language_name: string, native_name: string}
+     */
+    private function getLanguageInstructions(string $language): array
+    {
+        return match ($language) {
+            'de' => [
+                'language_name' => 'GERMAN LANGUAGE',
+                'native_name' => 'Deutsch',
+            ],
+            'en' => [
+                'language_name' => 'ENGLISH LANGUAGE',
+                'native_name' => 'English',
+            ],
+            default => [
+                'language_name' => 'GERMAN LANGUAGE',
+                'native_name' => 'Deutsch',
+            ],
+        };
     }
 
     /**

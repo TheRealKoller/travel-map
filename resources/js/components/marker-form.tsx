@@ -1,6 +1,7 @@
 import '@/../../resources/css/markdown-preview.css';
 import DeleteMarkerDialog from '@/components/delete-marker-dialog';
 import { Icon } from '@/components/ui/icon';
+import { useLanguage } from '@/hooks/use-language';
 import { getMarkerTypeIcon, UnescoIcon } from '@/lib/marker-icons';
 import { MarkerData, MarkerType } from '@/types/marker';
 import { Tour } from '@/types/tour';
@@ -42,6 +43,9 @@ export default function MarkerForm({
     // Initialize local state from marker prop
     // The key={selectedMarkerId} in parent ensures this component remounts with each new marker
     // so we can safely initialize state here without worrying about updates
+
+    // Get current language
+    const { language } = useLanguage();
 
     // Determine initial mode: edit for new markers (not saved), view for existing markers
     const [isEditMode, setIsEditMode] = useState(!marker?.isSaved);
@@ -239,6 +243,7 @@ export default function MarkerForm({
                     name: name,
                     latitude: marker.lat,
                     longitude: marker.lng,
+                    language: language,
                 }),
             });
 
