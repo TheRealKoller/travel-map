@@ -129,37 +129,21 @@ export default function TravelMap({
             currentPanelState.isOpen &&
             currentPanelState.snapPoint !== 'peek'
         ) {
-            // If panel is open and not peeking, expand to half
-            updatePanelSnapPoint(panel, 'half');
+            // Panel is already open at half or full, keep it at current position
+            setActivePanel(panel);
         } else if (
             currentPanelState.isOpen &&
             currentPanelState.snapPoint === 'peek'
         ) {
             // If peeking, expand to half
             updatePanelSnapPoint(panel, 'half');
+            setActivePanel(panel);
         } else {
             // If closed, open to half
             openPanel(panel, 'half');
+            setActivePanel(panel);
         }
-        setActivePanel(panel);
     };
-
-    // Swipe gesture support for mobile panel navigation (removed, using draggable sheets instead)
-    // const panels: PanelType[] = ['markers', 'tours', 'routes'];
-    // useSwipeGesture({
-    //     onSwipeLeft: () => {
-    //         const currentIndex = panels.indexOf(activePanel);
-    //         if (currentIndex < panels.length - 1) {
-    //             setActivePanel(panels[currentIndex + 1]);
-    //         }
-    //     },
-    //     onSwipeRight: () => {
-    //         const currentIndex = panels.indexOf(activePanel);
-    //         if (currentIndex > 0) {
-    //             setActivePanel(panels[currentIndex - 1]);
-    //         }
-    //     },
-    // });
 
     // Trip notes modal state
     const [isTripNotesModalOpen, setIsTripNotesModalOpen] = useState(false);

@@ -16,13 +16,6 @@ interface DraggableSheetProps {
     halfHeight?: number; // Height in % when half open
 }
 
-const snapPointHeights: Record<SnapPoint, string> = {
-    closed: '0%',
-    peek: 'var(--peek-height, 60px)',
-    half: 'var(--half-height, 50%)',
-    full: '90%',
-};
-
 export function DraggableSheet({
     children,
     isOpen,
@@ -45,6 +38,26 @@ export function DraggableSheet({
     React.useEffect(() => {
         setInternalSnapPoint(snapPoint);
     }, [snapPoint]);
+
+    // Get height value for a snap point
+    const getSnapPointHeight = React.useCallback(
+        (point: SnapPoint): string => {
+            const windowHeight = window.innerHeight;
+            switch (point) {
+                case 'closed':
+                    return '0px';
+                case 'peek':
+                    return `${peekHeight}px`;
+                case 'half':
+                    return `${(windowHeight * halfHeight) / 100}px`;
+                case 'full':
+                    return `${windowHeight * 0.9}px`;
+                default:
+                    return '0px';
+            }
+        },
+        [peekHeight, halfHeight],
+    );
 
     const findClosestSnapPoint = React.useCallback(
         (height: number): SnapPoint => {
@@ -194,10 +207,8 @@ export function DraggableSheet({
                     className,
                 )}
                 style={{
-                    height: snapPointHeights[internalSnapPoint],
-                    '--peek-height': `${peekHeight}px`,
-                    '--half-height': `${halfHeight}%`,
-                } as React.CSSProperties}
+                    height: getSnapPointHeight(internalSnapPoint),
+                }}
                 data-testid="draggable-sheet"
             >
                 {/* Drag Handle */}
