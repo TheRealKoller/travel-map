@@ -13,10 +13,33 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    /* Touch optimizations */
+    touch-action: manipulation; /* Prevent double-tap zoom on marker interaction */
+    -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
 }
 
+/* Increase touch target size using pseudo-element (invisible hit area) */
+.mapbox-marker::before {
+    content: '';
+    position: absolute;
+    top: -12px;
+    left: -12px;
+    right: -12px;
+    bottom: -12px;
+    border-radius: 50%;
+    /* Invisible, only for touch targets */
+    background: transparent;
+}
+
+/* Hover and touch feedback */
 .mapbox-marker:hover {
     transform: scale(1.1);
+}
+
+/* Touch-specific active state for better feedback */
+.mapbox-marker:active {
+    transform: scale(1.15);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
 .mapbox-marker__icon {
@@ -127,8 +150,28 @@
     transition: opacity 0.2s ease;
     /* Higher z-index for search results - above saved markers */
     z-index: 20;
+    /* Touch optimizations */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Larger touch target for search results */
+.search-result-marker::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    border-radius: 50%;
+    background: transparent;
 }
 
 .search-result-marker:hover {
     opacity: 0.9;
+}
+
+.search-result-marker:active {
+    opacity: 1;
+    transform: scale(1.2);
 }

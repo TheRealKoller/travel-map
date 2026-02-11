@@ -70,7 +70,6 @@ export default function RenameTripModal({
                                 onChange={(e) => setTripName(e.target.value)}
                                 placeholder="e.g., Summer 2024, Japan Trip"
                                 disabled={isSubmitting}
-                                autoFocus
                             />
                         </div>
                     </div>
