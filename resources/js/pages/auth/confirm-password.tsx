@@ -33,7 +33,6 @@ export default function ConfirmPassword() {
                                     'auth.confirm_password.password_placeholder',
                                 )}
                                 autoComplete="current-password"
-                                autoFocus
                             />
 
                             <InputError message={errors.password} />

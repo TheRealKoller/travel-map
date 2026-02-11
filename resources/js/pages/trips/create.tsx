@@ -462,7 +462,6 @@ export default function CreateTrip({ trip }: CreateTripProps) {
                                     onChange={(e) => setName(e.target.value)}
                                     placeholder="e.g., Summer 2024, Japan Trip"
                                     disabled={isSubmitting}
-                                    autoFocus
                                     required
                                 />
                             </div>

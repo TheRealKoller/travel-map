@@ -1,6 +1,7 @@
 import '@/../../resources/css/markdown-preview.css';
 import DeleteMarkerDialog from '@/components/delete-marker-dialog';
 import { Icon } from '@/components/ui/icon';
+import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/hooks/use-language';
 import { getMarkerTypeIcon, UnescoIcon } from '@/lib/marker-icons';
 import { MarkerData, MarkerType } from '@/types/marker';
@@ -491,7 +492,7 @@ export default function MarkerForm({
                     <div className="flex flex-col gap-2 border-t border-gray-200 pt-4 lg:flex-row lg:gap-2">
                         <button
                             onClick={handleEnterEditMode}
-                            className="w-full rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                            className="flex min-h-[44px] w-full items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
                             data-testid="button-edit-marker"
                         >
                             Edit
@@ -499,7 +500,7 @@ export default function MarkerForm({
                         {marker.isSaved && (
                             <button
                                 onClick={handleDelete}
-                                className="w-full rounded-md bg-red-600 px-3 py-1.5 text-sm text-white transition-colors hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none"
+                                className="flex min-h-[44px] w-full items-center justify-center rounded-md bg-red-600 px-3 py-2 text-sm text-white transition-colors hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none"
                             >
                                 Delete
                             </button>
@@ -527,12 +528,11 @@ export default function MarkerForm({
                             >
                                 Name
                             </label>
-                            <input
+                            <Input
                                 id="marker-name"
                                 type="text"
                                 value={name}
                                 onChange={handleNameChange}
-                                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                 placeholder="Enter marker name"
                             />
                         </div>
@@ -547,7 +547,7 @@ export default function MarkerForm({
                                 id="marker-type"
                                 value={type}
                                 onChange={handleTypeChange}
-                                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                className="flex min-h-[44px] w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-base focus:ring-2 focus:ring-blue-500 focus:outline-none"
                             >
                                 <option value={MarkerType.Restaurant}>
                                     Restaurant
@@ -592,14 +592,14 @@ export default function MarkerForm({
                             </select>
                         </div>
                         <div>
-                            <label className="flex items-center space-x-2">
+                            <label className="flex min-h-[44px] items-center space-x-2">
                                 <input
                                     type="checkbox"
                                     checked={isUnesco}
                                     onChange={(e) =>
                                         setIsUnesco(e.target.checked)
                                     }
-                                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                                    className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
                                 />
                                 <span className="text-sm font-medium text-gray-700">
                                     UNESCO World Heritage Site
@@ -613,7 +613,7 @@ export default function MarkerForm({
                             >
                                 Estimated time (hours)
                             </label>
-                            <input
+                            <Input
                                 id="marker-estimated-hours"
                                 type="number"
                                 min="0"
@@ -626,7 +626,6 @@ export default function MarkerForm({
                                         value === '' ? null : parseFloat(value),
                                     );
                                 }}
-                                className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                 placeholder="e.g., 1.5"
                                 data-testid="input-estimated-hours"
                             />
@@ -640,7 +639,7 @@ export default function MarkerForm({
                                 type="button"
                                 onClick={handleEnrichMarker}
                                 disabled={isEnriching || !name.trim()}
-                                className="w-full rounded-md border border-purple-600 bg-white px-3 py-2 text-sm font-medium text-purple-600 transition-colors hover:bg-purple-50 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:border-gray-300 disabled:bg-gray-100 disabled:text-gray-400"
+                                className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-md border border-purple-600 bg-white px-3 py-2 text-sm font-medium text-purple-600 transition-colors hover:bg-purple-50 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:border-gray-300 disabled:bg-gray-100 disabled:text-gray-400"
                                 data-testid="button-enrich-marker"
                             >
                                 {isEnriching ? (
@@ -699,19 +698,18 @@ export default function MarkerForm({
                                 URL
                             </label>
                             <div className="flex gap-2">
-                                <input
+                                <Input
                                     id="marker-url"
                                     type="url"
                                     value={url}
                                     onChange={handleUrlChange}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                     placeholder="https://example.com"
                                 />
                                 <button
                                     type="button"
                                     onClick={handleOpenUrl}
                                     disabled={!url.trim() || !isValidUrl(url)}
-                                    className="flex-shrink-0 rounded-md bg-blue-600 px-3 py-2 text-sm text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:bg-gray-400"
+                                    className="flex min-h-[44px] flex-shrink-0 items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:bg-gray-400"
                                     aria-label="Open URL in new tab"
                                 >
                                     <svg
@@ -750,7 +748,7 @@ export default function MarkerForm({
                                         return (
                                             <label
                                                 key={tour.id}
-                                                className="flex items-center space-x-2"
+                                                className="flex min-h-[44px] items-center space-x-2"
                                             >
                                                 <input
                                                     type="checkbox"
@@ -764,7 +762,7 @@ export default function MarkerForm({
                                                             );
                                                         }
                                                     }}
-                                                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                                                    className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
                                                 />
                                                 <span className="text-sm text-gray-700">
                                                     {tour.name}
@@ -785,7 +783,7 @@ export default function MarkerForm({
                             <button
                                 onClick={handleSave}
                                 disabled={!name.trim()}
-                                className="w-full rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:bg-gray-400"
+                                className="flex min-h-[44px] w-full items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-400 disabled:hover:bg-gray-400"
                                 data-testid="button-save-marker"
                             >
                                 Save
@@ -794,14 +792,14 @@ export default function MarkerForm({
                                 <>
                                     <button
                                         onClick={handleCancelEdit}
-                                        className="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                                        className="flex min-h-[44px] w-full items-center justify-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
                                         data-testid="button-cancel-edit"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         onClick={handleDelete}
-                                        className="w-full rounded-md bg-red-600 px-3 py-1.5 text-sm text-white transition-colors hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none"
+                                        className="flex min-h-[44px] w-full items-center justify-center rounded-md bg-red-600 px-3 py-2 text-sm text-white transition-colors hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none"
                                     >
                                         Delete
                                     </button>
