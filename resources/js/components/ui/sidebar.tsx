@@ -190,8 +190,8 @@ function Sidebar({
         // For left sidebar, swipe left to close
         // For right sidebar, swipe right to close
         if (
-          (side === "left" && deltaX < -SIDEBAR_SWIPE_THRESHOLD) ||
-          (side === "right" && deltaX > SIDEBAR_SWIPE_THRESHOLD)
+          (side === "left" && deltaX < 0) ||
+          (side === "right" && deltaX > 0)
         ) {
           setOpenMobile(false)
         }
