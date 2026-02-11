@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
-import { PanelLeftIcon } from "lucide-react"
+import { MenuIcon } from "lucide-react"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
@@ -26,7 +26,7 @@ import {
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 const SIDEBAR_WIDTH = "16rem"
-const SIDEBAR_WIDTH_MOBILE = "18rem"
+const SIDEBAR_WIDTH_MOBILE = "min(85vw, 20rem)"
 const SIDEBAR_WIDTH_ICON = "3rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
@@ -163,6 +163,49 @@ function Sidebar({
 }) {
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
 
+  // Add swipe detection for mobile sidebar
+  React.useEffect(() => {
+    if (!isMobile || !openMobile) return
+
+    let touchStartX = 0
+    let touchEndX = 0
+    let touchStartY = 0
+    let touchEndY = 0
+
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartX = e.changedTouches[0].screenX
+      touchStartY = e.changedTouches[0].screenY
+    }
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      touchEndX = e.changedTouches[0].screenX
+      touchEndY = e.changedTouches[0].screenY
+      
+      const deltaX = touchEndX - touchStartX
+      const deltaY = touchEndY - touchStartY
+      
+      // Only handle horizontal swipes that are more horizontal than vertical
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+        // For left sidebar, swipe left to close
+        // For right sidebar, swipe right to close
+        if (
+          (side === "left" && deltaX < -50) ||
+          (side === "right" && deltaX > 50)
+        ) {
+          setOpenMobile(false)
+        }
+      }
+    }
+
+    document.addEventListener("touchstart", handleTouchStart, { passive: true })
+    document.addEventListener("touchend", handleTouchEnd, { passive: true })
+
+    return () => {
+      document.removeEventListener("touchstart", handleTouchStart)
+      document.removeEventListener("touchend", handleTouchEnd)
+    }
+  }, [isMobile, openMobile, setOpenMobile, side])
+
   if (collapsible === "none") {
     return (
       <div
@@ -253,22 +296,23 @@ function SidebarTrigger({
   onClick,
   ...props
 }: React.ComponentProps<typeof Button>) {
-  const { toggleSidebar } = useSidebar()
+  const { toggleSidebar, isMobile } = useSidebar()
 
   return (
     <Button
       data-sidebar="trigger"
       data-slot="sidebar-trigger"
+      data-testid="sidebar-trigger"
       variant="ghost"
       size="icon"
-      className={cn(className)}
+      className={cn("min-h-[44px] min-w-[44px]", className)}
       onClick={(event) => {
         onClick?.(event)
         toggleSidebar()
       }}
       {...props}
     >
-      <PanelLeftIcon />
+      <MenuIcon className={cn(isMobile && "size-5")} />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   )
@@ -478,9 +522,9 @@ const sidebarMenuButtonVariants = cva(
           "bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]",
       },
       size: {
-        default: "h-8 text-sm",
+        default: "h-8 min-h-[44px] text-sm md:h-8 md:min-h-0",
         sm: "h-7 text-xs",
-        lg: "h-12 text-sm group-data-[collapsible=icon]:p-0!",
+        lg: "h-12 min-h-[48px] text-sm group-data-[collapsible=icon]:p-0!",
       },
     },
     defaultVariants: {
