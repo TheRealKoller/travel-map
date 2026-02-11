@@ -593,7 +593,9 @@ export default function RoutePanel({
     return (
         <div className="space-y-3 p-2.5 sm:space-y-4 sm:p-3 md:p-4">
             <Card className="p-2.5 sm:p-3 md:p-4">
-                <h3 className="mb-3 text-base font-semibold sm:mb-4 sm:text-lg">Create Route</h3>
+                <h3 className="mb-3 text-base font-semibold sm:mb-4 sm:text-lg">
+                    Create Route
+                </h3>
 
                 <div className="space-y-4">
                     <div>

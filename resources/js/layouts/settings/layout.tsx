@@ -74,7 +74,9 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                                     {item.icon && (
                                         <item.icon className="h-4 w-4" />
                                     )}
-                                    <span className="truncate">{item.title}</span>
+                                    <span className="truncate">
+                                        {item.title}
+                                    </span>
                                 </Link>
                             </Button>
                         ))}

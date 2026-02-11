@@ -47,7 +47,7 @@ function TourTab({ tour, markerCount }: TourTabProps) {
                 )}
                 {tour.estimated_duration_hours !== undefined &&
                     tour.estimated_duration_hours > 0 && (
-                        <span className="ml-1 whitespace-nowrap text-xs text-blue-600">
+                        <span className="ml-1 text-xs whitespace-nowrap text-blue-600">
                             {formatDuration(tour.estimated_duration_hours)}
                         </span>
                     )}
@@ -102,9 +102,11 @@ function MarkerItem({
                         <ArrowDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Button>
                 </div>
-                <span className="flex-shrink-0 font-medium text-gray-500">{index + 1}.</span>
+                <span className="flex-shrink-0 font-medium text-gray-500">
+                    {index + 1}.
+                </span>
                 <div className="min-w-0 flex-1">
-                    <div className="truncate font-medium leading-snug text-gray-900">
+                    <div className="truncate leading-snug font-medium text-gray-900">
                         {marker.name || 'Unnamed Location'}
                     </div>
                     {marker.estimatedHours && (
@@ -181,8 +183,10 @@ function TourCard({
     return (
         <Card className="flex-1 overflow-auto p-2.5 sm:p-3 md:p-4">
             <div className="mb-2.5 flex items-center justify-between sm:mb-3">
-                <div className="min-w-0 flex flex-col">
-                    <h3 className="truncate text-sm font-semibold sm:text-base">{tour.name}</h3>
+                <div className="flex min-w-0 flex-col">
+                    <h3 className="truncate text-sm font-semibold sm:text-base">
+                        {tour.name}
+                    </h3>
                     {tour.estimated_duration_hours !== undefined &&
                         tour.estimated_duration_hours > 0 && (
                             <span className="text-xs leading-relaxed text-blue-600">

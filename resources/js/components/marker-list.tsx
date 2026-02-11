@@ -127,7 +127,7 @@ function MarkerItem({
                 className="min-w-0 flex-1 cursor-pointer"
                 onClick={() => onSelect(markerData.id)}
             >
-                <div className="mb-0.5 truncate text-sm font-medium leading-snug text-gray-900 sm:text-base">
+                <div className="mb-0.5 truncate text-sm leading-snug font-medium text-gray-900 sm:text-base">
                     {markerData.name || 'Unnamed Location'}
                 </div>
                 <div className="mb-1 text-xs leading-relaxed text-gray-600 sm:text-sm">

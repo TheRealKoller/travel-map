@@ -269,7 +269,7 @@ export default function TripPreview({
 
                         {/* Trip Details */}
                         <div className="flex flex-1 flex-col gap-2 p-4 sm:gap-3 sm:p-5 md:p-6">
-                            <h2 className="truncate text-xl font-semibold leading-tight sm:text-2xl">
+                            <h2 className="truncate text-xl leading-tight font-semibold sm:text-2xl">
                                 {trip.name}
                             </h2>
                             {trip.country && (
@@ -281,7 +281,7 @@ export default function TripPreview({
                             {(trip.planned_start_year ||
                                 trip.planned_end_year ||
                                 trip.planned_duration_days) && (
-                                <div className="mt-1 space-y-1.5 rounded-md border border-gray-200 bg-gray-50 p-3 text-sm leading-relaxed dark:border-gray-700 dark:bg-gray-800 sm:mt-2 sm:space-y-2 sm:p-4">
+                                <div className="mt-1 space-y-1.5 rounded-md border border-gray-200 bg-gray-50 p-3 text-sm leading-relaxed sm:mt-2 sm:space-y-2 sm:p-4 dark:border-gray-700 dark:bg-gray-800">
                                     {(trip.planned_start_year ||
                                         trip.planned_end_year) && (
                                         <div>
