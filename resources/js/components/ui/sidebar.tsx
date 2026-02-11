@@ -29,6 +29,7 @@ const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "min(85vw, 20rem)"
 const SIDEBAR_WIDTH_ICON = "3rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
+const SIDEBAR_SWIPE_THRESHOLD = 50
 
 type SidebarContext = {
   state: "expanded" | "collapsed"
@@ -185,12 +186,12 @@ function Sidebar({
       const deltaY = touchEndY - touchStartY
       
       // Only handle horizontal swipes that are more horizontal than vertical
-      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > SIDEBAR_SWIPE_THRESHOLD) {
         // For left sidebar, swipe left to close
         // For right sidebar, swipe right to close
         if (
-          (side === "left" && deltaX < -50) ||
-          (side === "right" && deltaX > 50)
+          (side === "left" && deltaX < -SIDEBAR_SWIPE_THRESHOLD) ||
+          (side === "right" && deltaX > SIDEBAR_SWIPE_THRESHOLD)
         ) {
           setOpenMobile(false)
         }
