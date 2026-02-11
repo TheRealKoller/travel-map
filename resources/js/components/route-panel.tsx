@@ -591,9 +591,9 @@ export default function RoutePanel({
     const filteredRoutes = getFilteredRoutes();
 
     return (
-        <div className="space-y-4 p-4">
-            <Card className="p-4">
-                <h3 className="mb-4 text-lg font-semibold">Create Route</h3>
+        <div className="space-y-3 p-2.5 sm:space-y-4 sm:p-3 md:p-4">
+            <Card className="p-2.5 sm:p-3 md:p-4">
+                <h3 className="mb-3 text-base font-semibold sm:mb-4 sm:text-lg">Create Route</h3>
 
                 <div className="space-y-4">
                     <div>
@@ -739,12 +739,12 @@ export default function RoutePanel({
             )}
 
             {filteredRoutes.length > 0 && (
-                <Card className="p-4">
-                    <h3 className="mb-4 text-lg font-semibold">
+                <Card className="p-2.5 sm:p-3 md:p-4">
+                    <h3 className="mb-3 text-base font-semibold sm:mb-4 sm:text-lg">
                         Routes ({filteredRoutes.length})
                     </h3>
 
-                    <div className="space-y-3">
+                    <div className="space-y-2.5 sm:space-y-3">
                         {filteredRoutes.map((route) => {
                             const isExpanded = expandedRoutes.has(route.id);
                             const isHighlighted =
@@ -765,13 +765,13 @@ export default function RoutePanel({
                                         }`}
                                     >
                                         {/* Route header - always visible */}
-                                        <div className="flex items-start justify-between p-3">
+                                        <div className="flex items-start justify-between p-2.5 sm:p-3">
                                             <CollapsibleTrigger
-                                                className="flex flex-1 cursor-pointer items-start gap-2"
+                                                className="flex flex-1 cursor-pointer items-start gap-1.5 sm:gap-2"
                                                 data-testid={`route-${route.id}-trigger`}
                                             >
-                                                <div className="flex-1 space-y-1">
-                                                    <div className="flex items-center gap-2 font-medium">
+                                                <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
+                                                    <div className="flex items-center gap-1.5 font-medium sm:gap-2">
                                                         <span
                                                             className={getTransportColor(
                                                                 route
@@ -785,7 +785,7 @@ export default function RoutePanel({
                                                                     .value,
                                                             )}
                                                         </span>
-                                                        <span className="text-sm">
+                                                        <span className="truncate text-xs leading-snug sm:text-sm">
                                                             {
                                                                 route
                                                                     .start_marker

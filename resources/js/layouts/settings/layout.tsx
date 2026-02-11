@@ -48,7 +48,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     const currentPath = window.location.pathname;
 
     return (
-        <div className="px-4 py-6">
+        <div className="px-3 py-4 sm:px-4 sm:py-5 md:px-4 md:py-6">
             <Heading
                 title="Settings"
                 description="Manage your profile and account settings"
@@ -74,17 +74,17 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                                     {item.icon && (
                                         <item.icon className="h-4 w-4" />
                                     )}
-                                    {item.title}
+                                    <span className="truncate">{item.title}</span>
                                 </Link>
                             </Button>
                         ))}
                     </nav>
                 </aside>
 
-                <Separator className="my-6 lg:hidden" />
+                <Separator className="my-4 sm:my-5 lg:hidden" />
 
                 <div className="flex-1 md:max-w-2xl">
-                    <section className="max-w-xl space-y-12">
+                    <section className="max-w-xl space-y-8 sm:space-y-10 md:space-y-12">
                         {children}
                     </section>
                 </div>

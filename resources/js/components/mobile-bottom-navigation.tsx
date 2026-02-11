@@ -47,13 +47,13 @@ export default function MobileBottomNavigation({
                         >
                             <Icon
                                 className={cn(
-                                    'h-6 w-6',
+                                    'h-5 w-5 sm:h-6 sm:w-6',
                                     isActive && 'stroke-[2.5]',
                                 )}
                             />
                             <span
                                 className={cn(
-                                    'text-xs',
+                                    'truncate text-xs leading-tight',
                                     isActive ? 'font-semibold' : 'font-medium',
                                 )}
                             >

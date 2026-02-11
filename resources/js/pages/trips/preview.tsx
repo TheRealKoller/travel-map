@@ -268,12 +268,12 @@ export default function TripPreview({
                         </div>
 
                         {/* Trip Details */}
-                        <div className="flex flex-1 flex-col gap-3 p-6">
-                            <h2 className="text-2xl font-semibold">
+                        <div className="flex flex-1 flex-col gap-2 p-4 sm:gap-3 sm:p-5 md:p-6">
+                            <h2 className="truncate text-xl font-semibold leading-tight sm:text-2xl">
                                 {trip.name}
                             </h2>
                             {trip.country && (
-                                <p className="text-muted-foreground">
+                                <p className="text-sm text-muted-foreground sm:text-base">
                                     {getCountryName(trip.country)}
                                 </p>
                             )}
@@ -281,14 +281,14 @@ export default function TripPreview({
                             {(trip.planned_start_year ||
                                 trip.planned_end_year ||
                                 trip.planned_duration_days) && (
-                                <div className="mt-2 space-y-2 rounded-md border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+                                <div className="mt-1 space-y-1.5 rounded-md border border-gray-200 bg-gray-50 p-3 text-sm leading-relaxed dark:border-gray-700 dark:bg-gray-800 sm:mt-2 sm:space-y-2 sm:p-4">
                                     {(trip.planned_start_year ||
                                         trip.planned_end_year) && (
                                         <div>
                                             <span className="font-medium">
                                                 Period:{' '}
                                             </span>
-                                            <span className="text-gray-700 dark:text-gray-300">
+                                            <span className="break-words text-gray-700 dark:text-gray-300">
                                                 {formatPlannedPeriod(
                                                     trip.planned_start_year,
                                                     trip.planned_start_month,

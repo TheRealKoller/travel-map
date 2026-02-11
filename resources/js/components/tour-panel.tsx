@@ -39,7 +39,7 @@ function TourTab({ tour, markerCount }: TourTabProps) {
     return (
         <div className="inline-flex" style={{ minHeight: '40px' }}>
             <TabsTrigger value={tour.id.toString()} data-testid="tour-tab">
-                {tour.name}
+                <span className="truncate">{tour.name}</span>
                 {markerCount > 0 && (
                     <span className="ml-1 text-xs text-gray-500">
                         ({markerCount})
@@ -47,7 +47,7 @@ function TourTab({ tour, markerCount }: TourTabProps) {
                 )}
                 {tour.estimated_duration_hours !== undefined &&
                     tour.estimated_duration_hours > 0 && (
-                        <span className="ml-1 text-xs text-blue-600">
+                        <span className="ml-1 whitespace-nowrap text-xs text-blue-600">
                             {formatDuration(tour.estimated_duration_hours)}
                         </span>
                     )}
@@ -76,39 +76,39 @@ function MarkerItem({
     onRemove,
 }: MarkerItemProps) {
     return (
-        <div className="rounded bg-gray-50 p-2 text-sm">
-            <div className="flex items-start gap-2">
-                <div className="flex flex-col gap-0.5">
+        <div className="rounded bg-gray-50 p-1.5 text-xs sm:p-2 sm:text-sm">
+            <div className="flex items-start gap-1.5 sm:gap-2">
+                <div className="flex flex-shrink-0 flex-col gap-0.5">
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-11 w-11 p-0 text-gray-400 hover:text-blue-600 disabled:opacity-30"
+                        className="h-9 w-9 p-0 text-gray-400 hover:text-blue-600 disabled:opacity-30 sm:h-11 sm:w-11"
                         onClick={onMoveUp}
                         disabled={isFirst}
                         title="Move up"
                         data-testid="move-marker-up"
                     >
-                        <ArrowUp className="h-4 w-4" />
+                        <ArrowUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Button>
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-11 w-11 p-0 text-gray-400 hover:text-blue-600 disabled:opacity-30"
+                        className="h-9 w-9 p-0 text-gray-400 hover:text-blue-600 disabled:opacity-30 sm:h-11 sm:w-11"
                         onClick={onMoveDown}
                         disabled={isLast}
                         title="Move down"
                         data-testid="move-marker-down"
                     >
-                        <ArrowDown className="h-4 w-4" />
+                        <ArrowDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Button>
                 </div>
-                <span className="font-medium text-gray-500">{index + 1}.</span>
-                <div className="flex-1">
-                    <div className="font-medium text-gray-900">
+                <span className="flex-shrink-0 font-medium text-gray-500">{index + 1}.</span>
+                <div className="min-w-0 flex-1">
+                    <div className="truncate font-medium leading-snug text-gray-900">
                         {marker.name || 'Unnamed Location'}
                     </div>
                     {marker.estimatedHours && (
-                        <div className="text-xs text-gray-600">
+                        <div className="text-xs leading-relaxed text-gray-600">
                             <span className="font-medium">
                                 Estimated duration:
                             </span>{' '}
@@ -116,39 +116,39 @@ function MarkerItem({
                         </div>
                     )}
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex flex-shrink-0 items-center gap-1 sm:gap-1.5">
                     {onRemove && (
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-11 w-11 p-0 text-gray-400 hover:text-red-600"
+                            className="h-9 w-9 p-0 text-gray-400 hover:text-red-600 sm:h-11 sm:w-11"
                             onClick={onRemove}
                             title="Remove from tour"
                             data-testid="remove-marker-from-tour"
                         >
-                            <ArrowLeft className="h-4 w-4" />
+                            <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </Button>
                     )}
                     <Icon
                         iconNode={getMarkerTypeIcon(marker.type)}
-                        className="h-4 w-4 text-gray-600"
+                        className="h-3.5 w-3.5 text-gray-600 sm:h-4 sm:w-4"
                     />
                     {marker.isUnesco && (
                         <Icon
                             iconNode={UnescoIcon}
-                            className="h-4 w-4 text-blue-600"
+                            className="h-3.5 w-3.5 text-blue-600 sm:h-4 sm:w-4"
                         />
                     )}
                     {onRemove && (
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-11 w-11 p-0 text-gray-400 hover:text-red-600"
+                            className="h-9 w-9 p-0 text-gray-400 hover:text-red-600 sm:h-11 sm:w-11"
                             onClick={onRemove}
                             title="Remove from tour"
                             data-testid="remove-marker-from-tour"
                         >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </Button>
                     )}
                 </div>
@@ -179,13 +179,13 @@ function TourCard({
     onRequestRoute,
 }: TourCardProps) {
     return (
-        <Card className="flex-1 overflow-auto p-4">
-            <div className="mb-3 flex items-center justify-between">
-                <div className="flex flex-col">
-                    <h3 className="text-sm font-semibold">{tour.name}</h3>
+        <Card className="flex-1 overflow-auto p-2.5 sm:p-3 md:p-4">
+            <div className="mb-2.5 flex items-center justify-between sm:mb-3">
+                <div className="min-w-0 flex flex-col">
+                    <h3 className="truncate text-sm font-semibold sm:text-base">{tour.name}</h3>
                     {tour.estimated_duration_hours !== undefined &&
                         tour.estimated_duration_hours > 0 && (
-                            <span className="text-xs text-blue-600">
+                            <span className="text-xs leading-relaxed text-blue-600">
                                 Estimated duration:{' '}
                                 {formatDuration(tour.estimated_duration_hours)}
                             </span>
@@ -195,14 +195,14 @@ function TourCard({
                     variant="ghost"
                     size="icon"
                     onClick={() => onDeleteTour(tour.id)}
-                    className="text-gray-500 hover:text-red-600"
+                    className="flex-shrink-0 text-gray-500 hover:text-red-600"
                     title="Delete tour"
                 >
-                    <Trash2 className="h-5 w-5" />
+                    <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
             </div>
             {markers.length === 0 ? (
-                <p className="text-sm text-gray-500">
+                <p className="text-xs leading-relaxed text-gray-500 sm:text-sm">
                     Click the arrow next to a marker to add it to this tour
                 </p>
             ) : (

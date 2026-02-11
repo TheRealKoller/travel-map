@@ -95,7 +95,7 @@ function MarkerItem({
 
     return (
         <li
-            className={`flex items-start gap-2 rounded p-2 transition ${
+            className={`flex items-start gap-2 rounded p-2 transition sm:gap-2.5 sm:p-2.5 ${
                 isSelected
                     ? 'border-2 border-blue-500 bg-blue-100'
                     : 'bg-gray-50 hover:bg-gray-100'
@@ -106,31 +106,31 @@ function MarkerItem({
                 <img
                     src={markerData.imageUrl}
                     alt={markerData.name || 'Marker'}
-                    className="h-16 w-16 flex-shrink-0 rounded object-cover"
+                    className="h-14 w-14 flex-shrink-0 rounded object-cover sm:h-16 sm:w-16"
                     loading="lazy"
                 />
             ) : (
                 <button
                     onClick={handleFetchImage}
-                    className="flex h-16 min-h-11 w-16 min-w-11 flex-shrink-0 items-center justify-center rounded bg-gray-200 transition-colors hover:bg-gray-300"
+                    className="flex h-14 min-h-11 w-14 min-w-11 flex-shrink-0 items-center justify-center rounded bg-gray-200 transition-colors hover:bg-gray-300 sm:h-16 sm:w-16"
                     title="Click to load image"
                     disabled={loadingImage}
                 >
                     {loadingImage ? (
-                        <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
+                        <Loader2 className="h-5 w-5 animate-spin text-gray-500 sm:h-6 sm:w-6" />
                     ) : (
-                        <Image className="h-6 w-6 text-gray-400" />
+                        <Image className="h-5 w-5 text-gray-400 sm:h-6 sm:w-6" />
                     )}
                 </button>
             )}
             <div
-                className="flex-1 cursor-pointer"
+                className="min-w-0 flex-1 cursor-pointer"
                 onClick={() => onSelect(markerData.id)}
             >
-                <div className="mb-0.5 text-sm font-medium text-gray-900">
+                <div className="mb-0.5 truncate text-sm font-medium leading-snug text-gray-900 sm:text-base">
                     {markerData.name || 'Unnamed Location'}
                 </div>
-                <div className="mb-1 text-xs text-gray-600">
+                <div className="mb-1 text-xs leading-relaxed text-gray-600 sm:text-sm">
                     <span className="font-medium">Lat:</span>{' '}
                     {markerData.lat.toFixed(6)},
                     <span className="ml-2 font-medium">Lng:</span>{' '}
@@ -143,24 +143,24 @@ function MarkerItem({
                 </div>
                 {isSelected && markerData.notes && (
                     <div
-                        className="markdown-preview mt-1.5 border-t border-blue-300 pt-1.5 text-xs text-gray-700"
+                        className="markdown-preview mt-1.5 border-t border-blue-300 pt-1.5 text-xs leading-relaxed text-gray-700"
                         dangerouslySetInnerHTML={{
                             __html: marked.parse(markerData.notes) as string,
                         }}
                     />
                 )}
             </div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex flex-shrink-0 items-center gap-1 sm:gap-1.5">
                 {showAddToTourButton && (
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-11 w-11 text-gray-600 hover:text-blue-600"
+                        className="h-9 w-9 text-gray-600 hover:text-blue-600 sm:h-11 sm:w-11"
                         onClick={handleAddToTour}
                         title="Add to tour"
                         data-testid="add-marker-to-tour-button"
                     >
-                        <ArrowRight className="h-5 w-5" />
+                        <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
                     </Button>
                 )}
                 {markerData.aiEnriched && (
@@ -170,7 +170,7 @@ function MarkerItem({
                     >
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4"
+                            className="h-3.5 w-3.5 sm:h-4 sm:w-4"
                             viewBox="0 0 20 20"
                             fill="currentColor"
                         >
@@ -184,12 +184,12 @@ function MarkerItem({
                 )}
                 <Icon
                     iconNode={getMarkerTypeIcon(markerData.type)}
-                    className="h-4 w-4 text-gray-600"
+                    className="h-3.5 w-3.5 text-gray-600 sm:h-4 sm:w-4"
                 />
                 {markerData.isUnesco && (
                     <Icon
                         iconNode={UnescoIcon}
-                        className="h-4 w-4 text-blue-600"
+                        className="h-3.5 w-3.5 text-blue-600 sm:h-4 sm:w-4"
                     />
                 )}
             </div>
@@ -243,11 +243,11 @@ export default function MarkerList({
 
     return (
         <div
-            className="rounded-lg bg-white p-3 shadow"
+            className="rounded-lg bg-white p-2.5 shadow sm:p-3"
             data-testid="marker-list"
         >
-            <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-base font-semibold">
+            <div className="mb-2.5 flex items-center justify-between sm:mb-3">
+                <h2 className="truncate text-sm font-semibold sm:text-base">
                     Markers ({filteredMarkers.length})
                 </h2>
                 <Button
@@ -256,13 +256,13 @@ export default function MarkerList({
                     onClick={() => setIsFilterOpen(!isFilterOpen)}
                     title="Toggle filter menu"
                     data-testid="filter-toggle-button"
-                    className="relative h-8 w-8"
+                    className="relative h-7 w-7 flex-shrink-0 sm:h-8 sm:w-8"
                 >
-                    <Filter className="h-4 w-4" />
+                    <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     {(appliedType !== 'all' ||
                         appliedUnescoFilter !== 'all') && (
                         <span
-                            className="absolute top-1 right-1 h-2 w-2 rounded-full bg-blue-600"
+                            className="absolute top-0.5 right-0.5 h-2 w-2 rounded-full bg-blue-600 sm:top-1 sm:right-1"
                             data-testid="filter-active-indicator"
                             title="Filter active"
                         />
@@ -271,11 +271,11 @@ export default function MarkerList({
             </div>
             {isFilterOpen && (
                 <div
-                    className="mb-3 rounded border border-gray-200 bg-gray-50 p-3"
+                    className="mb-2.5 rounded border border-gray-200 bg-gray-50 p-2.5 sm:mb-3 sm:p-3"
                     data-testid="filter-menu"
                 >
                     <div className="flex flex-col gap-2">
-                        <label className="text-sm font-medium text-gray-700">
+                        <label className="text-xs font-medium text-gray-700 sm:text-sm">
                             Filter by type
                         </label>
                         <Select
@@ -312,7 +312,7 @@ export default function MarkerList({
                                 })}
                             </SelectContent>
                         </Select>
-                        <label className="text-sm font-medium text-gray-700">
+                        <label className="text-xs font-medium text-gray-700 sm:text-sm">
                             Filter by UNESCO
                         </label>
                         <Select
@@ -358,7 +358,7 @@ export default function MarkerList({
                 </div>
             )}
             {filteredMarkers.length === 0 ? (
-                <p className="text-sm text-gray-500">
+                <p className="text-xs leading-relaxed text-gray-500 sm:text-sm">
                     {markers.length === 0
                         ? 'Click on the map to add markers'
                         : 'No markers match the selected filter'}
@@ -366,7 +366,7 @@ export default function MarkerList({
             ) : (
                 <>
                     {showAddToTourButtons && (
-                        <p className="mb-2 text-xs text-gray-500">
+                        <p className="mb-2 text-xs leading-relaxed text-gray-500">
                             Click the arrow to add a marker to the current tour
                         </p>
                     )}
