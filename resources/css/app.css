@@ -225,11 +225,6 @@
     justify-content: center;
 }
 
-/* Smooth touch scrolling for sidebar panels */
-.overflow-y-auto {
-    -webkit-overflow-scrolling: touch;
-}
-
 /* Prevent text selection during touch pan gestures */
 .mapboxgl-canvas-container {
     -webkit-user-select: none;
