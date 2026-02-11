@@ -592,14 +592,14 @@ export default function MarkerForm({
                             </select>
                         </div>
                         <div>
-                            <label className="flex min-h-[44px] items-center space-x-2">
+                            <label className="flex min-h-[44px] cursor-pointer items-center space-x-2 py-2">
                                 <input
                                     type="checkbox"
                                     checked={isUnesco}
                                     onChange={(e) =>
                                         setIsUnesco(e.target.checked)
                                     }
-                                    className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                                    className="h-5 w-5 cursor-pointer rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
                                 />
                                 <span className="text-sm font-medium text-gray-700">
                                     UNESCO World Heritage Site
@@ -748,7 +748,7 @@ export default function MarkerForm({
                                         return (
                                             <label
                                                 key={tour.id}
-                                                className="flex min-h-[44px] items-center space-x-2"
+                                                className="flex min-h-[44px] cursor-pointer items-center space-x-2 py-2"
                                             >
                                                 <input
                                                     type="checkbox"
@@ -762,7 +762,7 @@ export default function MarkerForm({
                                                             );
                                                         }
                                                     }}
-                                                    className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                                                    className="h-5 w-5 cursor-pointer rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
                                                 />
                                                 <span className="text-sm text-gray-700">
                                                     {tour.name}
