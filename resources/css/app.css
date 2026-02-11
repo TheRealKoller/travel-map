@@ -192,3 +192,43 @@
 .dark .markdown-output {
     color: var(--color-foreground);
 }
+
+/* Touch optimizations for map container */
+#map {
+    /* Prevent page scroll when panning the map */
+    touch-action: none;
+    /* Enable hardware acceleration for smoother animations */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+}
+
+/* Touch optimizations for map controls */
+.mapboxgl-ctrl-group {
+    touch-action: manipulation;
+}
+
+.mapboxgl-ctrl-group button {
+    /* Larger touch targets for map controls */
+    min-width: 44px;
+    min-height: 44px;
+}
+
+/* Improve touch responsiveness for map popups */
+.mapboxgl-popup-close-button {
+    /* Larger close button for touch */
+    width: 32px;
+    height: 32px;
+    font-size: 24px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Prevent text selection during touch pan gestures */
+.mapboxgl-canvas-container {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}

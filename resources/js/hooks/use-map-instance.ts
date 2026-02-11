@@ -29,7 +29,7 @@ export function useMapInstance(options: UseMapInstanceOptions = {}) {
             mapboxToken ||
             'pk.eyJ1IjoidHJhdmVsLW1hcC1kZW1vIiwiYSI6ImNtMTBhYmMxMjAwMDAya3M0MXl2ZHFyZWEifQ.demo';
 
-        // Initialize the map
+        // Initialize the map with touch optimizations
         const map = new mapboxgl.Map({
             container: mapRef.current,
             style: 'mapbox://styles/mapbox/standard',
@@ -41,6 +41,15 @@ export function useMapInstance(options: UseMapInstanceOptions = {}) {
                     colorPlaceLabelSelect: 'blue',
                 },
             },
+            // Touch gesture optimizations
+            touchZoomRotate: true, // Enable pinch-to-zoom and two-finger rotate
+            touchPitch: true, // Enable two-finger pitch gestures
+            doubleClickZoom: true, // Enable double-tap-to-zoom
+            dragRotate: false, // Disable right-click drag rotate for better touch UX
+            cooperativeGestures: false, // Disable cooperative gestures (Ctrl+scroll) for better mobile UX
+            // Performance optimizations for touch devices
+            refreshExpiredTiles: false, // Reduce unnecessary tile refreshes
+            fadeDuration: 150, // Faster fade transitions for better perceived performance
         });
         mapInstanceRef.current = map;
         setMapInitialized(true);
