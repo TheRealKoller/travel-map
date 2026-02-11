@@ -76,7 +76,6 @@ export default function CreateTripModal({
                                     'trips.create_modal.trip_name_placeholder',
                                 )}
                                 disabled={isSubmitting}
-                                autoFocus
                             />
                         </div>
                         <div className="grid gap-2">

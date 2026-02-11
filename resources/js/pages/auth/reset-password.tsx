@@ -60,7 +60,6 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
                                 name="password"
                                 autoComplete="new-password"
                                 className="mt-1 block w-full"
-                                autoFocus
                             />
                             <InputError message={errors.password} />
                         </div>
