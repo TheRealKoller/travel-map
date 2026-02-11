@@ -11,6 +11,7 @@ import RoutePanel from '@/components/route-panel';
 import TourPanel from '@/components/tour-panel';
 import TripNotesModal from '@/components/trip-notes-modal';
 import { Button } from '@/components/ui/button';
+import { DraggableSheet } from '@/components/ui/draggable-sheet';
 import { useGeocoder } from '@/hooks/use-geocoder';
 import { useLanguage } from '@/hooks/use-language';
 import { useMapInstance } from '@/hooks/use-map-instance';
@@ -18,13 +19,13 @@ import { useMapInteractions } from '@/hooks/use-map-interactions';
 import { useMarkerHighlight } from '@/hooks/use-marker-highlight';
 import { useMarkerVisibility } from '@/hooks/use-marker-visibility';
 import { useMarkers } from '@/hooks/use-markers';
+import { useMobilePanels } from '@/hooks/use-mobile-panels';
 import { usePanelCollapse } from '@/hooks/use-panel-collapse';
 import { usePlaceTypes } from '@/hooks/use-place-types';
 import { useRoutes } from '@/hooks/use-routes';
 import { useSearchMode } from '@/hooks/use-search-mode';
 import { useSearchRadius } from '@/hooks/use-search-radius';
 import { useSearchResults } from '@/hooks/use-search-results';
-import { useSwipeGesture } from '@/hooks/use-swipe-gesture';
 import { useTourLines } from '@/hooks/use-tour-lines';
 import { useTourMarkers } from '@/hooks/use-tour-markers';
 import { getBoundingBoxFromTrip } from '@/lib/map-utils';
@@ -111,26 +112,54 @@ export default function TravelMap({
         setIsRoutePanelCollapsed,
     } = usePanelCollapse({ mapInstance });
 
-    // Mobile panel navigation state
-    const [activeMobilePanel, setActiveMobilePanel] =
-        useState<PanelType>('markers');
+    // Mobile panel management with draggable sheets
+    const {
+        activePanel,
+        setActivePanel,
+        panelStates,
+        openPanel,
+        closePanel,
+        updatePanelSnapPoint,
+    } = useMobilePanels();
 
-    // Swipe gesture support for mobile panel navigation
-    const panels: PanelType[] = ['markers', 'tours', 'routes'];
-    useSwipeGesture({
-        onSwipeLeft: () => {
-            const currentIndex = panels.indexOf(activeMobilePanel);
-            if (currentIndex < panels.length - 1) {
-                setActiveMobilePanel(panels[currentIndex + 1]);
-            }
-        },
-        onSwipeRight: () => {
-            const currentIndex = panels.indexOf(activeMobilePanel);
-            if (currentIndex > 0) {
-                setActiveMobilePanel(panels[currentIndex - 1]);
-            }
-        },
-    });
+    // Handle panel change from bottom navigation
+    const handlePanelChange = (panel: PanelType) => {
+        const currentPanelState = panelStates[panel];
+        if (
+            currentPanelState.isOpen &&
+            currentPanelState.snapPoint !== 'peek'
+        ) {
+            // If panel is open and not peeking, expand to half
+            updatePanelSnapPoint(panel, 'half');
+        } else if (
+            currentPanelState.isOpen &&
+            currentPanelState.snapPoint === 'peek'
+        ) {
+            // If peeking, expand to half
+            updatePanelSnapPoint(panel, 'half');
+        } else {
+            // If closed, open to half
+            openPanel(panel, 'half');
+        }
+        setActivePanel(panel);
+    };
+
+    // Swipe gesture support for mobile panel navigation (removed, using draggable sheets instead)
+    // const panels: PanelType[] = ['markers', 'tours', 'routes'];
+    // useSwipeGesture({
+    //     onSwipeLeft: () => {
+    //         const currentIndex = panels.indexOf(activePanel);
+    //         if (currentIndex < panels.length - 1) {
+    //             setActivePanel(panels[currentIndex + 1]);
+    //         }
+    //     },
+    //     onSwipeRight: () => {
+    //         const currentIndex = panels.indexOf(activePanel);
+    //         if (currentIndex > 0) {
+    //             setActivePanel(panels[currentIndex - 1]);
+    //         }
+    //     },
+    // });
 
     // Trip notes modal state
     const [isTripNotesModalOpen, setIsTripNotesModalOpen] = useState(false);
@@ -458,7 +487,7 @@ export default function TravelMap({
     };
 
     return (
-        <div className="flex h-full flex-col gap-4 pb-0 md:pb-0">
+        <div className="flex h-full flex-col gap-4 pb-16 md:pb-0">
             {/* AI Recommendations Panel - Full width above the 4 existing areas */}
             <AiRecommendationsPanel
                 tripId={selectedTripId}
@@ -471,9 +500,9 @@ export default function TravelMap({
 
             {/* Responsive layout: Mobile stacks vertically, Desktop uses row */}
             <div className="flex flex-1 flex-col gap-4 overflow-hidden md:flex-row md:gap-0">
-                {/* Mobile: Map first (60vh), Desktop: Last in row */}
+                {/* Mobile: Map takes full height, Desktop: Last in row */}
                 <div
-                    className="order-1 flex h-[60vh] w-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 md:order-4 md:ml-4 md:h-auto md:flex-1"
+                    className="order-1 flex h-full w-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 md:order-4 md:ml-4 md:h-auto md:flex-1"
                     data-testid="map-panel"
                 >
                     {/* Top area for debug info and trip notes button */}
@@ -540,10 +569,10 @@ export default function TravelMap({
                     </div>
                 </div>
 
-                {/* Marker panel - Mobile: 2nd, Desktop: 1st */}
+                {/* Marker panel - Mobile: Draggable Sheet, Desktop: Static Panel */}
                 <div
-                    className={`order-2 flex h-[40vh] w-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 md:order-1 md:h-auto md:w-[16.67%] ${activeMobilePanel !== 'markers' ? 'hidden md:flex' : ''}`}
-                    data-testid="marker-panel"
+                    className="order-2 hidden h-auto w-full flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 md:order-1 md:flex md:w-[16.67%]"
+                    data-testid="marker-panel-desktop"
                 >
                     <div className="flex-1 overflow-y-auto">
                         {selectedMarkerId ? (
@@ -578,10 +607,10 @@ export default function TravelMap({
                     </div>
                 </div>
 
-                {/* Tour panel - Mobile: 3rd, Desktop: 2nd */}
+                {/* Tour panel - Mobile: Draggable Sheet, Desktop: Static Panel */}
                 <div
-                    className={`order-3 flex h-[40vh] w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 md:order-2 md:h-auto ${isTourPanelCollapsed ? 'md:w-auto' : 'md:w-[16.67%]'} ${activeMobilePanel !== 'tours' ? 'hidden md:flex' : ''}`}
-                    data-testid="tour-panel"
+                    className={`order-3 hidden overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 md:order-2 md:flex md:h-auto ${isTourPanelCollapsed ? 'md:w-auto' : 'md:w-[16.67%]'}`}
+                    data-testid="tour-panel-desktop"
                 >
                     {!isTourPanelCollapsed && (
                         <div className="flex h-full flex-1 flex-col overflow-hidden rounded-l-lg">
@@ -624,11 +653,11 @@ export default function TravelMap({
                     </button>
                 </div>
 
-                {/* Route panel - Mobile: 4th, Desktop: 3rd */}
+                {/* Route panel - Mobile: Draggable Sheet, Desktop: Static Panel */}
                 {selectedTripId && (
                     <div
-                        className={`order-4 flex h-[40vh] w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 md:order-3 md:h-auto ${isRoutePanelCollapsed ? 'md:w-auto' : 'md:w-[16.67%]'} ${activeMobilePanel !== 'routes' ? 'hidden md:flex' : ''}`}
-                        data-testid="route-panel"
+                        className={`order-4 hidden overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-300 md:order-3 md:flex md:h-auto ${isRoutePanelCollapsed ? 'md:w-auto' : 'md:w-[16.67%]'}`}
+                        data-testid="route-panel-desktop"
                     >
                         {!isRoutePanelCollapsed && (
                             <div className="flex h-full flex-1 flex-col overflow-hidden rounded-l-lg">
@@ -681,10 +710,114 @@ export default function TravelMap({
                 )}
             </div>
 
+            {/* Mobile Draggable Sheets */}
+            <DraggableSheet
+                isOpen={panelStates.markers.isOpen}
+                onOpenChange={(open) =>
+                    open ? openPanel('markers', 'half') : closePanel('markers')
+                }
+                snapPoint={panelStates.markers.snapPoint}
+                onSnapPointChange={(snapPoint) =>
+                    updatePanelSnapPoint('markers', snapPoint)
+                }
+                title="Markers"
+                peekHeight={80}
+                halfHeight={50}
+            >
+                {selectedMarkerId ? (
+                    <MarkerForm
+                        key={selectedMarkerId}
+                        marker={selectedMarker}
+                        onSave={handleSaveMarker}
+                        onDeleteMarker={handleDeleteMarker}
+                        onClose={handleCloseForm}
+                        tours={tours}
+                        onToggleMarkerInTour={handleToggleMarkerInTour}
+                    />
+                ) : (
+                    <MarkerList
+                        markers={markers}
+                        selectedMarkerId={selectedMarkerId}
+                        onSelectMarker={setSelectedMarkerId}
+                        selectedTourId={selectedTourId}
+                        onAddMarkerToTour={handleAddMarkerToTour}
+                        onMarkerImageFetched={(markerId, imageUrl) => {
+                            const updatedMarkers = markers.map((m) =>
+                                m.id === markerId ? { ...m, imageUrl } : m,
+                            );
+                            setMarkers([...updatedMarkers]);
+                        }}
+                    />
+                )}
+            </DraggableSheet>
+
+            <DraggableSheet
+                isOpen={panelStates.tours.isOpen}
+                onOpenChange={(open) =>
+                    open ? openPanel('tours', 'half') : closePanel('tours')
+                }
+                snapPoint={panelStates.tours.snapPoint}
+                onSnapPointChange={(snapPoint) =>
+                    updatePanelSnapPoint('tours', snapPoint)
+                }
+                title="Tours"
+                peekHeight={80}
+                halfHeight={50}
+            >
+                <TourPanel
+                    tours={tours}
+                    selectedTourId={selectedTourId}
+                    onSelectTour={onSelectTour}
+                    onCreateTour={onCreateTour}
+                    onDeleteTour={onDeleteTour}
+                    markers={markers}
+                    routes={routes}
+                    onMoveMarkerUp={handleMoveMarkerUp}
+                    onMoveMarkerDown={handleMoveMarkerDown}
+                    onRemoveMarkerFromTour={handleRemoveMarkerFromTour}
+                    onRequestRoute={handleRequestRoute}
+                />
+            </DraggableSheet>
+
+            {selectedTripId && (
+                <DraggableSheet
+                    isOpen={panelStates.routes.isOpen}
+                    onOpenChange={(open) =>
+                        open
+                            ? openPanel('routes', 'half')
+                            : closePanel('routes')
+                    }
+                    snapPoint={panelStates.routes.snapPoint}
+                    onSnapPointChange={(snapPoint) =>
+                        updatePanelSnapPoint('routes', snapPoint)
+                    }
+                    title="Routes"
+                    peekHeight={80}
+                    halfHeight={50}
+                >
+                    <RoutePanel
+                        tripId={selectedTripId}
+                        tourId={selectedTourId}
+                        markers={markers}
+                        routes={routes}
+                        onRoutesUpdate={setRoutes}
+                        initialStartMarkerId={routeRequest?.startMarkerId}
+                        initialEndMarkerId={routeRequest?.endMarkerId}
+                        tours={tours}
+                        highlightedRouteId={highlightedRouteId}
+                        expandedRoutes={expandedRoutes}
+                        onExpandedRoutesChange={setExpandedRoutes}
+                        onHighlightedRouteIdChange={setHighlightedRouteId}
+                        onTourUpdate={handleTourUpdate}
+                    />
+                </DraggableSheet>
+            )}
+
             {/* Mobile Bottom Navigation */}
             <MobileBottomNavigation
-                activePanel={activeMobilePanel}
-                onPanelChange={setActiveMobilePanel}
+                activePanel={activePanel}
+                onPanelChange={handlePanelChange}
+                panelStates={panelStates}
             />
 
             {/* Trip Notes Modal */}
