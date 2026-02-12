@@ -57,7 +57,7 @@ export default function MobileBottomNavigation({
                         >
                             <Icon
                                 className={cn(
-                                    'h-5 w-5 sm:h-6 sm:w-6',
+                                    'h-6 w-6',
                                     (isActive || isOpen) && 'stroke-[2.5]',
                                 )}
                             />
