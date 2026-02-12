@@ -63,7 +63,7 @@ export default function MobileBottomNavigation({
                             />
                             <span
                                 className={cn(
-                                    'text-xs',
+                                    'truncate text-xs leading-tight',
                                     isActive || isOpen
                                         ? 'font-semibold'
                                         : 'font-medium',
