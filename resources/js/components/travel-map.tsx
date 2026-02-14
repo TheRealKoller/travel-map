@@ -8,15 +8,14 @@ import { TabButton } from '@/components/tab-button';
 import { Toolbar } from '@/components/toolbar';
 import TourPanel from '@/components/tour-panel';
 import TripNotesModal from '@/components/trip-notes-modal';
-import { useDesktopPanels } from '@/hooks/use-desktop-panels';
+import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { useGeocoder } from '@/hooks/use-geocoder';
 import { useLanguage } from '@/hooks/use-language';
 import { useMapInstance } from '@/hooks/use-map-instance';
 import { useMapInteractions } from '@/hooks/use-map-interactions';
 import { useMarkerHighlight } from '@/hooks/use-marker-highlight';
 import { useMarkers } from '@/hooks/use-markers';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { useMobilePanels } from '@/hooks/use-mobile-panels';
+import { usePanels } from '@/hooks/use-panels';
 import { usePlaceTypes } from '@/hooks/use-place-types';
 import { useRoutes } from '@/hooks/use-routes';
 import { useSearchMode } from '@/hooks/use-search-mode';
@@ -76,18 +75,19 @@ export default function TravelMap({
 }: TravelMapProps) {
     const { t } = useTranslation();
 
-    // Detect mobile/desktop
-    const isMobile = useIsMobile();
+    // Detect mobile/desktop breakpoint
+    const { isMobileLayout } = useBreakpoint();
 
-    // Desktop panel management
-    const { panelStates, togglePanel, closePanel } = useDesktopPanels();
+    // Unified panel management with shared state across breakpoints
+    const { isOpen, activePanel, togglePanel, closePanel } =
+        usePanels(isMobileLayout);
 
-    // Mobile panel management
-    const {
-        activePanel,
-        togglePanel: toggleMobilePanel,
-        closePanel: closeMobilePanel,
-    } = useMobilePanels();
+    // Helper for mobile: close the currently active panel
+    const closeMobilePanel = () => {
+        if (activePanel) {
+            closePanel(activePanel);
+        }
+    };
 
     // Get current language setting
     const { language } = useLanguage();
@@ -264,14 +264,14 @@ export default function TravelMap({
             }
 
             // Open the routes panel on desktop, it will be the active panel on mobile
-            if (!isMobile) {
+            if (!isMobileLayout) {
                 // Open routes panel if not open
-                if (!panelStates.routes.isOpen) {
+                if (!isOpen('routes')) {
                     togglePanel('routes');
                 }
             }
         },
-        [routes, isMobile, panelStates.routes.isOpen, togglePanel],
+        [routes, isMobileLayout, isOpen, togglePanel],
     );
 
     // Handler for route clicks on the map
@@ -297,6 +297,7 @@ export default function TravelMap({
 
         const updateBounds = () => {
             const bounds = mapInstance.getBounds();
+            if (!bounds) return;
             setMapBounds({
                 north: bounds.getNorth(),
                 south: bounds.getSouth(),
@@ -419,21 +420,21 @@ export default function TravelMap({
             </div>
 
             {/* Desktop Floating Panels - Phase 2 */}
-            {!isMobile && (
+            {!isMobileLayout && (
                 <>
                     {/* Left side tab buttons */}
                     <div className="absolute top-1/4 left-0 z-20 flex flex-col gap-2">
                         <TabButton
                             icon={List}
                             label={t('panels.markers', 'Markers')}
-                            isActive={panelStates.markers.isOpen}
+                            isActive={isOpen('markers')}
                             onClick={() => togglePanel('markers')}
                             position="left"
                         />
                         <TabButton
                             icon={MapIcon}
                             label={t('panels.tours', 'Tours')}
-                            isActive={panelStates.tours.isOpen}
+                            isActive={isOpen('tours')}
                             onClick={() => togglePanel('tours')}
                             position="left"
                         />
@@ -444,14 +445,14 @@ export default function TravelMap({
                         <TabButton
                             icon={RouteIcon}
                             label={t('panels.routes', 'Routes')}
-                            isActive={panelStates.routes.isOpen}
+                            isActive={isOpen('routes')}
                             onClick={() => togglePanel('routes')}
                             position="right"
                         />
                         <TabButton
                             icon={Bot}
                             label={t('panels.ai', 'AI')}
-                            isActive={panelStates.ai.isOpen}
+                            isActive={isOpen('ai')}
                             onClick={() => togglePanel('ai')}
                             position="right"
                         />
@@ -460,7 +461,7 @@ export default function TravelMap({
                     {/* Left side floating panels */}
                     <FloatingPanel
                         id="markers-panel"
-                        isOpen={panelStates.markers.isOpen}
+                        isOpen={isOpen('markers')}
                         onClose={() => closePanel('markers')}
                         position="left"
                         title={t('panels.markers', 'Markers')}
@@ -482,7 +483,7 @@ export default function TravelMap({
 
                     <FloatingPanel
                         id="tours-panel"
-                        isOpen={panelStates.tours.isOpen}
+                        isOpen={isOpen('tours')}
                         onClose={() => closePanel('tours')}
                         position="left"
                         title={t('panels.tours', 'Tours')}
@@ -506,7 +507,7 @@ export default function TravelMap({
                     {selectedTripId && (
                         <FloatingPanel
                             id="routes-panel"
-                            isOpen={panelStates.routes.isOpen}
+                            isOpen={isOpen('routes')}
                             onClose={() => closePanel('routes')}
                             position="right"
                             title={t('panels.routes', 'Routes')}
@@ -535,7 +536,7 @@ export default function TravelMap({
 
                     <FloatingPanel
                         id="ai-panel"
-                        isOpen={panelStates.ai.isOpen}
+                        isOpen={isOpen('ai')}
                         onClose={() => closePanel('ai')}
                         position="right"
                         title={t('panels.ai', 'AI Recommendations')}
@@ -553,12 +554,12 @@ export default function TravelMap({
             )}
 
             {/* Mobile Panels - Phase 3 */}
-            {isMobile && (
+            {isMobileLayout && (
                 <>
                     {/* Bottom Navigation Bar */}
                     <MobileNavigation
                         activePanel={activePanel}
-                        onPanelChange={toggleMobilePanel}
+                        onPanelChange={togglePanel}
                     />
 
                     <AnimatePresence mode="wait">
