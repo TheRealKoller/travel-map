@@ -1,79 +1,32 @@
 import { useState } from 'react';
 
-export type PanelType = 'markers' | 'tours' | 'routes';
-export type SnapPoint = 'closed' | 'peek' | 'half' | 'full';
+export type MobilePanelType = 'markers' | 'tours' | 'routes' | 'ai' | null;
 
-interface PanelState {
-    isOpen: boolean;
-    snapPoint: SnapPoint;
-}
-
+/**
+ * useMobilePanels - State management for mobile bottom sheets (Phase 3)
+ *
+ * On mobile, only one panel can be open at a time.
+ * Panels are displayed as draggable bottom sheets.
+ */
 export function useMobilePanels() {
-    const [activePanel, setActivePanel] = useState<PanelType>('markers');
-    const [panelStates, setPanelStates] = useState<
-        Record<PanelType, PanelState>
-    >({
-        markers: { isOpen: true, snapPoint: 'peek' },
-        tours: { isOpen: false, snapPoint: 'closed' },
-        routes: { isOpen: false, snapPoint: 'closed' },
-    });
+    const [activePanel, setActivePanel] = useState<MobilePanelType>(null);
 
-    const openPanel = (panel: PanelType, snapPoint: SnapPoint = 'half') => {
-        setPanelStates((prev) => {
-            const newStates = { ...prev };
-            // Close all panels first
-            Object.keys(newStates).forEach((key) => {
-                newStates[key as PanelType] = {
-                    isOpen: false,
-                    snapPoint: 'closed',
-                };
-            });
-            // Open the requested panel
-            newStates[panel] = { isOpen: true, snapPoint };
-            return newStates;
-        });
+    const openPanel = (panel: MobilePanelType) => {
         setActivePanel(panel);
     };
 
-    const closePanel = (panel: PanelType) => {
-        setPanelStates((prev) => ({
-            ...prev,
-            [panel]: { isOpen: false, snapPoint: 'closed' },
-        }));
+    const closePanel = () => {
+        setActivePanel(null);
     };
 
-    const updatePanelSnapPoint = (panel: PanelType, snapPoint: SnapPoint) => {
-        setPanelStates((prev) => ({
-            ...prev,
-            [panel]: {
-                ...prev[panel],
-                snapPoint,
-                isOpen: snapPoint !== 'closed',
-            },
-        }));
-    };
-
-    const togglePanel = (panel: PanelType) => {
-        const currentState = panelStates[panel];
-        if (currentState.isOpen && currentState.snapPoint !== 'peek') {
-            // If open and not peeking, close it
-            closePanel(panel);
-        } else if (currentState.isOpen && currentState.snapPoint === 'peek') {
-            // If peeking, expand to half
-            updatePanelSnapPoint(panel, 'half');
-        } else {
-            // If closed, open to peek
-            openPanel(panel, 'peek');
-        }
+    const togglePanel = (panel: Exclude<MobilePanelType, null>) => {
+        setActivePanel((current) => (current === panel ? null : panel));
     };
 
     return {
         activePanel,
-        setActivePanel,
-        panelStates,
         openPanel,
         closePanel,
-        updatePanelSnapPoint,
         togglePanel,
     };
 }

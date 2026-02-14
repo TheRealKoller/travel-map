@@ -46,15 +46,18 @@ interface TravelMapProps {
 }
 
 /**
- * Phase 2: Travel Map Component with Desktop Floating Panels
+ * Phase 3: Travel Map Component with Mobile Bottom Sheets
  *
- * This version adds floating panels for desktop view:
+ * Desktop view (Phase 2):
  * - Left side: Markers and Tours panels
  * - Right side: Routes and AI panels
  * - Multiple panels can be open simultaneously
  * - Panels float over the map with semi-transparent backgrounds
  *
- * Mobile panels will be added in Phase 3.
+ * Mobile view (Phase 3):
+ * - Bottom navigation bar with 4 icons (Markers, Tours, Routes, AI)
+ * - Draggable bottom sheets for panel content
+ * - Only one panel can be open at a time
  */
 export default function TravelMap({
     selectedTripId,
@@ -74,6 +77,13 @@ export default function TravelMap({
 
     // Desktop panel management
     const { panelStates, togglePanel, closePanel } = useDesktopPanels();
+
+    // Mobile panel management
+    const {
+        activePanel,
+        togglePanel: toggleMobilePanel,
+        closePanel: closeMobilePanel,
+    } = useMobilePanels();
 
     // Get current language setting
     const { language } = useLanguage();
@@ -538,11 +548,103 @@ export default function TravelMap({
                 </>
             )}
 
-            {/*
-             * Mobile panels will be added in Phase 3
-             * - DraggableSheet components
-             * - Bottom navigation bar
-             */}
+            {/* Mobile Panels - Phase 3 */}
+            {isMobile && (
+                <>
+                    {/* Bottom Navigation Bar */}
+                    <MobileNavigation
+                        activePanel={activePanel}
+                        onPanelChange={toggleMobilePanel}
+                    />
+
+                    {/* Markers Sheet */}
+                    <DraggableSheet
+                        isOpen={activePanel === 'markers'}
+                        onClose={closeMobilePanel}
+                        title={t('panels.markers', 'Markers')}
+                    >
+                        <MarkerList
+                            markers={markers}
+                            selectedMarkerId={selectedMarkerId}
+                            onSelectMarker={setSelectedMarkerId}
+                            selectedTourId={selectedTourId}
+                            onAddMarkerToTour={handleAddMarkerToTour}
+                            onMarkerImageFetched={(markerId, imageUrl) => {
+                                const updatedMarkers = markers.map((m) =>
+                                    m.id === markerId ? { ...m, imageUrl } : m,
+                                );
+                                setMarkers([...updatedMarkers]);
+                            }}
+                        />
+                    </DraggableSheet>
+
+                    {/* Tours Sheet */}
+                    <DraggableSheet
+                        isOpen={activePanel === 'tours'}
+                        onClose={closeMobilePanel}
+                        title={t('panels.tours', 'Tours')}
+                    >
+                        <TourPanel
+                            tours={tours}
+                            selectedTourId={selectedTourId}
+                            onSelectTour={onSelectTour}
+                            onCreateTour={onCreateTour}
+                            onDeleteTour={onDeleteTour}
+                            markers={markers}
+                            routes={routes}
+                            onMoveMarkerUp={handleMoveMarkerUp}
+                            onMoveMarkerDown={handleMoveMarkerDown}
+                            onRemoveMarkerFromTour={handleRemoveMarkerFromTour}
+                            onRequestRoute={handleRequestRoute}
+                        />
+                    </DraggableSheet>
+
+                    {/* Routes Sheet */}
+                    {selectedTripId && (
+                        <DraggableSheet
+                            isOpen={activePanel === 'routes'}
+                            onClose={closeMobilePanel}
+                            title={t('panels.routes', 'Routes')}
+                        >
+                            <RoutePanel
+                                tripId={selectedTripId}
+                                tourId={selectedTourId}
+                                markers={markers}
+                                routes={routes}
+                                onRoutesUpdate={setRoutes}
+                                initialStartMarkerId={
+                                    routeRequest?.startMarkerId
+                                }
+                                initialEndMarkerId={routeRequest?.endMarkerId}
+                                tours={tours}
+                                highlightedRouteId={highlightedRouteId}
+                                expandedRoutes={expandedRoutes}
+                                onExpandedRoutesChange={setExpandedRoutes}
+                                onHighlightedRouteIdChange={
+                                    setHighlightedRouteId
+                                }
+                                onTourUpdate={handleTourUpdate}
+                            />
+                        </DraggableSheet>
+                    )}
+
+                    {/* AI Sheet */}
+                    <DraggableSheet
+                        isOpen={activePanel === 'ai'}
+                        onClose={closeMobilePanel}
+                        title={t('panels.ai', 'AI Recommendations')}
+                    >
+                        <AiRecommendationsPanel
+                            tripId={selectedTripId}
+                            tripName={selectedTrip?.name || null}
+                            selectedTourId={selectedTourId}
+                            tours={tours}
+                            markers={markers}
+                            mapBounds={mapBounds}
+                        />
+                    </DraggableSheet>
+                </>
+            )}
 
             {/* Trip Notes Modal - Keep functional */}
             {selectedTrip && (
