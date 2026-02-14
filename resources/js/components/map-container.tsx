@@ -31,7 +31,7 @@ export function MapContainer({
     onSetViewport,
 }: MapContainerProps) {
     return (
-        <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+        <div className="fixed inset-0 h-screen w-screen overflow-hidden">
             <TravelMap
                 selectedTripId={selectedTripId}
                 selectedTourId={selectedTourId}
