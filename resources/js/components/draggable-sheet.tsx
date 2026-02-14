@@ -112,7 +112,7 @@ export function DraggableSheet({
                     stiffness: 300,
                 }}
                 className={cn(
-                    'fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-2xl bg-background shadow-lg',
+                    'fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-2xl bg-white shadow-lg dark:bg-gray-900',
                     'overflow-hidden',
                 )}
                 style={{
@@ -138,8 +138,10 @@ export function DraggableSheet({
                 </div>
 
                 {/* Header */}
-                <div className="flex items-center justify-between border-b px-4 pb-3">
-                    <h2 className="text-lg font-semibold">{title}</h2>
+                <div className="flex items-center justify-between border-b border-gray-200 px-4 pb-3 dark:border-gray-700">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        {title}
+                    </h2>
                     <button
                         onClick={onClose}
                         className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none"

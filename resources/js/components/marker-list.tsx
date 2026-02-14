@@ -97,8 +97,8 @@ function MarkerItem({
         <li
             className={`flex items-start gap-2 rounded p-2 transition sm:gap-2.5 sm:p-2.5 ${
                 isSelected
-                    ? 'border-2 border-blue-500 bg-blue-100'
-                    : 'bg-gray-50 hover:bg-gray-100'
+                    ? 'border-2 border-blue-500 bg-blue-100 dark:border-blue-400 dark:bg-blue-950'
+                    : 'bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700'
             }`}
             data-testid="marker-list-item"
         >
@@ -112,14 +112,14 @@ function MarkerItem({
             ) : (
                 <button
                     onClick={handleFetchImage}
-                    className="flex h-14 min-h-11 w-14 min-w-11 flex-shrink-0 items-center justify-center rounded bg-gray-200 transition-colors hover:bg-gray-300 sm:h-16 sm:w-16"
+                    className="flex h-14 min-h-11 w-14 min-w-11 flex-shrink-0 items-center justify-center rounded bg-gray-200 transition-colors hover:bg-gray-300 sm:h-16 sm:w-16 dark:bg-gray-700 dark:hover:bg-gray-600"
                     title="Click to load image"
                     disabled={loadingImage}
                 >
                     {loadingImage ? (
-                        <Loader2 className="h-5 w-5 animate-spin text-gray-500 sm:h-6 sm:w-6" />
+                        <Loader2 className="h-5 w-5 animate-spin text-gray-500 sm:h-6 sm:w-6 dark:text-gray-400" />
                     ) : (
-                        <Image className="h-5 w-5 text-gray-400 sm:h-6 sm:w-6" />
+                        <Image className="h-5 w-5 text-gray-400 sm:h-6 sm:w-6 dark:text-gray-500" />
                     )}
                 </button>
             )}
@@ -127,23 +127,23 @@ function MarkerItem({
                 className="min-w-0 flex-1 cursor-pointer"
                 onClick={() => onSelect(markerData.id)}
             >
-                <div className="mb-0.5 truncate text-sm leading-snug font-medium text-gray-900 sm:text-base">
+                <div className="mb-0.5 truncate text-sm leading-snug font-medium text-gray-900 sm:text-base dark:text-gray-100">
                     {markerData.name || 'Unnamed Location'}
                 </div>
-                <div className="mb-1 text-xs leading-relaxed text-gray-600 sm:text-sm">
+                <div className="mb-1 text-xs leading-relaxed text-gray-600 sm:text-sm dark:text-gray-400">
                     <span className="font-medium">Lat:</span>{' '}
                     {markerData.lat.toFixed(6)},
                     <span className="ml-2 font-medium">Lng:</span>{' '}
                     {markerData.lng.toFixed(6)}
                     {markerData.estimatedHours && (
-                        <span className="ml-2 text-gray-500">
+                        <span className="ml-2 text-gray-500 dark:text-gray-400">
                             ~{markerData.estimatedHours}h
                         </span>
                     )}
                 </div>
                 {isSelected && markerData.notes && (
                     <div
-                        className="markdown-preview mt-1.5 border-t border-blue-300 pt-1.5 text-xs leading-relaxed text-gray-700"
+                        className="markdown-preview mt-1.5 border-t border-blue-300 pt-1.5 text-xs leading-relaxed text-gray-700 dark:border-blue-700 dark:text-gray-300"
                         dangerouslySetInnerHTML={{
                             __html: marked.parse(markerData.notes) as string,
                         }}
@@ -155,7 +155,7 @@ function MarkerItem({
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-9 w-9 text-gray-600 hover:text-blue-600 sm:h-11 sm:w-11"
+                        className="h-9 w-9 text-gray-600 hover:text-blue-600 sm:h-11 sm:w-11 dark:text-gray-400 dark:hover:text-blue-400"
                         onClick={handleAddToTour}
                         title="Add to tour"
                         data-testid="add-marker-to-tour-button"
@@ -184,7 +184,7 @@ function MarkerItem({
                 )}
                 <Icon
                     iconNode={getMarkerTypeIcon(markerData.type)}
-                    className="h-3.5 w-3.5 text-gray-600 sm:h-4 sm:w-4"
+                    className="h-3.5 w-3.5 text-gray-600 sm:h-4 sm:w-4 dark:text-gray-400"
                 />
                 {markerData.isUnesco && (
                     <Icon
@@ -243,11 +243,11 @@ export default function MarkerList({
 
     return (
         <div
-            className="rounded-lg bg-white p-2.5 shadow sm:p-3"
+            className="rounded-lg bg-white p-2.5 shadow sm:p-3 dark:bg-gray-900"
             data-testid="marker-list"
         >
             <div className="mb-2.5 flex items-center justify-between sm:mb-3">
-                <h2 className="truncate text-sm font-semibold sm:text-base">
+                <h2 className="truncate text-sm font-semibold text-gray-900 sm:text-base dark:text-gray-100">
                     Markers ({filteredMarkers.length})
                 </h2>
                 <Button
@@ -271,11 +271,11 @@ export default function MarkerList({
             </div>
             {isFilterOpen && (
                 <div
-                    className="mb-2.5 rounded border border-gray-200 bg-gray-50 p-2.5 sm:mb-3 sm:p-3"
+                    className="mb-2.5 rounded border border-gray-200 bg-gray-50 p-2.5 sm:mb-3 sm:p-3 dark:border-gray-700 dark:bg-gray-800"
                     data-testid="filter-menu"
                 >
                     <div className="flex flex-col gap-2">
-                        <label className="text-xs font-medium text-gray-700 sm:text-sm">
+                        <label className="text-xs font-medium text-gray-700 sm:text-sm dark:text-gray-300">
                             Filter by type
                         </label>
                         <Select
@@ -312,7 +312,7 @@ export default function MarkerList({
                                 })}
                             </SelectContent>
                         </Select>
-                        <label className="text-xs font-medium text-gray-700 sm:text-sm">
+                        <label className="text-xs font-medium text-gray-700 sm:text-sm dark:text-gray-300">
                             Filter by UNESCO
                         </label>
                         <Select
@@ -358,7 +358,7 @@ export default function MarkerList({
                 </div>
             )}
             {filteredMarkers.length === 0 ? (
-                <p className="text-xs leading-relaxed text-gray-500 sm:text-sm">
+                <p className="text-xs leading-relaxed text-gray-500 sm:text-sm dark:text-gray-400">
                     {markers.length === 0
                         ? 'Click on the map to add markers'
                         : 'No markers match the selected filter'}
@@ -366,7 +366,7 @@ export default function MarkerList({
             ) : (
                 <>
                     {showAddToTourButtons && (
-                        <p className="mb-2 text-xs leading-relaxed text-gray-500">
+                        <p className="mb-2 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
                             Click the arrow to add a marker to the current tour
                         </p>
                     )}

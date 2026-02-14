@@ -205,13 +205,13 @@ export function AiRecommendationsPanel({
             </CardHeader>
             <CardContent className="space-y-2">
                 <div
-                    className="max-h-[250px] min-h-[160px] overflow-y-auto rounded-lg border bg-gray-50 p-2"
+                    className="max-h-[250px] min-h-[160px] overflow-y-auto rounded-lg border border-gray-200 bg-gray-50 p-2 dark:border-gray-700 dark:bg-gray-800"
                     data-testid="recommendation-output"
                 >
                     {isLoading && (
                         <div className="flex items-center justify-center py-8">
                             <Spinner className="h-8 w-8" />
-                            <span className="ml-2 text-gray-600">
+                            <span className="ml-2 text-gray-600 dark:text-gray-400">
                                 Empfehlungen werden geladen...
                             </span>
                         </div>
@@ -219,7 +219,7 @@ export function AiRecommendationsPanel({
 
                     {error && (
                         <div
-                            className="rounded-lg bg-red-50 p-4 text-red-700"
+                            className="rounded-lg bg-red-50 p-4 text-red-700 dark:bg-red-950 dark:text-red-300"
                             data-testid="recommendation-error"
                         >
                             {error}
@@ -237,7 +237,7 @@ export function AiRecommendationsPanel({
                     )}
 
                     {!isLoading && !error && !recommendation && (
-                        <div className="py-8 text-center text-gray-500">
+                        <div className="py-8 text-center text-gray-500 dark:text-gray-400">
                             Wähle einen Button oben, um Empfehlungen zu
                             erhalten.
                         </div>

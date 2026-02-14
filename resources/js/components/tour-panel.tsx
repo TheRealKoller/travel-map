@@ -41,13 +41,13 @@ function TourTab({ tour, markerCount }: TourTabProps) {
             <TabsTrigger value={tour.id.toString()} data-testid="tour-tab">
                 <span className="truncate">{tour.name}</span>
                 {markerCount > 0 && (
-                    <span className="ml-1 text-xs text-gray-500">
+                    <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">
                         ({markerCount})
                     </span>
                 )}
                 {tour.estimated_duration_hours !== undefined &&
                     tour.estimated_duration_hours > 0 && (
-                        <span className="ml-1 text-xs whitespace-nowrap text-blue-600">
+                        <span className="ml-1 text-xs whitespace-nowrap text-blue-600 dark:text-blue-400">
                             {formatDuration(tour.estimated_duration_hours)}
                         </span>
                     )}
@@ -76,13 +76,13 @@ function MarkerItem({
     onRemove,
 }: MarkerItemProps) {
     return (
-        <div className="rounded bg-gray-50 p-1.5 text-xs sm:p-2 sm:text-sm">
+        <div className="rounded bg-gray-50 p-1.5 text-xs sm:p-2 sm:text-sm dark:bg-gray-800">
             <div className="flex items-start gap-1.5 sm:gap-2">
                 <div className="flex flex-shrink-0 flex-col gap-0.5">
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-9 w-9 p-0 text-gray-400 hover:text-blue-600 disabled:opacity-30 sm:h-11 sm:w-11"
+                        className="h-9 w-9 p-0 text-gray-400 hover:text-blue-600 disabled:opacity-30 sm:h-11 sm:w-11 dark:text-gray-500 dark:hover:text-blue-400"
                         onClick={onMoveUp}
                         disabled={isFirst}
                         title="Move up"
@@ -93,7 +93,7 @@ function MarkerItem({
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-9 w-9 p-0 text-gray-400 hover:text-blue-600 disabled:opacity-30 sm:h-11 sm:w-11"
+                        className="h-9 w-9 p-0 text-gray-400 hover:text-blue-600 disabled:opacity-30 sm:h-11 sm:w-11 dark:text-gray-500 dark:hover:text-blue-400"
                         onClick={onMoveDown}
                         disabled={isLast}
                         title="Move down"
@@ -102,15 +102,15 @@ function MarkerItem({
                         <ArrowDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Button>
                 </div>
-                <span className="flex-shrink-0 font-medium text-gray-500">
+                <span className="flex-shrink-0 font-medium text-gray-500 dark:text-gray-400">
                     {index + 1}.
                 </span>
                 <div className="min-w-0 flex-1">
-                    <div className="truncate leading-snug font-medium text-gray-900">
+                    <div className="truncate leading-snug font-medium text-gray-900 dark:text-gray-100">
                         {marker.name || 'Unnamed Location'}
                     </div>
                     {marker.estimatedHours && (
-                        <div className="text-xs leading-relaxed text-gray-600">
+                        <div className="text-xs leading-relaxed text-gray-600 dark:text-gray-400">
                             <span className="font-medium">
                                 Estimated duration:
                             </span>{' '}
@@ -123,7 +123,7 @@ function MarkerItem({
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-9 w-9 p-0 text-gray-400 hover:text-red-600 sm:h-11 sm:w-11"
+                            className="h-9 w-9 p-0 text-gray-400 hover:text-red-600 sm:h-11 sm:w-11 dark:text-gray-500 dark:hover:text-red-400"
                             onClick={onRemove}
                             title="Remove from tour"
                             data-testid="remove-marker-from-tour"
@@ -133,7 +133,7 @@ function MarkerItem({
                     )}
                     <Icon
                         iconNode={getMarkerTypeIcon(marker.type)}
-                        className="h-3.5 w-3.5 text-gray-600 sm:h-4 sm:w-4"
+                        className="h-3.5 w-3.5 text-gray-600 sm:h-4 sm:w-4 dark:text-gray-400"
                     />
                     {marker.isUnesco && (
                         <Icon
@@ -145,7 +145,7 @@ function MarkerItem({
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-9 w-9 p-0 text-gray-400 hover:text-red-600 sm:h-11 sm:w-11"
+                            className="h-9 w-9 p-0 text-gray-400 hover:text-red-600 sm:h-11 sm:w-11 dark:text-gray-500 dark:hover:text-red-400"
                             onClick={onRemove}
                             title="Remove from tour"
                             data-testid="remove-marker-from-tour"
@@ -184,12 +184,12 @@ function TourCard({
         <Card className="flex-1 overflow-auto p-2.5 sm:p-3 md:p-4">
             <div className="mb-2.5 flex items-center justify-between sm:mb-3">
                 <div className="flex min-w-0 flex-col">
-                    <h3 className="truncate text-sm font-semibold sm:text-base">
+                    <h3 className="truncate text-sm font-semibold text-gray-900 sm:text-base dark:text-gray-100">
                         {tour.name}
                     </h3>
                     {tour.estimated_duration_hours !== undefined &&
                         tour.estimated_duration_hours > 0 && (
-                            <span className="text-xs leading-relaxed text-blue-600">
+                            <span className="text-xs leading-relaxed text-blue-600 dark:text-blue-400">
                                 Estimated duration:{' '}
                                 {formatDuration(tour.estimated_duration_hours)}
                             </span>
@@ -199,14 +199,14 @@ function TourCard({
                     variant="ghost"
                     size="icon"
                     onClick={() => onDeleteTour(tour.id)}
-                    className="flex-shrink-0 text-gray-500 hover:text-red-600"
+                    className="flex-shrink-0 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
                     title="Delete tour"
                 >
                     <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
             </div>
             {markers.length === 0 ? (
-                <p className="text-xs leading-relaxed text-gray-500 sm:text-sm">
+                <p className="text-xs leading-relaxed text-gray-500 sm:text-sm dark:text-gray-400">
                     Click the arrow next to a marker to add it to this tour
                 </p>
             ) : (
@@ -264,7 +264,7 @@ function TourCard({
                                                         nextMarker.id,
                                                     )
                                                 }
-                                                className="h-6 gap-1 px-2 text-xs text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                                                className="h-6 gap-1 px-2 text-xs text-blue-600 hover:bg-blue-50 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-950 dark:hover:text-blue-300"
                                                 title="Calculate route"
                                                 data-testid={`route-button-${index}`}
                                             >
@@ -273,7 +273,7 @@ function TourCard({
                                             </Button>
                                             {existingRoute && (
                                                 <span
-                                                    className="text-xs text-gray-600"
+                                                    className="text-xs text-gray-600 dark:text-gray-400"
                                                     data-testid={`route-duration-${index}`}
                                                 >
                                                     {existingRoute.duration
@@ -350,7 +350,7 @@ export default function TourPanel({
                 <TabsList className="flex w-full justify-start overflow-x-auto">
                     <TabsTrigger value="all" data-testid="tour-tab-all-markers">
                         All markers
-                        <span className="ml-1 text-xs text-gray-500">
+                        <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">
                             ({markers.length})
                         </span>
                     </TabsTrigger>
