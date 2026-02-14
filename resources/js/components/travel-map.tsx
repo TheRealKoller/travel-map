@@ -1,6 +1,7 @@
 import { AiRecommendationsPanel } from '@/components/ai-recommendations-panel';
 import { DraggableSheet } from '@/components/draggable-sheet';
 import { FloatingPanel } from '@/components/floating-panel';
+import MarkerForm from '@/components/marker-form';
 import MarkerList from '@/components/marker-list';
 import { MobileNavigation } from '@/components/mobile-navigation';
 import RoutePanel from '@/components/route-panel';
@@ -164,6 +165,9 @@ export default function TravelMap({
         setSelectedMarkerId,
         addMarker,
         updateMarkerReference,
+        handleSaveMarker,
+        handleDeleteMarker,
+        handleCloseForm,
     } = useMarkers({
         mapInstance,
         selectedTripId,
@@ -172,6 +176,10 @@ export default function TravelMap({
             setSelectedMarkerId(id);
         },
     });
+
+    // Get the selected marker object
+    const selectedMarker =
+        markers.find((m) => m.id === selectedMarkerId) || null;
 
     // Routes management
     const { routes, setRoutes } = useRoutes({
@@ -480,19 +488,33 @@ export default function TravelMap({
                         position="left"
                         title={t('panels.markers', 'Markers')}
                     >
-                        <MarkerList
-                            markers={markers}
-                            selectedMarkerId={selectedMarkerId}
-                            onSelectMarker={setSelectedMarkerId}
-                            selectedTourId={selectedTourId}
-                            onAddMarkerToTour={handleAddMarkerToTour}
-                            onMarkerImageFetched={(markerId, imageUrl) => {
-                                const updatedMarkers = markers.map((m) =>
-                                    m.id === markerId ? { ...m, imageUrl } : m,
-                                );
-                                setMarkers([...updatedMarkers]);
-                            }}
-                        />
+                        {selectedMarkerId ? (
+                            <MarkerForm
+                                key={selectedMarkerId}
+                                marker={selectedMarker}
+                                onSave={handleSaveMarker}
+                                onDeleteMarker={handleDeleteMarker}
+                                onClose={handleCloseForm}
+                                tours={tours}
+                                onToggleMarkerInTour={handleToggleMarkerInTour}
+                            />
+                        ) : (
+                            <MarkerList
+                                markers={markers}
+                                selectedMarkerId={selectedMarkerId}
+                                onSelectMarker={setSelectedMarkerId}
+                                selectedTourId={selectedTourId}
+                                onAddMarkerToTour={handleAddMarkerToTour}
+                                onMarkerImageFetched={(markerId, imageUrl) => {
+                                    const updatedMarkers = markers.map((m) =>
+                                        m.id === markerId
+                                            ? { ...m, imageUrl }
+                                            : m,
+                                    );
+                                    setMarkers([...updatedMarkers]);
+                                }}
+                            />
+                        )}
                     </FloatingPanel>
 
                     <FloatingPanel
@@ -584,25 +606,41 @@ export default function TravelMap({
                                 onClose={closeMobilePanel}
                                 title={t('panels.markers', 'Markers')}
                             >
-                                <MarkerList
-                                    markers={markers}
-                                    selectedMarkerId={selectedMarkerId}
-                                    onSelectMarker={setSelectedMarkerId}
-                                    selectedTourId={selectedTourId}
-                                    onAddMarkerToTour={handleAddMarkerToTour}
-                                    onMarkerImageFetched={(
-                                        markerId,
-                                        imageUrl,
-                                    ) => {
-                                        const updatedMarkers = markers.map(
-                                            (m) =>
-                                                m.id === markerId
-                                                    ? { ...m, imageUrl }
-                                                    : m,
-                                        );
-                                        setMarkers([...updatedMarkers]);
-                                    }}
-                                />
+                                {selectedMarkerId ? (
+                                    <MarkerForm
+                                        key={selectedMarkerId}
+                                        marker={selectedMarker}
+                                        onSave={handleSaveMarker}
+                                        onDeleteMarker={handleDeleteMarker}
+                                        onClose={handleCloseForm}
+                                        tours={tours}
+                                        onToggleMarkerInTour={
+                                            handleToggleMarkerInTour
+                                        }
+                                    />
+                                ) : (
+                                    <MarkerList
+                                        markers={markers}
+                                        selectedMarkerId={selectedMarkerId}
+                                        onSelectMarker={setSelectedMarkerId}
+                                        selectedTourId={selectedTourId}
+                                        onAddMarkerToTour={
+                                            handleAddMarkerToTour
+                                        }
+                                        onMarkerImageFetched={(
+                                            markerId,
+                                            imageUrl,
+                                        ) => {
+                                            const updatedMarkers = markers.map(
+                                                (m) =>
+                                                    m.id === markerId
+                                                        ? { ...m, imageUrl }
+                                                        : m,
+                                            );
+                                            setMarkers([...updatedMarkers]);
+                                        }}
+                                    />
+                                )}
                             </DraggableSheet>
                         )}
 
