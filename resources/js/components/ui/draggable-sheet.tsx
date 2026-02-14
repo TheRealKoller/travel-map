@@ -196,12 +196,16 @@ export function DraggableSheet({
                         onSnapPointChange?.('peek');
                     }}
                     data-testid="sheet-backdrop"
+                    aria-hidden="true"
                 />
             )}
 
             {/* Sheet */}
             <div
                 ref={sheetRef}
+                role="dialog"
+                aria-modal="true"
+                aria-label={title}
                 className={cn(
                     'fixed right-0 bottom-0 left-0 z-50 flex flex-col rounded-t-2xl bg-white shadow-2xl transition-all duration-300 ease-out md:hidden',
                     className,
@@ -218,9 +222,32 @@ export function DraggableSheet({
                     onTouchMove={handleTouchMove}
                     onTouchEnd={handleTouchEnd}
                     onMouseDown={handleMouseDown}
+                    onKeyDown={(e) => {
+                        // Support keyboard interaction for accessibility
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            // Cycle through snap points: peek -> half -> full -> peek
+                            const snapSequence: SnapPoint[] = [
+                                'peek',
+                                'half',
+                                'full',
+                            ];
+                            const currentIndex = snapSequence.indexOf(
+                                internalSnapPoint,
+                            );
+                            const nextIndex =
+                                (currentIndex + 1) % snapSequence.length;
+                            const nextSnapPoint = snapSequence[nextIndex];
+                            setInternalSnapPoint(nextSnapPoint);
+                            onSnapPointChange?.(nextSnapPoint);
+                        }
+                    }}
                     data-testid="drag-handle"
+                    aria-label="Drag to resize panel"
+                    role="button"
+                    tabIndex={0}
                 >
-                    <div className="h-1.5 w-12 rounded-full bg-gray-300" />
+                    <div className="h-1.5 w-12 rounded-full bg-gray-300" aria-hidden="true" />
                     {title && internalSnapPoint === 'peek' && (
                         <h3 className="mt-2 text-sm font-semibold text-gray-900">
                             {title}

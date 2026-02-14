@@ -52,6 +52,8 @@ export function FloatingPanel({
     return (
         <div
             data-testid={`floating-panel-${id}`}
+            role="complementary"
+            aria-label={`${title} panel`}
             className={`fixed top-16 bottom-0 ${position === 'left' ? 'left-0' : 'right-0'} transition-transform duration-300 ease-in-out`}
             style={{
                 width: `${width}px`,
@@ -76,7 +78,7 @@ export function FloatingPanel({
                         data-testid={`close-panel-${id}`}
                         aria-label={`Close ${title} panel`}
                     >
-                        <X className="h-4 w-4" />
+                        <X className="h-4 w-4" aria-hidden="true" />
                     </Button>
                 </div>
 

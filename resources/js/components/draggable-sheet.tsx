@@ -89,6 +89,7 @@ export function DraggableSheet({
                 className="fixed inset-0 z-40 bg-black"
                 onClick={onClose}
                 data-testid="sheet-backdrop"
+                aria-hidden="true"
             />
 
             {/* Draggable Sheet */}
@@ -130,7 +131,10 @@ export function DraggableSheet({
                     tabIndex={0}
                     aria-label="Drag to adjust sheet position"
                 >
-                    <div className="h-1.5 w-12 rounded-full bg-muted-foreground/30" />
+                    <div
+                        className="h-1.5 w-12 rounded-full bg-muted-foreground/30"
+                        aria-hidden="true"
+                    />
                 </div>
 
                 {/* Header */}
@@ -139,10 +143,10 @@ export function DraggableSheet({
                     <button
                         onClick={onClose}
                         className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none"
-                        aria-label="Close"
+                        aria-label={`Close ${title} panel`}
                         data-testid="close-button"
                     >
-                        <X className="h-5 w-5" />
+                        <X className="h-5 w-5" aria-hidden="true" />
                         <span className="sr-only">Close</span>
                     </button>
                 </div>

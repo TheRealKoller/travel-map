@@ -142,6 +142,43 @@
     body {
         @apply bg-background text-foreground;
     }
+
+    /* Accessibility: Respect user's reduced motion preference */
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+
+    /* Focus indicators for keyboard navigation
+     * Only apply to elements without explicit focus styling to avoid conflicts
+     * with component-specific focus styles (e.g., Button, TabButton)
+     */
+    *:focus-visible:not(
+            button,
+            a,
+            input,
+            select,
+            textarea,
+            [class*='focus'],
+            [class*='ring']
+        ) {
+        @apply outline-2 outline-offset-2 outline-ring;
+    }
+
+    /* Improved focus for standard interactive elements
+     * These elements don't typically have custom focus styles in components
+     */
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+        @apply ring-2 ring-ring ring-offset-2 ring-offset-background;
+    }
 }
 
 /* Compact markdown rendering for AI recommendations */

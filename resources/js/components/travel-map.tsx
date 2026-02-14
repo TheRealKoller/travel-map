@@ -79,7 +79,7 @@ export default function TravelMap({
     const { isMobileLayout } = useBreakpoint();
 
     // Unified panel management with shared state across breakpoints
-    const { isOpen, activePanel, togglePanel, closePanel } =
+    const { isOpen, activePanel, togglePanel, closePanel, closeAllPanels } =
         usePanels(isMobileLayout);
 
     // Helper for mobile: close the currently active panel
@@ -88,6 +88,20 @@ export default function TravelMap({
             closePanel(activePanel);
         }
     };
+
+    // Handle Escape key to close all panels
+    useEffect(() => {
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                closeAllPanels();
+            }
+        };
+
+        window.addEventListener('keydown', handleEscape);
+        return () => {
+            window.removeEventListener('keydown', handleEscape);
+        };
+    }, [closeAllPanels]);
 
     // Get current language setting
     const { language } = useLanguage();
