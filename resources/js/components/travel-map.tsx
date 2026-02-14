@@ -1,6 +1,8 @@
 import { AiRecommendationsPanel } from '@/components/ai-recommendations-panel';
+import { DraggableSheet } from '@/components/draggable-sheet';
 import { FloatingPanel } from '@/components/floating-panel';
 import MarkerList from '@/components/marker-list';
+import { MobileNavigation } from '@/components/mobile-navigation';
 import RoutePanel from '@/components/route-panel';
 import { TabButton } from '@/components/tab-button';
 import { Toolbar } from '@/components/toolbar';
@@ -14,6 +16,7 @@ import { useMapInteractions } from '@/hooks/use-map-interactions';
 import { useMarkerHighlight } from '@/hooks/use-marker-highlight';
 import { useMarkers } from '@/hooks/use-markers';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useMobilePanels } from '@/hooks/use-mobile-panels';
 import { usePlaceTypes } from '@/hooks/use-place-types';
 import { useRoutes } from '@/hooks/use-routes';
 import { useSearchMode } from '@/hooks/use-search-mode';
@@ -24,6 +27,7 @@ import { getBoundingBoxFromTrip } from '@/lib/map-utils';
 import { update as tripsUpdate } from '@/routes/trips';
 import { Tour } from '@/types/tour';
 import { Trip } from '@/types/trip';
+import { AnimatePresence } from 'framer-motion';
 import { Bot, List, Map as MapIcon, Route as RouteIcon } from 'lucide-react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -46,15 +50,18 @@ interface TravelMapProps {
 }
 
 /**
- * Phase 2: Travel Map Component with Desktop Floating Panels
+ * Phase 3: Travel Map Component with Mobile Bottom Sheets
  *
- * This version adds floating panels for desktop view:
+ * Desktop view (Phase 2):
  * - Left side: Markers and Tours panels
  * - Right side: Routes and AI panels
  * - Multiple panels can be open simultaneously
  * - Panels float over the map with semi-transparent backgrounds
  *
- * Mobile panels will be added in Phase 3.
+ * Mobile view (Phase 3):
+ * - Bottom navigation bar with 4 icons (Markers, Tours, Routes, AI)
+ * - Draggable bottom sheets for panel content
+ * - Only one panel can be open at a time
  */
 export default function TravelMap({
     selectedTripId,
@@ -74,6 +81,13 @@ export default function TravelMap({
 
     // Desktop panel management
     const { panelStates, togglePanel, closePanel } = useDesktopPanels();
+
+    // Mobile panel management
+    const {
+        activePanel,
+        togglePanel: toggleMobilePanel,
+        closePanel: closeMobilePanel,
+    } = useMobilePanels();
 
     // Get current language setting
     const { language } = useLanguage();
@@ -538,11 +552,121 @@ export default function TravelMap({
                 </>
             )}
 
-            {/*
-             * Mobile panels will be added in Phase 3
-             * - DraggableSheet components
-             * - Bottom navigation bar
-             */}
+            {/* Mobile Panels - Phase 3 */}
+            {isMobile && (
+                <>
+                    {/* Bottom Navigation Bar */}
+                    <MobileNavigation
+                        activePanel={activePanel}
+                        onPanelChange={toggleMobilePanel}
+                    />
+
+                    <AnimatePresence mode="wait">
+                        {/* Markers Sheet */}
+                        {activePanel === 'markers' && (
+                            <DraggableSheet
+                                key="markers"
+                                onClose={closeMobilePanel}
+                                title={t('panels.markers', 'Markers')}
+                            >
+                                <MarkerList
+                                    markers={markers}
+                                    selectedMarkerId={selectedMarkerId}
+                                    onSelectMarker={setSelectedMarkerId}
+                                    selectedTourId={selectedTourId}
+                                    onAddMarkerToTour={handleAddMarkerToTour}
+                                    onMarkerImageFetched={(
+                                        markerId,
+                                        imageUrl,
+                                    ) => {
+                                        const updatedMarkers = markers.map(
+                                            (m) =>
+                                                m.id === markerId
+                                                    ? { ...m, imageUrl }
+                                                    : m,
+                                        );
+                                        setMarkers([...updatedMarkers]);
+                                    }}
+                                />
+                            </DraggableSheet>
+                        )}
+
+                        {/* Tours Sheet */}
+                        {activePanel === 'tours' && (
+                            <DraggableSheet
+                                key="tours"
+                                onClose={closeMobilePanel}
+                                title={t('panels.tours', 'Tours')}
+                            >
+                                <TourPanel
+                                    tours={tours}
+                                    selectedTourId={selectedTourId}
+                                    onSelectTour={onSelectTour}
+                                    onCreateTour={onCreateTour}
+                                    onDeleteTour={onDeleteTour}
+                                    markers={markers}
+                                    routes={routes}
+                                    onMoveMarkerUp={handleMoveMarkerUp}
+                                    onMoveMarkerDown={handleMoveMarkerDown}
+                                    onRemoveMarkerFromTour={
+                                        handleRemoveMarkerFromTour
+                                    }
+                                    onRequestRoute={handleRequestRoute}
+                                />
+                            </DraggableSheet>
+                        )}
+
+                        {/* Routes Sheet */}
+                        {activePanel === 'routes' && selectedTripId && (
+                            <DraggableSheet
+                                key="routes"
+                                onClose={closeMobilePanel}
+                                title={t('panels.routes', 'Routes')}
+                            >
+                                <RoutePanel
+                                    tripId={selectedTripId}
+                                    tourId={selectedTourId}
+                                    markers={markers}
+                                    routes={routes}
+                                    onRoutesUpdate={setRoutes}
+                                    initialStartMarkerId={
+                                        routeRequest?.startMarkerId
+                                    }
+                                    initialEndMarkerId={
+                                        routeRequest?.endMarkerId
+                                    }
+                                    tours={tours}
+                                    highlightedRouteId={highlightedRouteId}
+                                    expandedRoutes={expandedRoutes}
+                                    onExpandedRoutesChange={setExpandedRoutes}
+                                    onHighlightedRouteIdChange={
+                                        setHighlightedRouteId
+                                    }
+                                    onTourUpdate={handleTourUpdate}
+                                />
+                            </DraggableSheet>
+                        )}
+
+                        {/* AI Sheet */}
+                        {activePanel === 'ai' && (
+                            <DraggableSheet
+                                key="ai"
+                                onClose={closeMobilePanel}
+                                title={t('panels.ai', 'AI Recommendations')}
+                            >
+                                <AiRecommendationsPanel
+                                    tripId={selectedTripId}
+                                    tripName={selectedTrip?.name || null}
+                                    selectedTourId={selectedTourId}
+                                    tours={tours}
+                                    markers={markers}
+                                    mapBounds={mapBounds}
+                                />
+                            </DraggableSheet>
+                        )}
+                    </AnimatePresence>
+                </>
+            )}
 
             {/* Trip Notes Modal - Keep functional */}
             {selectedTrip && (
