@@ -1,10 +1,9 @@
 import { cn } from '@/lib/utils';
-import { motion, PanInfo, useAnimation } from 'framer-motion';
+import { motion, PanInfo } from 'framer-motion';
 import { X } from 'lucide-react';
-import { ReactNode, useEffect, useRef, useState } from 'react';
+import { ReactNode, useState } from 'react';
 
 interface DraggableSheetProps {
-    isOpen: boolean;
     onClose: () => void;
     title: string;
     children: ReactNode;
@@ -23,18 +22,14 @@ interface DraggableSheetProps {
  * - Semi-transparent overlay
  */
 export function DraggableSheet({
-    isOpen,
     onClose,
     title,
     children,
     snapPoints = [0.5, 0.9], // Default: 50% and 90% of viewport
     initialSnapPoint = 0,
 }: DraggableSheetProps) {
-    const controls = useAnimation();
-    const sheetRef = useRef<HTMLDivElement>(null);
     const [currentSnapIndex, setCurrentSnapIndex] = useState(initialSnapPoint);
     const [isDragging, setIsDragging] = useState(false);
-    const [mounted, setMounted] = useState(false);
 
     // Get viewport height
     const getViewportHeight = () => {
@@ -47,30 +42,6 @@ export function DraggableSheet({
         const percentage = snapPoints[index];
         return vh * (1 - percentage);
     };
-
-    // Set mounted on first render
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    // Open/close animation
-    useEffect(() => {
-        if (!mounted) return;
-
-        if (isOpen) {
-            const snapPos = getSnapPosition(currentSnapIndex);
-            controls.start({
-                y: snapPos,
-                transition: { type: 'spring', damping: 30, stiffness: 300 },
-            });
-        } else {
-            controls.start({
-                y: getViewportHeight(),
-                transition: { type: 'spring', damping: 30, stiffness: 300 },
-            });
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOpen, currentSnapIndex, mounted]);
 
     // Handle drag end - snap to nearest snap point or close
     const handleDragEnd = (
@@ -102,13 +73,10 @@ export function DraggableSheet({
         });
 
         setCurrentSnapIndex(nearestSnapIndex);
-        controls.start({
-            y: getSnapPosition(nearestSnapIndex),
-            transition: { type: 'spring', damping: 30, stiffness: 300 },
-        });
     };
 
-    if (!isOpen) return null;
+    const vh = getViewportHeight();
+    const snapY = getSnapPosition(currentSnapIndex);
 
     return (
         <>
@@ -124,25 +92,30 @@ export function DraggableSheet({
 
             {/* Draggable Sheet */}
             <motion.div
-                ref={sheetRef}
                 drag="y"
                 dragConstraints={{
                     top: getSnapPosition(snapPoints.length - 1),
-                    bottom: getViewportHeight(),
+                    bottom: vh,
                 }}
                 dragElastic={0.1}
                 dragMomentum={false}
                 onDragStart={() => setIsDragging(true)}
                 onDragEnd={handleDragEnd}
-                animate={controls}
-                initial={{ y: getViewportHeight() }}
+                initial={{ y: vh }}
+                animate={{ y: snapY }}
+                exit={{ y: vh }}
+                transition={{
+                    type: 'spring',
+                    damping: 30,
+                    stiffness: 300,
+                }}
                 className={cn(
-                    'fixed inset-x-0 z-50 flex flex-col rounded-t-2xl bg-background shadow-lg',
-                    'max-h-[95vh] overflow-hidden',
+                    'fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-2xl bg-background shadow-lg',
+                    'overflow-hidden',
                 )}
                 style={{
-                    touchAction: 'pan-y',
                     top: 0,
+                    height: '100vh',
                 }}
             >
                 {/* Drag Handle */}

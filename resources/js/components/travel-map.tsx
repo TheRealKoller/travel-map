@@ -27,6 +27,7 @@ import { getBoundingBoxFromTrip } from '@/lib/map-utils';
 import { update as tripsUpdate } from '@/routes/trips';
 import { Tour } from '@/types/tour';
 import { Trip } from '@/types/trip';
+import { AnimatePresence } from 'framer-motion';
 import { Bot, List, Map as MapIcon, Route as RouteIcon } from 'lucide-react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -560,92 +561,110 @@ export default function TravelMap({
                         onPanelChange={toggleMobilePanel}
                     />
 
-                    {/* Markers Sheet */}
-                    <DraggableSheet
-                        isOpen={activePanel === 'markers'}
-                        onClose={closeMobilePanel}
-                        title={t('panels.markers', 'Markers')}
-                    >
-                        <MarkerList
-                            markers={markers}
-                            selectedMarkerId={selectedMarkerId}
-                            onSelectMarker={setSelectedMarkerId}
-                            selectedTourId={selectedTourId}
-                            onAddMarkerToTour={handleAddMarkerToTour}
-                            onMarkerImageFetched={(markerId, imageUrl) => {
-                                const updatedMarkers = markers.map((m) =>
-                                    m.id === markerId ? { ...m, imageUrl } : m,
-                                );
-                                setMarkers([...updatedMarkers]);
-                            }}
-                        />
-                    </DraggableSheet>
+                    <AnimatePresence mode="wait">
+                        {/* Markers Sheet */}
+                        {activePanel === 'markers' && (
+                            <DraggableSheet
+                                key="markers"
+                                onClose={closeMobilePanel}
+                                title={t('panels.markers', 'Markers')}
+                            >
+                                <MarkerList
+                                    markers={markers}
+                                    selectedMarkerId={selectedMarkerId}
+                                    onSelectMarker={setSelectedMarkerId}
+                                    selectedTourId={selectedTourId}
+                                    onAddMarkerToTour={handleAddMarkerToTour}
+                                    onMarkerImageFetched={(
+                                        markerId,
+                                        imageUrl,
+                                    ) => {
+                                        const updatedMarkers = markers.map(
+                                            (m) =>
+                                                m.id === markerId
+                                                    ? { ...m, imageUrl }
+                                                    : m,
+                                        );
+                                        setMarkers([...updatedMarkers]);
+                                    }}
+                                />
+                            </DraggableSheet>
+                        )}
 
-                    {/* Tours Sheet */}
-                    <DraggableSheet
-                        isOpen={activePanel === 'tours'}
-                        onClose={closeMobilePanel}
-                        title={t('panels.tours', 'Tours')}
-                    >
-                        <TourPanel
-                            tours={tours}
-                            selectedTourId={selectedTourId}
-                            onSelectTour={onSelectTour}
-                            onCreateTour={onCreateTour}
-                            onDeleteTour={onDeleteTour}
-                            markers={markers}
-                            routes={routes}
-                            onMoveMarkerUp={handleMoveMarkerUp}
-                            onMoveMarkerDown={handleMoveMarkerDown}
-                            onRemoveMarkerFromTour={handleRemoveMarkerFromTour}
-                            onRequestRoute={handleRequestRoute}
-                        />
-                    </DraggableSheet>
+                        {/* Tours Sheet */}
+                        {activePanel === 'tours' && (
+                            <DraggableSheet
+                                key="tours"
+                                onClose={closeMobilePanel}
+                                title={t('panels.tours', 'Tours')}
+                            >
+                                <TourPanel
+                                    tours={tours}
+                                    selectedTourId={selectedTourId}
+                                    onSelectTour={onSelectTour}
+                                    onCreateTour={onCreateTour}
+                                    onDeleteTour={onDeleteTour}
+                                    markers={markers}
+                                    routes={routes}
+                                    onMoveMarkerUp={handleMoveMarkerUp}
+                                    onMoveMarkerDown={handleMoveMarkerDown}
+                                    onRemoveMarkerFromTour={
+                                        handleRemoveMarkerFromTour
+                                    }
+                                    onRequestRoute={handleRequestRoute}
+                                />
+                            </DraggableSheet>
+                        )}
 
-                    {/* Routes Sheet */}
-                    {selectedTripId && (
-                        <DraggableSheet
-                            isOpen={activePanel === 'routes'}
-                            onClose={closeMobilePanel}
-                            title={t('panels.routes', 'Routes')}
-                        >
-                            <RoutePanel
-                                tripId={selectedTripId}
-                                tourId={selectedTourId}
-                                markers={markers}
-                                routes={routes}
-                                onRoutesUpdate={setRoutes}
-                                initialStartMarkerId={
-                                    routeRequest?.startMarkerId
-                                }
-                                initialEndMarkerId={routeRequest?.endMarkerId}
-                                tours={tours}
-                                highlightedRouteId={highlightedRouteId}
-                                expandedRoutes={expandedRoutes}
-                                onExpandedRoutesChange={setExpandedRoutes}
-                                onHighlightedRouteIdChange={
-                                    setHighlightedRouteId
-                                }
-                                onTourUpdate={handleTourUpdate}
-                            />
-                        </DraggableSheet>
-                    )}
+                        {/* Routes Sheet */}
+                        {activePanel === 'routes' && selectedTripId && (
+                            <DraggableSheet
+                                key="routes"
+                                onClose={closeMobilePanel}
+                                title={t('panels.routes', 'Routes')}
+                            >
+                                <RoutePanel
+                                    tripId={selectedTripId}
+                                    tourId={selectedTourId}
+                                    markers={markers}
+                                    routes={routes}
+                                    onRoutesUpdate={setRoutes}
+                                    initialStartMarkerId={
+                                        routeRequest?.startMarkerId
+                                    }
+                                    initialEndMarkerId={
+                                        routeRequest?.endMarkerId
+                                    }
+                                    tours={tours}
+                                    highlightedRouteId={highlightedRouteId}
+                                    expandedRoutes={expandedRoutes}
+                                    onExpandedRoutesChange={setExpandedRoutes}
+                                    onHighlightedRouteIdChange={
+                                        setHighlightedRouteId
+                                    }
+                                    onTourUpdate={handleTourUpdate}
+                                />
+                            </DraggableSheet>
+                        )}
 
-                    {/* AI Sheet */}
-                    <DraggableSheet
-                        isOpen={activePanel === 'ai'}
-                        onClose={closeMobilePanel}
-                        title={t('panels.ai', 'AI Recommendations')}
-                    >
-                        <AiRecommendationsPanel
-                            tripId={selectedTripId}
-                            tripName={selectedTrip?.name || null}
-                            selectedTourId={selectedTourId}
-                            tours={tours}
-                            markers={markers}
-                            mapBounds={mapBounds}
-                        />
-                    </DraggableSheet>
+                        {/* AI Sheet */}
+                        {activePanel === 'ai' && (
+                            <DraggableSheet
+                                key="ai"
+                                onClose={closeMobilePanel}
+                                title={t('panels.ai', 'AI Recommendations')}
+                            >
+                                <AiRecommendationsPanel
+                                    tripId={selectedTripId}
+                                    tripName={selectedTrip?.name || null}
+                                    selectedTourId={selectedTourId}
+                                    tours={tours}
+                                    markers={markers}
+                                    mapBounds={mapBounds}
+                                />
+                            </DraggableSheet>
+                        )}
+                    </AnimatePresence>
                 </>
             )}
 
