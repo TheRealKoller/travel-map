@@ -1,5 +1,11 @@
+import { AiRecommendationsPanel } from '@/components/ai-recommendations-panel';
+import { FloatingPanel } from '@/components/floating-panel';
 import MapOptionsMenu from '@/components/map-options-menu';
+import MarkerList from '@/components/marker-list';
+import RoutePanel from '@/components/route-panel';
+import { TabButton } from '@/components/tab-button';
 import { Toolbar } from '@/components/toolbar';
+import TourPanel from '@/components/tour-panel';
 import TripNotesModal from '@/components/trip-notes-modal';
 import { useDesktopPanels } from '@/hooks/use-desktop-panels';
 import { useGeocoder } from '@/hooks/use-geocoder';
@@ -8,6 +14,7 @@ import { useMapInstance } from '@/hooks/use-map-instance';
 import { useMapInteractions } from '@/hooks/use-map-interactions';
 import { useMarkerHighlight } from '@/hooks/use-marker-highlight';
 import { useMarkers } from '@/hooks/use-markers';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { usePlaceTypes } from '@/hooks/use-place-types';
 import { useRoutes } from '@/hooks/use-routes';
 import { useSearchMode } from '@/hooks/use-search-mode';
@@ -18,8 +25,9 @@ import { getBoundingBoxFromTrip } from '@/lib/map-utils';
 import { update as tripsUpdate } from '@/routes/trips';
 import { Tour } from '@/types/tour';
 import { Trip } from '@/types/trip';
+import { Bot, List, Map as MapIcon, Route as RouteIcon } from 'lucide-react';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface TravelMapProps {
@@ -450,6 +458,7 @@ export default function TravelMap({
 
                     {/* Left side floating panels */}
                     <FloatingPanel
+                        id="markers-panel"
                         isOpen={panelStates.markers.isOpen}
                         onClose={() => closePanel('markers')}
                         position="left"
@@ -471,6 +480,7 @@ export default function TravelMap({
                     </FloatingPanel>
 
                     <FloatingPanel
+                        id="tours-panel"
                         isOpen={panelStates.tours.isOpen}
                         onClose={() => closePanel('tours')}
                         position="left"
@@ -494,6 +504,7 @@ export default function TravelMap({
                     {/* Right side floating panels */}
                     {selectedTripId && (
                         <FloatingPanel
+                            id="routes-panel"
                             isOpen={panelStates.routes.isOpen}
                             onClose={() => closePanel('routes')}
                             position="right"
@@ -522,6 +533,7 @@ export default function TravelMap({
                     )}
 
                     <FloatingPanel
+                        id="ai-panel"
                         isOpen={panelStates.ai.isOpen}
                         onClose={() => closePanel('ai')}
                         position="right"
