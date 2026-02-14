@@ -35,7 +35,7 @@ export function TabButton({
             onClick={onClick}
             className={cn(
                 // Base styles
-                'group flex items-center gap-2 px-3 py-2.5',
+                'group flex items-center gap-2 px-3 py-3',
                 'transition-all duration-200 ease-in-out',
                 'text-sm font-medium',
 
@@ -65,6 +65,7 @@ export function TabButton({
             )}
             aria-pressed={isActive}
             aria-label={label}
+            style={{ willChange: 'transform' }}
         >
             <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span className="whitespace-nowrap">{label}</span>

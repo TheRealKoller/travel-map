@@ -91,6 +91,7 @@ export function DraggableSheet({
                 onClick={onClose}
                 data-testid="sheet-backdrop"
                 aria-hidden="true"
+                style={{ willChange: 'opacity' }}
             />
 
             {/* Draggable Sheet */}
@@ -119,6 +120,7 @@ export function DraggableSheet({
                 style={{
                     top: 0,
                     height: '100vh',
+                    willChange: 'transform',
                 }}
                 data-testid="draggable-sheet"
                 role="dialog"

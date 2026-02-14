@@ -95,7 +95,7 @@ function MarkerItem({
 
     return (
         <li
-            className={`flex items-start gap-2 rounded p-2 transition sm:gap-2.5 sm:p-2.5 ${
+            className={`flex items-start gap-2 rounded p-2 transition sm:gap-3 sm:p-3 ${
                 isSelected
                     ? 'border-2 border-blue-500 bg-blue-100 dark:border-blue-400 dark:bg-blue-950'
                     : 'bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700'
@@ -243,10 +243,10 @@ export default function MarkerList({
 
     return (
         <div
-            className="rounded-lg bg-white p-2.5 shadow sm:p-3 dark:bg-gray-900"
+            className="rounded-lg bg-white p-3 shadow-md sm:p-3 dark:bg-gray-900"
             data-testid="marker-list"
         >
-            <div className="mb-2.5 flex items-center justify-between sm:mb-3">
+            <div className="mb-3 flex items-center justify-between sm:mb-3">
                 <h2 className="truncate text-sm font-semibold text-gray-900 sm:text-base dark:text-gray-100">
                     Markers ({filteredMarkers.length})
                 </h2>
@@ -271,7 +271,7 @@ export default function MarkerList({
             </div>
             {isFilterOpen && (
                 <div
-                    className="mb-2.5 rounded border border-gray-200 bg-gray-50 p-2.5 sm:mb-3 sm:p-3 dark:border-gray-700 dark:bg-gray-800"
+                    className="mb-3 rounded border border-gray-200 bg-gray-50 p-3 sm:mb-3 sm:p-3 dark:border-gray-700 dark:bg-gray-800"
                     data-testid="filter-menu"
                 >
                     <div className="flex flex-col gap-2">
