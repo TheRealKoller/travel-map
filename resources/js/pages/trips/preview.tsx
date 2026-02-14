@@ -182,6 +182,7 @@ export default function TripPreview({
                 bounds: bounds,
                 fitBoundsOptions: { padding: 50 },
                 interactive: true,
+                collectResourceTiming: false, // Disable telemetry
             });
 
             mapInstance.current = map;
@@ -207,6 +208,7 @@ export default function TripPreview({
             center: center,
             zoom: zoom,
             interactive: true,
+            collectResourceTiming: false, // Disable telemetry
         });
 
         mapInstance.current = map;
