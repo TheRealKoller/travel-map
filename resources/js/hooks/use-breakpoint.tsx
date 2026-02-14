@@ -30,22 +30,37 @@ const desktopMql = window.matchMedia(`(min-width: ${BREAKPOINTS.desktop}px)`);
 /**
  * Subscribe to media query changes
  */
-function mediaQueryListener(callback: (event: MediaQueryListEvent) => void) {
-    mobileMql.addEventListener('change', callback);
-    tabletMql.addEventListener('change', callback);
-    desktopMql.addEventListener('change', callback);
+function mediaQueryListener(callback: () => void) {
+    const handleChange = () => {
+        // Invalidate cache when breakpoint changes
+        cachedSnapshot = null;
+        callback();
+    };
+
+    mobileMql.addEventListener('change', handleChange);
+    tabletMql.addEventListener('change', handleChange);
+    desktopMql.addEventListener('change', handleChange);
+
+    // Also listen to resize for width/height changes
+    window.addEventListener('resize', handleChange);
 
     return () => {
-        mobileMql.removeEventListener('change', callback);
-        tabletMql.removeEventListener('change', callback);
-        desktopMql.removeEventListener('change', callback);
+        mobileMql.removeEventListener('change', handleChange);
+        tabletMql.removeEventListener('change', handleChange);
+        desktopMql.removeEventListener('change', handleChange);
+        window.removeEventListener('resize', handleChange);
     };
 }
 
 /**
- * Get current breakpoint snapshot
+ * Cached snapshot to prevent infinite loops
  */
-function getBreakpointSnapshot() {
+let cachedSnapshot: ReturnType<typeof createSnapshot> | null = null;
+
+/**
+ * Create a breakpoint snapshot
+ */
+function createSnapshot() {
     return {
         isMobile: mobileMql.matches,
         isTablet: tabletMql.matches,
@@ -55,6 +70,16 @@ function getBreakpointSnapshot() {
         width: window.innerWidth,
         height: window.innerHeight,
     };
+}
+
+/**
+ * Get current breakpoint snapshot (cached)
+ */
+function getBreakpointSnapshot() {
+    if (!cachedSnapshot) {
+        cachedSnapshot = createSnapshot();
+    }
+    return cachedSnapshot;
 }
 
 /**

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export type PanelType = 'markers' | 'tours' | 'routes' | 'ai';
 
@@ -77,32 +77,45 @@ export function usePanels(isMobileLayout: boolean) {
     }, [panelStates, isMobileLayout]);
 
     // Handle breakpoint changes: enforce mobile constraints when switching to mobile
+    // Using useRef to track previous layout to avoid unnecessary updates
+    const prevIsMobileLayoutRef = useRef(isMobileLayout);
+
     useEffect(() => {
-        if (isMobileLayout) {
-            // When switching to mobile, ensure only one panel is open
+        // Only process when transitioning TO mobile layout (not on every render)
+        const wasDesktop = !prevIsMobileLayoutRef.current;
+        const isNowMobile = isMobileLayout;
+
+        if (isNowMobile && wasDesktop) {
+            // When switching from desktop to mobile, ensure only one panel is open
             const openPanels = (
                 Object.entries(panelStates) as [PanelType, PanelState][]
             ).filter(([, state]) => state.isOpen);
 
-            if (openPanels.length > 1) {
-                // Multiple panels open - close all except the first one
-                const firstPanel = openPanels[0][0];
-                setPanelStates({
-                    markers: { isOpen: firstPanel === 'markers' },
-                    tours: { isOpen: firstPanel === 'tours' },
-                    routes: { isOpen: firstPanel === 'routes' },
-                    ai: { isOpen: firstPanel === 'ai' },
-                });
-                setMobileActivePanel(firstPanel);
-            } else if (openPanels.length === 1) {
-                setMobileActivePanel(openPanels[0][0]);
-            } else {
-                setMobileActivePanel(null);
-            }
+            // Schedule state updates asynchronously to avoid cascading renders
+            queueMicrotask(() => {
+                if (openPanels.length > 1) {
+                    // Multiple panels open - close all except the first one
+                    const firstPanel = openPanels[0][0];
+                    setPanelStates({
+                        markers: { isOpen: firstPanel === 'markers' },
+                        tours: { isOpen: firstPanel === 'tours' },
+                        routes: { isOpen: firstPanel === 'routes' },
+                        ai: { isOpen: firstPanel === 'ai' },
+                    });
+                    setMobileActivePanel(firstPanel);
+                } else if (openPanels.length === 1) {
+                    setMobileActivePanel(openPanels[0][0]);
+                } else {
+                    setMobileActivePanel(null);
+                }
+            });
         }
+
+        // Update the previous layout reference
+        prevIsMobileLayoutRef.current = isMobileLayout;
         // Note: We don't need to do anything when switching to desktop
         // Desktop can handle multiple panels, so we just preserve the state
-    }, [isMobileLayout]);
+    }, [isMobileLayout, panelStates]);
 
     /**
      * Check if a panel is currently open

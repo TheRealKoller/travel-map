@@ -8,12 +8,14 @@ import { TabButton } from '@/components/tab-button';
 import { Toolbar } from '@/components/toolbar';
 import TourPanel from '@/components/tour-panel';
 import TripNotesModal from '@/components/trip-notes-modal';
+import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { useGeocoder } from '@/hooks/use-geocoder';
 import { useLanguage } from '@/hooks/use-language';
 import { useMapInstance } from '@/hooks/use-map-instance';
 import { useMapInteractions } from '@/hooks/use-map-interactions';
 import { useMarkerHighlight } from '@/hooks/use-marker-highlight';
 import { useMarkers } from '@/hooks/use-markers';
+import { usePanels } from '@/hooks/use-panels';
 import { usePlaceTypes } from '@/hooks/use-place-types';
 import { useRoutes } from '@/hooks/use-routes';
 import { useSearchMode } from '@/hooks/use-search-mode';
@@ -295,6 +297,7 @@ export default function TravelMap({
 
         const updateBounds = () => {
             const bounds = mapInstance.getBounds();
+            if (!bounds) return;
             setMapBounds({
                 north: bounds.getNorth(),
                 south: bounds.getSouth(),
