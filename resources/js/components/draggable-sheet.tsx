@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { motion, PanInfo } from 'framer-motion';
 import { X } from 'lucide-react';
@@ -142,15 +143,16 @@ export function DraggableSheet({
                     <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                         {title}
                     </h2>
-                    <button
+                    <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={onClose}
-                        className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none"
-                        aria-label={`Close ${title} panel`}
+                        className="h-8 w-8"
                         data-testid="close-button"
+                        aria-label={`Close ${title} panel`}
                     >
-                        <X className="h-5 w-5" aria-hidden="true" />
-                        <span className="sr-only">Close</span>
-                    </button>
+                        <X className="h-4 w-4" aria-hidden="true" />
+                    </Button>
                 </div>
 
                 {/* Content */}
