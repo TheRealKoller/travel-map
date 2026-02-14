@@ -78,7 +78,7 @@ function MarkerItem({
     return (
         <div className="rounded bg-gray-50 p-2 text-xs sm:p-2 sm:text-sm dark:bg-gray-800">
             <div className="flex items-start gap-2 sm:gap-2">
-                <div className="flex flex-shrink-0 flex-col gap-0.5">
+                <div className="flex flex-shrink-0 flex-col gap-1">
                     <Button
                         variant="ghost"
                         size="icon"

@@ -6,7 +6,7 @@ export default function Heading({
     description?: string;
 }) {
     return (
-        <div className="mb-4 space-y-1 sm:mb-6 md:mb-8 md:space-y-0.5">
+        <div className="mb-4 space-y-1 sm:mb-6 md:mb-8 md:space-y-1">
             <h2 className="text-lg font-semibold tracking-tight sm:text-xl">
                 {title}
             </h2>

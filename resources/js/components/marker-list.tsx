@@ -150,7 +150,7 @@ function MarkerItem({
                     />
                 )}
             </div>
-            <div className="flex flex-shrink-0 items-center gap-1 sm:gap-1.5">
+            <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
                 {showAddToTourButton && (
                     <Button
                         variant="ghost"
@@ -262,7 +262,7 @@ export default function MarkerList({
                     {(appliedType !== 'all' ||
                         appliedUnescoFilter !== 'all') && (
                         <span
-                            className="absolute top-0.5 right-0.5 h-2 w-2 rounded-full bg-blue-600 sm:top-1 sm:right-1"
+                            className="absolute top-1 right-1 h-2 w-2 rounded-full bg-blue-600 sm:top-1 sm:right-1"
                             data-testid="filter-active-indicator"
                             title="Filter active"
                         />
@@ -370,7 +370,7 @@ export default function MarkerList({
                             Click the arrow to add a marker to the current tour
                         </p>
                     )}
-                    <ul className="space-y-1.5" data-testid="marker-list-items">
+                    <ul className="space-y-2" data-testid="marker-list-items">
                         {filteredMarkers.map((markerData) => (
                             <MarkerItem
                                 key={markerData.id}
