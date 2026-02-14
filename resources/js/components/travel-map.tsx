@@ -1,6 +1,5 @@
 import { AiRecommendationsPanel } from '@/components/ai-recommendations-panel';
 import { FloatingPanel } from '@/components/floating-panel';
-import MapOptionsMenu from '@/components/map-options-menu';
 import MarkerList from '@/components/marker-list';
 import RoutePanel from '@/components/route-panel';
 import { TabButton } from '@/components/tab-button';
@@ -347,12 +346,6 @@ export default function TravelMap({
         }
     }, [selectedTripId, mapInstance, trips]);
 
-    // Placeholder state for MapOptionsMenu (search feature not fully implemented)
-    const searchCoordinates = null;
-    const searchResultCount = null;
-    const isSearching = false;
-    const searchError = null;
-
     // Handler for saving trip notes
     const handleSaveTripNotes = async (notes: string) => {
         if (!selectedTripId) return;
@@ -394,6 +387,13 @@ export default function TravelMap({
                     selectedTrip?.country ? [selectedTrip.country] : undefined
                 }
                 bbox={getBoundingBoxFromTrip(selectedTrip)}
+                isSearchMode={isSearchMode}
+                onSearchModeChange={setIsSearchMode}
+                searchRadius={searchRadius}
+                onSearchRadiusChange={setSearchRadius}
+                placeTypes={placeTypes}
+                selectedPlaceType={selectedPlaceType}
+                onPlaceTypeChange={setSelectedPlaceType}
             />
 
             {/* Map fills the entire screen */}
@@ -402,19 +402,6 @@ export default function TravelMap({
                 data-testid="map-panel"
             >
                 <div ref={mapRef} id="map" className="h-full w-full" />
-                <MapOptionsMenu
-                    isSearchMode={isSearchMode}
-                    onSearchModeChange={setIsSearchMode}
-                    searchCoordinates={searchCoordinates}
-                    searchRadius={searchRadius}
-                    onSearchRadiusChange={setSearchRadius}
-                    searchResultCount={searchResultCount}
-                    isSearching={isSearching}
-                    searchError={searchError}
-                    placeTypes={placeTypes}
-                    selectedPlaceType={selectedPlaceType}
-                    onPlaceTypeChange={setSelectedPlaceType}
-                />
             </div>
 
             {/* Desktop Floating Panels - Phase 2 */}
