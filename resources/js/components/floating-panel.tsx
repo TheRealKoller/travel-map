@@ -61,6 +61,7 @@ export function FloatingPanel({
                     ? 'translateX(0)'
                     : `translateX(${translateX})`,
                 zIndex,
+                willChange: 'transform',
             }}
         >
             {/* Panel Container */}

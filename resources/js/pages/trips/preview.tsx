@@ -283,7 +283,7 @@ export default function TripPreview({
                             {(trip.planned_start_year ||
                                 trip.planned_end_year ||
                                 trip.planned_duration_days) && (
-                                <div className="mt-1 space-y-1.5 rounded-md border border-gray-200 bg-gray-50 p-3 text-sm leading-relaxed sm:mt-2 sm:space-y-2 sm:p-4 dark:border-gray-700 dark:bg-gray-800">
+                                <div className="mt-1 space-y-2 rounded-md border border-gray-200 bg-gray-50 p-3 text-sm leading-relaxed sm:mt-2 sm:space-y-2 sm:p-4 dark:border-gray-700 dark:bg-gray-800">
                                     {(trip.planned_start_year ||
                                         trip.planned_end_year) && (
                                         <div>

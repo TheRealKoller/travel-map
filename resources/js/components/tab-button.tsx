@@ -35,7 +35,7 @@ export function TabButton({
             onClick={onClick}
             className={cn(
                 // Base styles
-                'group flex items-center gap-2 px-3 py-2.5',
+                'group flex items-center gap-2 px-3 py-3',
                 'transition-all duration-200 ease-in-out',
                 'text-sm font-medium',
 

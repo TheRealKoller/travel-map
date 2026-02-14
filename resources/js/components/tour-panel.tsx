@@ -76,9 +76,9 @@ function MarkerItem({
     onRemove,
 }: MarkerItemProps) {
     return (
-        <div className="rounded bg-gray-50 p-1.5 text-xs sm:p-2 sm:text-sm dark:bg-gray-800">
-            <div className="flex items-start gap-1.5 sm:gap-2">
-                <div className="flex flex-shrink-0 flex-col gap-0.5">
+        <div className="rounded bg-gray-50 p-2 text-xs sm:p-2 sm:text-sm dark:bg-gray-800">
+            <div className="flex items-start gap-2 sm:gap-2">
+                <div className="flex flex-shrink-0 flex-col gap-1">
                     <Button
                         variant="ghost"
                         size="icon"
@@ -118,7 +118,7 @@ function MarkerItem({
                         </div>
                     )}
                 </div>
-                <div className="flex flex-shrink-0 items-center gap-1 sm:gap-1.5">
+                <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
                     {onRemove && (
                         <Button
                             variant="ghost"
@@ -181,8 +181,8 @@ function TourCard({
     onRequestRoute,
 }: TourCardProps) {
     return (
-        <Card className="flex-1 overflow-auto p-2.5 sm:p-3 md:p-4">
-            <div className="mb-2.5 flex items-center justify-between sm:mb-3">
+        <Card className="flex-1 overflow-auto p-3 sm:p-3 md:p-4">
+            <div className="mb-3 flex items-center justify-between sm:mb-3">
                 <div className="flex min-w-0 flex-col">
                     <h3 className="truncate text-sm font-semibold text-gray-900 sm:text-base dark:text-gray-100">
                         {tour.name}
@@ -254,7 +254,7 @@ function TourCard({
                                     );
 
                                     return (
-                                        <div className="my-1 flex items-center justify-center gap-1.5">
+                                        <div className="my-1 flex items-center justify-center gap-2">
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
