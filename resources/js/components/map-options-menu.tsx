@@ -54,11 +54,11 @@ export default function MapOptionsMenu({
     return (
         <div className="absolute top-[60px] right-4 z-[1000]">
             <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-                <div className="flex flex-col rounded-lg border bg-white shadow-lg">
+                <div className="flex flex-col rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-900">
                     <CollapsibleTrigger asChild>
                         <Button
                             variant="ghost"
-                            className="flex w-full items-center justify-between gap-2 px-4 py-3"
+                            className="flex w-full items-center justify-between gap-2 px-4 py-3 dark:text-gray-100"
                         >
                             <span className="font-medium">Optionen</span>
                             {isOpen ? (
@@ -69,7 +69,7 @@ export default function MapOptionsMenu({
                         </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent
-                        className="flex flex-col border-t"
+                        className="flex flex-col border-t border-gray-200 dark:border-gray-700"
                         style={{
                             maxHeight: isOpen ? 'calc(100vh - 220px)' : '0',
                         }}
@@ -91,7 +91,7 @@ export default function MapOptionsMenu({
                                     <div className="flex flex-col gap-2">
                                         <Label
                                             id="search-mode-label"
-                                            className="text-sm font-medium"
+                                            className="text-sm font-medium text-gray-900 dark:text-gray-100"
                                         >
                                             Umkreissuche
                                         </Label>
@@ -119,7 +119,7 @@ export default function MapOptionsMenu({
                                     <div className="space-y-2">
                                         <Label
                                             htmlFor="place-type"
-                                            className="text-sm font-medium"
+                                            className="text-sm font-medium text-gray-900 dark:text-gray-100"
                                         >
                                             Typ des Ortes
                                         </Label>
@@ -148,7 +148,7 @@ export default function MapOptionsMenu({
                                     <div className="space-y-2">
                                         <Label
                                             htmlFor="search-radius"
-                                            className="text-sm font-medium"
+                                            className="text-sm font-medium text-gray-900 dark:text-gray-100"
                                         >
                                             Suchradius: {searchRadius} km
                                         </Label>
@@ -170,17 +170,17 @@ export default function MapOptionsMenu({
                                         </div>
                                     </div>
                                     {searchCoordinates && (
-                                        <div className="rounded-md bg-muted p-3">
-                                            <p className="text-sm font-medium">
+                                        <div className="rounded-md bg-gray-100 p-3 dark:bg-gray-800">
+                                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                 Koordinaten:
                                             </p>
-                                            <p className="text-sm text-muted-foreground">
+                                            <p className="text-sm text-gray-600 dark:text-gray-400">
                                                 Lat:{' '}
                                                 {searchCoordinates.lat.toFixed(
                                                     6,
                                                 )}
                                             </p>
-                                            <p className="text-sm text-muted-foreground">
+                                            <p className="text-sm text-gray-600 dark:text-gray-400">
                                                 Lng:{' '}
                                                 {searchCoordinates.lng.toFixed(
                                                     6,
@@ -189,18 +189,18 @@ export default function MapOptionsMenu({
                                         </div>
                                     )}
                                     {isSearching && (
-                                        <div className="rounded-md bg-blue-50 p-3 text-center">
-                                            <p className="text-sm text-blue-600">
+                                        <div className="rounded-md bg-blue-50 p-3 text-center dark:bg-blue-950">
+                                            <p className="text-sm text-blue-600 dark:text-blue-400">
                                                 Suche läuft...
                                             </p>
                                         </div>
                                     )}
                                     {searchError && (
-                                        <div className="rounded-md bg-red-50 p-3">
-                                            <p className="text-sm font-medium text-red-600">
+                                        <div className="rounded-md bg-red-50 p-3 dark:bg-red-950">
+                                            <p className="text-sm font-medium text-red-600 dark:text-red-400">
                                                 Fehler:
                                             </p>
-                                            <p className="text-sm text-red-500">
+                                            <p className="text-sm text-red-500 dark:text-red-300">
                                                 {searchError}
                                             </p>
                                         </div>
@@ -208,11 +208,11 @@ export default function MapOptionsMenu({
                                     {!isSearching &&
                                         !searchError &&
                                         searchResultCount !== null && (
-                                            <div className="rounded-md bg-green-50 p-3">
-                                                <p className="text-sm font-medium text-green-800">
+                                            <div className="rounded-md bg-green-50 p-3 dark:bg-green-950">
+                                                <p className="text-sm font-medium text-green-800 dark:text-green-300">
                                                     Ergebnisse gefunden:
                                                 </p>
-                                                <p className="text-lg font-bold text-green-600">
+                                                <p className="text-lg font-bold text-green-600 dark:text-green-400">
                                                     {searchResultCount}
                                                 </p>
                                             </div>
