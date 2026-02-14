@@ -155,14 +155,25 @@
         }
     }
 
-    /* Focus indicators for keyboard navigation */
-    *:focus-visible {
+    /* Focus indicators for keyboard navigation
+     * Only apply to elements without explicit focus styling to avoid conflicts
+     * with component-specific focus styles (e.g., Button, TabButton)
+     */
+    *:focus-visible:not(
+            button,
+            a,
+            input,
+            select,
+            textarea,
+            [class*='focus'],
+            [class*='ring']
+        ) {
         @apply outline-2 outline-offset-2 outline-ring;
     }
 
-    /* Improved focus for interactive elements */
-    button:focus-visible,
-    a:focus-visible,
+    /* Improved focus for standard interactive elements
+     * These elements don't typically have custom focus styles in components
+     */
     input:focus-visible,
     select:focus-visible,
     textarea:focus-visible {

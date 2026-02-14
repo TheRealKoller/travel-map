@@ -222,6 +222,26 @@ export function DraggableSheet({
                     onTouchMove={handleTouchMove}
                     onTouchEnd={handleTouchEnd}
                     onMouseDown={handleMouseDown}
+                    onKeyDown={(e) => {
+                        // Support keyboard interaction for accessibility
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            // Cycle through snap points: peek -> half -> full -> peek
+                            const snapSequence: SnapPoint[] = [
+                                'peek',
+                                'half',
+                                'full',
+                            ];
+                            const currentIndex = snapSequence.indexOf(
+                                internalSnapPoint,
+                            );
+                            const nextIndex =
+                                (currentIndex + 1) % snapSequence.length;
+                            const nextSnapPoint = snapSequence[nextIndex];
+                            setInternalSnapPoint(nextSnapPoint);
+                            onSnapPointChange?.(nextSnapPoint);
+                        }
+                    }}
                     data-testid="drag-handle"
                     aria-label="Drag to resize panel"
                     role="button"
