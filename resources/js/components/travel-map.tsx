@@ -1,6 +1,8 @@
 import { AiRecommendationsPanel } from '@/components/ai-recommendations-panel';
+import { DraggableSheet } from '@/components/draggable-sheet';
 import { FloatingPanel } from '@/components/floating-panel';
 import MarkerList from '@/components/marker-list';
+import { MobileNavigation } from '@/components/mobile-navigation';
 import RoutePanel from '@/components/route-panel';
 import { TabButton } from '@/components/tab-button';
 import { Toolbar } from '@/components/toolbar';
@@ -14,6 +16,7 @@ import { useMapInteractions } from '@/hooks/use-map-interactions';
 import { useMarkerHighlight } from '@/hooks/use-marker-highlight';
 import { useMarkers } from '@/hooks/use-markers';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useMobilePanels } from '@/hooks/use-mobile-panels';
 import { usePlaceTypes } from '@/hooks/use-place-types';
 import { useRoutes } from '@/hooks/use-routes';
 import { useSearchMode } from '@/hooks/use-search-mode';
