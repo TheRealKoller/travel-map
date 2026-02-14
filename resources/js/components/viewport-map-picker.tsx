@@ -69,6 +69,7 @@ export function ViewportMapPicker({
                 ? [initialViewport.longitude, initialViewport.latitude]
                 : [8.5417, 47.3769], // Default to Zurich, Switzerland
             zoom: initialViewport?.zoom ?? 4,
+            collectResourceTiming: false, // Disable telemetry
         });
 
         mapInstanceRef.current = map;

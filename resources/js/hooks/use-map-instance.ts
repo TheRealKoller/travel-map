@@ -50,6 +50,8 @@ export function useMapInstance(options: UseMapInstanceOptions = {}) {
             // Performance optimizations for touch devices
             refreshExpiredTiles: false, // Reduce unnecessary tile refreshes
             fadeDuration: 150, // Faster fade transitions for better perceived performance
+            // Disable telemetry to prevent ad-blocker issues
+            collectResourceTiming: false,
         });
         mapInstanceRef.current = map;
         setMapInitialized(true);
