@@ -50,7 +50,10 @@ export function TabButton({
                 // Active state
                 isActive
                     ? 'border-primary text-primary shadow-md'
-                    : 'border-border text-muted-foreground hover:border-primary/50 hover:text-foreground',
+                    : 'border-border text-muted-foreground hover:border-primary/50 hover:bg-accent/50 hover:text-foreground',
+
+                // Active click effect
+                'active:scale-95',
 
                 // Hover effects
                 'hover:shadow-md',
@@ -63,7 +66,7 @@ export function TabButton({
             aria-pressed={isActive}
             aria-label={label}
         >
-            <Icon className="h-4 w-4 shrink-0" />
+            <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span className="whitespace-nowrap">{label}</span>
         </button>
     );
