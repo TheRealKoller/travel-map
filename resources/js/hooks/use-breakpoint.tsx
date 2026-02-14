@@ -11,43 +11,64 @@ export const BREAKPOINTS = {
 } as const;
 
 /**
- * Media query list for mobile detection
+ * Check if we're in a browser environment
  */
-const mobileMql = window.matchMedia(`(max-width: ${BREAKPOINTS.mobile - 1}px)`);
+const isBrowser = typeof window !== 'undefined';
 
 /**
- * Media query list for tablet detection
+ * Lazy initialization of MediaQueryList objects (SSR-safe)
  */
-const tabletMql = window.matchMedia(
-    `(min-width: ${BREAKPOINTS.mobile}px) and (max-width: ${BREAKPOINTS.tablet - 1}px)`,
-);
+let mobileMql: MediaQueryList | null = null;
+let tabletMql: MediaQueryList | null = null;
+let desktopMql: MediaQueryList | null = null;
 
-/**
- * Media query list for desktop detection
- */
-const desktopMql = window.matchMedia(`(min-width: ${BREAKPOINTS.desktop}px)`);
+function getMediaQueryLists() {
+    if (!isBrowser) {
+        return { mobileMql: null, tabletMql: null, desktopMql: null };
+    }
+
+    if (!mobileMql) {
+        mobileMql = window.matchMedia(
+            `(max-width: ${BREAKPOINTS.mobile - 1}px)`,
+        );
+    }
+    if (!tabletMql) {
+        tabletMql = window.matchMedia(
+            `(min-width: ${BREAKPOINTS.mobile}px) and (max-width: ${BREAKPOINTS.tablet - 1}px)`,
+        );
+    }
+    if (!desktopMql) {
+        desktopMql = window.matchMedia(`(min-width: ${BREAKPOINTS.desktop}px)`);
+    }
+
+    return { mobileMql, tabletMql, desktopMql };
+}
 
 /**
  * Subscribe to media query changes
  */
 function mediaQueryListener(callback: () => void) {
+    if (!isBrowser) return () => {};
+
     const handleChange = () => {
         // Invalidate cache when breakpoint changes
         cachedSnapshot = null;
         callback();
     };
 
-    mobileMql.addEventListener('change', handleChange);
-    tabletMql.addEventListener('change', handleChange);
-    desktopMql.addEventListener('change', handleChange);
+    const { mobileMql, tabletMql, desktopMql } = getMediaQueryLists();
+
+    mobileMql?.addEventListener('change', handleChange);
+    tabletMql?.addEventListener('change', handleChange);
+    desktopMql?.addEventListener('change', handleChange);
 
     // Also listen to resize for width/height changes
     window.addEventListener('resize', handleChange);
 
     return () => {
-        mobileMql.removeEventListener('change', handleChange);
-        tabletMql.removeEventListener('change', handleChange);
-        desktopMql.removeEventListener('change', handleChange);
+        mobileMql?.removeEventListener('change', handleChange);
+        tabletMql?.removeEventListener('change', handleChange);
+        desktopMql?.removeEventListener('change', handleChange);
         window.removeEventListener('resize', handleChange);
     };
 }
@@ -61,12 +82,27 @@ let cachedSnapshot: ReturnType<typeof createSnapshot> | null = null;
  * Create a breakpoint snapshot
  */
 function createSnapshot() {
+    if (!isBrowser) {
+        // SSR fallback: default to desktop layout
+        return {
+            isMobile: false,
+            isTablet: false,
+            isDesktop: true,
+            isMobileLayout: false,
+            width: 1024,
+            height: 768,
+        };
+    }
+
+    const { mobileMql, tabletMql, desktopMql } = getMediaQueryLists();
+
     return {
-        isMobile: mobileMql.matches,
-        isTablet: tabletMql.matches,
-        isDesktop: desktopMql.matches,
+        isMobile: mobileMql?.matches ?? false,
+        isTablet: tabletMql?.matches ?? false,
+        isDesktop: desktopMql?.matches ?? true,
         // For convenience: treat tablets as mobile for UI layout
-        isMobileLayout: mobileMql.matches || tabletMql.matches,
+        isMobileLayout:
+            (mobileMql?.matches ?? false) || (tabletMql?.matches ?? false),
         width: window.innerWidth,
         height: window.innerHeight,
     };
@@ -83,6 +119,20 @@ function getBreakpointSnapshot() {
 }
 
 /**
+ * Get server-side snapshot (for SSR)
+ */
+function getServerSnapshot() {
+    return {
+        isMobile: false,
+        isTablet: false,
+        isDesktop: true,
+        isMobileLayout: false,
+        width: 1024,
+        height: 768,
+    };
+}
+
+/**
  * Hook for responsive breakpoint detection
  *
  * Returns an object with:
@@ -94,9 +144,14 @@ function getBreakpointSnapshot() {
  * - height: current window inner height
  *
  * Uses useSyncExternalStore for React 18 compatibility and optimal re-rendering
+ * SSR-safe: returns desktop defaults on server, hydrates to actual viewport on client
  */
 export function useBreakpoint() {
-    return useSyncExternalStore(mediaQueryListener, getBreakpointSnapshot);
+    return useSyncExternalStore(
+        mediaQueryListener,
+        getBreakpointSnapshot,
+        getServerSnapshot,
+    );
 }
 
 /**

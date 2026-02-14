@@ -9,6 +9,91 @@ interface PanelState {
 type PanelStates = Record<PanelType, PanelState>;
 
 const STORAGE_KEY = 'panel-states';
+const OLD_STORAGE_KEY = 'desktop-panel-states'; // For migration
+
+/**
+ * Default panel states (all closed)
+ */
+const DEFAULT_PANEL_STATES: PanelStates = {
+    markers: { isOpen: false },
+    tours: { isOpen: false },
+    routes: { isOpen: false },
+    ai: { isOpen: false },
+};
+
+/**
+ * Validate and sanitize stored panel states
+ * Ensures the data structure is valid and contains all required panels
+ */
+function validatePanelStates(data: unknown): PanelStates | null {
+    if (!data || typeof data !== 'object') {
+        return null;
+    }
+
+    const panels: PanelType[] = ['markers', 'tours', 'routes', 'ai'];
+    const validated: Partial<PanelStates> = {};
+
+    for (const panel of panels) {
+        const panelData = (data as Record<string, unknown>)[panel];
+        if (
+            panelData &&
+            typeof panelData === 'object' &&
+            'isOpen' in panelData &&
+            typeof (panelData as { isOpen: unknown }).isOpen === 'boolean'
+        ) {
+            validated[panel] = panelData as PanelState;
+        } else {
+            // Missing or invalid panel data - use default
+            validated[panel] = { isOpen: false };
+        }
+    }
+
+    return validated as PanelStates;
+}
+
+/**
+ * Load panel states from localStorage with validation and migration
+ * Only loads on desktop (isMobileLayout = false)
+ */
+function loadPanelStates(isMobileLayout: boolean): PanelStates {
+    if (typeof window === 'undefined' || isMobileLayout) {
+        // SSR or mobile: use defaults
+        return { ...DEFAULT_PANEL_STATES };
+    }
+
+    try {
+        // Try new storage key first
+        let stored = localStorage.getItem(STORAGE_KEY);
+        let isFromOldKey = false;
+
+        // If not found, try migrating from old key
+        if (!stored) {
+            stored = localStorage.getItem(OLD_STORAGE_KEY);
+            isFromOldKey = true;
+        }
+
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            const validated = validatePanelStates(parsed);
+
+            if (validated) {
+                // If we migrated from old key, save to new key
+                if (isFromOldKey) {
+                    localStorage.setItem(
+                        STORAGE_KEY,
+                        JSON.stringify(validated),
+                    );
+                    localStorage.removeItem(OLD_STORAGE_KEY);
+                }
+                return validated;
+            }
+        }
+    } catch (error) {
+        console.error('Failed to load stored panel states:', error);
+    }
+
+    return { ...DEFAULT_PANEL_STATES };
+}
 
 /**
  * Unified hook for managing panel states across desktop and mobile layouts
@@ -26,33 +111,9 @@ const STORAGE_KEY = 'panel-states';
 export function usePanels(isMobileLayout: boolean) {
     // Core state: tracks which panels are open
     // This state is preserved across breakpoint changes
-    const [panelStates, setPanelStates] = useState<PanelStates>(() => {
-        if (typeof window === 'undefined') {
-            return {
-                markers: { isOpen: false },
-                tours: { isOpen: false },
-                routes: { isOpen: false },
-                ai: { isOpen: false },
-            };
-        }
-
-        // Try to restore from localStorage
-        try {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored) {
-                return JSON.parse(stored);
-            }
-        } catch (error) {
-            console.error('Failed to parse stored panel states:', error);
-        }
-
-        return {
-            markers: { isOpen: false },
-            tours: { isOpen: false },
-            routes: { isOpen: false },
-            ai: { isOpen: false },
-        };
-    });
+    const [panelStates, setPanelStates] = useState<PanelStates>(() =>
+        loadPanelStates(isMobileLayout),
+    );
 
     // Track the active panel for mobile mode
     // This is derived from panelStates but enforces single-panel constraint
