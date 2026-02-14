@@ -237,15 +237,13 @@
  * Z-Index Hierarchy Documentation
  * ===============================
  * 
- * Phase 1 - Basic Layout:
  * - Map (base layer): z-index: 0 (default)
  * - Map controls (MapOptionsMenu): z-index: 10
+ * - Tab buttons (desktop panel triggers): z-index: 20
+ * - Floating panels (desktop): z-index: 20
  * - Toolbar (search + navigation): z-index: 30
  * - Sidebar overlay: z-index: 40
+ * - Draggable sheets (mobile - Phase 3): z-index: 40
  * - Sidebar: z-index: 50
  * - Modals/Dialogs: z-index: 50+
- * 
- * Future phases will add:
- * - Floating panels (desktop): z-index: 20
- * - Draggable sheets (mobile): z-index: 40
  */

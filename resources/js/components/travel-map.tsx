@@ -1,6 +1,7 @@
 import MapOptionsMenu from '@/components/map-options-menu';
 import { Toolbar } from '@/components/toolbar';
 import TripNotesModal from '@/components/trip-notes-modal';
+import { useDesktopPanels } from '@/hooks/use-desktop-panels';
 import { useGeocoder } from '@/hooks/use-geocoder';
 import { useLanguage } from '@/hooks/use-language';
 import { useMapInstance } from '@/hooks/use-map-instance';
@@ -8,15 +9,18 @@ import { useMapInteractions } from '@/hooks/use-map-interactions';
 import { useMarkerHighlight } from '@/hooks/use-marker-highlight';
 import { useMarkers } from '@/hooks/use-markers';
 import { usePlaceTypes } from '@/hooks/use-place-types';
+import { useRoutes } from '@/hooks/use-routes';
 import { useSearchMode } from '@/hooks/use-search-mode';
 import { useSearchRadius } from '@/hooks/use-search-radius';
 import { useSearchResults } from '@/hooks/use-search-results';
+import { useTourMarkers } from '@/hooks/use-tour-markers';
 import { getBoundingBoxFromTrip } from '@/lib/map-utils';
 import { update as tripsUpdate } from '@/routes/trips';
 import { Tour } from '@/types/tour';
 import { Trip } from '@/types/trip';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface TravelMapProps {
     selectedTripId: number | null;
@@ -35,18 +39,35 @@ interface TravelMapProps {
 }
 
 /**
- * Phase 1: Simplified Travel Map Component
- * 
- * This version focuses on displaying a fullscreen map with a toolbar.
- * All panels (markers, tours, routes, AI) are temporarily hidden and will be
- * restored in Phase 2 (Desktop Floating Panels) and Phase 3 (Mobile Panels).
+ * Phase 2: Travel Map Component with Desktop Floating Panels
+ *
+ * This version adds floating panels for desktop view:
+ * - Left side: Markers and Tours panels
+ * - Right side: Routes and AI panels
+ * - Multiple panels can be open simultaneously
+ * - Panels float over the map with semi-transparent backgrounds
+ *
+ * Mobile panels will be added in Phase 3.
  */
 export default function TravelMap({
     selectedTripId,
     selectedTourId,
+    tours,
     trips,
+    onToursUpdate,
+    onSelectTour,
+    onCreateTour,
+    onDeleteTour,
     onSetViewport,
 }: TravelMapProps) {
+    const { t } = useTranslation();
+
+    // Detect mobile/desktop
+    const isMobile = useIsMobile();
+
+    // Desktop panel management
+    const { panelStates, togglePanel, closePanel } = useDesktopPanels();
+
     // Get current language setting
     const { language } = useLanguage();
 
@@ -55,6 +76,14 @@ export default function TravelMap({
 
     // Get the selected trip to access its country
     const selectedTrip = trips.find((t) => t.id === selectedTripId);
+
+    // State for map bounds (for AI recommendations)
+    const [mapBounds, setMapBounds] = useState<{
+        north: number;
+        south: number;
+        east: number;
+        west: number;
+    } | null>(null);
 
     // Search mode management
     const { isSearchMode, setIsSearchMode, isSearchModeRef } = useSearchMode({
@@ -71,9 +100,31 @@ export default function TravelMap({
     // Trip notes modal state
     const [isTripNotesModalOpen, setIsTripNotesModalOpen] = useState(false);
 
-    // Marker management - simplified for Phase 1
+    // State for pre-filling route form from tour view
+    const [routeRequest, setRouteRequest] = useState<{
+        startMarkerId: string;
+        endMarkerId: string;
+    } | null>(null);
+
+    // State for highlighting a route in the route panel
+    const [highlightedRouteId, setHighlightedRouteId] = useState<number | null>(
+        null,
+    );
+
+    // State for tracking which routes are expanded in the route panel
+    const [expandedRoutes, setExpandedRoutes] = useState<Set<number>>(
+        new Set(),
+    );
+
+    // Ref to store the handleRouteClick callback for use in useRoutes
+    const handleRouteClickRef = useRef<((routeId: number) => void) | null>(
+        null,
+    );
+
+    // Marker management
     const {
         markers,
+        setMarkers,
         selectedMarkerId,
         setSelectedMarkerId,
         addMarker,
@@ -85,6 +136,34 @@ export default function TravelMap({
         onMarkerClick: (id: string) => {
             setSelectedMarkerId(id);
         },
+    });
+
+    // Routes management
+    const { routes, setRoutes } = useRoutes({
+        mapInstance,
+        selectedTripId,
+        selectedTourId,
+        tours,
+        expandedRoutes,
+        highlightedRouteId,
+        onRouteClick: (routeId: number) => {
+            if (handleRouteClickRef.current) {
+                handleRouteClickRef.current(routeId);
+            }
+        },
+    });
+
+    // Tour markers management
+    const {
+        handleToggleMarkerInTour,
+        handleAddMarkerToTour,
+        handleMoveMarkerUp,
+        handleMoveMarkerDown,
+    } = useTourMarkers({
+        selectedTripId,
+        selectedTourId,
+        tours,
+        onToursUpdate,
     });
 
     // Search results management
@@ -117,6 +196,104 @@ export default function TravelMap({
         onMarkerCreated: addMarker,
         onMarkerSelected: setSelectedMarkerId,
     });
+
+    // Handler for removing marker from tour
+    const handleRemoveMarkerFromTour = useCallback(
+        async (markerId: string) => {
+            if (selectedTourId === null) return;
+            await handleToggleMarkerInTour(markerId, selectedTourId, true);
+        },
+        [selectedTourId, handleToggleMarkerInTour],
+    );
+
+    // Handler for updating a tour after sorting
+    const handleTourUpdate = useCallback(
+        (updatedTour: Tour) => {
+            const updatedTours = tours.map((tour) =>
+                tour.id === updatedTour.id ? updatedTour : tour,
+            );
+            onToursUpdate(updatedTours);
+        },
+        [tours, onToursUpdate],
+    );
+
+    // Handler for requesting a route between two markers
+    const handleRequestRoute = useCallback(
+        (startMarkerId: string, endMarkerId: string) => {
+            setRouteRequest({ startMarkerId, endMarkerId });
+
+            // Find if a route already exists between these markers
+            const existingRoute = routes.find(
+                (route) =>
+                    (route.start_marker.id === startMarkerId &&
+                        route.end_marker.id === endMarkerId) ||
+                    (route.start_marker.id === endMarkerId &&
+                        route.end_marker.id === startMarkerId),
+            );
+
+            // Highlight the route if it exists
+            if (existingRoute) {
+                setHighlightedRouteId(existingRoute.id);
+                // Expand the route in the panel
+                setExpandedRoutes(
+                    (prev) => new Set([...prev, existingRoute.id]),
+                );
+            } else {
+                setHighlightedRouteId(null);
+            }
+
+            // Open the routes panel on desktop, it will be the active panel on mobile
+            if (!isMobile) {
+                // Open routes panel if not open
+                if (!panelStates.routes.isOpen) {
+                    togglePanel('routes');
+                }
+            }
+        },
+        [routes, isMobile, panelStates.routes.isOpen, togglePanel],
+    );
+
+    // Handler for route clicks on the map
+    const handleRouteClick = useCallback(
+        (routeId: number) => {
+            const route = routes.find((r) => r.id === routeId);
+            if (!route) return;
+
+            // Use the same logic as handleRequestRoute to ensure consistent behavior
+            handleRequestRoute(route.start_marker.id, route.end_marker.id);
+        },
+        [routes, handleRequestRoute],
+    );
+
+    // Store handleRouteClick in ref for use in useRoutes hook
+    useEffect(() => {
+        handleRouteClickRef.current = handleRouteClick;
+    }, [handleRouteClick]);
+
+    // Update map bounds for AI recommendations
+    useEffect(() => {
+        if (!mapInstance) return;
+
+        const updateBounds = () => {
+            const bounds = mapInstance.getBounds();
+            setMapBounds({
+                north: bounds.getNorth(),
+                south: bounds.getSouth(),
+                east: bounds.getEast(),
+                west: bounds.getWest(),
+            });
+        };
+
+        // Update immediately
+        updateBounds();
+
+        // Update on moveend
+        mapInstance.on('moveend', updateBounds);
+
+        return () => {
+            mapInstance.off('moveend', updateBounds);
+        };
+    }, [mapInstance]);
 
     // Listen for custom event to set viewport (triggered by trip notes modal)
     useEffect(() => {
@@ -232,19 +409,140 @@ export default function TravelMap({
                 />
             </div>
 
-            {/* 
-             * Temporarily hidden panels - will be restored in later phases
-             * 
-             * The following panels are commented out for Phase 1:
-             * - AI Recommendations Panel
-             * - Marker Panel (Desktop)
-             * - Tour Panel (Desktop)
-             * - Route Panel (Desktop)
-             * - Mobile Draggable Sheets
-             * - Mobile Bottom Navigation
-             * 
-             * These will be re-implemented in Phase 2 (Desktop Floating Panels)
-             * and Phase 3 (Mobile Panels)
+            {/* Desktop Floating Panels - Phase 2 */}
+            {!isMobile && (
+                <>
+                    {/* Left side tab buttons */}
+                    <div className="absolute top-1/4 left-0 z-20 flex flex-col gap-2">
+                        <TabButton
+                            icon={List}
+                            label={t('panels.markers', 'Markers')}
+                            isActive={panelStates.markers.isOpen}
+                            onClick={() => togglePanel('markers')}
+                            position="left"
+                        />
+                        <TabButton
+                            icon={MapIcon}
+                            label={t('panels.tours', 'Tours')}
+                            isActive={panelStates.tours.isOpen}
+                            onClick={() => togglePanel('tours')}
+                            position="left"
+                        />
+                    </div>
+
+                    {/* Right side tab buttons */}
+                    <div className="absolute top-1/4 right-0 z-20 flex flex-col gap-2">
+                        <TabButton
+                            icon={RouteIcon}
+                            label={t('panels.routes', 'Routes')}
+                            isActive={panelStates.routes.isOpen}
+                            onClick={() => togglePanel('routes')}
+                            position="right"
+                        />
+                        <TabButton
+                            icon={Bot}
+                            label={t('panels.ai', 'AI')}
+                            isActive={panelStates.ai.isOpen}
+                            onClick={() => togglePanel('ai')}
+                            position="right"
+                        />
+                    </div>
+
+                    {/* Left side floating panels */}
+                    <FloatingPanel
+                        isOpen={panelStates.markers.isOpen}
+                        onClose={() => closePanel('markers')}
+                        position="left"
+                        title={t('panels.markers', 'Markers')}
+                    >
+                        <MarkerList
+                            markers={markers}
+                            selectedMarkerId={selectedMarkerId}
+                            onSelectMarker={setSelectedMarkerId}
+                            selectedTourId={selectedTourId}
+                            onAddMarkerToTour={handleAddMarkerToTour}
+                            onMarkerImageFetched={(markerId, imageUrl) => {
+                                const updatedMarkers = markers.map((m) =>
+                                    m.id === markerId ? { ...m, imageUrl } : m,
+                                );
+                                setMarkers([...updatedMarkers]);
+                            }}
+                        />
+                    </FloatingPanel>
+
+                    <FloatingPanel
+                        isOpen={panelStates.tours.isOpen}
+                        onClose={() => closePanel('tours')}
+                        position="left"
+                        title={t('panels.tours', 'Tours')}
+                    >
+                        <TourPanel
+                            tours={tours}
+                            selectedTourId={selectedTourId}
+                            onSelectTour={onSelectTour}
+                            onCreateTour={onCreateTour}
+                            onDeleteTour={onDeleteTour}
+                            markers={markers}
+                            routes={routes}
+                            onMoveMarkerUp={handleMoveMarkerUp}
+                            onMoveMarkerDown={handleMoveMarkerDown}
+                            onRemoveMarkerFromTour={handleRemoveMarkerFromTour}
+                            onRequestRoute={handleRequestRoute}
+                        />
+                    </FloatingPanel>
+
+                    {/* Right side floating panels */}
+                    {selectedTripId && (
+                        <FloatingPanel
+                            isOpen={panelStates.routes.isOpen}
+                            onClose={() => closePanel('routes')}
+                            position="right"
+                            title={t('panels.routes', 'Routes')}
+                        >
+                            <RoutePanel
+                                tripId={selectedTripId}
+                                tourId={selectedTourId}
+                                markers={markers}
+                                routes={routes}
+                                onRoutesUpdate={setRoutes}
+                                initialStartMarkerId={
+                                    routeRequest?.startMarkerId
+                                }
+                                initialEndMarkerId={routeRequest?.endMarkerId}
+                                tours={tours}
+                                highlightedRouteId={highlightedRouteId}
+                                expandedRoutes={expandedRoutes}
+                                onExpandedRoutesChange={setExpandedRoutes}
+                                onHighlightedRouteIdChange={
+                                    setHighlightedRouteId
+                                }
+                                onTourUpdate={handleTourUpdate}
+                            />
+                        </FloatingPanel>
+                    )}
+
+                    <FloatingPanel
+                        isOpen={panelStates.ai.isOpen}
+                        onClose={() => closePanel('ai')}
+                        position="right"
+                        title={t('panels.ai', 'AI Recommendations')}
+                    >
+                        <AiRecommendationsPanel
+                            tripId={selectedTripId}
+                            tripName={selectedTrip?.name || null}
+                            selectedTourId={selectedTourId}
+                            tours={tours}
+                            markers={markers}
+                            mapBounds={mapBounds}
+                        />
+                    </FloatingPanel>
+                </>
+            )}
+
+            {/*
+             * Mobile panels will be added in Phase 3
+             * - DraggableSheet components
+             * - Bottom navigation bar
              */}
 
             {/* Trip Notes Modal - Keep functional */}
