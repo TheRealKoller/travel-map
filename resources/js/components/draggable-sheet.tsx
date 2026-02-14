@@ -34,6 +34,7 @@ export function DraggableSheet({
     const sheetRef = useRef<HTMLDivElement>(null);
     const [currentSnapIndex, setCurrentSnapIndex] = useState(initialSnapPoint);
     const [isDragging, setIsDragging] = useState(false);
+    const [mounted, setMounted] = useState(false);
 
     // Get viewport height
     const getViewportHeight = () => {
@@ -47,11 +48,19 @@ export function DraggableSheet({
         return vh * (1 - percentage);
     };
 
+    // Set mounted on first render
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     // Open/close animation
     useEffect(() => {
+        if (!mounted) return;
+
         if (isOpen) {
+            const snapPos = getSnapPosition(currentSnapIndex);
             controls.start({
-                y: getSnapPosition(currentSnapIndex),
+                y: snapPos,
                 transition: { type: 'spring', damping: 30, stiffness: 300 },
             });
         } else {
@@ -60,7 +69,8 @@ export function DraggableSheet({
                 transition: { type: 'spring', damping: 30, stiffness: 300 },
             });
         }
-    }, [isOpen, currentSnapIndex, controls]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen, currentSnapIndex, mounted]);
 
     // Handle drag end - snap to nearest snap point or close
     const handleDragEnd = (
@@ -121,16 +131,17 @@ export function DraggableSheet({
                     bottom: getViewportHeight(),
                 }}
                 dragElastic={0.1}
+                dragMomentum={false}
                 onDragStart={() => setIsDragging(true)}
                 onDragEnd={handleDragEnd}
                 animate={controls}
                 initial={{ y: getViewportHeight() }}
                 className={cn(
-                    'fixed inset-x-0 z-40 flex flex-col rounded-t-2xl bg-background shadow-lg',
-                    'max-h-[95vh]',
+                    'fixed inset-x-0 z-50 flex flex-col rounded-t-2xl bg-background shadow-lg',
+                    'max-h-[95vh] overflow-hidden',
                 )}
                 style={{
-                    touchAction: 'none',
+                    touchAction: 'pan-y',
                     top: 0,
                 }}
             >

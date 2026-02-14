@@ -242,8 +242,10 @@
  * - Tab buttons (desktop panel triggers): z-index: 20
  * - Floating panels (desktop): z-index: 20
  * - Toolbar (search + navigation): z-index: 30
+ * - Mobile bottom navigation: z-index: 30
  * - Sidebar overlay: z-index: 40
- * - Draggable sheets (mobile - Phase 3): z-index: 40
+ * - Draggable sheet overlay (mobile): z-index: 40
+ * - Draggable sheet content (mobile): z-index: 50
  * - Sidebar: z-index: 50
  * - Modals/Dialogs: z-index: 50+
  */
