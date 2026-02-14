@@ -88,6 +88,7 @@ export function DraggableSheet({
                 transition={{ duration: 0.2 }}
                 className="fixed inset-0 z-40 bg-black"
                 onClick={onClose}
+                data-testid="sheet-backdrop"
             />
 
             {/* Draggable Sheet */}
@@ -117,9 +118,18 @@ export function DraggableSheet({
                     top: 0,
                     height: '100vh',
                 }}
+                data-testid="draggable-sheet"
+                role="dialog"
+                aria-label={title}
             >
                 {/* Drag Handle */}
-                <div className="flex w-full cursor-grab items-center justify-center py-3 active:cursor-grabbing">
+                <div
+                    className="flex w-full cursor-grab items-center justify-center py-3 active:cursor-grabbing"
+                    data-testid="drag-handle"
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Drag to adjust sheet position"
+                >
                     <div className="h-1.5 w-12 rounded-full bg-muted-foreground/30" />
                 </div>
 
@@ -129,6 +139,8 @@ export function DraggableSheet({
                     <button
                         onClick={onClose}
                         className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-none"
+                        aria-label="Close"
+                        data-testid="close-button"
                     >
                         <X className="h-5 w-5" />
                         <span className="sr-only">Close</span>

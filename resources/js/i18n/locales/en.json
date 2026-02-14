@@ -233,6 +233,12 @@
         "estimated_hours": "~{{hours}}h",
         "search_radius_label": "Search radius in kilometers"
     },
+    "panels": {
+        "markers": "Markers",
+        "tours": "Tours",
+        "routes": "Routes",
+        "ai": "AI Recommendations"
+    },
     "settings": {
         "language": {
             "title": "Language",

@@ -34,7 +34,10 @@ export function MobileNavigation({
     onPanelChange,
 }: MobileNavigationProps) {
     return (
-        <nav className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <nav
+            className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
+            data-testid="mobile-navigation"
+        >
             <div className="flex items-center justify-around">
                 {navItems.map((item) => {
                     const Icon = item.icon;
@@ -51,6 +54,9 @@ export function MobileNavigation({
                                     ? 'text-primary'
                                     : 'text-muted-foreground',
                             )}
+                            data-testid={`nav-${item.id}`}
+                            aria-label={item.label}
+                            aria-current={isActive ? 'page' : undefined}
                         >
                             <Icon
                                 className={cn(
