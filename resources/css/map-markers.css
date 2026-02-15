@@ -147,6 +147,15 @@
         opacity 0.2s ease;
 }
 
+/* Selected available marker (not in tour, but selected for addition) */
+.mapbox-marker--selected-available {
+    box-shadow: 0 0 0 3px #3b82f6;
+    transform: scale(1.1);
+    transition:
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
 /* Search result marker (blue circles) */
 .search-result-marker {
     width: 20px;

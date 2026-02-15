@@ -222,6 +222,7 @@ export default function TravelMap({
         markers,
         selectedMarkerId,
         selectedTourId,
+        selectedAvailableMarkerId: null, // Will be used in #364 for Available Markers section
         tours,
         onMarkerUpdated: updateMarkerReference,
         onMarkerClick: (markerId: string) => {

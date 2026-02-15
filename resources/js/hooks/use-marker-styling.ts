@@ -9,6 +9,7 @@ interface UseMarkerStylingOptions {
     markers: MarkerData[];
     selectedMarkerId: string | null;
     selectedTourId: number | null;
+    selectedAvailableMarkerId: string | null;
     tours: Tour[];
     onMarkerUpdated: (markerId: string, marker: mapboxgl.Marker) => void;
     onMarkerClick: (markerId: string) => void;
@@ -19,11 +20,13 @@ export function useMarkerStyling({
     markers,
     selectedMarkerId,
     selectedTourId,
+    selectedAvailableMarkerId,
     tours,
     onMarkerUpdated,
     onMarkerClick,
 }: UseMarkerStylingOptions) {
     const previousSelectedMarkerRef = useRef<string | null>(null);
+    const previousSelectedAvailableMarkerRef = useRef<string | null>(null);
     const previousTourStateRef = useRef<{
         id: number | null;
         key: string | null;
@@ -78,11 +81,17 @@ export function useMarkerStyling({
             // If no tour selected, nothing is greyed out
             const isGreyedOut = tourMarkerIds ? !isInSelectedTour : false;
 
+            // Blue ring for selected available marker (not in tour, but selected)
+            const hasBlueRing =
+                selectedAvailableMarkerId === markerData.id &&
+                !isInSelectedTour;
+
             const el = createMarkerElement(
                 markerData.type,
                 isHighlighted,
                 !markerData.isSaved,
                 isGreyedOut,
+                hasBlueRing,
             );
 
             const [lng, lat] = [markerData.lng, markerData.lat];
@@ -110,9 +119,12 @@ export function useMarkerStyling({
             previousTourStateRef.current.key !== tourKey;
         const selectionChanged =
             previousSelectedMarkerRef.current !== selectedMarkerId;
+        const availableMarkerChanged =
+            previousSelectedAvailableMarkerRef.current !==
+            selectedAvailableMarkerId;
 
         // If nothing relevant changed, skip
-        if (!tourChanged && !selectionChanged) {
+        if (!tourChanged && !selectionChanged && !availableMarkerChanged) {
             return;
         }
 
@@ -141,12 +153,37 @@ export function useMarkerStyling({
                     rebuildMarker(selectedMarker, true);
                 }
             }
+
+            // Handle available marker selection changes
+            if (previousSelectedAvailableMarkerRef.current) {
+                const prevAvailableMarker = currentMarkers.find(
+                    (m) => m.id === previousSelectedAvailableMarkerRef.current,
+                );
+                if (prevAvailableMarker) {
+                    const isHighlighted =
+                        prevAvailableMarker.id === selectedMarkerId;
+                    rebuildMarker(prevAvailableMarker, isHighlighted);
+                }
+            }
+
+            if (selectedAvailableMarkerId) {
+                const availableMarker = currentMarkers.find(
+                    (m) => m.id === selectedAvailableMarkerId,
+                );
+                if (availableMarker) {
+                    const isHighlighted =
+                        availableMarker.id === selectedMarkerId;
+                    rebuildMarker(availableMarker, isHighlighted);
+                }
+            }
         }
 
         previousSelectedMarkerRef.current = selectedMarkerId;
+        previousSelectedAvailableMarkerRef.current = selectedAvailableMarkerId;
         previousTourStateRef.current = { id: selectedTourId, key: tourKey };
     }, [
         selectedMarkerId,
+        selectedAvailableMarkerId,
         selectedTourId,
         tours,
         mapInstance,
