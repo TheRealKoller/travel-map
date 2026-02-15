@@ -256,3 +256,33 @@ export const getMarkerTypeFromMapboxClass = (
     // Use the same logic as OSM types
     return getMarkerTypeFromOSMType(mapboxClass);
 };
+
+/**
+ * Validate if a string is a valid URL
+ * @param urlString - The URL string to validate
+ * @returns True if valid URL, false otherwise
+ */
+export function isValidUrl(urlString: string): boolean {
+    if (!urlString.trim()) return false;
+    try {
+        new URL(urlString);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Format coordinates to display string
+ * @param lat - Latitude
+ * @param lng - Longitude
+ * @param precision - Number of decimal places (default: 6)
+ * @returns Formatted coordinate string
+ */
+export function formatCoordinates(
+    lat: number,
+    lng: number,
+    precision: number = 6,
+): string {
+    return `${lat.toFixed(precision)}, ${lng.toFixed(precision)}`;
+}
