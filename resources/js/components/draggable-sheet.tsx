@@ -78,7 +78,11 @@ export function DraggableSheet({
 
     const vh = getViewportHeight();
     const snapY = getSnapPosition(currentSnapIndex);
-    // Calculate the actual height of the sheet based on current snap position
+
+    // Calculate the actual height of the sheet based on current snap position.
+    // This ensures the content area matches the visible portion of the sheet,
+    // preventing scroll issues where content extends beyond the viewport.
+    // Example: At 70% snap on 844px screen: snapY=253px, sheetHeight=591px
     const sheetHeight = vh - snapY;
 
     return (
@@ -121,6 +125,8 @@ export function DraggableSheet({
                 )}
                 style={{
                     top: 0,
+                    // Use calculated height instead of 100vh to match visible area
+                    // This prevents bottom content from being cut off during scroll
                     height: `${sheetHeight}px`,
                     willChange: 'transform',
                 }}

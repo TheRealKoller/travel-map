@@ -731,7 +731,7 @@ export default function TravelMap({
                                 onClose={closeMobilePanel}
                                 title={t('panels.tours', 'Tours')}
                                 snapPoints={[0.4, 0.7, 0.95]}
-                                initialSnapPoint={1}
+                                initialSnapPoint={1} // Start at 70% height (index 1) to show Available Markers section
                             >
                                 <TourPanel
                                     tours={tours}

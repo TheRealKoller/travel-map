@@ -87,24 +87,24 @@ function MarkerItem({
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 p-0 text-gray-400 hover:text-blue-600 disabled:opacity-30 sm:h-11 sm:w-11 dark:text-gray-500 dark:hover:text-blue-400"
+                        className="h-8 w-8 p-0 text-gray-400 hover:text-blue-600 disabled:opacity-30 sm:h-11 sm:w-11 dark:text-gray-500 dark:hover:text-blue-400"
                         onClick={onMoveUp}
                         disabled={isFirst}
                         title="Move up"
                         data-testid="move-marker-up"
                     >
-                        <ArrowUp className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <ArrowUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Button>
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 p-0 text-gray-400 hover:text-blue-600 disabled:opacity-30 sm:h-11 sm:w-11 dark:text-gray-500 dark:hover:text-blue-400"
+                        className="h-8 w-8 p-0 text-gray-400 hover:text-blue-600 disabled:opacity-30 sm:h-11 sm:w-11 dark:text-gray-500 dark:hover:text-blue-400"
                         onClick={onMoveDown}
                         disabled={isLast}
                         title="Move down"
                         data-testid="move-marker-down"
                     >
-                        <ArrowDown className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <ArrowDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Button>
                 </div>
                 <span className="flex-shrink-0 font-medium text-gray-500 dark:text-gray-400">
@@ -115,12 +115,11 @@ function MarkerItem({
                         {marker.name || 'Unnamed Location'}
                     </div>
                     {marker.estimatedHours && (
-                        <div className="text-xs leading-tight text-gray-600 dark:text-gray-400">
+                        <div className="text-xs leading-tight text-gray-600 sm:leading-relaxed dark:text-gray-400">
                             <span className="hidden font-medium sm:inline">
-                                Estimated duration:
+                                Estimated duration:{' '}
                             </span>
-                            <span className="sm:hidden">~</span>
-                            {marker.estimatedHours}h
+                            ~{marker.estimatedHours}h
                         </div>
                     )}
                 </div>
@@ -129,12 +128,12 @@ function MarkerItem({
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7 p-0 text-gray-400 hover:text-red-600 sm:h-11 sm:w-11 dark:text-gray-500 dark:hover:text-red-400"
+                            className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 sm:h-11 sm:w-11 dark:text-gray-500 dark:hover:text-red-400"
                             onClick={onRemove}
                             title="Remove from tour"
                             data-testid="remove-marker-from-tour"
                         >
-                            <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+                            <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </Button>
                     )}
                     <Icon
@@ -399,7 +398,7 @@ export default function TourPanel({
     return (
         <div className="flex flex-col" data-testid="tour-panel">
             {/* Fixed Tabs */}
-            <div className="sticky top-0 z-10 bg-white px-4 pt-4 dark:bg-gray-900">
+            <div className="sticky top-0 z-10 bg-white px-4 pt-4 pb-3 shadow-sm dark:bg-gray-900">
                 <Tabs
                     value={
                         selectedTourId === null
