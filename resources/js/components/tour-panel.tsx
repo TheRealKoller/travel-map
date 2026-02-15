@@ -81,13 +81,13 @@ function MarkerItem({
     onRemove,
 }: MarkerItemProps) {
     return (
-        <div className="rounded bg-gray-50 p-2 text-xs sm:p-2 sm:text-sm dark:bg-gray-800">
+        <div className="rounded bg-gray-50 p-1.5 text-xs sm:p-2 sm:text-sm dark:bg-gray-800">
             <div className="flex items-start gap-2 sm:gap-2">
-                <div className="flex flex-shrink-0 flex-col gap-1">
+                <div className="flex flex-shrink-0 flex-row gap-0.5 sm:flex-col sm:gap-1">
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-9 w-9 p-0 text-gray-400 hover:text-blue-600 disabled:opacity-30 sm:h-11 sm:w-11 dark:text-gray-500 dark:hover:text-blue-400"
+                        className="h-8 w-8 p-0 text-gray-400 hover:text-blue-600 disabled:opacity-30 sm:h-11 sm:w-11 dark:text-gray-500 dark:hover:text-blue-400"
                         onClick={onMoveUp}
                         disabled={isFirst}
                         title="Move up"
@@ -98,7 +98,7 @@ function MarkerItem({
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-9 w-9 p-0 text-gray-400 hover:text-blue-600 disabled:opacity-30 sm:h-11 sm:w-11 dark:text-gray-500 dark:hover:text-blue-400"
+                        className="h-8 w-8 p-0 text-gray-400 hover:text-blue-600 disabled:opacity-30 sm:h-11 sm:w-11 dark:text-gray-500 dark:hover:text-blue-400"
                         onClick={onMoveDown}
                         disabled={isLast}
                         title="Move down"
@@ -115,10 +115,10 @@ function MarkerItem({
                         {marker.name || 'Unnamed Location'}
                     </div>
                     {marker.estimatedHours && (
-                        <div className="text-xs leading-relaxed text-gray-600 dark:text-gray-400">
-                            <span className="font-medium">
-                                Estimated duration:
-                            </span>{' '}
+                        <div className="text-xs leading-tight text-gray-600 sm:leading-relaxed dark:text-gray-400">
+                            <span className="hidden font-medium sm:inline">
+                                Estimated duration:{' '}
+                            </span>
                             ~{marker.estimatedHours}h
                         </div>
                     )}
@@ -128,7 +128,7 @@ function MarkerItem({
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-9 w-9 p-0 text-gray-400 hover:text-red-600 sm:h-11 sm:w-11 dark:text-gray-500 dark:hover:text-red-400"
+                            className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 sm:h-11 sm:w-11 dark:text-gray-500 dark:hover:text-red-400"
                             onClick={onRemove}
                             title="Remove from tour"
                             data-testid="remove-marker-from-tour"
@@ -222,7 +222,7 @@ function TourCard({
         [allMarkers],
     );
     return (
-        <Card className="flex-1 overflow-auto p-3 sm:p-3 md:p-4">
+        <Card className="flex-1 p-3 sm:p-3 md:p-4">
             <div className="mb-3 flex items-center justify-between sm:mb-3">
                 <div className="flex min-w-0 flex-col">
                     <h3 className="truncate text-sm font-semibold text-gray-900 sm:text-base dark:text-gray-100">
@@ -305,7 +305,7 @@ function TourCard({
                                                         nextMarker.id,
                                                     )
                                                 }
-                                                className="h-6 gap-1 px-2 text-xs text-blue-600 hover:bg-blue-50 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-950 dark:hover:text-blue-300"
+                                                className="h-5 gap-1 px-1.5 text-xs text-blue-600 hover:bg-blue-50 hover:text-blue-700 sm:h-6 sm:px-2 dark:text-blue-400 dark:hover:bg-blue-950 dark:hover:text-blue-300"
                                                 title="Calculate route"
                                                 data-testid={`route-button-${index}`}
                                             >
@@ -396,58 +396,71 @@ export default function TourPanel({
         : [];
 
     return (
-        <div className="flex flex-col gap-4 p-4" data-testid="tour-panel">
-            <Tabs
-                value={
-                    selectedTourId === null ? 'all' : selectedTourId.toString()
-                }
-                onValueChange={handleTabChange}
-                className="w-full"
-            >
-                <TabsList className="flex w-full justify-start overflow-x-auto">
-                    <TabsTrigger value="all" data-testid="tour-tab-all-markers">
-                        All markers
-                        <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">
-                            ({markers.length})
-                        </span>
-                    </TabsTrigger>
-                    {tours.map((tour) => (
-                        <TourTab
-                            key={tour.id}
-                            tour={tour}
-                            markerCount={getMarkerCountForTour(tour)}
-                        />
-                    ))}
-                    <TabsTrigger
-                        value="create"
-                        className="ml-2"
-                        onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                            e.preventDefault();
-                            onCreateTour();
-                        }}
-                        data-testid="tour-tab-create-new"
-                    >
-                        <Plus className="h-4 w-4" />
-                    </TabsTrigger>
-                </TabsList>
-            </Tabs>
+        <div className="flex flex-col" data-testid="tour-panel">
+            {/* Fixed Tabs */}
+            <div className="sticky top-0 z-10 bg-white px-4 pt-4 pb-3 shadow-sm dark:bg-gray-900">
+                <Tabs
+                    value={
+                        selectedTourId === null
+                            ? 'all'
+                            : selectedTourId.toString()
+                    }
+                    onValueChange={handleTabChange}
+                    className="w-full"
+                >
+                    <TabsList className="flex w-full justify-start overflow-x-auto">
+                        <TabsTrigger
+                            value="all"
+                            data-testid="tour-tab-all-markers"
+                        >
+                            All markers
+                            <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">
+                                ({markers.length})
+                            </span>
+                        </TabsTrigger>
+                        {tours.map((tour) => (
+                            <TourTab
+                                key={tour.id}
+                                tour={tour}
+                                markerCount={getMarkerCountForTour(tour)}
+                            />
+                        ))}
+                        <TabsTrigger
+                            value="create"
+                            className="ml-2"
+                            onClick={(
+                                e: React.MouseEvent<HTMLButtonElement>,
+                            ) => {
+                                e.preventDefault();
+                                onCreateTour();
+                            }}
+                            data-testid="tour-tab-create-new"
+                        >
+                            <Plus className="h-4 w-4" />
+                        </TabsTrigger>
+                    </TabsList>
+                </Tabs>
+            </div>
 
-            {selectedTourId !== null && selectedTour && (
-                <TourCard
-                    tour={selectedTour}
-                    markers={selectedTourMarkers}
-                    allMarkers={markers}
-                    routes={routes}
-                    onDeleteTour={onDeleteTour}
-                    onMoveMarkerUp={onMoveMarkerUp}
-                    onMoveMarkerDown={onMoveMarkerDown}
-                    onRemoveMarkerFromTour={onRemoveMarkerFromTour}
-                    onRequestRoute={onRequestRoute}
-                    selectedAvailableMarkerId={selectedAvailableMarkerId}
-                    onSelectAvailableMarker={onSelectAvailableMarker}
-                    onAddMarkerToTour={onAddMarkerToTour}
-                />
-            )}
+            {/* Content */}
+            <div className="px-4 pt-4 pb-4">
+                {selectedTourId !== null && selectedTour && (
+                    <TourCard
+                        tour={selectedTour}
+                        markers={selectedTourMarkers}
+                        allMarkers={markers}
+                        routes={routes}
+                        onDeleteTour={onDeleteTour}
+                        onMoveMarkerUp={onMoveMarkerUp}
+                        onMoveMarkerDown={onMoveMarkerDown}
+                        onRemoveMarkerFromTour={onRemoveMarkerFromTour}
+                        onRequestRoute={onRequestRoute}
+                        selectedAvailableMarkerId={selectedAvailableMarkerId}
+                        onSelectAvailableMarker={onSelectAvailableMarker}
+                        onAddMarkerToTour={onAddMarkerToTour}
+                    />
+                )}
+            </div>
         </div>
     );
 }

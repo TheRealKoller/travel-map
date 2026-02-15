@@ -64,7 +64,7 @@ export function AvailableMarkers({
                     />
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                    <div className="max-h-96 overflow-y-auto border-t border-gray-200 dark:border-gray-700">
+                    <div className="max-h-80 overflow-y-auto border-t border-gray-200 sm:max-h-96 dark:border-gray-700">
                         <ul className="space-y-1 p-3">
                             {availableMarkers.map((marker) => {
                                 const isSelected =
