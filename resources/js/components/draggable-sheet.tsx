@@ -160,7 +160,7 @@ export function DraggableSheet({
                 {/* Content */}
                 <div
                     className={cn(
-                        'flex min-h-0 flex-1 flex-col',
+                        'flex-1 overflow-y-auto',
                         isDragging && 'pointer-events-none',
                     )}
                 >

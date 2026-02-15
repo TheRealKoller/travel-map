@@ -397,9 +397,9 @@ export default function TourPanel({
         : [];
 
     return (
-        <div className="flex h-full flex-col" data-testid="tour-panel">
+        <div className="flex flex-col" data-testid="tour-panel">
             {/* Fixed Tabs */}
-            <div className="flex-shrink-0 px-4 pt-4">
+            <div className="sticky top-0 z-10 bg-white px-4 pt-4 dark:bg-gray-900">
                 <Tabs
                     value={
                         selectedTourId === null
@@ -443,8 +443,8 @@ export default function TourPanel({
                 </Tabs>
             </div>
 
-            {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto px-4 pt-4 pb-4">
+            {/* Content */}
+            <div className="px-4 pt-4 pb-4">
                 {selectedTourId !== null && selectedTour && (
                     <TourCard
                         tour={selectedTour}
