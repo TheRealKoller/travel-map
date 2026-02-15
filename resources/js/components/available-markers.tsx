@@ -103,19 +103,22 @@ export function AvailableMarkers({
                                                     {marker.name ||
                                                         'Unnamed Location'}
                                                 </div>
-                                                {getMarkerCountInTour(
-                                                    marker.id,
-                                                ) > 0 && (
-                                                    <Badge
-                                                        variant="outline"
-                                                        className="mt-0.5 border-blue-200 bg-blue-50 text-xs text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300"
-                                                    >
-                                                        {getMarkerCountInTour(
+                                                {(() => {
+                                                    const count =
+                                                        getMarkerCountInTour(
                                                             marker.id,
-                                                        )}
-                                                        x in tour
-                                                    </Badge>
-                                                )}
+                                                        );
+                                                    return (
+                                                        count > 0 && (
+                                                            <Badge
+                                                                variant="outline"
+                                                                className="mt-0.5 border-blue-200 bg-blue-50 text-xs text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300"
+                                                            >
+                                                                {count}x in tour
+                                                            </Badge>
+                                                        )
+                                                    );
+                                                })()}
                                                 {marker.estimatedHours && (
                                                     <div className="text-xs leading-relaxed text-gray-600 dark:text-gray-400">
                                                         ~{marker.estimatedHours}

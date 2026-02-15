@@ -193,15 +193,27 @@ function TourCard({
     onSelectAvailableMarker,
     onAddMarkerToTour,
 }: TourCardProps) {
+    // Precompute marker counts for O(1) lookup performance
+    const markerCountsInTour = useMemo(() => {
+        const counts = new Map<string, number>();
+
+        for (const marker of markers) {
+            const currentCount = counts.get(marker.id) ?? 0;
+            counts.set(marker.id, currentCount + 1);
+        }
+
+        return counts;
+    }, [markers]);
+
     // Function to count how many times a marker appears in the tour
     const getMarkerCountInTour = (markerId: string): number => {
-        return markers.filter((m) => m.id === markerId).length;
+        return markerCountsInTour.get(markerId) ?? 0;
     };
 
     // Show all markers (including those already in tour)
     const availableMarkers = useMemo(
         () =>
-            allMarkers.sort((a, b) =>
+            [...allMarkers].sort((a, b) =>
                 (a.name || '').localeCompare(b.name || '', undefined, {
                     numeric: true,
                     sensitivity: 'base',
