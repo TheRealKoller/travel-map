@@ -240,6 +240,19 @@ export default function TravelMap({
         onMarkerSelected: setSelectedMarkerId,
     });
 
+    // Auto-open markers panel when a marker is selected
+    useEffect(() => {
+        if (selectedMarkerId && !isOpen('markers')) {
+            if (isMobileLayout) {
+                // Mobile: open markers panel (closes other panels)
+                togglePanel('markers');
+            } else {
+                // Desktop: open markers panel (keeps others open)
+                togglePanel('markers');
+            }
+        }
+    }, [selectedMarkerId, isOpen, togglePanel, isMobileLayout]);
+
     // Handler for removing marker from tour
     const handleRemoveMarkerFromTour = useCallback(
         async (markerId: string) => {
