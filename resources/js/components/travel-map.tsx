@@ -274,6 +274,13 @@ export default function TravelMap({
         }
     }, [selectedMarkerId, selectedTourId, isOpen, togglePanel]);
 
+    // Auto-open tour panel when an available marker is selected
+    useEffect(() => {
+        if (selectedAvailableMarkerId && !isOpen('tours')) {
+            togglePanel('tours');
+        }
+    }, [selectedAvailableMarkerId, isOpen, togglePanel]);
+
     // Handler for removing marker from tour
     const handleRemoveMarkerFromTour = useCallback(
         async (markerId: string) => {
