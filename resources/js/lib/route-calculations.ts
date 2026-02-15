@@ -31,7 +31,7 @@ export function getFilteredRoutes(
     if (!tourId) return routes;
 
     const tour = tours.find((t) => t.id === tourId);
-    if (!tour || !tour.markers) return routes;
+    if (!tour || !tour.markers || tour.markers.length < 2) return [];
 
     // Get marker IDs in tour order
     const tourMarkerIds = tour.markers.map((m) => m.id);
