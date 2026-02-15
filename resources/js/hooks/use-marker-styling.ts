@@ -29,11 +29,28 @@ export function useMarkerStyling({
         key: string | null;
     }>({ id: null, key: null });
     const markersRef = useRef<MarkerData[]>(markers);
+    const onMarkerUpdatedRef = useRef(onMarkerUpdated);
+    const onMarkerClickRef = useRef(onMarkerClick);
+    const mapInstanceRef = useRef(mapInstance);
 
     // Keep markersRef in sync with markers prop
     useEffect(() => {
         markersRef.current = markers;
     }, [markers]);
+
+    // Keep mapRef in sync (for safety in callbacks)
+    useEffect(() => {
+        mapInstanceRef.current = mapInstance;
+    }, [mapInstance]);
+
+    // Keep callback refs in sync to avoid stale closures in interaction handlers
+    useEffect(() => {
+        onMarkerUpdatedRef.current = onMarkerUpdated;
+    }, [onMarkerUpdated]);
+
+    useEffect(() => {
+        onMarkerClickRef.current = onMarkerClick;
+    }, [onMarkerClick]);
 
     useEffect(() => {
         if (!mapInstance) return;
@@ -82,10 +99,10 @@ export function useMarkerStyling({
 
             el.addEventListener('click', (clickEvent) => {
                 clickEvent.stopPropagation();
-                onMarkerClick(markerData.id);
+                onMarkerClickRef.current(markerData.id);
             });
 
-            onMarkerUpdated(markerData.id, newMarker);
+            onMarkerUpdatedRef.current(markerData.id, newMarker);
         };
 
         const tourChanged =
