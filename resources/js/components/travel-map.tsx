@@ -236,11 +236,18 @@ export default function TravelMap({
         tours,
         onMarkerUpdated: updateMarkerReference,
         onMarkerClick: (markerId: string) => {
-            // If we are in tour context (tour selected + tours panel open), stay there: do not open marker form
+            // If we are in tour context (tour selected + tours panel open), select in Available Markers
             const isInTourContext = selectedTourId !== null && isOpen('tours');
-            setSelectedMarkerId(markerId);
-            if (!isInTourContext && !isOpen('markers')) {
-                togglePanel('markers');
+
+            if (isInTourContext) {
+                // In tour context: Select marker in Available Markers list (blue ring)
+                setSelectedAvailableMarkerId(markerId);
+            } else {
+                // Outside tour context: Select marker normally (open marker form)
+                setSelectedMarkerId(markerId);
+                if (!isOpen('markers')) {
+                    togglePanel('markers');
+                }
             }
         },
     });

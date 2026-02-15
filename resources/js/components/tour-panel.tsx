@@ -193,23 +193,21 @@ function TourCard({
     onSelectAvailableMarker,
     onAddMarkerToTour,
 }: TourCardProps) {
-    // Calculate available markers (not in tour)
-    const tourMarkerIds = useMemo(
-        () => new Set(markers.map((m) => m.id)),
-        [markers],
-    );
+    // Function to count how many times a marker appears in the tour
+    const getMarkerCountInTour = (markerId: string): number => {
+        return markers.filter((m) => m.id === markerId).length;
+    };
 
+    // Show all markers (including those already in tour)
     const availableMarkers = useMemo(
         () =>
-            allMarkers
-                .filter((marker) => !tourMarkerIds.has(marker.id))
-                .sort((a, b) =>
-                    (a.name || '').localeCompare(b.name || '', undefined, {
-                        numeric: true,
-                        sensitivity: 'base',
-                    }),
-                ),
-        [allMarkers, tourMarkerIds],
+            allMarkers.sort((a, b) =>
+                (a.name || '').localeCompare(b.name || '', undefined, {
+                    numeric: true,
+                    sensitivity: 'base',
+                }),
+            ),
+        [allMarkers],
     );
     return (
         <Card className="flex-1 overflow-auto p-3 sm:p-3 md:p-4">
@@ -335,6 +333,7 @@ function TourCard({
                     }
                     onSelectAvailableMarker={onSelectAvailableMarker}
                     onAddMarkerToTour={onAddMarkerToTour}
+                    getMarkerCountInTour={getMarkerCountInTour}
                 />
             )}
         </Card>

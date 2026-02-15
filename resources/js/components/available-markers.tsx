@@ -1,3 +1,4 @@
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Collapsible,
@@ -12,7 +13,7 @@ import { ChevronDown, Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 interface AvailableMarkersProps {
-    /** Markers that can be added to the tour (not already in tour) */
+    /** All markers that can be added to the tour (including those already in tour) */
     availableMarkers: MarkerData[];
     /** ID of the currently selected available marker (for blue ring highlight) */
     selectedAvailableMarkerId: string | null;
@@ -20,6 +21,8 @@ interface AvailableMarkersProps {
     onSelectAvailableMarker: (markerId: string | null) => void;
     /** Callback when the [+] button is clicked to add marker to tour */
     onAddMarkerToTour: (markerId: string) => void;
+    /** Function to get how many times a marker is in the current tour */
+    getMarkerCountInTour: (markerId: string) => number;
 }
 
 export function AvailableMarkers({
@@ -27,6 +30,7 @@ export function AvailableMarkers({
     selectedAvailableMarkerId,
     onSelectAvailableMarker,
     onAddMarkerToTour,
+    getMarkerCountInTour,
 }: AvailableMarkersProps) {
     const [isOpen, setIsOpen] = useState(true);
     const selectedMarkerRef = useRef<HTMLLIElement>(null);
@@ -99,6 +103,19 @@ export function AvailableMarkers({
                                                     {marker.name ||
                                                         'Unnamed Location'}
                                                 </div>
+                                                {getMarkerCountInTour(
+                                                    marker.id,
+                                                ) > 0 && (
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="mt-0.5 border-blue-200 bg-blue-50 text-xs text-blue-700 dark:border-blue-800 dark:bg-blue-950 dark:text-blue-300"
+                                                    >
+                                                        {getMarkerCountInTour(
+                                                            marker.id,
+                                                        )}
+                                                        x in tour
+                                                    </Badge>
+                                                )}
                                                 {marker.estimatedHours && (
                                                     <div className="text-xs leading-relaxed text-gray-600 dark:text-gray-400">
                                                         ~{marker.estimatedHours}

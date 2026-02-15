@@ -75,10 +75,8 @@ export function useMarkerStyling({
             // If no tour selected, nothing is greyed out
             const isGreyedOut = tourMarkerIds ? !isInSelectedTour : false;
 
-            // Blue ring for selected available marker (not in tour, but selected)
-            const hasBlueRing =
-                selectedAvailableMarkerId === markerData.id &&
-                !isInSelectedTour;
+            // Blue ring for selected available marker (shows for all selected markers, regardless of tour membership)
+            const hasBlueRing = selectedAvailableMarkerId === markerData.id;
 
             const el = createMarkerElement({
                 type: markerData.type,
