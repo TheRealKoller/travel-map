@@ -1,6 +1,7 @@
 import { formatCoordinates, isValidUrl } from '@/lib/marker-utils';
 import { MarkerData } from '@/types/marker';
 import { Tour } from '@/types/tour';
+import DOMPurify from 'isomorphic-dompurify';
 import { marked } from 'marked';
 
 interface MarkerFormViewProps {
@@ -74,7 +75,9 @@ export default function MarkerFormView({
                     <div
                         className="prose prose-sm max-w-none rounded-md border border-gray-200 bg-gray-50 p-3"
                         dangerouslySetInnerHTML={{
-                            __html: marked.parse(notes) as string,
+                            __html: DOMPurify.sanitize(
+                                marked.parse(notes) as string,
+                            ),
                         }}
                     />
                 </div>

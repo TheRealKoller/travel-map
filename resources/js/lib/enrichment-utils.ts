@@ -2,8 +2,8 @@
  * Utilities for AI-powered marker enrichment
  */
 
+import { API_TYPE_TO_MARKER_TYPE } from '@/lib/marker-types';
 import { MarkerType } from '@/types/marker';
-import { API_TYPE_TO_MARKER_TYPE } from './marker-types';
 
 /**
  * Enrichment data structure returned from API

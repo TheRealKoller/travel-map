@@ -11,7 +11,7 @@ import { isValidUrl } from '@/lib/marker-utils';
 import { MarkerData, MarkerType } from '@/types/marker';
 import { Tour } from '@/types/tour';
 import 'easymde/dist/easymde.min.css';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 interface MarkerFormProps {
     marker: MarkerData | null;
@@ -50,8 +50,10 @@ export default function MarkerForm({
     // Get current language
     const { language } = useLanguage();
 
-    // Configure marked globally
-    configureMarked();
+    // Configure marked globally (side effect in useEffect)
+    useEffect(() => {
+        configureMarked();
+    }, []);
 
     // Use custom hooks for form state and enrichment
     const { formState, handlers } = useMarkerForm(marker, onSave);

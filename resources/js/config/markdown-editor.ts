@@ -3,6 +3,7 @@
  */
 
 import type { Options } from 'easymde';
+import DOMPurify from 'isomorphic-dompurify';
 import { marked } from 'marked';
 
 /**
@@ -41,7 +42,7 @@ export function configureMarked(): void {
 
 /**
  * Get SimpleMDE editor configuration
- * Returns memoized options for consistent editor behavior
+ * Returns options for consistent editor behavior
  */
 export function getSimpleMDEOptions(): Options {
     return {
@@ -49,7 +50,7 @@ export function getSimpleMDEOptions(): Options {
         placeholder: 'Add notes about this location (Markdown supported)...',
         status: false,
         previewRender: (text: string) => {
-            return marked.parse(text) as string;
+            return DOMPurify.sanitize(marked.parse(text) as string);
         },
         toolbar: [
             'bold',
