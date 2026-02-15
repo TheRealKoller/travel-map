@@ -78,6 +78,8 @@ export function DraggableSheet({
 
     const vh = getViewportHeight();
     const snapY = getSnapPosition(currentSnapIndex);
+    // Calculate the actual height of the sheet based on current snap position
+    const sheetHeight = vh - snapY;
 
     return (
         <>
@@ -119,7 +121,7 @@ export function DraggableSheet({
                 )}
                 style={{
                     top: 0,
-                    height: '100vh',
+                    height: `${sheetHeight}px`,
                     willChange: 'transform',
                 }}
                 data-testid="draggable-sheet"
