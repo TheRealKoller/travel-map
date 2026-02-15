@@ -75,30 +75,51 @@ export const getMarkerTypeClass = (type: MarkerType): string => {
 };
 
 /**
+ * Options for creating a marker element
+ */
+export interface MarkerElementOptions {
+    /** The marker type */
+    type: MarkerType;
+    /** Whether the marker should be highlighted (selected) */
+    isHighlighted?: boolean;
+    /** Whether this is a temporary (unsaved) marker with highest z-index */
+    isTemporary?: boolean;
+    /** Whether the marker should appear greyed out */
+    isGreyedOut?: boolean;
+    /** Whether the marker should have a blue ring (selected available marker) */
+    hasBlueRing?: boolean;
+}
+
+/**
  * Create a custom marker element for Mapbox GL
- * @param type - The marker type
- * @param isHighlighted - Whether the marker should be highlighted
- * @param isTemporary - Whether this is a temporary (unsaved) marker with highest z-index
- * @param isGreyedOut - Whether the marker should appear greyed out
+ * @param options - Marker element options
  * @returns HTML div element configured as a marker
  * @note All variables (typeClass, highlightClass, temporaryClass, iconSvg) are derived from controlled enums
  *       and internal functions, ensuring no XSS vulnerability from user input
  */
 export const createMarkerElement = (
-    type: MarkerType,
-    isHighlighted = false,
-    isTemporary = false,
-    isGreyedOut = false,
+    options: MarkerElementOptions,
 ): HTMLDivElement => {
+    const {
+        type,
+        isHighlighted = false,
+        isTemporary = false,
+        isGreyedOut = false,
+        hasBlueRing = false,
+    } = options;
+
     const el = document.createElement('div');
     const typeClass = getMarkerTypeClass(type);
     const highlightClass = isHighlighted ? 'mapbox-marker--highlighted' : '';
     const temporaryClass = isTemporary ? 'mapbox-marker--temporary' : '';
     const greyedOutClass = isGreyedOut ? 'mapbox-marker--not-in-tour' : '';
+    const blueRingClass = hasBlueRing
+        ? 'mapbox-marker--selected-available'
+        : '';
     const iconSvg = getIconSvgForType(type);
 
     el.innerHTML = `
-        <div class="mapbox-marker ${typeClass} ${highlightClass} ${greyedOutClass} ${temporaryClass}">
+        <div class="mapbox-marker ${typeClass} ${highlightClass} ${greyedOutClass} ${temporaryClass} ${blueRingClass}">
             <div class="mapbox-marker__icon">
                 ${iconSvg}
             </div>

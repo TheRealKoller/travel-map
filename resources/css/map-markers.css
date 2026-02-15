@@ -147,6 +147,22 @@
         opacity 0.2s ease;
 }
 
+/* Selected available marker (not in tour, but selected for addition) */
+/* Uses ::after pseudo-element to avoid conflicting with highlight transform/box-shadow */
+.mapbox-marker--selected-available {
+    position: relative;
+}
+
+.mapbox-marker--selected-available::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px #3b82f6;
+    pointer-events: none;
+    transition: box-shadow 0.2s ease;
+}
+
 /* Search result marker (blue circles) */
 .search-result-marker {
     width: 20px;

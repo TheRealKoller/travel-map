@@ -9,6 +9,7 @@ interface UseMarkerStylingOptions {
     markers: MarkerData[];
     selectedMarkerId: string | null;
     selectedTourId: number | null;
+    selectedAvailableMarkerId: string | null;
     tours: Tour[];
     onMarkerUpdated: (markerId: string, marker: mapboxgl.Marker) => void;
     onMarkerClick: (markerId: string) => void;
@@ -19,21 +20,34 @@ export function useMarkerStyling({
     markers,
     selectedMarkerId,
     selectedTourId,
+    selectedAvailableMarkerId,
     tours,
     onMarkerUpdated,
     onMarkerClick,
 }: UseMarkerStylingOptions) {
     const previousSelectedMarkerRef = useRef<string | null>(null);
+    const previousSelectedAvailableMarkerRef = useRef<string | null>(null);
     const previousTourStateRef = useRef<{
         id: number | null;
         key: string | null;
     }>({ id: null, key: null });
     const markersRef = useRef<MarkerData[]>(markers);
+    const onMarkerUpdatedRef = useRef(onMarkerUpdated);
+    const onMarkerClickRef = useRef(onMarkerClick);
 
     // Keep markersRef in sync with markers prop
     useEffect(() => {
         markersRef.current = markers;
     }, [markers]);
+
+    // Keep callback refs in sync to avoid stale closures in interaction handlers
+    useEffect(() => {
+        onMarkerUpdatedRef.current = onMarkerUpdated;
+    }, [onMarkerUpdated]);
+
+    useEffect(() => {
+        onMarkerClickRef.current = onMarkerClick;
+    }, [onMarkerClick]);
 
     useEffect(() => {
         if (!mapInstance) return;
@@ -61,12 +75,18 @@ export function useMarkerStyling({
             // If no tour selected, nothing is greyed out
             const isGreyedOut = tourMarkerIds ? !isInSelectedTour : false;
 
-            const el = createMarkerElement(
-                markerData.type,
+            // Blue ring for selected available marker (not in tour, but selected)
+            const hasBlueRing =
+                selectedAvailableMarkerId === markerData.id &&
+                !isInSelectedTour;
+
+            const el = createMarkerElement({
+                type: markerData.type,
                 isHighlighted,
-                !markerData.isSaved,
+                isTemporary: !markerData.isSaved,
                 isGreyedOut,
-            );
+                hasBlueRing,
+            });
 
             const [lng, lat] = [markerData.lng, markerData.lat];
             const popup = new mapboxgl.Popup({ offset: 25 }).setText(
@@ -82,10 +102,10 @@ export function useMarkerStyling({
 
             el.addEventListener('click', (clickEvent) => {
                 clickEvent.stopPropagation();
-                onMarkerClick(markerData.id);
+                onMarkerClickRef.current(markerData.id);
             });
 
-            onMarkerUpdated(markerData.id, newMarker);
+            onMarkerUpdatedRef.current(markerData.id, newMarker);
         };
 
         const tourChanged =
@@ -93,9 +113,12 @@ export function useMarkerStyling({
             previousTourStateRef.current.key !== tourKey;
         const selectionChanged =
             previousSelectedMarkerRef.current !== selectedMarkerId;
+        const availableMarkerChanged =
+            previousSelectedAvailableMarkerRef.current !==
+            selectedAvailableMarkerId;
 
         // If nothing relevant changed, skip
-        if (!tourChanged && !selectionChanged) {
+        if (!tourChanged && !selectionChanged && !availableMarkerChanged) {
             return;
         }
 
@@ -106,30 +129,73 @@ export function useMarkerStyling({
                 rebuildMarker(marker, isHighlighted);
             });
         } else {
-            // Only selection changed: update previous and current
-            if (previousSelectedMarkerRef.current) {
-                const prevMarker = currentMarkers.find(
-                    (m) => m.id === previousSelectedMarkerRef.current,
-                );
-                if (prevMarker) {
-                    rebuildMarker(prevMarker, false);
+            // Track which markers we've already rebuilt to avoid duplicates
+            const rebuiltMarkerIds = new Set<string>();
+
+            // Handle selection changes
+            if (selectionChanged) {
+                if (previousSelectedMarkerRef.current) {
+                    const prevMarker = currentMarkers.find(
+                        (m) => m.id === previousSelectedMarkerRef.current,
+                    );
+                    if (prevMarker) {
+                        rebuildMarker(prevMarker, false);
+                        rebuiltMarkerIds.add(prevMarker.id);
+                    }
+                }
+
+                if (selectedMarkerId) {
+                    const selectedMarker = currentMarkers.find(
+                        (m) => m.id === selectedMarkerId,
+                    );
+                    if (selectedMarker) {
+                        rebuildMarker(selectedMarker, true);
+                        rebuiltMarkerIds.add(selectedMarker.id);
+                    }
                 }
             }
 
-            if (selectedMarkerId) {
-                const selectedMarker = currentMarkers.find(
-                    (m) => m.id === selectedMarkerId,
-                );
-                if (selectedMarker) {
-                    rebuildMarker(selectedMarker, true);
+            // Handle available marker selection changes
+            if (availableMarkerChanged) {
+                if (previousSelectedAvailableMarkerRef.current) {
+                    const prevAvailableMarker = currentMarkers.find(
+                        (m) =>
+                            m.id === previousSelectedAvailableMarkerRef.current,
+                    );
+                    if (
+                        prevAvailableMarker &&
+                        !rebuiltMarkerIds.has(prevAvailableMarker.id)
+                    ) {
+                        const isHighlighted =
+                            prevAvailableMarker.id === selectedMarkerId;
+                        rebuildMarker(prevAvailableMarker, isHighlighted);
+                        rebuiltMarkerIds.add(prevAvailableMarker.id);
+                    }
+                }
+
+                if (selectedAvailableMarkerId) {
+                    const availableMarker = currentMarkers.find(
+                        (m) => m.id === selectedAvailableMarkerId,
+                    );
+                    if (
+                        availableMarker &&
+                        !rebuiltMarkerIds.has(availableMarker.id)
+                    ) {
+                        const isHighlighted =
+                            availableMarker.id === selectedMarkerId;
+                        rebuildMarker(availableMarker, isHighlighted);
+                        rebuiltMarkerIds.add(availableMarker.id);
+                    }
                 }
             }
         }
 
         previousSelectedMarkerRef.current = selectedMarkerId;
+        previousSelectedAvailableMarkerRef.current = selectedAvailableMarkerId;
         previousTourStateRef.current = { id: selectedTourId, key: tourKey };
     }, [
         selectedMarkerId,
+        selectedAvailableMarkerId,
         selectedTourId,
         tours,
         mapInstance,

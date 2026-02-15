@@ -66,11 +66,11 @@ export function useSearchResults({
                     const markerType = getMarkerTypeFromOSMType(result.type);
 
                     // Create the marker element - created from search result but becomes temporary until saved
-                    const markerEl = createMarkerElement(
-                        markerType,
-                        false,
-                        true,
-                    );
+                    const markerEl = createMarkerElement({
+                        type: markerType,
+                        isHighlighted: false,
+                        isTemporary: true,
+                    });
 
                     // Create the marker
                     const newMarker = new mapboxgl.Marker(markerEl)
