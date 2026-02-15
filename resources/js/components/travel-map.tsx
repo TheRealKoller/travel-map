@@ -14,7 +14,7 @@ import { useGeocoder } from '@/hooks/use-geocoder';
 import { useLanguage } from '@/hooks/use-language';
 import { useMapInstance } from '@/hooks/use-map-instance';
 import { useMapInteractions } from '@/hooks/use-map-interactions';
-import { useMarkerHighlight } from '@/hooks/use-marker-highlight';
+import { useMarkerStyling } from '@/hooks/use-marker-styling';
 import { useMarkers } from '@/hooks/use-markers';
 import { usePanels } from '@/hooks/use-panels';
 import { usePlaceTypes } from '@/hooks/use-place-types';
@@ -216,11 +216,13 @@ export default function TravelMap({
         onMarkerSelected: setSelectedMarkerId,
     });
 
-    // Marker highlighting
-    useMarkerHighlight({
+    // Marker styling (highlight + grey out by tour)
+    useMarkerStyling({
         mapInstance,
         markers,
         selectedMarkerId,
+        selectedTourId,
+        tours,
         onMarkerUpdated: updateMarkerReference,
         onMarkerClick: setSelectedMarkerId,
     });
