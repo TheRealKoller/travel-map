@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/select';
 import { getMarkerTypeIcon, UnescoIcon } from '@/lib/marker-icons';
 import { MarkerData, MarkerType } from '@/types/marker';
-import { ArrowRight, Filter, Image, Loader2 } from 'lucide-react';
+import { Filter, Image, Loader2 } from 'lucide-react';
 import { marked } from 'marked';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -18,8 +18,6 @@ interface MarkerListProps {
     markers: MarkerData[];
     selectedMarkerId: string | null;
     onSelectMarker: (id: string) => void;
-    selectedTourId: number | null;
-    onAddMarkerToTour?: (markerId: string) => void;
     onMarkerImageFetched?: (markerId: string, imageUrl: string) => void;
 }
 
@@ -27,8 +25,6 @@ interface MarkerItemProps {
     markerData: MarkerData;
     isSelected: boolean;
     onSelect: (id: string) => void;
-    showAddToTourButton: boolean;
-    onAddToTour?: (markerId: string) => void;
     onImageFetched?: (markerId: string, imageUrl: string) => void;
 }
 
@@ -36,8 +32,6 @@ function MarkerItem({
     markerData,
     isSelected,
     onSelect,
-    showAddToTourButton,
-    onAddToTour,
     onImageFetched,
 }: MarkerItemProps) {
     const [loadingImage, setLoadingImage] = useState(false);
@@ -49,13 +43,6 @@ function MarkerItem({
             gfm: true,
         });
     }, []);
-
-    const handleAddToTour = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (onAddToTour) {
-            onAddToTour(markerData.id);
-        }
-    };
 
     const handleFetchImage = async (event: React.MouseEvent) => {
         event.stopPropagation();
@@ -151,18 +138,6 @@ function MarkerItem({
                 )}
             </div>
             <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
-                {showAddToTourButton && (
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-9 w-9 text-gray-600 hover:text-blue-600 sm:h-11 sm:w-11 dark:text-gray-400 dark:hover:text-blue-400"
-                        onClick={handleAddToTour}
-                        title="Add to tour"
-                        data-testid="add-marker-to-tour-button"
-                    >
-                        <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
-                    </Button>
-                )}
                 {markerData.aiEnriched && (
                     <span
                         className="text-purple-600"
@@ -201,8 +176,6 @@ export default function MarkerList({
     markers,
     selectedMarkerId,
     onSelectMarker,
-    selectedTourId,
-    onAddMarkerToTour,
     onMarkerImageFetched,
 }: MarkerListProps) {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -212,7 +185,6 @@ export default function MarkerList({
         useState<string>('all');
     const [appliedUnescoFilter, setAppliedUnescoFilter] =
         useState<string>('all');
-    const showAddToTourButtons = selectedTourId !== null;
 
     // Get all marker types from the enum
     const allMarkerTypes = Object.values(MarkerType);
@@ -364,26 +336,17 @@ export default function MarkerList({
                         : 'No markers match the selected filter'}
                 </p>
             ) : (
-                <>
-                    {showAddToTourButtons && (
-                        <p className="mb-2 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
-                            Click the arrow to add a marker to the current tour
-                        </p>
-                    )}
-                    <ul className="space-y-2" data-testid="marker-list-items">
-                        {filteredMarkers.map((markerData) => (
-                            <MarkerItem
-                                key={markerData.id}
-                                markerData={markerData}
-                                isSelected={selectedMarkerId === markerData.id}
-                                onSelect={onSelectMarker}
-                                showAddToTourButton={showAddToTourButtons}
-                                onAddToTour={onAddMarkerToTour}
-                                onImageFetched={onMarkerImageFetched}
-                            />
-                        ))}
-                    </ul>
-                </>
+                <ul className="space-y-2" data-testid="marker-list-items">
+                    {filteredMarkers.map((markerData) => (
+                        <MarkerItem
+                            key={markerData.id}
+                            markerData={markerData}
+                            isSelected={selectedMarkerId === markerData.id}
+                            onSelect={onSelectMarker}
+                            onImageFetched={onMarkerImageFetched}
+                        />
+                    ))}
+                </ul>
             )}
         </div>
     );

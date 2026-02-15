@@ -558,8 +558,6 @@ export default function TravelMap({
                                 markers={markers}
                                 selectedMarkerId={selectedMarkerId}
                                 onSelectMarker={setSelectedMarkerId}
-                                selectedTourId={selectedTourId}
-                                onAddMarkerToTour={handleAddMarkerToTour}
                                 onMarkerImageFetched={(markerId, imageUrl) => {
                                     const updatedMarkers = markers.map((m) =>
                                         m.id === markerId
@@ -685,10 +683,6 @@ export default function TravelMap({
                                         markers={markers}
                                         selectedMarkerId={selectedMarkerId}
                                         onSelectMarker={setSelectedMarkerId}
-                                        selectedTourId={selectedTourId}
-                                        onAddMarkerToTour={
-                                            handleAddMarkerToTour
-                                        }
                                         onMarkerImageFetched={(
                                             markerId,
                                             imageUrl,
