@@ -81,30 +81,30 @@ function MarkerItem({
     onRemove,
 }: MarkerItemProps) {
     return (
-        <div className="rounded bg-gray-50 p-2 text-xs sm:p-2 sm:text-sm dark:bg-gray-800">
+        <div className="rounded bg-gray-50 p-1.5 text-xs sm:p-2 sm:text-sm dark:bg-gray-800">
             <div className="flex items-start gap-2 sm:gap-2">
-                <div className="flex flex-shrink-0 flex-col gap-1">
+                <div className="flex flex-shrink-0 flex-row gap-0.5 sm:flex-col sm:gap-1">
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-9 w-9 p-0 text-gray-400 hover:text-blue-600 disabled:opacity-30 sm:h-11 sm:w-11 dark:text-gray-500 dark:hover:text-blue-400"
+                        className="h-7 w-7 p-0 text-gray-400 hover:text-blue-600 disabled:opacity-30 sm:h-11 sm:w-11 dark:text-gray-500 dark:hover:text-blue-400"
                         onClick={onMoveUp}
                         disabled={isFirst}
                         title="Move up"
                         data-testid="move-marker-up"
                     >
-                        <ArrowUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                        <ArrowUp className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-9 w-9 p-0 text-gray-400 hover:text-blue-600 disabled:opacity-30 sm:h-11 sm:w-11 dark:text-gray-500 dark:hover:text-blue-400"
+                        className="h-7 w-7 p-0 text-gray-400 hover:text-blue-600 disabled:opacity-30 sm:h-11 sm:w-11 dark:text-gray-500 dark:hover:text-blue-400"
                         onClick={onMoveDown}
                         disabled={isLast}
                         title="Move down"
                         data-testid="move-marker-down"
                     >
-                        <ArrowDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                        <ArrowDown className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
                 </div>
                 <span className="flex-shrink-0 font-medium text-gray-500 dark:text-gray-400">
@@ -115,11 +115,12 @@ function MarkerItem({
                         {marker.name || 'Unnamed Location'}
                     </div>
                     {marker.estimatedHours && (
-                        <div className="text-xs leading-relaxed text-gray-600 dark:text-gray-400">
-                            <span className="font-medium">
+                        <div className="text-xs leading-tight text-gray-600 dark:text-gray-400">
+                            <span className="hidden font-medium sm:inline">
                                 Estimated duration:
-                            </span>{' '}
-                            ~{marker.estimatedHours}h
+                            </span>
+                            <span className="sm:hidden">~</span>
+                            {marker.estimatedHours}h
                         </div>
                     )}
                 </div>
@@ -128,12 +129,12 @@ function MarkerItem({
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-9 w-9 p-0 text-gray-400 hover:text-red-600 sm:h-11 sm:w-11 dark:text-gray-500 dark:hover:text-red-400"
+                            className="h-7 w-7 p-0 text-gray-400 hover:text-red-600 sm:h-11 sm:w-11 dark:text-gray-500 dark:hover:text-red-400"
                             onClick={onRemove}
                             title="Remove from tour"
                             data-testid="remove-marker-from-tour"
                         >
-                            <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                            <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                     )}
                     <Icon
@@ -305,7 +306,7 @@ function TourCard({
                                                         nextMarker.id,
                                                     )
                                                 }
-                                                className="h-6 gap-1 px-2 text-xs text-blue-600 hover:bg-blue-50 hover:text-blue-700 dark:text-blue-400 dark:hover:bg-blue-950 dark:hover:text-blue-300"
+                                                className="h-5 gap-1 px-1.5 text-xs text-blue-600 hover:bg-blue-50 hover:text-blue-700 sm:h-6 sm:px-2 dark:text-blue-400 dark:hover:bg-blue-950 dark:hover:text-blue-300"
                                                 title="Calculate route"
                                                 data-testid={`route-button-${index}`}
                                             >
