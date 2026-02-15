@@ -22,6 +22,7 @@ import { useRoutes } from '@/hooks/use-routes';
 import { useSearchMode } from '@/hooks/use-search-mode';
 import { useSearchRadius } from '@/hooks/use-search-radius';
 import { useSearchResults } from '@/hooks/use-search-results';
+import { useTourLines } from '@/hooks/use-tour-lines';
 import { useTourMarkers } from '@/hooks/use-tour-markers';
 import { getBoundingBoxFromTrip } from '@/lib/map-utils';
 import { update as tripsUpdate } from '@/routes/trips';
@@ -204,6 +205,15 @@ export default function TravelMap({
                 handleRouteClickRef.current(routeId);
             }
         },
+    });
+
+    // Tour lines - draw curved lines between markers in selected tour when no route exists
+    useTourLines({
+        mapInstance,
+        selectedTourId,
+        tours,
+        markers,
+        routes,
     });
 
     // Tour markers management
