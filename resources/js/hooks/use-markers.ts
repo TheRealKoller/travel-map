@@ -59,11 +59,11 @@ export function useMarkers({
                         estimated_hours: number | null;
                     }) => {
                         // Saved markers use isTemporary=false (default z-index)
-                        const el = createMarkerElement(
-                            dbMarker.type,
-                            false,
-                            false,
-                        );
+                        const el = createMarkerElement({
+                            type: dbMarker.type,
+                            isHighlighted: false,
+                            isTemporary: false,
+                        });
 
                         const marker = new mapboxgl.Marker(el)
                             .setLngLat([dbMarker.longitude, dbMarker.latitude])
@@ -192,7 +192,11 @@ export function useMarkers({
                         // If type changed, we need to rebuild the marker element
                         if (type !== marker.type) {
                             // Saved marker (not temporary)
-                            const el = createMarkerElement(type, false, false);
+                            const el = createMarkerElement({
+                                type,
+                                isHighlighted: false,
+                                isTemporary: false,
+                            });
                             el.addEventListener('click', (clickEvent) => {
                                 clickEvent.stopPropagation();
                                 onMarkerClick(id);

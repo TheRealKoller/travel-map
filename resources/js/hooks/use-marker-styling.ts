@@ -34,17 +34,11 @@ export function useMarkerStyling({
     const markersRef = useRef<MarkerData[]>(markers);
     const onMarkerUpdatedRef = useRef(onMarkerUpdated);
     const onMarkerClickRef = useRef(onMarkerClick);
-    const mapInstanceRef = useRef(mapInstance);
 
     // Keep markersRef in sync with markers prop
     useEffect(() => {
         markersRef.current = markers;
     }, [markers]);
-
-    // Keep mapRef in sync (for safety in callbacks)
-    useEffect(() => {
-        mapInstanceRef.current = mapInstance;
-    }, [mapInstance]);
 
     // Keep callback refs in sync to avoid stale closures in interaction handlers
     useEffect(() => {
@@ -86,13 +80,13 @@ export function useMarkerStyling({
                 selectedAvailableMarkerId === markerData.id &&
                 !isInSelectedTour;
 
-            const el = createMarkerElement(
-                markerData.type,
+            const el = createMarkerElement({
+                type: markerData.type,
                 isHighlighted,
-                !markerData.isSaved,
+                isTemporary: !markerData.isSaved,
                 isGreyedOut,
                 hasBlueRing,
-            );
+            });
 
             const [lng, lat] = [markerData.lng, markerData.lat];
             const popup = new mapboxgl.Popup({ offset: 25 }).setText(
@@ -135,45 +129,63 @@ export function useMarkerStyling({
                 rebuildMarker(marker, isHighlighted);
             });
         } else {
-            // Only selection changed: update previous and current
-            if (previousSelectedMarkerRef.current) {
-                const prevMarker = currentMarkers.find(
-                    (m) => m.id === previousSelectedMarkerRef.current,
-                );
-                if (prevMarker) {
-                    rebuildMarker(prevMarker, false);
-                }
-            }
+            // Track which markers we've already rebuilt to avoid duplicates
+            const rebuiltMarkerIds = new Set<string>();
 
-            if (selectedMarkerId) {
-                const selectedMarker = currentMarkers.find(
-                    (m) => m.id === selectedMarkerId,
-                );
-                if (selectedMarker) {
-                    rebuildMarker(selectedMarker, true);
+            // Handle selection changes
+            if (selectionChanged) {
+                if (previousSelectedMarkerRef.current) {
+                    const prevMarker = currentMarkers.find(
+                        (m) => m.id === previousSelectedMarkerRef.current,
+                    );
+                    if (prevMarker) {
+                        rebuildMarker(prevMarker, false);
+                        rebuiltMarkerIds.add(prevMarker.id);
+                    }
+                }
+
+                if (selectedMarkerId) {
+                    const selectedMarker = currentMarkers.find(
+                        (m) => m.id === selectedMarkerId,
+                    );
+                    if (selectedMarker) {
+                        rebuildMarker(selectedMarker, true);
+                        rebuiltMarkerIds.add(selectedMarker.id);
+                    }
                 }
             }
 
             // Handle available marker selection changes
-            if (previousSelectedAvailableMarkerRef.current) {
-                const prevAvailableMarker = currentMarkers.find(
-                    (m) => m.id === previousSelectedAvailableMarkerRef.current,
-                );
-                if (prevAvailableMarker) {
-                    const isHighlighted =
-                        prevAvailableMarker.id === selectedMarkerId;
-                    rebuildMarker(prevAvailableMarker, isHighlighted);
+            if (availableMarkerChanged) {
+                if (previousSelectedAvailableMarkerRef.current) {
+                    const prevAvailableMarker = currentMarkers.find(
+                        (m) =>
+                            m.id === previousSelectedAvailableMarkerRef.current,
+                    );
+                    if (
+                        prevAvailableMarker &&
+                        !rebuiltMarkerIds.has(prevAvailableMarker.id)
+                    ) {
+                        const isHighlighted =
+                            prevAvailableMarker.id === selectedMarkerId;
+                        rebuildMarker(prevAvailableMarker, isHighlighted);
+                        rebuiltMarkerIds.add(prevAvailableMarker.id);
+                    }
                 }
-            }
 
-            if (selectedAvailableMarkerId) {
-                const availableMarker = currentMarkers.find(
-                    (m) => m.id === selectedAvailableMarkerId,
-                );
-                if (availableMarker) {
-                    const isHighlighted =
-                        availableMarker.id === selectedMarkerId;
-                    rebuildMarker(availableMarker, isHighlighted);
+                if (selectedAvailableMarkerId) {
+                    const availableMarker = currentMarkers.find(
+                        (m) => m.id === selectedAvailableMarkerId,
+                    );
+                    if (
+                        availableMarker &&
+                        !rebuiltMarkerIds.has(availableMarker.id)
+                    ) {
+                        const isHighlighted =
+                            availableMarker.id === selectedMarkerId;
+                        rebuildMarker(availableMarker, isHighlighted);
+                        rebuiltMarkerIds.add(availableMarker.id);
+                    }
                 }
             }
         }
