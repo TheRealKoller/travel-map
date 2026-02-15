@@ -157,6 +157,11 @@ export default function TravelMap({
         string | null
     >(null);
 
+    // Clear selected available marker when tour changes
+    useEffect(() => {
+        setSelectedAvailableMarkerId(null);
+    }, [selectedTourId]);
+
     // Ref to store the handleRouteClick callback for use in useRoutes
     const handleRouteClickRef = useRef<((routeId: number) => void) | null>(
         null,
@@ -290,9 +295,11 @@ export default function TravelMap({
     const handleAddAvailableMarkerToTour = useCallback(
         async (markerId: string) => {
             if (selectedTourId === null) return;
-            await handleAddMarkerToTour(markerId);
-            // Clear selection after adding
-            setSelectedAvailableMarkerId(null);
+            const success = await handleAddMarkerToTour(markerId);
+            // Only clear selection if add was successful
+            if (success) {
+                setSelectedAvailableMarkerId(null);
+            }
         },
         [selectedTourId, handleAddMarkerToTour],
     );
