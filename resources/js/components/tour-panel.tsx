@@ -397,58 +397,71 @@ export default function TourPanel({
         : [];
 
     return (
-        <div className="flex flex-col gap-4 p-4" data-testid="tour-panel">
-            <Tabs
-                value={
-                    selectedTourId === null ? 'all' : selectedTourId.toString()
-                }
-                onValueChange={handleTabChange}
-                className="w-full"
-            >
-                <TabsList className="flex w-full justify-start overflow-x-auto">
-                    <TabsTrigger value="all" data-testid="tour-tab-all-markers">
-                        All markers
-                        <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">
-                            ({markers.length})
-                        </span>
-                    </TabsTrigger>
-                    {tours.map((tour) => (
-                        <TourTab
-                            key={tour.id}
-                            tour={tour}
-                            markerCount={getMarkerCountForTour(tour)}
-                        />
-                    ))}
-                    <TabsTrigger
-                        value="create"
-                        className="ml-2"
-                        onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                            e.preventDefault();
-                            onCreateTour();
-                        }}
-                        data-testid="tour-tab-create-new"
-                    >
-                        <Plus className="h-4 w-4" />
-                    </TabsTrigger>
-                </TabsList>
-            </Tabs>
+        <div className="flex h-full flex-col" data-testid="tour-panel">
+            {/* Fixed Tabs */}
+            <div className="flex-shrink-0 px-4 pt-4">
+                <Tabs
+                    value={
+                        selectedTourId === null
+                            ? 'all'
+                            : selectedTourId.toString()
+                    }
+                    onValueChange={handleTabChange}
+                    className="w-full"
+                >
+                    <TabsList className="flex w-full justify-start overflow-x-auto">
+                        <TabsTrigger
+                            value="all"
+                            data-testid="tour-tab-all-markers"
+                        >
+                            All markers
+                            <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">
+                                ({markers.length})
+                            </span>
+                        </TabsTrigger>
+                        {tours.map((tour) => (
+                            <TourTab
+                                key={tour.id}
+                                tour={tour}
+                                markerCount={getMarkerCountForTour(tour)}
+                            />
+                        ))}
+                        <TabsTrigger
+                            value="create"
+                            className="ml-2"
+                            onClick={(
+                                e: React.MouseEvent<HTMLButtonElement>,
+                            ) => {
+                                e.preventDefault();
+                                onCreateTour();
+                            }}
+                            data-testid="tour-tab-create-new"
+                        >
+                            <Plus className="h-4 w-4" />
+                        </TabsTrigger>
+                    </TabsList>
+                </Tabs>
+            </div>
 
-            {selectedTourId !== null && selectedTour && (
-                <TourCard
-                    tour={selectedTour}
-                    markers={selectedTourMarkers}
-                    allMarkers={markers}
-                    routes={routes}
-                    onDeleteTour={onDeleteTour}
-                    onMoveMarkerUp={onMoveMarkerUp}
-                    onMoveMarkerDown={onMoveMarkerDown}
-                    onRemoveMarkerFromTour={onRemoveMarkerFromTour}
-                    onRequestRoute={onRequestRoute}
-                    selectedAvailableMarkerId={selectedAvailableMarkerId}
-                    onSelectAvailableMarker={onSelectAvailableMarker}
-                    onAddMarkerToTour={onAddMarkerToTour}
-                />
-            )}
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto px-4 pt-4 pb-4">
+                {selectedTourId !== null && selectedTour && (
+                    <TourCard
+                        tour={selectedTour}
+                        markers={selectedTourMarkers}
+                        allMarkers={markers}
+                        routes={routes}
+                        onDeleteTour={onDeleteTour}
+                        onMoveMarkerUp={onMoveMarkerUp}
+                        onMoveMarkerDown={onMoveMarkerDown}
+                        onRemoveMarkerFromTour={onRemoveMarkerFromTour}
+                        onRequestRoute={onRequestRoute}
+                        selectedAvailableMarkerId={selectedAvailableMarkerId}
+                        onSelectAvailableMarker={onSelectAvailableMarker}
+                        onAddMarkerToTour={onAddMarkerToTour}
+                    />
+                )}
+            </div>
         </div>
     );
 }
