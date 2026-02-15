@@ -8,7 +8,7 @@ import mapboxgl, {
     GeoJSONFeature,
     TargetFeature,
 } from 'mapbox-gl';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 interface UseMapInteractionsOptions {
@@ -24,8 +24,13 @@ export function useMapInteractions({
     onMarkerCreated,
     onMarkerSelected,
 }: UseMapInteractionsOptions) {
+    const registeredInteractionIdsRef = useRef<Set<string>>(new Set());
+
     useEffect(() => {
         if (!mapInstance) return;
+
+        // When map instance changes, reset the registry
+        registeredInteractionIdsRef.current.clear();
 
         let hoveredPlace:
             | TargetFeature
@@ -34,8 +39,17 @@ export function useMapInteractions({
             | null
             | undefined = null;
 
+        const addInteractionIfMissing = (
+            id: string,
+            interaction: Parameters<mapboxgl.Map['addInteraction']>[1],
+        ) => {
+            if (registeredInteractionIdsRef.current.has(id)) return;
+            registeredInteractionIdsRef.current.add(id);
+            mapInstance.addInteraction(id, interaction);
+        };
+
         // POI interactions
-        mapInstance.addInteraction('poi-click', {
+        addInteractionIfMissing('poi-click', {
             type: 'click',
             target: { featuresetId: 'poi', importId: 'basemap' },
             handler: ({ feature, lngLat, preventDefault }) => {
@@ -104,7 +118,7 @@ export function useMapInteractions({
             },
         });
 
-        mapInstance.addInteraction('poi-mouseenter', {
+        addInteractionIfMissing('poi-mouseenter', {
             type: 'mouseenter',
             target: { featuresetId: 'poi', importId: 'basemap' },
             handler: () => {
@@ -112,7 +126,7 @@ export function useMapInteractions({
             },
         });
 
-        mapInstance.addInteraction('poi-mouseleave', {
+        addInteractionIfMissing('poi-mouseleave', {
             type: 'mouseleave',
             target: { featuresetId: 'poi', importId: 'basemap' },
             handler: () => {
@@ -126,7 +140,7 @@ export function useMapInteractions({
         });
 
         // Place labels interactions
-        mapInstance.addInteraction('place-labels-click', {
+        addInteractionIfMissing('place-labels-click', {
             type: 'click',
             target: { featuresetId: 'place-labels', importId: 'basemap' },
             handler: ({ feature, lngLat, preventDefault }) => {
@@ -200,7 +214,7 @@ export function useMapInteractions({
             },
         });
 
-        mapInstance.addInteraction('place-labels-mouseenter', {
+        addInteractionIfMissing('place-labels-mouseenter', {
             type: 'mouseenter',
             target: { featuresetId: 'place-labels', importId: 'basemap' },
             handler: ({ feature }) => {
@@ -219,7 +233,7 @@ export function useMapInteractions({
             },
         });
 
-        mapInstance.addInteraction('place-labels-mouseleave', {
+        addInteractionIfMissing('place-labels-mouseleave', {
             type: 'mouseleave',
             target: { featuresetId: 'place-labels', importId: 'basemap' },
             handler: () => {
@@ -239,7 +253,7 @@ export function useMapInteractions({
         });
 
         // Landmark icons interactions
-        mapInstance.addInteraction('landmark-icons-click', {
+        addInteractionIfMissing('landmark-icons-click', {
             type: 'click',
             target: { featuresetId: 'landmark-icons', importId: 'basemap' },
             handler: ({ feature, lngLat, preventDefault }) => {
@@ -307,7 +321,7 @@ export function useMapInteractions({
             },
         });
 
-        mapInstance.addInteraction('landmark-icons-mouseenter', {
+        addInteractionIfMissing('landmark-icons-mouseenter', {
             type: 'mouseenter',
             target: { featuresetId: 'landmark-icons', importId: 'basemap' },
             handler: () => {
@@ -315,7 +329,7 @@ export function useMapInteractions({
             },
         });
 
-        mapInstance.addInteraction('landmark-icons-mouseleave', {
+        addInteractionIfMissing('landmark-icons-mouseleave', {
             type: 'mouseleave',
             target: { featuresetId: 'landmark-icons', importId: 'basemap' },
             handler: () => {
