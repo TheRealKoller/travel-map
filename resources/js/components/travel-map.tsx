@@ -224,7 +224,14 @@ export default function TravelMap({
         selectedTourId,
         tours,
         onMarkerUpdated: updateMarkerReference,
-        onMarkerClick: setSelectedMarkerId,
+        onMarkerClick: (markerId: string) => {
+            // If we are in tour context (tour selected + tours panel open), stay there: do not open marker form
+            const isInTourContext = selectedTourId !== null && isOpen('tours');
+            setSelectedMarkerId(markerId);
+            if (!isInTourContext && !isOpen('markers')) {
+                togglePanel('markers');
+            }
+        },
     });
 
     // Geocoder - provides callbacks for SearchBox component
@@ -242,18 +249,19 @@ export default function TravelMap({
         onMarkerSelected: setSelectedMarkerId,
     });
 
-    // Auto-open markers panel when a marker is selected
+    // Auto-open markers panel when a marker is selected, except when managing a tour in the open Tour panel
     useEffect(() => {
-        if (selectedMarkerId && !isOpen('markers')) {
-            if (isMobileLayout) {
-                // Mobile: open markers panel (closes other panels)
-                togglePanel('markers');
-            } else {
-                // Desktop: open markers panel (keeps others open)
-                togglePanel('markers');
-            }
+        if (!selectedMarkerId) return;
+
+        // If a tour is selected and the tours panel is open, stay in the tour context (no marker form)
+        if (selectedTourId !== null && isOpen('tours')) {
+            return;
         }
-    }, [selectedMarkerId, isOpen, togglePanel, isMobileLayout]);
+
+        if (!isOpen('markers')) {
+            togglePanel('markers');
+        }
+    }, [selectedMarkerId, selectedTourId, isOpen, togglePanel]);
 
     // Handler for removing marker from tour
     const handleRemoveMarkerFromTour = useCallback(
