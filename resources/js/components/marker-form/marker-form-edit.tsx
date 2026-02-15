@@ -19,7 +19,7 @@ interface MarkerFormEditProps {
     enrichmentError: string | null;
     isEnriching: boolean;
     tours: Tour[];
-    mdeOptions: Record<string, unknown>;
+    mdeOptions: any;
     onNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onTypeChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
     onNotesChange: (value: string) => void;
