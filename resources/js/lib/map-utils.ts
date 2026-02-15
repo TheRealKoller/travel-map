@@ -54,10 +54,14 @@ export function calculateBoundingBoxFromViewport(
 
     const lngDelta = viewportWidthMeters / (111320 * cosLat) / 2;
 
-    const west = longitude - lngDelta;
+    let west = longitude - lngDelta;
     const south = latitude - latDelta;
-    const east = longitude + lngDelta;
+    let east = longitude + lngDelta;
     const north = latitude + latDelta;
+
+    // Clamp longitude values to valid range (-180 to 180)
+    west = Math.max(-180, Math.min(180, west));
+    east = Math.max(-180, Math.min(180, east));
 
     // Validate results
     if (
@@ -66,6 +70,11 @@ export function calculateBoundingBoxFromViewport(
         !isFinite(east) ||
         !isFinite(north)
     ) {
+        return undefined;
+    }
+
+    // Validate latitude range
+    if (south < -90 || north > 90) {
         return undefined;
     }
 
