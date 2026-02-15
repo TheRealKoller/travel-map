@@ -1,3 +1,4 @@
+import { AvailableMarkers } from '@/components/available-markers';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
@@ -15,6 +16,7 @@ import {
     Route as RouteIcon,
     Trash2,
 } from 'lucide-react';
+import { useMemo } from 'react';
 
 interface TourPanelProps {
     tours: Tour[];
@@ -28,6 +30,9 @@ interface TourPanelProps {
     onMoveMarkerDown?: (markerId: string) => void;
     onRemoveMarkerFromTour?: (markerId: string) => void;
     onRequestRoute?: (startMarkerId: string, endMarkerId: string) => void;
+    selectedAvailableMarkerId?: string | null;
+    onSelectAvailableMarker?: (markerId: string | null) => void;
+    onAddMarkerToTour?: (markerId: string) => void;
 }
 
 interface TourTabProps {
@@ -162,24 +167,50 @@ function MarkerItem({
 interface TourCardProps {
     tour: Tour;
     markers: MarkerData[];
+    allMarkers: MarkerData[];
     routes: Route[];
     onDeleteTour: (tourId: number) => void;
     onMoveMarkerUp?: (markerId: string) => void;
     onMoveMarkerDown?: (markerId: string) => void;
     onRemoveMarkerFromTour?: (markerId: string) => void;
     onRequestRoute?: (startMarkerId: string, endMarkerId: string) => void;
+    selectedAvailableMarkerId?: string | null;
+    onSelectAvailableMarker?: (markerId: string | null) => void;
+    onAddMarkerToTour?: (markerId: string) => void;
 }
 
 function TourCard({
     tour,
     markers,
+    allMarkers,
     routes,
     onDeleteTour,
     onMoveMarkerUp,
     onMoveMarkerDown,
     onRemoveMarkerFromTour,
     onRequestRoute,
+    selectedAvailableMarkerId,
+    onSelectAvailableMarker,
+    onAddMarkerToTour,
 }: TourCardProps) {
+    // Calculate available markers (not in tour)
+    const tourMarkerIds = useMemo(
+        () => new Set(markers.map((m) => m.id)),
+        [markers],
+    );
+
+    const availableMarkers = useMemo(
+        () =>
+            allMarkers
+                .filter((marker) => !tourMarkerIds.has(marker.id))
+                .sort((a, b) =>
+                    (a.name || '').localeCompare(b.name || '', undefined, {
+                        numeric: true,
+                        sensitivity: 'base',
+                    }),
+                ),
+        [allMarkers, tourMarkerIds],
+    );
     return (
         <Card className="flex-1 overflow-auto p-3 sm:p-3 md:p-4">
             <div className="mb-3 flex items-center justify-between sm:mb-3">
@@ -294,6 +325,18 @@ function TourCard({
                     ))}
                 </ul>
             )}
+
+            {/* Available Markers Section */}
+            {onSelectAvailableMarker && onAddMarkerToTour && (
+                <AvailableMarkers
+                    availableMarkers={availableMarkers}
+                    selectedAvailableMarkerId={
+                        selectedAvailableMarkerId ?? null
+                    }
+                    onSelectAvailableMarker={onSelectAvailableMarker}
+                    onAddMarkerToTour={onAddMarkerToTour}
+                />
+            )}
         </Card>
     );
 }
@@ -310,6 +353,9 @@ export default function TourPanel({
     onMoveMarkerDown,
     onRemoveMarkerFromTour,
     onRequestRoute,
+    selectedAvailableMarkerId,
+    onSelectAvailableMarker,
+    onAddMarkerToTour,
 }: TourPanelProps) {
     const handleTabChange = (value: string) => {
         if (value === 'all') {
@@ -379,12 +425,16 @@ export default function TourPanel({
                 <TourCard
                     tour={selectedTour}
                     markers={selectedTourMarkers}
+                    allMarkers={markers}
                     routes={routes}
                     onDeleteTour={onDeleteTour}
                     onMoveMarkerUp={onMoveMarkerUp}
                     onMoveMarkerDown={onMoveMarkerDown}
                     onRemoveMarkerFromTour={onRemoveMarkerFromTour}
                     onRequestRoute={onRequestRoute}
+                    selectedAvailableMarkerId={selectedAvailableMarkerId}
+                    onSelectAvailableMarker={onSelectAvailableMarker}
+                    onAddMarkerToTour={onAddMarkerToTour}
                 />
             )}
         </div>

@@ -58,8 +58,8 @@ export function useTourMarkers({
     );
 
     const handleAddMarkerToTour = useCallback(
-        async (markerId: string) => {
-            if (selectedTourId === null) return;
+        async (markerId: string): Promise<boolean> => {
+            if (selectedTourId === null) return false;
 
             try {
                 // Attach marker to tour (duplicates allowed)
@@ -74,9 +74,11 @@ export function useTourMarkers({
                     });
                     onToursUpdate(response.data);
                 }
+                return true;
             } catch (error) {
                 console.error('Failed to add marker to tour:', error);
                 toast.error('Failed to add marker to tour. Please try again.');
+                return false;
             }
         },
         [selectedTourId, selectedTripId, onToursUpdate],

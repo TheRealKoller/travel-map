@@ -152,6 +152,16 @@ export default function TravelMap({
         new Set(),
     );
 
+    // State for selected available marker (for blue ring highlight in Available Markers section)
+    const [selectedAvailableMarkerId, setSelectedAvailableMarkerId] = useState<
+        string | null
+    >(null);
+
+    // Clear selected available marker when tour changes
+    useEffect(() => {
+        setSelectedAvailableMarkerId(null);
+    }, [selectedTourId]);
+
     // Ref to store the handleRouteClick callback for use in useRoutes
     const handleRouteClickRef = useRef<((routeId: number) => void) | null>(
         null,
@@ -222,7 +232,7 @@ export default function TravelMap({
         markers,
         selectedMarkerId,
         selectedTourId,
-        selectedAvailableMarkerId: null, // Will be used in #364 for Available Markers section
+        selectedAvailableMarkerId, // Used in #364 for Available Markers section blue ring highlight
         tours,
         onMarkerUpdated: updateMarkerReference,
         onMarkerClick: (markerId: string) => {
@@ -271,6 +281,27 @@ export default function TravelMap({
             await handleToggleMarkerInTour(markerId, selectedTourId, true);
         },
         [selectedTourId, handleToggleMarkerInTour],
+    );
+
+    // Handler for selecting an available marker (shows blue ring on map)
+    const handleSelectAvailableMarker = useCallback(
+        (markerId: string | null) => {
+            setSelectedAvailableMarkerId(markerId);
+        },
+        [],
+    );
+
+    // Handler for adding an available marker to the current tour
+    const handleAddAvailableMarkerToTour = useCallback(
+        async (markerId: string) => {
+            if (selectedTourId === null) return;
+            const success = await handleAddMarkerToTour(markerId);
+            // Only clear selection if add was successful
+            if (success) {
+                setSelectedAvailableMarkerId(null);
+            }
+        },
+        [selectedTourId, handleAddMarkerToTour],
     );
 
     // Handler for updating a tour after sorting
@@ -560,6 +591,13 @@ export default function TravelMap({
                             onMoveMarkerDown={handleMoveMarkerDown}
                             onRemoveMarkerFromTour={handleRemoveMarkerFromTour}
                             onRequestRoute={handleRequestRoute}
+                            selectedAvailableMarkerId={
+                                selectedAvailableMarkerId
+                            }
+                            onSelectAvailableMarker={
+                                handleSelectAvailableMarker
+                            }
+                            onAddMarkerToTour={handleAddAvailableMarkerToTour}
                         />
                     </FloatingPanel>
 
@@ -689,6 +727,15 @@ export default function TravelMap({
                                         handleRemoveMarkerFromTour
                                     }
                                     onRequestRoute={handleRequestRoute}
+                                    selectedAvailableMarkerId={
+                                        selectedAvailableMarkerId
+                                    }
+                                    onSelectAvailableMarker={
+                                        handleSelectAvailableMarker
+                                    }
+                                    onAddMarkerToTour={
+                                        handleAddAvailableMarkerToTour
+                                    }
                                 />
                             </DraggableSheet>
                         )}
