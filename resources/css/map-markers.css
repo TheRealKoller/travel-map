@@ -138,6 +138,15 @@
     z-index: 30;
 }
 
+/* Marker that is not part of the selected tour */
+.mapbox-marker--not-in-tour {
+    filter: grayscale(100%);
+    opacity: 0.5;
+    transition:
+        filter 0.2s ease,
+        opacity 0.2s ease;
+}
+
 /* Search result marker (blue circles) */
 .search-result-marker {
     width: 20px;
