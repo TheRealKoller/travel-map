@@ -265,12 +265,7 @@ export default function RoutePanel({
         }
     };
 
-    const filteredRoutes = getFilteredRoutesUtil(
-        routes,
-        tourId,
-        tours,
-        markers,
-    );
+    const filteredRoutes = getFilteredRoutesUtil(routes, tourId, tours);
 
     return (
         <div className="space-y-3 p-3 sm:space-y-4 sm:p-3 md:p-4">

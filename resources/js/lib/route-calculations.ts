@@ -2,7 +2,6 @@
  * Utility functions for route calculations
  */
 
-import { MarkerData } from '@/types/marker';
 import { Route } from '@/types/route';
 import { Tour } from '@/types/tour';
 
@@ -28,7 +27,6 @@ export function getFilteredRoutes(
     routes: Route[],
     tourId: number | null | undefined,
     tours: Tour[],
-    markers: MarkerData[],
 ): Route[] {
     if (!tourId) return routes;
 
