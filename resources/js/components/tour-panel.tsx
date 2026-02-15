@@ -223,7 +223,7 @@ function TourCard({
         [allMarkers],
     );
     return (
-        <Card className="flex-1 overflow-auto p-3 sm:p-3 md:p-4">
+        <Card className="flex-1 p-3 sm:p-3 md:p-4">
             <div className="mb-3 flex items-center justify-between sm:mb-3">
                 <div className="flex min-w-0 flex-col">
                     <h3 className="truncate text-sm font-semibold text-gray-900 sm:text-base dark:text-gray-100">
