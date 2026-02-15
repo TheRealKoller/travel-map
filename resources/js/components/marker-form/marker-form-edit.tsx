@@ -2,6 +2,7 @@ import { Input } from '@/components/ui/input';
 import { formatCoordinates } from '@/lib/marker-utils';
 import { MarkerData, MarkerType } from '@/types/marker';
 import { Tour } from '@/types/tour';
+import type { Options } from 'easymde';
 import SimpleMDE from 'react-simplemde-editor';
 import EnrichmentButton from './enrichment-button';
 import MarkerTypeSelector from './marker-type-selector';
@@ -19,7 +20,7 @@ interface MarkerFormEditProps {
     enrichmentError: string | null;
     isEnriching: boolean;
     tours: Tour[];
-    mdeOptions: any;
+    mdeOptions: Options;
     onNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onTypeChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
     onNotesChange: (value: string) => void;
