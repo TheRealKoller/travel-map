@@ -193,23 +193,33 @@ function TourCard({
     onSelectAvailableMarker,
     onAddMarkerToTour,
 }: TourCardProps) {
-    // Calculate available markers (not in tour)
-    const tourMarkerIds = useMemo(
-        () => new Set(markers.map((m) => m.id)),
-        [markers],
-    );
+    // Precompute marker counts for O(1) lookup performance
+    const markerCountsInTour = useMemo(() => {
+        const counts = new Map<string, number>();
 
+        for (const marker of markers) {
+            const currentCount = counts.get(marker.id) ?? 0;
+            counts.set(marker.id, currentCount + 1);
+        }
+
+        return counts;
+    }, [markers]);
+
+    // Function to count how many times a marker appears in the tour
+    const getMarkerCountInTour = (markerId: string): number => {
+        return markerCountsInTour.get(markerId) ?? 0;
+    };
+
+    // Show all markers (including those already in tour)
     const availableMarkers = useMemo(
         () =>
-            allMarkers
-                .filter((marker) => !tourMarkerIds.has(marker.id))
-                .sort((a, b) =>
-                    (a.name || '').localeCompare(b.name || '', undefined, {
-                        numeric: true,
-                        sensitivity: 'base',
-                    }),
-                ),
-        [allMarkers, tourMarkerIds],
+            [...allMarkers].sort((a, b) =>
+                (a.name || '').localeCompare(b.name || '', undefined, {
+                    numeric: true,
+                    sensitivity: 'base',
+                }),
+            ),
+        [allMarkers],
     );
     return (
         <Card className="flex-1 overflow-auto p-3 sm:p-3 md:p-4">
@@ -335,6 +345,7 @@ function TourCard({
                     }
                     onSelectAvailableMarker={onSelectAvailableMarker}
                     onAddMarkerToTour={onAddMarkerToTour}
+                    getMarkerCountInTour={getMarkerCountInTour}
                 />
             )}
         </Card>
