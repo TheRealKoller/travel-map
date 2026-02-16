@@ -1,4 +1,40 @@
+import { Route } from '@/types/route';
 import { Trip } from '@/types/trip';
+
+/**
+ * Validate if a viewport has valid coordinates
+ */
+export function isValidViewport(
+    latitude: number | null,
+    longitude: number | null,
+    zoom: number | null,
+): boolean {
+    return (
+        latitude !== null &&
+        longitude !== null &&
+        zoom !== null &&
+        !isNaN(latitude) &&
+        !isNaN(longitude) &&
+        !isNaN(zoom)
+    );
+}
+
+/**
+ * Check if a route exists between two markers
+ */
+export function findRouteBetweenMarkers(
+    routes: Route[],
+    startMarkerId: string,
+    endMarkerId: string,
+): Route | undefined {
+    return routes.find(
+        (route) =>
+            (route.start_marker.id === startMarkerId &&
+                route.end_marker.id === endMarkerId) ||
+            (route.start_marker.id === endMarkerId &&
+                route.end_marker.id === startMarkerId),
+    );
+}
 
 /**
  * Calculate a bounding box from a center point and zoom level
