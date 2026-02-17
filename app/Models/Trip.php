@@ -55,7 +55,7 @@ class Trip extends Model
     public function sharedUsers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'trip_user')
-            ->withPivot('role')
+            ->withPivot('collaboration_role')
             ->withTimestamps();
     }
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\UserRole;
 use App\Models\User;
 use App\Models\UserInvitation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -7,7 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 test('user invitation can be created', function () {
-    $inviter = User::factory()->create(['role' => 'admin']);
+    $inviter = User::factory()->admin()->create();
     $email = 'invited@example.com';
     $token = UserInvitation::generateToken();
 
@@ -15,14 +16,14 @@ test('user invitation can be created', function () {
         'email' => $email,
         'token' => $token,
         'invited_by' => $inviter->id,
-        'role' => 'user',
+        'role' => UserRole::User,
         'expires_at' => now()->addDays(7),
     ]);
 
     expect($invitation->email)->toBe($email);
     expect($invitation->token)->toBe($token);
     expect($invitation->invited_by)->toBe($inviter->id);
-    expect($invitation->role)->toBe('user');
+    expect($invitation->role)->toBe(UserRole::User);
     expect($invitation->expires_at)->not->toBeNull();
     expect($invitation->accepted_at)->toBeNull();
 });
@@ -35,13 +36,13 @@ test('invitation token is unique and 64 characters long', function () {
 });
 
 test('invitation belongs to inviter', function () {
-    $inviter = User::factory()->create(['role' => 'admin']);
+    $inviter = User::factory()->admin()->create();
 
     $invitation = UserInvitation::create([
         'email' => 'test@example.com',
         'token' => UserInvitation::generateToken(),
         'invited_by' => $inviter->id,
-        'role' => 'user',
+        'role' => UserRole::User,
         'expires_at' => now()->addDays(7),
     ]);
 
@@ -50,13 +51,13 @@ test('invitation belongs to inviter', function () {
 });
 
 test('user has sent invitations relationship', function () {
-    $inviter = User::factory()->create(['role' => 'admin']);
+    $inviter = User::factory()->admin()->create();
 
     UserInvitation::create([
         'email' => 'test1@example.com',
         'token' => UserInvitation::generateToken(),
         'invited_by' => $inviter->id,
-        'role' => 'user',
+        'role' => UserRole::User,
         'expires_at' => now()->addDays(7),
     ]);
 
@@ -64,7 +65,7 @@ test('user has sent invitations relationship', function () {
         'email' => 'test2@example.com',
         'token' => UserInvitation::generateToken(),
         'invited_by' => $inviter->id,
-        'role' => 'user',
+        'role' => UserRole::User,
         'expires_at' => now()->addDays(7),
     ]);
 
@@ -73,13 +74,13 @@ test('user has sent invitations relationship', function () {
 });
 
 test('invitation knows if it is expired', function () {
-    $inviter = User::factory()->create(['role' => 'admin']);
+    $inviter = User::factory()->admin()->create();
 
     $expiredInvitation = UserInvitation::create([
         'email' => 'expired@example.com',
         'token' => UserInvitation::generateToken(),
         'invited_by' => $inviter->id,
-        'role' => 'user',
+        'role' => UserRole::User,
         'expires_at' => now()->subDays(1),
     ]);
 
@@ -87,7 +88,7 @@ test('invitation knows if it is expired', function () {
         'email' => 'valid@example.com',
         'token' => UserInvitation::generateToken(),
         'invited_by' => $inviter->id,
-        'role' => 'user',
+        'role' => UserRole::User,
         'expires_at' => now()->addDays(7),
     ]);
 
@@ -96,13 +97,13 @@ test('invitation knows if it is expired', function () {
 });
 
 test('invitation knows if it is accepted', function () {
-    $inviter = User::factory()->create(['role' => 'admin']);
+    $inviter = User::factory()->admin()->create();
 
     $acceptedInvitation = UserInvitation::create([
         'email' => 'accepted@example.com',
         'token' => UserInvitation::generateToken(),
         'invited_by' => $inviter->id,
-        'role' => 'user',
+        'role' => UserRole::User,
         'expires_at' => now()->addDays(7),
         'accepted_at' => now(),
     ]);
@@ -111,7 +112,7 @@ test('invitation knows if it is accepted', function () {
         'email' => 'pending@example.com',
         'token' => UserInvitation::generateToken(),
         'invited_by' => $inviter->id,
-        'role' => 'user',
+        'role' => UserRole::User,
         'expires_at' => now()->addDays(7),
     ]);
 
@@ -120,14 +121,14 @@ test('invitation knows if it is accepted', function () {
 });
 
 test('invitation knows if it is valid', function () {
-    $inviter = User::factory()->create(['role' => 'admin']);
+    $inviter = User::factory()->admin()->create();
 
     // Valid invitation
     $validInvitation = UserInvitation::create([
         'email' => 'valid@example.com',
         'token' => UserInvitation::generateToken(),
         'invited_by' => $inviter->id,
-        'role' => 'user',
+        'role' => UserRole::User,
         'expires_at' => now()->addDays(7),
     ]);
 
@@ -136,7 +137,7 @@ test('invitation knows if it is valid', function () {
         'email' => 'expired@example.com',
         'token' => UserInvitation::generateToken(),
         'invited_by' => $inviter->id,
-        'role' => 'user',
+        'role' => UserRole::User,
         'expires_at' => now()->subDays(1),
     ]);
 
@@ -145,7 +146,7 @@ test('invitation knows if it is valid', function () {
         'email' => 'accepted@example.com',
         'token' => UserInvitation::generateToken(),
         'invited_by' => $inviter->id,
-        'role' => 'user',
+        'role' => UserRole::User,
         'expires_at' => now()->addDays(7),
         'accepted_at' => now(),
     ]);
@@ -156,13 +157,13 @@ test('invitation knows if it is valid', function () {
 });
 
 test('invitations are deleted when inviter is deleted', function () {
-    $inviter = User::factory()->create(['role' => 'admin']);
+    $inviter = User::factory()->admin()->create();
 
     $invitation = UserInvitation::create([
         'email' => 'test@example.com',
         'token' => UserInvitation::generateToken(),
         'invited_by' => $inviter->id,
-        'role' => 'user',
+        'role' => UserRole::User,
         'expires_at' => now()->addDays(7),
     ]);
 

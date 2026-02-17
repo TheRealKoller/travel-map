@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use App\Models\UserInvitation;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -22,7 +23,7 @@ class UserInvitationFactory extends Factory
             'email' => fake()->unique()->safeEmail(),
             'token' => UserInvitation::generateToken(),
             'invited_by' => User::factory(),
-            'role' => 'user',
+            'role' => UserRole::User,
             'expires_at' => now()->addDays(7),
             'accepted_at' => null,
         ];

@@ -218,7 +218,7 @@ class TripController extends Controller
         }
 
         // Add user as collaborator with 'editor' role
-        $trip->sharedUsers()->attach($user->id, ['role' => 'editor']);
+        $trip->sharedUsers()->attach($user->id, ['collaboration_role' => 'editor']);
 
         return response()->json([
             'message' => 'Successfully joined the trip',

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -50,6 +51,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
+            'role' => UserRole::class,
         ];
     }
 
@@ -66,7 +68,7 @@ class User extends Authenticatable
     public function sharedTrips(): BelongsToMany
     {
         return $this->belongsToMany(Trip::class, 'trip_user')
-            ->withPivot('role')
+            ->withPivot('collaboration_role')
             ->withTimestamps();
     }
 
@@ -86,7 +88,7 @@ class User extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->role === UserRole::Admin;
     }
 
     /**
@@ -94,7 +96,7 @@ class User extends Authenticatable
      */
     public function isUser(): bool
     {
-        return $this->role === 'user';
+        return $this->role === UserRole::User;
     }
 
     /**

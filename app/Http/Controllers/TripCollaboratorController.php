@@ -20,7 +20,7 @@ class TripCollaboratorController extends Controller
         $this->authorize('view', $trip);
 
         $collaborators = $trip->sharedUsers()
-            ->select(['users.id', 'users.name', 'users.email', 'trip_user.role', 'trip_user.created_at'])
+            ->select(['users.id', 'users.name', 'users.email', 'trip_user.collaboration_role', 'trip_user.created_at'])
             ->get();
 
         // Also include the owner
@@ -28,7 +28,7 @@ class TripCollaboratorController extends Controller
             'id' => $trip->user->id,
             'name' => $trip->user->name,
             'email' => $trip->user->email,
-            'role' => 'owner',
+            'collaboration_role' => 'owner',
             'created_at' => $trip->created_at,
         ];
 
@@ -63,7 +63,7 @@ class TripCollaboratorController extends Controller
 
         // Add the collaborator
         $trip->sharedUsers()->attach($user->id, [
-            'role' => $validated['role'] ?? 'editor',
+            'collaboration_role' => $validated['role'] ?? 'editor',
         ]);
 
         return response()->json([
@@ -72,7 +72,7 @@ class TripCollaboratorController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'role' => $validated['role'] ?? 'editor',
+                'collaboration_role' => $validated['role'] ?? 'editor',
             ],
         ], 201);
     }
