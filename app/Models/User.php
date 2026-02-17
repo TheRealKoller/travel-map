@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -24,6 +25,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -49,6 +51,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
+            'role' => UserRole::class,
         ];
     }
 
@@ -65,7 +68,7 @@ class User extends Authenticatable
     public function sharedTrips(): BelongsToMany
     {
         return $this->belongsToMany(Trip::class, 'trip_user')
-            ->withPivot('role')
+            ->withPivot('collaboration_role')
             ->withTimestamps();
     }
 
@@ -78,5 +81,29 @@ class User extends Authenticatable
             ->orWhereHas('sharedUsers', function ($query) {
                 $query->where('user_id', $this->id);
             });
+    }
+
+    /**
+     * Check if the user has the admin role.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === UserRole::Admin;
+    }
+
+    /**
+     * Check if the user has the user role.
+     */
+    public function isUser(): bool
+    {
+        return $this->role === UserRole::User;
+    }
+
+    /**
+     * Get all invitations sent by this user.
+     */
+    public function sentInvitations(): HasMany
+    {
+        return $this->hasMany(UserInvitation::class, 'invited_by');
     }
 }

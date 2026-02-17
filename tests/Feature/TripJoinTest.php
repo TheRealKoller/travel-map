@@ -42,7 +42,7 @@ test('authenticated user can join a trip using invitation token', function () {
     $this->assertDatabaseHas('trip_user', [
         'trip_id' => $trip->id,
         'user_id' => $this->user->id,
-        'role' => 'editor',
+        'collaboration_role' => 'editor',
     ]);
 });
 
@@ -77,7 +77,7 @@ test('user cannot join trip they are already a collaborator on', function () {
     ]);
 
     // Add user as collaborator first
-    $trip->sharedUsers()->attach($this->user->id, ['role' => 'editor']);
+    $trip->sharedUsers()->attach($this->user->id, ['collaboration_role' => 'editor']);
 
     $response = $this->actingAs($this->user)->postJson('/trips/preview/test-token-abc/join');
 
@@ -116,7 +116,7 @@ test('collaborator sees correct status on preview page', function () {
     ]);
 
     // Add user as collaborator
-    $trip->sharedUsers()->attach($this->user->id, ['role' => 'editor']);
+    $trip->sharedUsers()->attach($this->user->id, ['collaboration_role' => 'editor']);
 
     $response = $this->actingAs($this->user)->get('/trips/preview/test-token-def');
 

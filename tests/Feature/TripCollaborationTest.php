@@ -24,7 +24,7 @@ test('owner can add collaborator to trip', function () {
     $this->assertDatabaseHas('trip_user', [
         'trip_id' => $trip->id,
         'user_id' => $this->collaborator->id,
-        'role' => 'editor',
+        'collaboration_role' => 'editor',
     ]);
 });
 
@@ -40,7 +40,7 @@ test('non-owner cannot add collaborator to trip', function () {
 
 test('cannot add same user as collaborator twice', function () {
     $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
-    $trip->sharedUsers()->attach($this->collaborator->id, ['role' => 'editor']);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'editor']);
 
     $response = $this->actingAs($this->owner)->postJson("/trips/{$trip->id}/collaborators", [
         'email' => $this->collaborator->email,
@@ -63,7 +63,7 @@ test('cannot add owner as collaborator', function () {
 
 test('owner can remove collaborator from trip', function () {
     $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
-    $trip->sharedUsers()->attach($this->collaborator->id, ['role' => 'editor']);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'editor']);
 
     $response = $this->actingAs($this->owner)->deleteJson("/trips/{$trip->id}/collaborators/{$this->collaborator->id}");
 
@@ -77,7 +77,7 @@ test('owner can remove collaborator from trip', function () {
 
 test('non-owner cannot remove collaborator from trip', function () {
     $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
-    $trip->sharedUsers()->attach($this->collaborator->id, ['role' => 'editor']);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'editor']);
 
     $response = $this->actingAs($this->collaborator)->deleteJson("/trips/{$trip->id}/collaborators/{$this->collaborator->id}");
 
@@ -86,7 +86,7 @@ test('non-owner cannot remove collaborator from trip', function () {
 
 test('collaborator can view shared trip', function () {
     $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
-    $trip->sharedUsers()->attach($this->collaborator->id, ['role' => 'editor']);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'editor']);
 
     $response = $this->actingAs($this->collaborator)->getJson("/trips/{$trip->id}");
 
@@ -96,7 +96,7 @@ test('collaborator can view shared trip', function () {
 
 test('collaborator can update shared trip', function () {
     $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
-    $trip->sharedUsers()->attach($this->collaborator->id, ['role' => 'editor']);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'editor']);
 
     $response = $this->actingAs($this->collaborator)->putJson("/trips/{$trip->id}", [
         'name' => 'Updated Trip Name',
@@ -113,7 +113,7 @@ test('collaborator can update shared trip', function () {
 
 test('collaborator cannot delete shared trip', function () {
     $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
-    $trip->sharedUsers()->attach($this->collaborator->id, ['role' => 'editor']);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'editor']);
 
     $response = $this->actingAs($this->collaborator)->deleteJson("/trips/{$trip->id}");
 
@@ -135,7 +135,7 @@ test('non-collaborator cannot view trip', function () {
 test('shared trips appear in user trip list', function () {
     $ownedTrip = Trip::factory()->create(['user_id' => $this->collaborator->id]);
     $sharedTrip = Trip::factory()->create(['user_id' => $this->owner->id]);
-    $sharedTrip->sharedUsers()->attach($this->collaborator->id, ['role' => 'editor']);
+    $sharedTrip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'editor']);
 
     $response = $this->actingAs($this->collaborator)->getJson('/trips');
 
@@ -149,7 +149,7 @@ test('shared trips appear in user trip list', function () {
 
 test('collaborator can view markers in shared trip', function () {
     $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
-    $trip->sharedUsers()->attach($this->collaborator->id, ['role' => 'editor']);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'editor']);
 
     $marker = Marker::factory()->create([
         'user_id' => $this->owner->id,
@@ -164,7 +164,7 @@ test('collaborator can view markers in shared trip', function () {
 
 test('collaborator can create markers in shared trip', function () {
     $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
-    $trip->sharedUsers()->attach($this->collaborator->id, ['role' => 'editor']);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'editor']);
 
     $markerId = \Illuminate\Support\Str::uuid()->toString();
 
@@ -189,7 +189,7 @@ test('collaborator can create markers in shared trip', function () {
 
 test('collaborator can update markers in shared trip', function () {
     $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
-    $trip->sharedUsers()->attach($this->collaborator->id, ['role' => 'editor']);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'editor']);
 
     $marker = Marker::factory()->create([
         'user_id' => $this->owner->id,
@@ -206,7 +206,7 @@ test('collaborator can update markers in shared trip', function () {
 
 test('collaborator can delete markers in shared trip', function () {
     $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
-    $trip->sharedUsers()->attach($this->collaborator->id, ['role' => 'editor']);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'editor']);
 
     $marker = Marker::factory()->create([
         'user_id' => $this->owner->id,
@@ -224,7 +224,7 @@ test('collaborator can delete markers in shared trip', function () {
 
 test('collaborator can create tours in shared trip', function () {
     $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
-    $trip->sharedUsers()->attach($this->collaborator->id, ['role' => 'editor']);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'editor']);
 
     $response = $this->actingAs($this->collaborator)->postJson('/tours', [
         'trip_id' => $trip->id,
@@ -242,7 +242,7 @@ test('collaborator can create tours in shared trip', function () {
 
 test('collaborator can update tours in shared trip', function () {
     $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
-    $trip->sharedUsers()->attach($this->collaborator->id, ['role' => 'editor']);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'editor']);
 
     $tour = Tour::factory()->create(['trip_id' => $trip->id]);
 
@@ -256,7 +256,7 @@ test('collaborator can update tours in shared trip', function () {
 
 test('collaborator can delete tours in shared trip', function () {
     $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
-    $trip->sharedUsers()->attach($this->collaborator->id, ['role' => 'editor']);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'editor']);
 
     $tour = Tour::factory()->create(['trip_id' => $trip->id]);
 
@@ -271,24 +271,24 @@ test('collaborator can delete tours in shared trip', function () {
 
 test('can list all collaborators for a trip', function () {
     $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
-    $trip->sharedUsers()->attach($this->collaborator->id, ['role' => 'editor']);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'editor']);
 
     $response = $this->actingAs($this->owner)->getJson("/trips/{$trip->id}/collaborators");
 
     $response->assertStatus(200)
         ->assertJsonStructure([
-            'owner' => ['id', 'name', 'email', 'role'],
+            'owner' => ['id', 'name', 'email', 'collaboration_role'],
             'collaborators' => [
-                '*' => ['id', 'name', 'email', 'role'],
+                '*' => ['id', 'name', 'email', 'collaboration_role'],
             ],
         ])
-        ->assertJsonFragment(['email' => $this->owner->email, 'role' => 'owner'])
-        ->assertJsonFragment(['email' => $this->collaborator->email, 'role' => 'editor']);
+        ->assertJsonFragment(['email' => $this->owner->email, 'collaboration_role' => 'owner'])
+        ->assertJsonFragment(['email' => $this->collaborator->email, 'collaboration_role' => 'editor']);
 });
 
 test('collaborator can access map for shared trip', function () {
     $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
-    $trip->sharedUsers()->attach($this->collaborator->id, ['role' => 'editor']);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'editor']);
 
     $response = $this->actingAs($this->collaborator)->get("/map/{$trip->id}");
 
