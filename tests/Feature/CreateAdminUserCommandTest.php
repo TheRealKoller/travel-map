@@ -48,8 +48,12 @@ test('create admin command validates email', function () {
         '--name' => 'Admin',
         '--password' => 'password123',
     ])
-        ->expectsOutput('Invalid email address.')
         ->assertFailed();
+
+    // Should not create user with invalid email
+    $this->assertDatabaseMissing('users', [
+        'email' => 'invalid-email',
+    ]);
 });
 
 test('create admin command validates password length', function () {
@@ -58,8 +62,12 @@ test('create admin command validates password length', function () {
         '--name' => 'Admin',
         '--password' => 'short',
     ])
-        ->expectsOutput('Password must be at least 8 characters long.')
         ->assertFailed();
+
+    // Should not create user with short password
+    $this->assertDatabaseMissing('users', [
+        'email' => 'admin@example.com',
+    ]);
 });
 
 test('create admin command can upgrade existing user', function () {

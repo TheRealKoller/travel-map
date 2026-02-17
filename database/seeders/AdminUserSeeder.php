@@ -14,9 +14,9 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
-        $email = env('ADMIN_EMAIL');
-        $password = env('ADMIN_PASSWORD');
-        $name = env('ADMIN_NAME');
+        $email = config('admin.user.email');
+        $password = config('admin.user.password');
+        $name = config('admin.user.name');
 
         if (! $email || ! $password || ! $name) {
             if ($this->command) {
@@ -27,15 +27,25 @@ class AdminUserSeeder extends Seeder
             return;
         }
 
+        $existingUser = User::where('email', $email)->first();
+
+        $attributes = [
+            'name' => $name,
+            'role' => UserRole::Admin,
+        ];
+
+        // Only hash the password if user doesn't exist or password has changed
+        if (! $existingUser || ! Hash::check($password, $existingUser->password)) {
+            $attributes['password'] = Hash::make($password);
+        }
+
         $user = User::updateOrCreate(
             ['email' => $email],
-            [
-                'name' => $name,
-                'password' => Hash::make($password),
-                'role' => UserRole::Admin,
-                'email_verified_at' => now(),
-            ]
+            $attributes
         );
+
+        // Set email_verified_at using forceFill to bypass fillable restriction
+        $user->forceFill(['email_verified_at' => now()])->save();
 
         if ($this->command) {
             if ($user->wasRecentlyCreated) {

@@ -36,20 +36,19 @@ class CreateAdminUser extends Command
         $name = $this->option('name') ?? $this->ask('Name');
         $password = $this->option('password') ?? $this->secret('Password');
 
-        // Validate email
-        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->error('Invalid email address.');
-
-            return self::FAILURE;
-        }
-
-        // Validate password
-        $validator = Validator::make(['password' => $password], [
+        // Validate email and password together
+        $validator = Validator::make([
+            'email' => $email,
+            'password' => $password,
+        ], [
+            'email' => ['required', 'email'],
             'password' => ['required', 'string', 'min:8'],
         ]);
 
         if ($validator->fails()) {
-            $this->error('Password must be at least 8 characters long.');
+            foreach ($validator->errors()->all() as $error) {
+                $this->error($error);
+            }
 
             return self::FAILURE;
         }
@@ -74,8 +73,10 @@ class CreateAdminUser extends Command
                 'name' => $name,
                 'password' => Hash::make($password),
                 'role' => UserRole::Admin,
-                'email_verified_at' => $existingUser->email_verified_at ?? now(),
             ]);
+
+            // Set email_verified_at using forceFill to match seeder behavior
+            $existingUser->forceFill(['email_verified_at' => now()])->save();
 
             $this->info("User updated to admin: {$email}");
 
@@ -83,13 +84,15 @@ class CreateAdminUser extends Command
         }
 
         // Create new admin user
-        User::create([
+        $user = User::create([
             'email' => $email,
             'name' => $name,
             'password' => Hash::make($password),
             'role' => UserRole::Admin,
-            'email_verified_at' => now(),
         ]);
+
+        // Set email_verified_at using forceFill to bypass fillable restriction
+        $user->forceFill(['email_verified_at' => now()])->save();
 
         $this->info("Admin user created: {$email}");
 
