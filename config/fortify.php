@@ -144,7 +144,7 @@ return [
     */
 
     'features' => [
-        Features::registration(),
+        // Features::registration(), // Disabled - use token-based invitation system instead
         Features::resetPasswords(),
         Features::emailVerification(),
         Features::twoFactorAuthentication([

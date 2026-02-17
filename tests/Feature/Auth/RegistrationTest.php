@@ -1,19 +1,21 @@
 <?php
 
-test('registration screen can be rendered', function () {
-    $response = $this->get(route('register'));
-
-    $response->assertStatus(200);
+test('public registration is disabled', function () {
+    // Try to access the register route - should not exist
+    $this->get('/register')->assertNotFound();
 });
 
-test('new users can register', function () {
-    $response = $this->post(route('register.store'), [
+test('public registration endpoint is disabled', function () {
+    // Try to post to register route - should not exist
+    $this->post('/register', [
         'name' => 'Test User',
         'email' => 'test@example.com',
         'password' => 'password',
         'password_confirmation' => 'password',
-    ]);
+    ])->assertNotFound();
 
-    $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    // Verify user was not created
+    $this->assertDatabaseMissing('users', [
+        'email' => 'test@example.com',
+    ]);
 });

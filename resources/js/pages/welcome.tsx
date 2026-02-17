@@ -1,4 +1,5 @@
-import { dashboard, login, register } from '@/routes';
+import { dashboard, login } from '@/routes';
+// import { register } from '@/routes'; // Disabled: public registration removed
 import { type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 
@@ -38,7 +39,7 @@ export default function Welcome({
                                 </Link>
                                 {canRegister && (
                                     <Link
-                                        href={register()}
+                                        href="#"
                                         className="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
                                     >
                                         Register

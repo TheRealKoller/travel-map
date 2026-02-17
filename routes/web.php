@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\LeChatAgentController;
+use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LogViewerController;
 use App\Http\Controllers\MapboxController;
 use App\Http\Controllers\MarkerController;
@@ -15,10 +16,23 @@ Route::get('/', function () {
     return redirect()->route('trips.index');
 })->middleware(['auth', 'verified'])->name('home');
 
+// Public invitation routes (no auth required)
+Route::get('/register/{token}', [InvitationController::class, 'show'])
+    ->name('register.invitation');
+Route::post('/register/{token}', [InvitationController::class, 'accept'])
+    ->name('register.invitation.accept');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
+
+    // Admin-only invitation management routes
+    Route::prefix('admin')->middleware('admin')->group(function () {
+        Route::get('/invitations', [InvitationController::class, 'index'])->name('admin.invitations.index');
+        Route::post('/invitations', [InvitationController::class, 'store'])->name('admin.invitations.store');
+        Route::delete('/invitations/{invitation}', [InvitationController::class, 'destroy'])->name('admin.invitations.destroy');
+    });
 
     // Trip routes
     Route::get('/trips', [TripController::class, 'index'])->name('trips.index');

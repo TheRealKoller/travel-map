@@ -60,6 +60,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Define authorization gates
+        \Illuminate\Support\Facades\Gate::define('invite-users', function (\App\Models\User $user) {
+            return $user->role === \App\Enums\UserRole::Admin;
+        });
+
         // Register TripObserver to handle viewport static image updates
         \App\Models\Trip::observe(\App\Observers\TripObserver::class);
 
