@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Mail\UserInvitationMail;
 use App\Models\User;
 use App\Models\UserInvitation;
+use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -43,7 +44,7 @@ class InvitationController extends Controller
         Gate::authorize('invite-users');
 
         $validated = $request->validate([
-            'email' => ['required', 'email', 'unique:users,email', 'unique:user_invitations,email'],
+            'email' => ['required', 'email', 'lowercase', 'unique:users,email', 'unique:user_invitations,email'],
         ]);
 
         $invitation = UserInvitation::create([
@@ -97,7 +98,16 @@ class InvitationController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'in:'.$invitation->email],
+            'email' => [
+                'required',
+                'email',
+                'lowercase',
+                function (string $attribute, mixed $value, Closure $fail) use ($invitation): void {
+                    if (strcasecmp((string) $value, (string) $invitation->email) !== 0) {
+                        $fail('The '.$attribute.' must match the invitation email.');
+                    }
+                },
+            ],
             'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
@@ -105,9 +115,11 @@ class InvitationController extends Controller
             'name' => $validated['name'],
             'email' => $invitation->email,
             'password' => Hash::make($validated['password']),
-            'email_verified_at' => now(),
             'role' => $invitation->role,
         ]);
+
+        // Verify email explicitly (not mass-assignable for security)
+        $user->forceFill(['email_verified_at' => now()])->save();
 
         $invitation->update([
             'accepted_at' => now(),
