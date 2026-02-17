@@ -64,7 +64,7 @@ class AppServiceProvider extends ServiceProvider
 
         // User Management Gates
         \Illuminate\Support\Facades\Gate::define('invite-users', function (\App\Models\User $user) {
-            return $user->role === \App\Enums\UserRole::Admin;
+            return $user->isAdmin();
         });
 
         \Illuminate\Support\Facades\Gate::define('manage-users', function (\App\Models\User $user) {
