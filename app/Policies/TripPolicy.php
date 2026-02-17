@@ -9,10 +9,11 @@ class TripPolicy
 {
     /**
      * Determine whether the user can view any models.
+     * Only admins can view all trips (for admin dashboard).
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->isAdmin();
     }
 
     /**
@@ -20,7 +21,7 @@ class TripPolicy
      */
     public function view(User $user, Trip $trip): bool
     {
-        return $trip->hasAccess($user);
+        return $user->isAdmin() || $trip->hasAccess($user);
     }
 
     /**
@@ -36,7 +37,7 @@ class TripPolicy
      */
     public function update(User $user, Trip $trip): bool
     {
-        return $trip->hasAccess($user);
+        return $user->isAdmin() || $trip->hasAccess($user);
     }
 
     /**
@@ -45,7 +46,7 @@ class TripPolicy
      */
     public function delete(User $user, Trip $trip): bool
     {
-        return $trip->isOwner($user);
+        return $user->isAdmin() || $trip->isOwner($user);
     }
 
     /**
