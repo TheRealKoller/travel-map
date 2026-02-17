@@ -34,7 +34,15 @@ class CreateAdminUser extends Command
     {
         $email = $this->option('email') ?? $this->ask('Email address');
         $name = $this->option('name') ?? $this->ask('Name');
-        $password = $this->option('password') ?? $this->secret('Password');
+
+        // Warn if password is provided via command line option (security risk)
+        if ($this->option('password')) {
+            $this->warn('Warning: Passing passwords via command line options can expose them in shell history and process listings.');
+            $this->warn('Consider using the interactive mode instead for better security.');
+            $password = $this->option('password');
+        } else {
+            $password = $this->secret('Password');
+        }
 
         // Validate email and password together
         $validator = Validator::make([
