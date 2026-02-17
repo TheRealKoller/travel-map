@@ -24,6 +24,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -78,5 +79,29 @@ class User extends Authenticatable
             ->orWhereHas('sharedUsers', function ($query) {
                 $query->where('user_id', $this->id);
             });
+    }
+
+    /**
+     * Check if the user has the admin role.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    /**
+     * Check if the user has the user role.
+     */
+    public function isUser(): bool
+    {
+        return $this->role === 'user';
+    }
+
+    /**
+     * Get all invitations sent by this user.
+     */
+    public function sentInvitations(): HasMany
+    {
+        return $this->hasMany(UserInvitation::class, 'invited_by');
     }
 }
