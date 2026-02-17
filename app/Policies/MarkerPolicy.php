@@ -9,11 +9,11 @@ class MarkerPolicy
 {
     /**
      * Determine whether the user can view any models.
-     * Disabled as markers are fetched directly through user relationship.
+     * Only admins can view all markers (for admin dashboard).
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->isAdmin();
     }
 
     /**
@@ -72,6 +72,11 @@ class MarkerPolicy
      */
     private function canAccessMarker(User $user, Marker $marker): bool
     {
+        // Admin has always access
+        if ($user->isAdmin()) {
+            return true;
+        }
+
         // Check if user owns the marker directly
         if ($user->id === $marker->user_id) {
             return true;

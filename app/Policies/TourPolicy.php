@@ -9,10 +9,11 @@ class TourPolicy
 {
     /**
      * Determine whether the user can view any models.
+     * Only admins can view all tours (for admin dashboard).
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->isAdmin();
     }
 
     /**
@@ -20,7 +21,7 @@ class TourPolicy
      */
     public function view(User $user, Tour $tour): bool
     {
-        return $tour->trip->hasAccess($user);
+        return $this->canAccessTour($user, $tour);
     }
 
     /**
@@ -36,7 +37,7 @@ class TourPolicy
      */
     public function update(User $user, Tour $tour): bool
     {
-        return $tour->trip->hasAccess($user);
+        return $this->canAccessTour($user, $tour);
     }
 
     /**
@@ -44,7 +45,7 @@ class TourPolicy
      */
     public function delete(User $user, Tour $tour): bool
     {
-        return $tour->trip->hasAccess($user);
+        return $this->canAccessTour($user, $tour);
     }
 
     /**
@@ -61,5 +62,19 @@ class TourPolicy
     public function forceDelete(User $user, Tour $tour): bool
     {
         return false;
+    }
+
+    /**
+     * Check if a user can access a tour (admin or has access to the trip).
+     */
+    private function canAccessTour(User $user, Tour $tour): bool
+    {
+        // Admin has always access
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        // Check if user has access to the trip
+        return $tour->trip->hasAccess($user);
     }
 }
