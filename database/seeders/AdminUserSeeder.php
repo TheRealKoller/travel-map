@@ -19,8 +19,10 @@ class AdminUserSeeder extends Seeder
         $name = env('ADMIN_NAME');
 
         if (! $email || ! $password || ! $name) {
-            $this->command->warn('Admin user configuration missing in .env file.');
-            $this->command->warn('Set ADMIN_EMAIL, ADMIN_PASSWORD, and ADMIN_NAME to create an admin user.');
+            if ($this->command) {
+                $this->command->warn('Admin user configuration missing in .env file.');
+                $this->command->warn('Set ADMIN_EMAIL, ADMIN_PASSWORD, and ADMIN_NAME to create an admin user.');
+            }
 
             return;
         }
@@ -35,10 +37,12 @@ class AdminUserSeeder extends Seeder
             ]
         );
 
-        if ($user->wasRecentlyCreated) {
-            $this->command->info("Admin user created: {$email}");
-        } else {
-            $this->command->info("Admin user updated: {$email}");
+        if ($this->command) {
+            if ($user->wasRecentlyCreated) {
+                $this->command->info("Admin user created: {$email}");
+            } else {
+                $this->command->info("Admin user updated: {$email}");
+            }
         }
     }
 }
