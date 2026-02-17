@@ -61,8 +61,45 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Define authorization gates
+
+        // User Management Gates
         \Illuminate\Support\Facades\Gate::define('invite-users', function (\App\Models\User $user) {
             return $user->role === \App\Enums\UserRole::Admin;
+        });
+
+        \Illuminate\Support\Facades\Gate::define('manage-users', function (\App\Models\User $user) {
+            return $user->isAdmin();
+        });
+
+        // Trip Management Gates
+        \Illuminate\Support\Facades\Gate::define('view-all-trips', function (\App\Models\User $user) {
+            return $user->isAdmin();
+        });
+
+        \Illuminate\Support\Facades\Gate::define('edit-all-trips', function (\App\Models\User $user) {
+            return $user->isAdmin();
+        });
+
+        \Illuminate\Support\Facades\Gate::define('delete-all-trips', function (\App\Models\User $user) {
+            return $user->isAdmin();
+        });
+
+        // Marker Management Gates
+        \Illuminate\Support\Facades\Gate::define('view-all-markers', function (\App\Models\User $user) {
+            return $user->isAdmin();
+        });
+
+        \Illuminate\Support\Facades\Gate::define('edit-all-markers', function (\App\Models\User $user) {
+            return $user->isAdmin();
+        });
+
+        // Tour Management Gates
+        \Illuminate\Support\Facades\Gate::define('view-all-tours', function (\App\Models\User $user) {
+            return $user->isAdmin();
+        });
+
+        \Illuminate\Support\Facades\Gate::define('edit-all-tours', function (\App\Models\User $user) {
+            return $user->isAdmin();
         });
 
         // Register TripObserver to handle viewport static image updates
