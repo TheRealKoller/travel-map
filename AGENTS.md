@@ -360,7 +360,7 @@ If your application uses the `<Form>` component from Inertia, you can use Wayfin
   it('returns all', function () {
   $response = $this->postJson('/api/docs', []);
 
-        $response->assertSuccessful();
+              $response->assertSuccessful();
 
     });
     </code-snippet>
@@ -453,6 +453,7 @@ import { Link } from '@inertiajs/react'
 import { Form } from '@inertiajs/react'
 
 export default () => (
+
 <Form action="/users" method="post">
 {({
 errors,
@@ -535,19 +536,20 @@ defaults
 - Tailwind v4 removed deprecated utilities. Do not use the deprecated option; use the replacement.
 - Opacity values are still numeric.
 
-| Deprecated | Replacement |
-|------------+--------------|
-| bg-opacity-_ | bg-black/_ |
-| text-opacity-_ | text-black/_ |
-| border-opacity-_ | border-black/_ |
-| divide-opacity-_ | divide-black/_ |
-| ring-opacity-_ | ring-black/_ |
-| placeholder-opacity-_ | placeholder-black/_ |
-| flex-shrink-_ | shrink-_ |
-| flex-grow-_ | grow-_ |
-| overflow-ellipsis | text-ellipsis |
-| decoration-slice | box-decoration-slice |
-| decoration-clone | box-decoration-clone |
+| Deprecated             | Replacement          |
+| ---------------------- | -------------------- |
+| bg-opacity-\*          | bg-black/\*          |
+| text-opacity-\*        | text-black/\*        |
+| border-opacity-\*      | border-black/\*      |
+| divide-opacity-\*      | divide-black/\*      |
+| ring-opacity-\*        | ring-black/\*        |
+| placeholder-opacity-\* | placeholder-black/\* |
+| flex-shrink-\*         | shrink-\*            |
+| flex-grow-\*           | grow-\*              |
+| overflow-ellipsis      | text-ellipsis        |
+| decoration-slice       | box-decoration-slice |
+| decoration-clone       | box-decoration-clone |
+
 </laravel-boost-guidelines>
 
 === travel-map project rules ===
