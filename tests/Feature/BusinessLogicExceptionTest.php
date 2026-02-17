@@ -41,6 +41,14 @@ test('BusinessLogicException returns correct status code for 400 errors', functi
 });
 
 test('BusinessLogicException returns correct status code for 404 errors', function () {
+    // Mock the UnsplashService to return null (no image found)
+    $mockService = Mockery::mock(\App\Services\UnsplashService::class);
+    $mockService->shouldReceive('getPhotoForTrip')
+        ->once()
+        ->andReturn(null);
+
+    $this->app->instance(\App\Services\UnsplashService::class, $mockService);
+
     $response = $this->actingAs($this->user)->postJson("/trips/{$this->trip->id}/fetch-image");
 
     $response->assertStatus(404)
