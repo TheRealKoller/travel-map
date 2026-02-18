@@ -235,6 +235,12 @@ jobs:
             php artisan route:cache 2>/dev/null || true
             php artisan view:cache 2>/dev/null || true
             
+            # Queue Worker Management
+            echo "🔄 Restarting queue workers..."
+            chmod +x scripts/queue-worker-control.sh
+            ./scripts/queue-worker-control.sh restart 2>/dev/null || true
+            echo "✅ Queue workers restarted"
+            
             # Optional: Migrationen (auskommentiert zur Sicherheit)
             # php artisan migrate --force
             
