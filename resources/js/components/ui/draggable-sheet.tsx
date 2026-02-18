@@ -28,11 +28,18 @@ export function DraggableSheet({
     halfHeight = 50,
 }: DraggableSheetProps) {
     const sheetRef = React.useRef<HTMLDivElement>(null);
+    const contentRef = React.useRef<HTMLDivElement>(null);
     const [isDragging, setIsDragging] = React.useState(false);
     const [startY, setStartY] = React.useState(0);
     const [currentHeight, setCurrentHeight] = React.useState(0);
     const [internalSnapPoint, setInternalSnapPoint] =
         React.useState<SnapPoint>(snapPoint);
+    
+    // Smart Touch Detection state
+    const [initialTouchY, setInitialTouchY] = React.useState(0);
+    const [hasCrossedThreshold, setHasCrossedThreshold] = React.useState(false);
+    const [touchStartElement, setTouchStartElement] = React.useState<'handle' | 'content' | null>(null);
+    const DRAG_THRESHOLD = 10; // px
 
     // Update internal snap point when prop changes
     React.useEffect(() => {
@@ -87,18 +94,40 @@ export function DraggableSheet({
 
     const handleTouchStart = (e: React.TouchEvent) => {
         if (!sheetRef.current) return;
-        setIsDragging(true);
+        
+        // Mark that touch started on handle
+        setTouchStartElement('handle');
+        setInitialTouchY(e.touches[0].clientY);
         setStartY(e.touches[0].clientY);
         setCurrentHeight(sheetRef.current.offsetHeight);
+        setHasCrossedThreshold(false);
+        // Don't set isDragging immediately - wait for threshold
     };
 
     const handleTouchMove = (e: React.TouchEvent) => {
-        if (!isDragging || !sheetRef.current) return;
+        if (!sheetRef.current) return;
+        
+        const currentY = e.touches[0].clientY;
+        const deltaY = initialTouchY - currentY;
+        const absDeltaY = Math.abs(deltaY);
+        
+        // Only start dragging if threshold is crossed and touch started on handle
+        if (!hasCrossedThreshold && touchStartElement === 'handle') {
+            if (absDeltaY > DRAG_THRESHOLD) {
+                setHasCrossedThreshold(true);
+                setIsDragging(true);
+            } else {
+                // Still below threshold, don't drag
+                return;
+            }
+        }
+        
+        if (!isDragging) return;
 
-        const deltaY = startY - e.touches[0].clientY;
+        const moveFromStart = startY - currentY;
         const newHeight = Math.max(
             0,
-            Math.min(window.innerHeight * 0.9, currentHeight + deltaY),
+            Math.min(window.innerHeight * 0.9, currentHeight + moveFromStart),
         );
 
         sheetRef.current.style.height = `${newHeight}px`;
@@ -106,7 +135,13 @@ export function DraggableSheet({
     };
 
     const handleTouchEnd = () => {
-        if (!isDragging || !sheetRef.current) return;
+        if (!sheetRef.current) return;
+        
+        // Reset touch tracking
+        setTouchStartElement(null);
+        setHasCrossedThreshold(false);
+
+        if (!isDragging) return;
 
         setIsDragging(false);
         const currentHeightValue = sheetRef.current.offsetHeight;
@@ -180,6 +215,55 @@ export function DraggableSheet({
             };
         }
     }, [isDragging, handleMouseMove, handleMouseUp]);
+    
+    // Handle touch on content area - prevent drag if content is scrollable
+    const handleContentTouchStart = (e: React.TouchEvent) => {
+        if (!contentRef.current) return;
+        
+        const content = contentRef.current;
+        const isScrollable = content.scrollHeight > content.clientHeight;
+        const isAtTop = content.scrollTop === 0;
+        
+        // If content is scrollable and not at top, prevent dragging
+        if (isScrollable && !isAtTop) {
+            e.stopPropagation();
+            return;
+        }
+        
+        // Store initial touch for potential over-scroll drag
+        setTouchStartElement('content');
+        setInitialTouchY(e.touches[0].clientY);
+    };
+    
+    const handleContentTouchMove = (e: React.TouchEvent) => {
+        if (!contentRef.current) return;
+        
+        const content = contentRef.current;
+        const isScrollable = content.scrollHeight > content.clientHeight;
+        const isAtTop = content.scrollTop === 0;
+        const currentY = e.touches[0].clientY;
+        const deltaY = initialTouchY - currentY;
+        
+        // If scrolling down (deltaY < 0) while at top, allow potential sheet drag
+        if (isAtTop && deltaY < 0 && touchStartElement === 'content') {
+            // User is pulling down at top of content - could be trying to close sheet
+            if (Math.abs(deltaY) > DRAG_THRESHOLD) {
+                // Start dragging the sheet
+                setHasCrossedThreshold(true);
+                setIsDragging(true);
+                setStartY(initialTouchY);
+                if (sheetRef.current) {
+                    setCurrentHeight(sheetRef.current.offsetHeight);
+                }
+                return;
+            }
+        }
+        
+        // If content is scrollable, stop propagation to prevent sheet drag
+        if (isScrollable) {
+            e.stopPropagation();
+        }
+    };
 
     if (!isOpen && internalSnapPoint === 'closed') {
         return null;
@@ -217,7 +301,7 @@ export function DraggableSheet({
             >
                 {/* Drag Handle */}
                 <div
-                    className="flex cursor-grab flex-col items-center py-3 active:cursor-grabbing"
+                    className="flex cursor-grab flex-col items-center py-3 touch-none active:cursor-grabbing"
                     onTouchStart={handleTouchStart}
                     onTouchMove={handleTouchMove}
                     onTouchEnd={handleTouchEnd}
@@ -256,7 +340,13 @@ export function DraggableSheet({
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto px-4 pb-4">
+                <div 
+                    ref={contentRef}
+                    className="flex-1 overflow-y-auto px-4 pb-4 touch-pan-y overscroll-contain"
+                    onTouchStart={handleContentTouchStart}
+                    onTouchMove={handleContentTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                >
                     {children}
                 </div>
             </div>
