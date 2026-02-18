@@ -3,15 +3,14 @@ import { CheckCircle2, Clock, XCircle } from 'lucide-react';
 
 interface InvitationStatusBadgeProps {
     accepted_at: string | null;
-    expires_at: string;
+    is_expired: boolean;
 }
 
 export default function InvitationStatusBadge({
     accepted_at,
-    expires_at,
+    is_expired,
 }: InvitationStatusBadgeProps) {
     const isAccepted = accepted_at !== null;
-    const isExpired = new Date(expires_at) < new Date();
 
     if (isAccepted) {
         return (
@@ -25,7 +24,7 @@ export default function InvitationStatusBadge({
         );
     }
 
-    if (isExpired) {
+    if (is_expired) {
         return (
             <Badge
                 variant="outline"

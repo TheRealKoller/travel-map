@@ -22,6 +22,7 @@ interface Invitation {
     expires_at: string;
     accepted_at: string | null;
     created_at: string;
+    is_expired: boolean;
     inviter: Inviter;
 }
 
@@ -46,6 +47,9 @@ interface PaginatedInvitations {
 
 interface InvitationsIndexProps {
     invitations: PaginatedInvitations;
+    filters: {
+        status?: string | null;
+    };
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -61,7 +65,17 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function InvitationsIndex({
     invitations,
+    filters,
 }: InvitationsIndexProps) {
+    const currentStatus = filters.status || 'all';
+
+    const handleStatusChange = (status: string) => {
+        router.get('/admin/invitations', status === 'all' ? {} : { status }, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
     const handleDelete = (invitationId: number) => {
         if (
             !confirm(
@@ -87,6 +101,19 @@ export default function InvitationsIndex({
                 />
 
                 <SendInvitationForm />
+
+                <Tabs
+                    value={currentStatus}
+                    onValueChange={handleStatusChange}
+                    className="w-full"
+                >
+                    <TabsList>
+                        <TabsTrigger value="all">All</TabsTrigger>
+                        <TabsTrigger value="pending">Pending</TabsTrigger>
+                        <TabsTrigger value="expired">Expired</TabsTrigger>
+                        <TabsTrigger value="accepted">Accepted</TabsTrigger>
+                    </TabsList>
+                </Tabs>
 
                 <div className="rounded-lg border bg-card shadow-sm">
                     <div className="border-b p-6">
@@ -150,8 +177,8 @@ export default function InvitationsIndex({
                                                     accepted_at={
                                                         invitation.accepted_at
                                                     }
-                                                    expires_at={
-                                                        invitation.expires_at
+                                                    is_expired={
+                                                        invitation.is_expired
                                                     }
                                                 />
                                             </td>

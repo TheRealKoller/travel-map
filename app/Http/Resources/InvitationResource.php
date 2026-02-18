@@ -21,6 +21,7 @@ class InvitationResource extends JsonResource
             'invited_by' => $this->invited_by,
             'accepted_at' => $this->accepted_at,
             'expires_at' => $this->expires_at,
+            'is_expired' => $this->isExpired(),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'inviter' => $this->whenLoaded('inviter', fn () => [
