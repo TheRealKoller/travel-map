@@ -114,17 +114,19 @@ test('invitation email contains expiration date', function () {
 test('invitation email is sent with correct from name', function () {
     Mail::fake();
 
-    config(['app.name' => 'TravelMap Test']);
+    $appName = 'TravelMap Test';
+    config(['app.name' => $appName]);
+    config(['mail.from.name' => $appName]);
 
     $admin = User::factory()->admin()->create();
 
     actingAs($admin)
         ->post(route('admin.invitations.store'), ['email' => 'test@test.com']);
 
-    Mail::assertQueued(UserInvitationMail::class, function ($mail) {
-        $rendered = $mail->render();
-
-        return str_contains($rendered, config('app.name'));
+    Mail::assertQueued(UserInvitationMail::class, function ($mail) use ($appName) {
+        // Check the rendered content contains the app name
+        // (the From header uses config value)
+        return str_contains($mail->render(), $appName);
     });
 });
 
