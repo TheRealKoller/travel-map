@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
+use App\Http\Resources\InvitationResource;
 use App\Mail\UserInvitationMail;
 use App\Models\User;
 use App\Models\UserInvitation;
@@ -22,17 +23,33 @@ class InvitationController extends Controller
     /**
      * Display a listing of invitations (admin only).
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
         Gate::authorize('invite-users');
 
+        $status = $request->query('status');
+
         $invitations = UserInvitation::query()
             ->with('inviter')
+            ->when($status === 'pending', function ($query) {
+                $query->where('accepted_at', null)
+                    ->where('expires_at', '>', now());
+            })
+            ->when($status === 'expired', function ($query) {
+                $query->where('accepted_at', null)
+                    ->where('expires_at', '<=', now());
+            })
+            ->when($status === 'accepted', function ($query) {
+                $query->whereNotNull('accepted_at');
+            })
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
         return Inertia::render('admin/invitations/index', [
-            'invitations' => $invitations,
+            'invitations' => InvitationResource::collection($invitations),
+            'filters' => [
+                'status' => $status,
+            ],
         ]);
     }
 

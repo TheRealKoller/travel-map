@@ -11,29 +11,49 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Luggage, Map } from 'lucide-react';
+import { index as adminInvitationsIndex } from '@/routes/admin/invitations';
+import { type NavItem, type SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
+import {
+    BookOpen,
+    Folder,
+    LayoutGrid,
+    Luggage,
+    Map,
+    UserPlus,
+} from 'lucide-react';
 import AppLogo from './app-logo';
 import { MapboxUsageProgressBar } from './mapbox-usage-progress-bar';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Map',
-        href: '/',
-        icon: Map,
-    },
-    {
-        title: 'Trips',
-        href: '/trips',
-        icon: Luggage,
-    },
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-];
+const getMainNavItems = (isAdmin: boolean): NavItem[] => {
+    const items: NavItem[] = [
+        {
+            title: 'Map',
+            href: '/',
+            icon: Map,
+        },
+        {
+            title: 'Trips',
+            href: '/trips',
+            icon: Luggage,
+        },
+        {
+            title: 'Dashboard',
+            href: dashboard(),
+            icon: LayoutGrid,
+        },
+    ];
+
+    if (isAdmin) {
+        items.push({
+            title: 'User invitations',
+            href: adminInvitationsIndex(),
+            icon: UserPlus,
+        });
+    }
+
+    return items;
+};
 
 const footerNavItems: NavItem[] = [
     {
@@ -49,6 +69,10 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const { auth } = usePage<SharedData>().props;
+    const isAdmin = auth.user?.role === 'admin';
+    const mainNavItems = getMainNavItems(isAdmin);
+
     return (
         <Sidebar collapsible="offcanvas" variant="inset">
             <SidebarHeader>

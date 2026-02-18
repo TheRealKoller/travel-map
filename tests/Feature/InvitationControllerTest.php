@@ -23,7 +23,7 @@ test('admin can view invitations list', function () {
     actingAs($admin)
         ->get(route('admin.invitations.index'))
         ->assertOk();
-})->skip('Frontend not implemented yet - see separate frontend issue');
+});
 
 // Non-admin cannot view invitations list
 test('non-admin cannot view invitations list', function () {
