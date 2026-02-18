@@ -2,15 +2,16 @@
 # Queue Worker Control Script for TravelMap
 # Usage: ./queue-worker-control.sh {start|stop|restart|status}
 
-set -e
+# Note: Do not use 'set -e' here; this script intentionally tolerates some command failures.
 
 # Determine script and project directories
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-PID_FILE="$PROJECT_DIR/storage/queue-worker.pid"
+PID_FILE="$PROJECT_DIR/storage/framework/queue-worker.pid"
 LOG_FILE="$PROJECT_DIR/storage/logs/queue-worker.log"
 
-# Ensure log directory exists
+# Ensure directories exist
+mkdir -p "$(dirname "$PID_FILE")"
 mkdir -p "$(dirname "$LOG_FILE")"
 
 # Colors for output
@@ -18,6 +19,11 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
+
+# Note: This log file will grow over time. Consider implementing log rotation via:
+# - Server-side logrotate configuration
+# - Laravel's daily logging (LOG_CHANNEL=daily)
+# - Manual archival of old logs in this script
 
 function start() {
     if [ -f "$PID_FILE" ]; then
@@ -35,11 +41,18 @@ function start() {
     cd "$PROJECT_DIR"
     
     # Start queue worker in background with nohup
-    nohup php artisan queue:work --tries=3 --timeout=90 >> "$LOG_FILE" 2>&1 &
+    # Production options:
+    # --connection=database: Explicitly use database queue connection
+    # --queue=default: Process jobs from the default queue
+    # --sleep=3: Wait 3 seconds when no jobs available (prevents CPU spinning)
+    # --tries=3: Retry failed jobs up to 3 times
+    # --max-jobs=1000: Restart worker after 1000 jobs (prevents memory leaks)
+    # --timeout=60: Job timeout (should be less than retry_after to prevent overlap)
+    nohup php artisan queue:work --connection=database --queue=default --sleep=3 --tries=3 --max-jobs=1000 --timeout=60 >> "$LOG_FILE" 2>&1 &
     WORKER_PID=$!
     
     # Save PID to file
-    echo $WORKER_PID > "$PID_FILE"
+    echo "$WORKER_PID" > "$PID_FILE"
     
     # Give it a moment to start
     sleep 1
@@ -60,7 +73,8 @@ function stop() {
         echo -e "${YELLOW}No PID file found. Checking for running queue workers...${NC}"
         
         # Try to find and kill any running queue workers
-        PIDS=$(pgrep -f "php artisan queue:work" || true)
+        # More specific pattern to avoid matching unrelated processes
+        PIDS=$(pgrep -f "php artisan queue:work --connection=database" || true)
         if [ -z "$PIDS" ]; then
             echo -e "${YELLOW}No queue workers running${NC}"
             return 0
@@ -102,9 +116,45 @@ function stop() {
 }
 
 function restart() {
-    echo -e "${YELLOW}Restarting queue worker...${NC}"
-    stop
-    sleep 1
+    echo -e "${YELLOW}Restarting queue worker gracefully...${NC}"
+
+    # If we have a PID file and the process is running, ask Laravel to restart workers gracefully
+    if [ -f "$PID_FILE" ]; then
+        PID=$(cat "$PID_FILE")
+
+        if ps -p "$PID" > /dev/null 2>&1; then
+            # Trigger Laravel's graceful queue restart mechanism
+            (
+                cd "$PROJECT_DIR"
+                php artisan queue:restart >> "$LOG_FILE" 2>&1
+            )
+
+            echo -e "${YELLOW}Waiting for current queue worker (PID: $PID) to finish current jobs...${NC}"
+
+            # Wait up to 60 seconds for the worker to exit
+            MAX_WAIT=60
+            WAITED=0
+            while ps -p "$PID" > /dev/null 2>&1 && [ "$WAITED" -lt "$MAX_WAIT" ]; do
+                sleep 1
+                WAITED=$((WAITED + 1))
+            done
+
+            if ps -p "$PID" > /dev/null 2>&1; then
+                echo -e "${YELLOW}Worker PID $PID still running after ${MAX_WAIT}s; forcing stop...${NC}"
+                stop
+            else
+                echo -e "${GREEN}Previous worker PID $PID stopped gracefully.${NC}"
+                rm -f "$PID_FILE"
+            fi
+        else
+            echo -e "${YELLOW}No running worker found for PID file (PID: $PID). Starting a new worker...${NC}"
+            rm -f "$PID_FILE"
+        fi
+    else
+        echo -e "${YELLOW}No PID file found; starting a new worker...${NC}"
+    fi
+    
+    # Start new worker
     start
 }
 
@@ -112,8 +162,8 @@ function status() {
     if [ ! -f "$PID_FILE" ]; then
         echo -e "${RED}❌ Queue worker not running (no PID file)${NC}"
         
-        # Check for orphaned processes
-        PIDS=$(pgrep -f "php artisan queue:work" || true)
+        # Check for orphaned processes - more specific pattern
+        PIDS=$(pgrep -f "php artisan queue:work --connection=database" || true)
         if [ -n "$PIDS" ]; then
             echo -e "${YELLOW}⚠️  Found orphaned queue worker processes:${NC}"
             echo "$PIDS" | while read pid; do
@@ -163,7 +213,7 @@ case "${1:-}" in
         echo "Commands:"
         echo "  start   - Start the queue worker in background"
         echo "  stop    - Stop all running queue workers"
-        echo "  restart - Stop and restart the queue worker"
+        echo "  restart - Stop and restart the queue worker gracefully"
         echo "  status  - Show queue worker status and recent logs"
         exit 1
         ;;

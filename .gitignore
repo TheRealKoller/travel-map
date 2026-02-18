@@ -9,6 +9,7 @@
 /resources/js/wayfinder
 /storage/*.key
 /storage/pail
+/storage/framework/queue-worker.pid
 /vendor
 .DS_Store
 .env
