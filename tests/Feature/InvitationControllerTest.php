@@ -45,7 +45,7 @@ test('admin can send invitation', function () {
         ->assertSessionHas('success');
 
     assertDatabaseHas('user_invitations', ['email' => 'new@test.com']);
-    Mail::assertSent(UserInvitationMail::class);
+    Mail::assertQueued(UserInvitationMail::class);
 });
 
 // Non-admin cannot send invitation
