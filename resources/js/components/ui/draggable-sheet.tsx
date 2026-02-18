@@ -4,6 +4,8 @@ import * as React from 'react';
 
 type SnapPoint = 'closed' | 'peek' | 'half' | 'full';
 
+const DRAG_THRESHOLD = 10; // px - minimum movement before drag activation
+
 interface DraggableSheetProps {
     children: React.ReactNode;
     isOpen: boolean;
@@ -39,7 +41,6 @@ export function DraggableSheet({
     const [initialTouchY, setInitialTouchY] = React.useState(0);
     const [hasCrossedThreshold, setHasCrossedThreshold] = React.useState(false);
     const [touchStartElement, setTouchStartElement] = React.useState<'handle' | 'content' | null>(null);
-    const DRAG_THRESHOLD = 10; // px
 
     // Update internal snap point when prop changes
     React.useEffect(() => {
@@ -111,17 +112,20 @@ export function DraggableSheet({
         const deltaY = initialTouchY - currentY;
         const absDeltaY = Math.abs(deltaY);
         
-        // Only start dragging if threshold is crossed and touch started on handle
+        // Only start dragging from the handle once the threshold is crossed
+        // Content-initiated drags (over-scroll gesture) bypass this check because
+        // they already set isDragging and hasCrossedThreshold in handleContentTouchMove
         if (!hasCrossedThreshold && touchStartElement === 'handle') {
             if (absDeltaY > DRAG_THRESHOLD) {
                 setHasCrossedThreshold(true);
                 setIsDragging(true);
             } else {
-                // Still below threshold, don't drag
+                // Still below threshold, don't drag yet
                 return;
             }
         }
         
+        // If not dragging (e.g., touch on content that didn't trigger over-scroll), do nothing
         if (!isDragging) return;
 
         const moveFromStart = startY - currentY;
@@ -137,9 +141,10 @@ export function DraggableSheet({
     const handleTouchEnd = () => {
         if (!sheetRef.current) return;
         
-        // Reset touch tracking
+        // Reset touch tracking state
         setTouchStartElement(null);
         setHasCrossedThreshold(false);
+        setInitialTouchY(0);
 
         if (!isDragging) return;
 
@@ -251,10 +256,14 @@ export function DraggableSheet({
                 // Start dragging the sheet
                 setHasCrossedThreshold(true);
                 setIsDragging(true);
-                setStartY(initialTouchY);
+                // Use currentY instead of initialTouchY to avoid jump
+                // This ensures drag calculation starts from where threshold was crossed
+                setStartY(currentY);
                 if (sheetRef.current) {
                     setCurrentHeight(sheetRef.current.offsetHeight);
                 }
+                // Prevent default scroll behavior once sheet dragging is activated
+                e.preventDefault();
                 return;
             }
         }
