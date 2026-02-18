@@ -10,25 +10,11 @@ use function Pest\Laravel\actingAs;
 
 uses(RefreshDatabase::class);
 
-test('invitation email is queued when invitation is created', function () {
+test('invitation email is queued with correct recipient', function () {
     Mail::fake();
 
     $admin = User::factory()->admin()->create();
     $email = 'newuser@test.com';
-
-    actingAs($admin)
-        ->post(route('admin.invitations.store'), ['email' => $email]);
-
-    Mail::assertQueued(UserInvitationMail::class, function ($mail) use ($email) {
-        return $mail->hasTo($email);
-    });
-});
-
-test('invitation email has correct recipient', function () {
-    Mail::fake();
-
-    $admin = User::factory()->admin()->create();
-    $email = 'recipient@test.com';
 
     actingAs($admin)
         ->post(route('admin.invitations.store'), ['email' => $email]);
