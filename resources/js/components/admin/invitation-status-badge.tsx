@@ -29,7 +29,7 @@ export default function InvitationStatusBadge({
         return (
             <Badge
                 variant="outline"
-                className="border-red-500/50 bg-red-500/10 text-red-700 dark:text-red-400"
+                className="border-gray-500/50 bg-gray-500/10 text-gray-700 dark:text-gray-400"
             >
                 <XCircle className="size-3" />
                 Expired

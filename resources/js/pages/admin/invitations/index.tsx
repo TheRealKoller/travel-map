@@ -12,13 +12,11 @@ import { Trash2 } from 'lucide-react';
 interface Inviter {
     id: number;
     name: string;
-    email: string;
 }
 
 interface Invitation {
     id: number;
     email: string;
-    token: string;
     invited_by: number;
     role: string;
     expires_at: string;
@@ -160,9 +158,6 @@ export default function InvitationsIndex({
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="text-sm">
                                                     {invitation.inviter.name}
-                                                </div>
-                                                <div className="text-xs text-muted-foreground">
-                                                    {invitation.inviter.email}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 text-sm whitespace-nowrap text-muted-foreground">

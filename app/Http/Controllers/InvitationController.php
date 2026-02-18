@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
+use App\Http\Resources\InvitationResource;
 use App\Mail\UserInvitationMail;
 use App\Models\User;
 use App\Models\UserInvitation;
@@ -32,7 +33,7 @@ class InvitationController extends Controller
             ->paginate(20);
 
         return Inertia::render('admin/invitations/index', [
-            'invitations' => $invitations,
+            'invitations' => InvitationResource::collection($invitations),
         ]);
     }
 

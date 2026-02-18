@@ -9,7 +9,7 @@ uses(RefreshDatabase::class);
 
 test('admin can view invitations page', function () {
     $admin = User::factory()->admin()->create();
-    $invitations = UserInvitation::factory()->count(3)->create();
+    UserInvitation::factory()->count(3)->create();
 
     $this->actingAs($admin)
         ->get('/admin/invitations')
