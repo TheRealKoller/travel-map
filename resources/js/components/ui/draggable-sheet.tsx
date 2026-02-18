@@ -4,8 +4,6 @@ import * as React from 'react';
 
 type SnapPoint = 'closed' | 'peek' | 'half' | 'full';
 
-const DRAG_THRESHOLD = 10; // px - minimum movement before drag activation
-
 interface DraggableSheetProps {
     children: React.ReactNode;
     isOpen: boolean;
@@ -30,17 +28,11 @@ export function DraggableSheet({
     halfHeight = 50,
 }: DraggableSheetProps) {
     const sheetRef = React.useRef<HTMLDivElement>(null);
-    const contentRef = React.useRef<HTMLDivElement>(null);
     const [isDragging, setIsDragging] = React.useState(false);
     const [startY, setStartY] = React.useState(0);
     const [currentHeight, setCurrentHeight] = React.useState(0);
     const [internalSnapPoint, setInternalSnapPoint] =
         React.useState<SnapPoint>(snapPoint);
-    
-    // Smart Touch Detection state
-    const [initialTouchY, setInitialTouchY] = React.useState(0);
-    const [hasCrossedThreshold, setHasCrossedThreshold] = React.useState(false);
-    const [touchStartElement, setTouchStartElement] = React.useState<'handle' | 'content' | null>(null);
 
     // Update internal snap point when prop changes
     React.useEffect(() => {
@@ -95,43 +87,18 @@ export function DraggableSheet({
 
     const handleTouchStart = (e: React.TouchEvent) => {
         if (!sheetRef.current) return;
-        
-        // Mark that touch started on handle
-        setTouchStartElement('handle');
-        setInitialTouchY(e.touches[0].clientY);
+        setIsDragging(true);
         setStartY(e.touches[0].clientY);
         setCurrentHeight(sheetRef.current.offsetHeight);
-        setHasCrossedThreshold(false);
-        // Don't set isDragging immediately - wait for threshold
     };
 
     const handleTouchMove = (e: React.TouchEvent) => {
-        if (!sheetRef.current) return;
-        
-        const currentY = e.touches[0].clientY;
-        const deltaY = initialTouchY - currentY;
-        const absDeltaY = Math.abs(deltaY);
-        
-        // Only start dragging from the handle once the threshold is crossed
-        // Content-initiated drags (over-scroll gesture) bypass this check because
-        // they already set isDragging and hasCrossedThreshold in handleContentTouchMove
-        if (!hasCrossedThreshold && touchStartElement === 'handle') {
-            if (absDeltaY > DRAG_THRESHOLD) {
-                setHasCrossedThreshold(true);
-                setIsDragging(true);
-            } else {
-                // Still below threshold, don't drag yet
-                return;
-            }
-        }
-        
-        // If not dragging (e.g., touch on content that didn't trigger over-scroll), do nothing
-        if (!isDragging) return;
+        if (!isDragging || !sheetRef.current) return;
 
-        const moveFromStart = startY - currentY;
+        const deltaY = startY - e.touches[0].clientY;
         const newHeight = Math.max(
             0,
-            Math.min(window.innerHeight * 0.9, currentHeight + moveFromStart),
+            Math.min(window.innerHeight * 0.9, currentHeight + deltaY),
         );
 
         sheetRef.current.style.height = `${newHeight}px`;
@@ -139,14 +106,7 @@ export function DraggableSheet({
     };
 
     const handleTouchEnd = () => {
-        if (!sheetRef.current) return;
-        
-        // Reset touch tracking state
-        setTouchStartElement(null);
-        setHasCrossedThreshold(false);
-        setInitialTouchY(0);
-
-        if (!isDragging) return;
+        if (!isDragging || !sheetRef.current) return;
 
         setIsDragging(false);
         const currentHeightValue = sheetRef.current.offsetHeight;
@@ -220,59 +180,6 @@ export function DraggableSheet({
             };
         }
     }, [isDragging, handleMouseMove, handleMouseUp]);
-    
-    // Handle touch on content area - prevent drag if content is scrollable
-    const handleContentTouchStart = (e: React.TouchEvent) => {
-        if (!contentRef.current) return;
-        
-        const content = contentRef.current;
-        const isScrollable = content.scrollHeight > content.clientHeight;
-        const isAtTop = content.scrollTop === 0;
-        
-        // If content is scrollable and not at top, prevent dragging
-        if (isScrollable && !isAtTop) {
-            e.stopPropagation();
-            return;
-        }
-        
-        // Store initial touch for potential over-scroll drag
-        setTouchStartElement('content');
-        setInitialTouchY(e.touches[0].clientY);
-    };
-    
-    const handleContentTouchMove = (e: React.TouchEvent) => {
-        if (!contentRef.current) return;
-        
-        const content = contentRef.current;
-        const isScrollable = content.scrollHeight > content.clientHeight;
-        const isAtTop = content.scrollTop === 0;
-        const currentY = e.touches[0].clientY;
-        const deltaY = initialTouchY - currentY;
-        
-        // If scrolling down (deltaY < 0) while at top, allow potential sheet drag
-        if (isAtTop && deltaY < 0 && touchStartElement === 'content') {
-            // User is pulling down at top of content - could be trying to close sheet
-            if (Math.abs(deltaY) > DRAG_THRESHOLD) {
-                // Start dragging the sheet
-                setHasCrossedThreshold(true);
-                setIsDragging(true);
-                // Use currentY instead of initialTouchY to avoid jump
-                // This ensures drag calculation starts from where threshold was crossed
-                setStartY(currentY);
-                if (sheetRef.current) {
-                    setCurrentHeight(sheetRef.current.offsetHeight);
-                }
-                // Prevent default scroll behavior once sheet dragging is activated
-                e.preventDefault();
-                return;
-            }
-        }
-        
-        // If content is scrollable, stop propagation to prevent sheet drag
-        if (isScrollable) {
-            e.stopPropagation();
-        }
-    };
 
     if (!isOpen && internalSnapPoint === 'closed') {
         return null;
@@ -310,7 +217,7 @@ export function DraggableSheet({
             >
                 {/* Drag Handle */}
                 <div
-                    className="flex cursor-grab flex-col items-center py-3 touch-none active:cursor-grabbing"
+                    className="flex cursor-grab flex-col items-center py-3 active:cursor-grabbing"
                     onTouchStart={handleTouchStart}
                     onTouchMove={handleTouchMove}
                     onTouchEnd={handleTouchEnd}
@@ -349,13 +256,7 @@ export function DraggableSheet({
                 </div>
 
                 {/* Content */}
-                <div 
-                    ref={contentRef}
-                    className="flex-1 overflow-y-auto px-4 pb-4 touch-pan-y overscroll-contain"
-                    onTouchStart={handleContentTouchStart}
-                    onTouchMove={handleContentTouchMove}
-                    onTouchEnd={handleTouchEnd}
-                >
+                <div className="flex-1 overflow-y-auto px-4 pb-4">
                     {children}
                 </div>
             </div>

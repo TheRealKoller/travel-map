@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { motion, PanInfo } from 'framer-motion';
+import { motion, PanInfo, useDragControls } from 'framer-motion';
 import { X } from 'lucide-react';
 import { ReactNode, useState } from 'react';
 
@@ -31,6 +31,7 @@ export function DraggableSheet({
 }: DraggableSheetProps) {
     const [currentSnapIndex, setCurrentSnapIndex] = useState(initialSnapPoint);
     const [isDragging, setIsDragging] = useState(false);
+    const dragControls = useDragControls();
 
     // Get viewport height
     const getViewportHeight = () => {
@@ -103,12 +104,14 @@ export function DraggableSheet({
             {/* Draggable Sheet */}
             <motion.div
                 drag="y"
+                dragControls={dragControls}
                 dragConstraints={{
                     top: getSnapPosition(snapPoints.length - 1),
                     bottom: vh,
                 }}
                 dragElastic={0.1}
                 dragMomentum={false}
+                dragListener={false} // Disable automatic drag - only handle triggers drag
                 onDragStart={() => setIsDragging(true)}
                 onDragEnd={handleDragEnd}
                 initial={{ y: vh }}
@@ -134,13 +137,26 @@ export function DraggableSheet({
                 role="dialog"
                 aria-label={title}
             >
-                {/* Drag Handle */}
+                {/* Drag Handle - Only this area triggers dragging */}
                 <div
-                    className="flex w-full cursor-grab items-center justify-center py-3 active:cursor-grabbing"
+                    onPointerDown={(e) => dragControls.start(e)}
+                    className="flex w-full cursor-grab touch-none items-center justify-center py-3 active:cursor-grabbing"
                     data-testid="drag-handle"
                     role="button"
                     tabIndex={0}
                     aria-label="Drag to adjust sheet position"
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            // Cycle through snap points
+                            const currentIndex = currentSnapIndex;
+                            const nextIndex =
+                                (currentIndex + 1) % snapPoints.length;
+                            setCurrentSnapIndex(nextIndex);
+                        } else if (e.key === 'Escape') {
+                            onClose();
+                        }
+                    }}
                 >
                     <div
                         className="h-1.5 w-12 rounded-full bg-muted-foreground/30"
@@ -165,12 +181,15 @@ export function DraggableSheet({
                     </Button>
                 </div>
 
-                {/* Content */}
+                {/* Content - touch-pan-y allows vertical scrolling */}
                 <div
                     className={cn(
-                        'flex-1 overflow-y-auto',
+                        'flex-1 touch-pan-y overflow-y-auto overscroll-contain',
                         isDragging && 'pointer-events-none',
                     )}
+                    role="region"
+                    tabIndex={0}
+                    aria-label={`${title} content`}
                 >
                     {children}
                 </div>
