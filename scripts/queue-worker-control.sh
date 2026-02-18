@@ -7,6 +7,7 @@
 # Determine script and project directories
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+# PID file stored in storage/framework following Laravel conventions for runtime files
 PID_FILE="$PROJECT_DIR/storage/framework/queue-worker.pid"
 LOG_FILE="$PROJECT_DIR/storage/logs/queue-worker.log"
 
@@ -47,7 +48,8 @@ function start() {
     # --sleep=3: Wait 3 seconds when no jobs available (prevents CPU spinning)
     # --tries=3: Retry failed jobs up to 3 times
     # --max-jobs=1000: Restart worker after 1000 jobs (prevents memory leaks)
-    # --timeout=60: Job timeout (should be less than retry_after to prevent overlap)
+    # --timeout=60: Job timeout in seconds. MUST be less than retry_after (default 90s)
+    #                to prevent job overlap. Jobs running longer than 60s will be terminated.
     nohup php artisan queue:work --connection=database --queue=default --sleep=3 --tries=3 --max-jobs=1000 --timeout=60 >> "$LOG_FILE" 2>&1 &
     WORKER_PID=$!
     
@@ -93,17 +95,18 @@ function stop() {
         echo -e "${YELLOW}Stopping queue worker (PID: $PID)...${NC}"
         kill -TERM "$PID" 2>/dev/null || true
         
-        # Wait for graceful shutdown (max 5 seconds)
-        for i in {1..5}; do
+        # Wait for graceful shutdown (max 65 seconds to accommodate 60s job timeout)
+        # This allows running jobs to complete before force-killing
+        for i in {1..65}; do
             if ! ps -p "$PID" > /dev/null 2>&1; then
                 break
             fi
             sleep 1
         done
         
-        # Force kill if still running
+        # Force kill if still running after grace period
         if ps -p "$PID" > /dev/null 2>&1; then
-            echo -e "${YELLOW}Forcing queue worker to stop...${NC}"
+            echo -e "${YELLOW}Worker did not stop gracefully after 65s, forcing shutdown...${NC}"
             kill -9 "$PID" 2>/dev/null || true
         fi
         
@@ -131,8 +134,9 @@ function restart() {
 
             echo -e "${YELLOW}Waiting for current queue worker (PID: $PID) to finish current jobs...${NC}"
 
-            # Wait up to 60 seconds for the worker to exit
-            MAX_WAIT=60
+            # Wait up to 65 seconds for the worker to exit gracefully (matches stop() timeout)
+            # This allows current jobs to complete (60s timeout + 5s buffer)
+            MAX_WAIT=65
             WAITED=0
             while ps -p "$PID" > /dev/null 2>&1 && [ "$WAITED" -lt "$MAX_WAIT" ]; do
                 sleep 1
@@ -140,8 +144,9 @@ function restart() {
             done
 
             if ps -p "$PID" > /dev/null 2>&1; then
-                echo -e "${YELLOW}Worker PID $PID still running after ${MAX_WAIT}s; forcing stop...${NC}"
-                stop
+                echo -e "${YELLOW}Worker PID $PID still running after ${MAX_WAIT}s; forcing shutdown...${NC}"
+                kill -9 "$PID" 2>/dev/null || true
+                rm -f "$PID_FILE"
             else
                 echo -e "${GREEN}Previous worker PID $PID stopped gracefully.${NC}"
                 rm -f "$PID_FILE"
