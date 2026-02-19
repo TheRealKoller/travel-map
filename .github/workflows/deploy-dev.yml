@@ -102,6 +102,7 @@ jobs:
           MAIL_SCHEME=${{ vars.MAIL_SCHEME }}
           MAIL_HOST=${{ vars.MAIL_HOST }}
           MAIL_PORT=${{ vars.MAIL_PORT }}
+          MAIL_ENCRYPTION=${{ vars.MAIL_ENCRYPTION }}
           MAIL_USERNAME=${{ vars.MAIL_USERNAME }}
           MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
           MAIL_FROM_ADDRESS=${{ vars.MAIL_FROM_ADDRESS }}

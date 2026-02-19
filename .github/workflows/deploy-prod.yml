@@ -101,6 +101,7 @@ jobs:
           MAIL_PORT=${{ vars.MAIL_PORT }}
           MAIL_USERNAME=${{ vars.MAIL_USERNAME }}
           MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+          MAIL_ENCRYPTION=${{ vars.MAIL_ENCRYPTION }}
           MAIL_FROM_ADDRESS=${{ vars.MAIL_FROM_ADDRESS }}
           MAIL_FROM_NAME="${{ vars.MAIL_FROM_NAME }}"
 
