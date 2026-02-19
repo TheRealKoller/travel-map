@@ -287,10 +287,20 @@ test('unauthenticated users cannot access settings two-factor', function () {
     $response->assertRedirect(route('login'));
 });
 
-test('unauthenticated users cannot access logs', function () {
-    $response = $this->get('/logs');
+test('non-admin users cannot access logs', function () {
+    $user = User::factory()->create(['role' => \App\Enums\UserRole::User]);
 
-    $response->assertRedirect(route('login'));
+    $response = $this->actingAs($user)->get('/admin/logs');
+
+    $response->assertForbidden();
+});
+
+test('admin users can access logs', function () {
+    $admin = User::factory()->create(['role' => \App\Enums\UserRole::Admin]);
+
+    $response = $this->actingAs($admin)->get('/admin/logs');
+
+    $response->assertSuccessful();
 });
 
 test('boost browser logs endpoint has auth middleware when registered', function () {

@@ -17,6 +17,7 @@
         "laravel/tinker": "^2.10.1",
         "laravel/wayfinder": "^0.1.9",
         "league/commonmark": "^2.8",
+        "opcodesio/log-viewer": "^3.21",
         "unsplash/unsplash": "^3.2"
     },
     "require-dev": {
