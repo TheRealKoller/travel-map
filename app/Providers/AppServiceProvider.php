@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Opcodes\LogViewer\Facades\LogViewer;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -104,6 +105,11 @@ class AppServiceProvider extends ServiceProvider
 
         // Register TripObserver to handle viewport static image updates
         \App\Models\Trip::observe(\App\Observers\TripObserver::class);
+
+        // Configure Log Viewer authorization - only admin users can access
+        LogViewer::auth(function ($request) {
+            return $request->user()?->isAdmin() ?? false;
+        });
 
         // Protect Laravel Boost browser logs endpoint with authentication
         // Laravel Boost (dev dependency) provides a browser logging endpoint that should
