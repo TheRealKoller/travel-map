@@ -28,35 +28,36 @@ Email configuration is managed through GitHub Secrets (sensitive data) and Varia
 
 ### Required GitHub Variables (Non-Sensitive)
 
-Navigate to: **Repository Settings → Secrets and variables → Actions → Variables**
+Navigate to: **Repository Settings → Environments → development → Variables** and **Repository Settings → Environments → production → Variables**.  
+For detailed setup steps, see [GitHub environments setup](./GITHUB-ENVIRONMENTS-SETUP.md).
 
 #### Development Environment Variables
 
-| Variable Name       | Example Value                 | Description                                   |
-| ------------------- | ----------------------------- | --------------------------------------------- |
-| `MAIL_MAILER`       | `smtp`                        | Mail driver (use `smtp` for production email) |
-| `MAIL_SCHEME`       | `ssl`                         | Encryption scheme (`ssl` or `tls`)            |
-| `MAIL_HOST`         | `smtp.kasserver.com`          | all-inkl.com SMTP server hostname             |
-| `MAIL_PORT`         | `465`                         | SMTP port (465 for SSL, 587 for TLS)          |
-| `MAIL_USERNAME`     | `<your-email@yourdomain.com>` | SMTP username (your email address)            |
-| `MAIL_FROM_ADDRESS` | `<noreply@yourdomain.com>`    | "From" email address in sent emails           |
-| `MAIL_FROM_NAME`    | `TravelMap DEV`               | "From" name in sent emails                    |
+| Variable Name       | Example Value                 | Description                                                                                     |
+| ------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------- |
+| `MAIL_MAILER`       | `smtp`                        | Mail driver (use `smtp` for production email)                                                   |
+| `MAIL_SCHEME`       | `null`                        | Symfony mailer scheme (leave `null` for STARTTLS on port 587, or set `ssl` when using 465)      |
+| `MAIL_HOST`         | `smtp.kasserver.com`          | all-inkl.com SMTP server hostname                                                               |
+| `MAIL_PORT`         | `587`                         | SMTP port (587 with `MAIL_SCHEME=null`, or 465 with `MAIL_SCHEME=ssl` if your provider uses it) |
+| `MAIL_USERNAME`     | `<your-email@yourdomain.com>` | SMTP username (your email address)                                                              |
+| `MAIL_FROM_ADDRESS` | `<noreply@yourdomain.com>`    | "From" email address in sent emails                                                             |
+| `MAIL_FROM_NAME`    | `TravelMap DEV`               | "From" name in sent emails                                                                      |
 
 #### Production Environment Variables
 
-| Variable Name       | Example Value                 | Description                                   |
-| ------------------- | ----------------------------- | --------------------------------------------- |
-| `MAIL_MAILER`       | `smtp`                        | Mail driver (use `smtp` for production email) |
-| `MAIL_SCHEME`       | `ssl`                         | Encryption scheme (`ssl` or `tls`)            |
-| `MAIL_HOST`         | `smtp.kasserver.com`          | all-inkl.com SMTP server hostname             |
-| `MAIL_PORT`         | `465`                         | SMTP port (465 for SSL, 587 for TLS)          |
-| `MAIL_USERNAME`     | `<your-email@yourdomain.com>` | SMTP username (your email address)            |
-| `MAIL_FROM_ADDRESS` | `<noreply@yourdomain.com>`    | "From" email address in sent emails           |
-| `MAIL_FROM_NAME`    | `TravelMap`                   | "From" name in sent emails                    |
+| Variable Name       | Example Value                 | Description                                                                                     |
+| ------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------- |
+| `MAIL_MAILER`       | `smtp`                        | Mail driver (use `smtp` for production email)                                                   |
+| `MAIL_SCHEME`       | `null`                        | Symfony mailer scheme (leave `null` for STARTTLS on port 587, or set `ssl` when using 465)      |
+| `MAIL_HOST`         | `smtp.kasserver.com`          | all-inkl.com SMTP server hostname                                                               |
+| `MAIL_PORT`         | `587`                         | SMTP port (587 with `MAIL_SCHEME=null`, or 465 with `MAIL_SCHEME=ssl` if your provider uses it) |
+| `MAIL_USERNAME`     | `<your-email@yourdomain.com>` | SMTP username (your email address)                                                              |
+| `MAIL_FROM_ADDRESS` | `<noreply@yourdomain.com>`    | "From" email address in sent emails                                                             |
+| `MAIL_FROM_NAME`    | `TravelMap`                   | "From" name in sent emails                                                                      |
 
 ### Required GitHub Secrets (Sensitive)
 
-Navigate to: **Repository Settings → Secrets and variables → Actions → Secrets**
+Navigate to: **Repository Settings → Environments → development → Secrets** and **Repository Settings → Environments → production → Secrets**
 
 #### Development Environment Secrets
 
@@ -74,26 +75,26 @@ Navigate to: **Repository Settings → Secrets and variables → Actions → Sec
 
 #### Adding Variables
 
-1. Go to your GitHub repository
-2. Click **Settings** → **Secrets and variables** → **Actions**
-3. Click the **Variables** tab
-4. Select environment (`development` or `production`) from dropdown
-5. Click **New environment variable**
-6. Enter the variable name (e.g., `MAIL_MAILER`)
-7. Enter the value (e.g., `smtp`)
-8. Click **Add variable**
-9. Repeat for all variables listed above
+1. Go to your GitHub repository.
+2. Click **Settings** → **Environments**.
+3. Click the environment name (e.g., `development` or `production`). Create it first if it does not exist.
+4. In the environment page, scroll to the **Environment variables** section.
+5. Click **Add variable**.
+6. Enter the variable name (e.g., `MAIL_MAILER`).
+7. Enter the value (e.g., `smtp`).
+8. Click **Save**.
+9. Repeat for all variables listed above for each environment.
 
 #### Adding Secrets
 
-1. Go to your GitHub repository
-2. Click **Settings** → **Secrets and variables** → **Actions**
-3. Click the **Secrets** tab
-4. Select environment (`development` or `production`) from dropdown
-5. Click **New environment secret**
-6. Enter the secret name (e.g., `MAIL_PASSWORD`)
-7. Enter the secret value (your SMTP password)
-8. Click **Add secret**
+1. Go to your GitHub repository.
+2. Click **Settings** → **Environments**.
+3. Click the environment name (e.g., `development` or `production`). Create it first if it does not exist.
+4. In the environment page, scroll to the **Environment secrets** section.
+5. Click **Add secret**.
+6. Enter the secret name (e.g., `MAIL_PASSWORD`).
+7. Enter the secret value (your SMTP password).
+8. Click **Save**.
 
 ---
 
@@ -114,7 +115,20 @@ Navigate to: **Repository Settings → Secrets and variables → Actions → Sec
 
 ### Recommended SMTP Settings
 
-#### SSL Configuration (Recommended)
+#### STARTTLS Configuration (Recommended - Default for this project)
+
+```
+MAIL_MAILER=smtp
+MAIL_SCHEME=null
+MAIL_HOST=smtp.kasserver.com
+MAIL_PORT=587
+MAIL_USERNAME=<your-email@yourdomain.com>
+MAIL_PASSWORD=<your-smtp-password>
+MAIL_FROM_ADDRESS=<noreply@yourdomain.com>
+MAIL_FROM_NAME="TravelMap"
+```
+
+#### SSL Configuration (Alternative)
 
 ```
 MAIL_MAILER=smtp
@@ -127,27 +141,14 @@ MAIL_FROM_ADDRESS=<noreply@yourdomain.com>
 MAIL_FROM_NAME="TravelMap"
 ```
 
-#### TLS Configuration (Alternative)
-
-```
-MAIL_MAILER=smtp
-MAIL_SCHEME=tls
-MAIL_HOST=smtp.kasserver.com
-MAIL_PORT=587
-MAIL_USERNAME=<your-email@yourdomain.com>
-MAIL_PASSWORD=<your-smtp-password>
-MAIL_FROM_ADDRESS=<noreply@yourdomain.com>
-MAIL_FROM_NAME="TravelMap"
-```
-
 ### Common Configuration Values
 
-| Setting        | Value                | Notes                             |
-| -------------- | -------------------- | --------------------------------- |
-| SMTP Server    | `smtp.kasserver.com` | all-inkl.com standard SMTP server |
-| SSL Port       | `465`                | Use with `MAIL_SCHEME=ssl`        |
-| TLS Port       | `587`                | Use with `MAIL_SCHEME=tls`        |
-| Authentication | Required             | Always use username/password      |
+| Setting        | Value                | Notes                                                    |
+| -------------- | -------------------- | -------------------------------------------------------- |
+| SMTP Server    | `smtp.kasserver.com` | all-inkl.com standard SMTP server                        |
+| STARTTLS Port  | `587`                | Use with `MAIL_SCHEME=null` (recommended, default setup) |
+| SSL Port       | `465`                | Use with `MAIL_SCHEME=ssl` (alternative)                 |
+| Authentication | Required             | Always use username/password                             |
 
 ### Security Best Practices
 
@@ -211,6 +212,8 @@ The application includes a comprehensive queue worker management script at `scri
 3. Current worker finishes processing current job (max 60 seconds)
 4. Worker shuts down gracefully
 5. New worker starts automatically with updated code
+
+**⚠️ Important Note:** The current deployment workflows exclude the `scripts` directory from the deployment package. This means `scripts/queue-worker-control.sh` must already exist on the server, or you must manually upload it when setting up a new server. If you modify the script, you'll need to manually update it on the server via SSH, or adjust the deployment rsync exclusions to include `scripts`.
 
 **Worker Options Explained:**
 
@@ -352,6 +355,20 @@ tail -n 100 storage/logs/laravel.log | grep -A 20 "Message-ID:"
 tail -f storage/logs/laravel.log
 ```
 
+**⚠️ Important for Queued Emails:** Invitation emails are queued via `Mail::to(...)->queue(...)`. With the default local `QUEUE_CONNECTION=database`, emails won't be logged until a queue worker processes them. To see logged emails locally, you have two options:
+
+1. **Run a queue worker locally:**
+
+    ```bash
+    php artisan queue:work
+    ```
+
+2. **Temporarily use sync queue (no worker needed):**
+    ```bash
+    # In your .env
+    QUEUE_CONNECTION=sync
+    ```
+
 #### Send Test Invitation
 
 1. Access the admin invitation page: `http://localhost:8000/admin/invitations`
@@ -367,8 +384,8 @@ php artisan tinker
 # Create a test invitation
 $invitation = new \App\Models\UserInvitation([
     'email' => 'test@example.com',
-    'role' => 'user',
-    'token' => \Str::random(32),
+    'role' => \App\Enums\UserRole::User,
+    'token' => \App\Models\UserInvitation::generateToken(),
     'invited_by' => 1,
     'expires_at' => now()->addDays(7)
 ]);
