@@ -87,7 +87,7 @@ jobs:
 
           BROADCAST_CONNECTION=log
           FILESYSTEM_DISK=local
-          QUEUE_CONNECTION=database
+          QUEUE_CONNECTION=${{ vars.QUEUE_CONNECTION }}
 
           CACHE_STORE=database
 
