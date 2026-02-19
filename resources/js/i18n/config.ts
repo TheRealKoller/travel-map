@@ -17,7 +17,7 @@ i18n.use(LanguageDetector)
             escapeValue: false,
         },
         detection: {
-            order: ['localStorage', 'cookie', 'navigator'],
+            order: ['localStorage', 'cookie'],
             caches: ['localStorage', 'cookie'],
             lookupLocalStorage: 'language',
             lookupCookie: 'language',

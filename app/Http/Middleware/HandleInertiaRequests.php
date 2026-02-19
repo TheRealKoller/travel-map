@@ -47,6 +47,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'csrf_token' => csrf_token(),
+            'language' => $request->cookie('language', 'de'),
         ];
     }
 }
