@@ -16,6 +16,7 @@ import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
     BookOpen,
+    FileText,
     Folder,
     LayoutGrid,
     Luggage,
@@ -49,6 +50,12 @@ const getMainNavItems = (isAdmin: boolean): NavItem[] => {
             title: 'User invitations',
             href: adminInvitationsIndex(),
             icon: UserPlus,
+        });
+        items.push({
+            title: 'Logs',
+            href: '/admin/logs',
+            icon: FileText,
+            external: true,
         });
     }
 
