@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 export type Language = 'de' | 'en';
 
 const setCookie = (name: string, value: string, days = 365) => {
-    if (typeof document === 'undefined') {
+    if (typeof document === 'undefined' || typeof window === 'undefined') {
         return;
     }
 
