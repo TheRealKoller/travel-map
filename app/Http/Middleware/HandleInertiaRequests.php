@@ -38,6 +38,11 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
+        // Get language from cookie with whitelist validation
+        $language = $request->cookie('language', 'de');
+        $validLanguages = ['de', 'en'];
+        $language = in_array($language, $validLanguages, true) ? $language : 'de';
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -47,6 +52,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'csrf_token' => csrf_token(),
+            'language' => $language,
         ];
     }
 }

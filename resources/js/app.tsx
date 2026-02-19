@@ -7,7 +7,7 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
-import './i18n/config';
+import i18n from './i18n/config';
 
 // Configure Axios to send CSRF token with every request
 const csrfToken = document.head.querySelector('meta[name="csrf-token"]');
@@ -45,6 +45,23 @@ createInertiaApp({
         ),
     setup({ el, App, props }) {
         const root = createRoot(el);
+
+        // Initialize i18n with language from server props
+        const serverLanguage = props.initialPage.props.language as
+            | string
+            | undefined;
+        const validLanguages = ['de', 'en'] as const;
+
+        if (
+            serverLanguage &&
+            validLanguages.includes(serverLanguage as 'de' | 'en') &&
+            i18n.language !== serverLanguage
+        ) {
+            // Intentionally not awaiting changeLanguage:
+            // - changeLanguage is async but updates i18next state synchronously enough for React
+            // - Making setup() async would complicate createInertiaApp initialization without benefit
+            i18n.changeLanguage(serverLanguage);
+        }
 
         root.render(
             <StrictMode>

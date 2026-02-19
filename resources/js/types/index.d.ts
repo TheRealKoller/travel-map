@@ -28,6 +28,7 @@ export interface SharedData {
     auth: Auth;
     sidebarOpen: boolean;
     csrf_token: string;
+    language: string;
     [key: string]: unknown;
 }
 
