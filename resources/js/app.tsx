@@ -50,7 +50,16 @@ createInertiaApp({
         const serverLanguage = props.initialPage.props.language as
             | string
             | undefined;
-        if (serverLanguage && i18n.language !== serverLanguage) {
+        const validLanguages = ['de', 'en'] as const;
+
+        if (
+            serverLanguage &&
+            validLanguages.includes(serverLanguage as 'de' | 'en') &&
+            i18n.language !== serverLanguage
+        ) {
+            // Intentionally not awaiting changeLanguage:
+            // - changeLanguage is async but updates i18next state synchronously enough for React
+            // - Making setup() async would complicate createInertiaApp initialization without benefit
             i18n.changeLanguage(serverLanguage);
         }
 
