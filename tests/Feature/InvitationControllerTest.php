@@ -106,7 +106,7 @@ test('cannot register with expired token', function () {
 
     get(route('register.invitation', $invitation->token))
         ->assertOk();
-})->skip('Frontend not implemented yet - see separate frontend issue');
+});
 
 // Cannot register with already accepted token
 test('cannot register with already accepted token', function () {
@@ -114,7 +114,7 @@ test('cannot register with already accepted token', function () {
 
     get(route('register.invitation', $invitation->token))
         ->assertOk();
-})->skip('Frontend not implemented yet - see separate frontend issue');
+});
 
 // Shows registration form with valid token
 test('shows registration form with valid token', function () {
@@ -122,7 +122,7 @@ test('shows registration form with valid token', function () {
 
     get(route('register.invitation', $invitation->token))
         ->assertOk();
-})->skip('Frontend not implemented yet - see separate frontend issue');
+});
 
 // Cannot accept invitation with mismatched email
 test('cannot accept invitation with mismatched email', function () {
