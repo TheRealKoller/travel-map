@@ -34,6 +34,22 @@ class TestSmtpConnection extends Command
 
         $this->newLine();
 
+        // Show .env values for comparison
+        $this->info('Environment Variables:');
+        $this->table(
+            ['Variable', 'Value'],
+            [
+                ['MAIL_MAILER', env('MAIL_MAILER')],
+                ['MAIL_HOST', env('MAIL_HOST')],
+                ['MAIL_PORT', env('MAIL_PORT')],
+                ['MAIL_USERNAME', env('MAIL_USERNAME')],
+                ['MAIL_PASSWORD', env('MAIL_PASSWORD') ? '***SET***' : 'NOT SET'],
+                ['MAIL_ENCRYPTION', env('MAIL_ENCRYPTION', 'NOT SET')],
+            ]
+        );
+
+        $this->newLine();
+
         if (config('mail.default') === 'log') {
             $this->warn('⚠️  MAIL_MAILER is set to "log" - emails will only be logged, not sent!');
             $this->newLine();
@@ -73,6 +89,14 @@ class TestSmtpConnection extends Command
             $this->line('  4. Account requires 2FA or less secure app access enabled');
             $this->line('  5. IP address blocked by mail server');
             $this->line('  6. Wrong MAIL_ENCRYPTION setting (try "tls" or "ssl")');
+            $this->line('  7. For KAS servers: Password may need to be the MAIL-specific password, not main account password');
+            $this->newLine();
+
+            $this->warn('Troubleshooting Steps:');
+            $this->line('  1. Verify credentials in KAS control panel (webmail settings)');
+            $this->line('  2. Check if there\'s a separate "Mail Password" different from main password');
+            $this->line('  3. Test manual SMTP connection: openssl s_client -connect '.config('mail.mailers.smtp.host').':'.config('mail.mailers.smtp.port').' -starttls smtp');
+            $this->line('  4. Run: php artisan config:clear && php artisan cache:clear');
 
             return self::FAILURE;
         } catch (\Exception $e) {
