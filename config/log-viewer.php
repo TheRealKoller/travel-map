@@ -97,6 +97,7 @@ return [
 
     'middleware' => [
         'web',
+        'auth',
         \Opcodes\LogViewer\Http\Middleware\AuthorizeLogViewer::class,
     ],
 
@@ -110,6 +111,8 @@ return [
     */
 
     'api_middleware' => [
+        'web',
+        'auth',
         \Opcodes\LogViewer\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         \Opcodes\LogViewer\Http\Middleware\AuthorizeLogViewer::class,
     ],
