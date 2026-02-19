@@ -2,6 +2,7 @@ import InvitationStatusBadge from '@/components/admin/invitation-status-badge';
 import SendInvitationForm from '@/components/admin/send-invitation-form';
 import HeadingSmall from '@/components/heading-small';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
 import { destroy } from '@/routes/admin/invitations';
 import { type BreadcrumbItem } from '@/types';
