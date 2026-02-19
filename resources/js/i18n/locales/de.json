@@ -76,6 +76,28 @@
             "use_recovery_code": "mit Wiederherstellungscode anmelden",
             "continue_button": "Fortfahren",
             "or_text": "oder du kannst"
+        },
+        "register_invitation": {
+            "title": "Registrierung abschließen",
+            "description": "Du wurdest eingeladen, TravelMap beizutreten. Erstelle dein Konto unten.",
+            "page_title": "Einladung annehmen",
+            "email_label": "E-Mail",
+            "name_label": "Vollständiger Name",
+            "name_placeholder": "Max Mustermann",
+            "password_label": "Passwort",
+            "password_placeholder": "Passwort eingeben",
+            "password_confirmation_label": "Passwort bestätigen",
+            "password_confirmation_placeholder": "Passwort bestätigen",
+            "submit_button": "Konto erstellen"
+        },
+        "invitation_invalid": {
+            "page_title": "Ungültige Einladung",
+            "expired_title": "Einladung abgelaufen",
+            "expired_description": "Dieser Einladungslink ist abgelaufen. Bitte wende dich an einen Administrator für eine neue Einladung.",
+            "already_accepted_title": "Einladung bereits verwendet",
+            "already_accepted_description": "Diese Einladung wurde bereits angenommen. Falls du es warst, melde dich bitte an.",
+            "back_to_login": "Zurück zur Anmeldung",
+            "contact_admin": "Administrator kontaktieren"
         }
     },
     "navigation": {

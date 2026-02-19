@@ -76,6 +76,28 @@
             "use_recovery_code": "login using a recovery code",
             "continue_button": "Continue",
             "or_text": "or you can"
+        },
+        "register_invitation": {
+            "title": "Complete Your Registration",
+            "description": "You've been invited to join TravelMap. Create your account below.",
+            "page_title": "Accept Invitation",
+            "email_label": "Email",
+            "name_label": "Full Name",
+            "name_placeholder": "John Doe",
+            "password_label": "Password",
+            "password_placeholder": "Enter your password",
+            "password_confirmation_label": "Confirm Password",
+            "password_confirmation_placeholder": "Confirm your password",
+            "submit_button": "Create Account"
+        },
+        "invitation_invalid": {
+            "page_title": "Invalid Invitation",
+            "expired_title": "Invitation Expired",
+            "expired_description": "This invitation link has expired. Please contact an administrator for a new invitation.",
+            "already_accepted_title": "Invitation Already Used",
+            "already_accepted_description": "This invitation has already been accepted. If this was you, please log in.",
+            "back_to_login": "Back to Login",
+            "contact_admin": "Contact Administrator"
         }
     },
     "navigation": {
