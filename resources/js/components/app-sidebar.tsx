@@ -55,6 +55,7 @@ const getMainNavItems = (isAdmin: boolean): NavItem[] => {
             title: 'Logs',
             href: '/admin/logs',
             icon: FileText,
+            external: true,
         });
     }
 
