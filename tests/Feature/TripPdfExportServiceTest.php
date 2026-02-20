@@ -984,3 +984,77 @@ test('calculateSummaryStats handles multiple UNESCO sites', function () {
     expect($stats['unescoCount'])->toBe(3);
     expect($stats['totalLocations'])->toBe(5);
 });
+
+test('generatePdf with modern template returns PDF response', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Test Trip',
+    ]);
+
+    $this->unsplashService->shouldReceive('trackDownload')->andReturn(true);
+
+    $response = $this->pdfService->generatePdf($trip, 'modern');
+
+    expect($response)->toBeInstanceOf(\Illuminate\Http\Response::class);
+    expect($response->headers->get('content-type'))->toContain('application/pdf');
+});
+
+test('generatePdf with professional template returns PDF response', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Test Trip',
+    ]);
+
+    $this->unsplashService->shouldReceive('trackDownload')->andReturn(true);
+
+    $response = $this->pdfService->generatePdf($trip, 'professional');
+
+    expect($response)->toBeInstanceOf(\Illuminate\Http\Response::class);
+    expect($response->headers->get('content-type'))->toContain('application/pdf');
+    expect($response->getContent())->toContain('%PDF');
+});
+
+test('generatePdf with minimalist template returns PDF response', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Test Trip',
+    ]);
+
+    $this->unsplashService->shouldReceive('trackDownload')->andReturn(true);
+
+    $response = $this->pdfService->generatePdf($trip, 'minimalist');
+
+    expect($response)->toBeInstanceOf(\Illuminate\Http\Response::class);
+    expect($response->headers->get('content-type'))->toContain('application/pdf');
+    expect($response->getContent())->toContain('%PDF');
+});
+
+test('generatePdf with compact template returns PDF response', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Test Trip',
+    ]);
+
+    $this->unsplashService->shouldReceive('trackDownload')->andReturn(true);
+
+    $response = $this->pdfService->generatePdf($trip, 'compact');
+
+    expect($response)->toBeInstanceOf(\Illuminate\Http\Response::class);
+    expect($response->headers->get('content-type'))->toContain('application/pdf');
+    expect($response->getContent())->toContain('%PDF');
+});
+
+test('generatePdf defaults to modern template when no template provided', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Test Trip',
+    ]);
+
+    $this->unsplashService->shouldReceive('trackDownload')->andReturn(true);
+
+    // Call without template parameter (should default to 'modern')
+    $response = $this->pdfService->generatePdf($trip);
+
+    expect($response)->toBeInstanceOf(\Illuminate\Http\Response::class);
+    expect($response->headers->get('content-type'))->toContain('application/pdf');
+});

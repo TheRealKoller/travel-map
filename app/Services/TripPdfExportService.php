@@ -25,7 +25,7 @@ class TripPdfExportService
      * Generate a PDF document for a trip.
      * Includes trip information, maps, markers, tours, and routes.
      */
-    public function generatePdf(Trip $trip): HttpResponse
+    public function generatePdf(Trip $trip, string $template = 'modern'): HttpResponse
     {
         // Track trip image download as per Unsplash guidelines
         $this->trackTripImageDownload($trip);
@@ -67,7 +67,15 @@ class TripPdfExportService
         // Generate consistent timestamp for the entire PDF
         $generatedAt = now();
 
-        $pdf = Pdf::loadView('trip-pdf', [
+        // Select view based on template
+        $viewName = match ($template) {
+            'professional' => 'trip-pdf-professional',
+            'minimalist' => 'trip-pdf-minimalist',
+            'compact' => 'trip-pdf-compact',
+            default => 'trip-pdf', // modern template
+        };
+
+        $pdf = Pdf::loadView($viewName, [
             'trip' => $trip,
             'tripImageUrl' => $tripImageBase64,
             'tripNotesHtml' => $tripNotesHtml,
@@ -78,6 +86,7 @@ class TripPdfExportService
             'tableOfContents' => $tableOfContents,
             'summaryStats' => $summaryStats,
             'generatedAt' => $generatedAt,
+            'template' => $template,
         ]);
 
         // Generate a safe filename from the trip name

@@ -993,3 +993,75 @@ test('PDF export tracks marker image downloads', function () {
     $response->assertStatus(200)
         ->assertHeader('content-type', 'application/pdf');
 });
+
+test('PDF export with professional template returns PDF', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Test Trip',
+    ]);
+
+    $response = $this->actingAs($this->user)->get("/trips/{$trip->id}/export-pdf?template=professional");
+
+    $response->assertStatus(200)
+        ->assertHeader('content-type', 'application/pdf');
+});
+
+test('PDF export with minimalist template returns PDF', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Test Trip',
+    ]);
+
+    $response = $this->actingAs($this->user)->get("/trips/{$trip->id}/export-pdf?template=minimalist");
+
+    $response->assertStatus(200)
+        ->assertHeader('content-type', 'application/pdf');
+});
+
+test('PDF export with compact template returns PDF', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Test Trip',
+    ]);
+
+    $response = $this->actingAs($this->user)->get("/trips/{$trip->id}/export-pdf?template=compact");
+
+    $response->assertStatus(200)
+        ->assertHeader('content-type', 'application/pdf');
+});
+
+test('PDF export with modern template returns PDF', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Test Trip',
+    ]);
+
+    $response = $this->actingAs($this->user)->get("/trips/{$trip->id}/export-pdf?template=modern");
+
+    $response->assertStatus(200)
+        ->assertHeader('content-type', 'application/pdf');
+});
+
+test('PDF export falls back to modern template with invalid template parameter', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Test Trip',
+    ]);
+
+    $response = $this->actingAs($this->user)->get("/trips/{$trip->id}/export-pdf?template=invalid");
+
+    $response->assertStatus(200)
+        ->assertHeader('content-type', 'application/pdf');
+});
+
+test('PDF export defaults to modern template when no template specified', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Test Trip',
+    ]);
+
+    $response = $this->actingAs($this->user)->get("/trips/{$trip->id}/export-pdf");
+
+    $response->assertStatus(200)
+        ->assertHeader('content-type', 'application/pdf');
+});

@@ -3,6 +3,9 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuSub,
+    DropdownMenuSubContent,
+    DropdownMenuSubTrigger,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
@@ -11,7 +14,16 @@ import AppLayout from '@/layouts/app-layout';
 import { COUNTRIES } from '@/lib/countries';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { FileDown, MoreVertical, Pencil, Plus, UserPlus } from 'lucide-react';
+import {
+    FileDown,
+    FileText,
+    Minimize2,
+    MoreVertical,
+    Pencil,
+    Plus,
+    Sparkles,
+    UserPlus,
+} from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -40,10 +52,17 @@ export default function TripsIndex() {
         router.visit(`/trips/${tripId}/edit`);
     };
 
-    const handleExportPdf = (e: React.MouseEvent, tripId: number) => {
+    const handleExportPdf = (
+        e: React.MouseEvent,
+        tripId: number,
+        template: string = 'modern',
+    ) => {
         e.stopPropagation();
-        // Open PDF in a new tab
-        window.open(`/trips/${tripId}/export-pdf`, '_blank');
+        // Open PDF in a new tab with selected template
+        window.open(
+            `/trips/${tripId}/export-pdf?template=${template}`,
+            '_blank',
+        );
     };
 
     const handleInvite = (
@@ -140,15 +159,68 @@ export default function TripsIndex() {
                                             <UserPlus className="mr-2 size-4" />
                                             {t('trips.invite_users')}
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                            data-testid={`export-pdf-button-${trip.id}`}
-                                            onClick={(e) =>
-                                                handleExportPdf(e, trip.id)
-                                            }
-                                        >
-                                            <FileDown className="mr-2 size-4" />
-                                            {t('trips.export_pdf')}
-                                        </DropdownMenuItem>
+                                        <DropdownMenuSub>
+                                            <DropdownMenuSubTrigger
+                                                data-testid={`export-pdf-button-${trip.id}`}
+                                            >
+                                                <FileDown className="mr-2 size-4" />
+                                                {t('trips.export_pdf')}
+                                            </DropdownMenuSubTrigger>
+                                            <DropdownMenuSubContent>
+                                                <DropdownMenuItem
+                                                    data-testid={`export-pdf-modern-${trip.id}`}
+                                                    onClick={(e) =>
+                                                        handleExportPdf(
+                                                            e,
+                                                            trip.id,
+                                                            'modern',
+                                                        )
+                                                    }
+                                                >
+                                                    <Sparkles className="mr-2 size-4" />
+                                                    Modern Travel Brochure
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    data-testid={`export-pdf-professional-${trip.id}`}
+                                                    onClick={(e) =>
+                                                        handleExportPdf(
+                                                            e,
+                                                            trip.id,
+                                                            'professional',
+                                                        )
+                                                    }
+                                                >
+                                                    <FileText className="mr-2 size-4" />
+                                                    Professional Document
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    data-testid={`export-pdf-minimalist-${trip.id}`}
+                                                    onClick={(e) =>
+                                                        handleExportPdf(
+                                                            e,
+                                                            trip.id,
+                                                            'minimalist',
+                                                        )
+                                                    }
+                                                >
+                                                    <Minimize2 className="mr-2 size-4" />
+                                                    Minimalist Elegant
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    data-testid={`export-pdf-compact-${trip.id}`}
+                                                    onClick={(e) =>
+                                                        handleExportPdf(
+                                                            e,
+                                                            trip.id,
+                                                            'compact',
+                                                        )
+                                                    }
+                                                >
+                                                    <FileDown className="mr-2 size-4" />
+                                                    Compact Overview
+                                                </DropdownMenuItem>
+                                            </DropdownMenuSubContent>
+                                        </DropdownMenuSub>
                                         <DropdownMenuItem
                                             data-testid={`edit-trip-button-${trip.id}`}
                                             onClick={(e) =>

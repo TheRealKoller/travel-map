@@ -102,11 +102,20 @@ class TripController extends Controller
      * Export a trip as PDF.
      * Generates a PDF document with trip information including name, title image, map viewport, and markers overview.
      */
-    public function exportPdf(Trip $trip): HttpResponse
+    public function exportPdf(Request $request, Trip $trip): HttpResponse
     {
         $this->authorize('view', $trip);
 
-        return $this->tripPdfExportService->generatePdf($trip);
+        // Get template from query parameter, default to 'modern'
+        $template = $request->query('template', 'modern');
+
+        // Validate template
+        $validTemplates = ['modern', 'professional', 'minimalist', 'compact'];
+        if (! in_array($template, $validTemplates)) {
+            $template = 'modern';
+        }
+
+        return $this->tripPdfExportService->generatePdf($trip, $template);
     }
 
     /**
