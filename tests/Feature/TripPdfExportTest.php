@@ -198,3 +198,33 @@ test('prevents exporting PDF for other users trips', function () {
 
     $response->assertForbidden();
 });
+
+test('generates PDF with proper marker layout', function () {
+    // Mock MapboxStaticImageService to prevent real API calls
+    $this->mock(MapboxStaticImageService::class, function ($mock) {
+        $mock->shouldReceive('generateStaticImageWithMarkers')
+            ->andReturn('https://api.mapbox.com/styles/v1/test/static/test.png');
+    });
+
+    $user = User::factory()->create();
+    $trip = Trip::factory()->for($user)->create();
+    $tour = Tour::factory()->for($trip)->create();
+
+    // Create many markers to force multiple pages
+    $markers = Marker::factory()
+        ->count(20)
+        ->for($trip)
+        ->create([
+            'notes' => fake()->paragraphs(3, true), // Longer notes
+        ]);
+
+    $tour->markers()->attach($markers->pluck('id'));
+
+    $response = $this->actingAs($user)->get("/trips/{$trip->id}/export-pdf");
+
+    $response->assertSuccessful();
+    $response->assertHeader('Content-Type', 'application/pdf');
+
+    // Note: Actual page break validation would require PDF parsing library
+    // This test ensures the PDF generation doesn't crash with many markers
+});
