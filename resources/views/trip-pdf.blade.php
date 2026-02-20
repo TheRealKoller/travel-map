@@ -140,6 +140,151 @@
             margin-right: 8px;
         }
         
+        /* Table of Contents Styles */
+        .toc-page {
+            page-break-after: always;
+            padding: 40px;
+            min-height: 90vh;
+        }
+        
+        .toc-header {
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid var(--primary);
+        }
+        
+        .toc-title {
+            font-size: 42px;
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+        
+        .toc-subtitle {
+            font-size: 14px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .toc-overview {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(245, 158, 11, 0.05) 100%);
+            border-radius: 12px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .toc-overview-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+        
+        .toc-overview-text {
+            font-size: 11px;
+            color: #6b7280;
+            line-height: 1.6;
+        }
+        
+        .toc-tours-section {
+            margin-top: 30px;
+        }
+        
+        .toc-tours-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .toc-tour-entry {
+            margin-bottom: 25px;
+            page-break-inside: avoid;
+        }
+        
+        .toc-tour-header {
+            display: table;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(37, 99, 235, 0.03) 100%);
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .toc-tour-icon {
+            display: table-cell;
+            width: 30px;
+            font-size: 18px;
+            vertical-align: middle;
+        }
+        
+        .toc-tour-info {
+            display: table-cell;
+            vertical-align: middle;
+        }
+        
+        .toc-tour-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 4px;
+        }
+        
+        .toc-tour-meta {
+            font-size: 10px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .toc-tour-meta-item {
+            display: inline-block;
+            margin-right: 15px;
+        }
+        
+        .toc-markers-list {
+            margin-left: 30px;
+            padding-left: 15px;
+            border-left: 2px solid var(--border);
+        }
+        
+        .toc-marker-item {
+            display: table;
+            width: 100%;
+            padding: 8px 0;
+            page-break-inside: avoid;
+        }
+        
+        .toc-marker-icon {
+            display: table-cell;
+            width: 25px;
+            font-size: 12px;
+            color: var(--secondary);
+            vertical-align: middle;
+        }
+        
+        .toc-marker-name {
+            display: table-cell;
+            vertical-align: middle;
+            font-size: 11px;
+            color: #4b5563;
+        }
+        
+        .toc-marker-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            font-size: 8px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 6px;
+            font-weight: 600;
+            vertical-align: middle;
+        }
+        
         /* Header Styles */
         .header {
             margin-bottom: 40px;
@@ -586,6 +731,79 @@
                 </div>
             @endif
         </div>
+    </div>
+
+    {{-- Table of Contents --}}
+    <div class="toc-page">
+        <div class="toc-header">
+            <h1 class="toc-title">Table of Contents</h1>
+            <p class="toc-subtitle">Your complete travel itinerary at a glance</p>
+        </div>
+        
+        @if($tableOfContents['hasOverview'])
+            <div class="toc-overview">
+                <div class="toc-overview-title">📍 Trip Overview</div>
+                <p class="toc-overview-text">
+                    This itinerary includes <strong>{{ count($tableOfContents['tours']) }} {{ count($tableOfContents['tours']) == 1 ? 'tour' : 'tours' }}</strong> 
+                    with a total of <strong>{{ $markersCount }} {{ $markersCount == 1 ? 'location' : 'locations' }}</strong> to explore.
+                </p>
+            </div>
+        @endif
+        
+        @if(!empty($tableOfContents['tours']))
+            <div class="toc-tours-section">
+                <h2 class="toc-tours-title">Tours & Locations</h2>
+                
+                @foreach($tableOfContents['tours'] as $tourEntry)
+                    <div class="toc-tour-entry">
+                        <div class="toc-tour-header">
+                            <div class="toc-tour-icon">🗺️</div>
+                            <div class="toc-tour-info">
+                                <div class="toc-tour-name">{{ $tourEntry['name'] }}</div>
+                                <div class="toc-tour-meta">
+                                    <span class="toc-tour-meta-item">📍 {{ $tourEntry['markerCount'] }} {{ $tourEntry['markerCount'] == 1 ? 'location' : 'locations' }}</span>
+                                    @if($tourEntry['estimatedDurationHours'])
+                                        <span class="toc-tour-meta-item">⏱️ {{ $tourEntry['estimatedDurationHours'] }}h</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        
+                        @if(!empty($tourEntry['markers']))
+                            <div class="toc-markers-list">
+                                @foreach($tourEntry['markers'] as $markerEntry)
+                                    <div class="toc-marker-item">
+                                        <div class="toc-marker-icon">
+                                            @if($markerEntry['type'] === 'accommodation')
+                                                🏨
+                                            @elseif($markerEntry['type'] === 'restaurant')
+                                                🍽️
+                                            @elseif($markerEntry['type'] === 'activity')
+                                                🎯
+                                            @elseif($markerEntry['type'] === 'sight')
+                                                🏛️
+                                            @elseif($markerEntry['type'] === 'nature')
+                                                🌲
+                                            @elseif($markerEntry['type'] === 'transport')
+                                                🚗
+                                            @else
+                                                📍
+                                            @endif
+                                        </div>
+                                        <div class="toc-marker-name">
+                                            {{ $markerEntry['name'] }}
+                                            @if($markerEntry['isUnesco'])
+                                                <span class="toc-marker-badge">UNESCO</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+        @endif
     </div>
 
     {{-- Trip Notes Page --}}

@@ -228,3 +228,65 @@ test('generates PDF with proper marker layout', function () {
     // Note: Actual page break validation would require PDF parsing library
     // This test ensures the PDF generation doesn't crash with many markers
 });
+
+test('generates PDF with table of contents', function () {
+    // Mock MapboxStaticImageService to prevent real API calls
+    $this->mock(MapboxStaticImageService::class, function ($mock) {
+        $mock->shouldReceive('generateStaticImageWithMarkersAndRoutes')
+            ->andReturn('https://api.mapbox.com/styles/v1/test/static/test.png');
+        $mock->shouldReceive('generateStaticImageWithMarkers')
+            ->andReturn('https://api.mapbox.com/styles/v1/test/static/test.png');
+    });
+
+    $user = User::factory()->create();
+    $trip = Trip::factory()->for($user)->create([
+        'name' => 'European Adventure',
+    ]);
+
+    // Create multiple tours with different markers
+    $tour1 = Tour::factory()->for($trip)->create([
+        'name' => 'Germany Tour',
+    ]);
+
+    $tour2 = Tour::factory()->for($trip)->create([
+        'name' => 'France Tour',
+    ]);
+
+    // Create markers with different types
+    $marker1 = Marker::factory()->for($trip)->create([
+        'name' => 'Berlin Cathedral',
+        'type' => 'sight',
+        'is_unesco' => true,
+        'estimated_hours' => 2.5,
+    ]);
+
+    $marker2 = Marker::factory()->for($trip)->create([
+        'name' => 'Hotel Berlin',
+        'type' => 'accommodation',
+        'estimated_hours' => 1.0,
+    ]);
+
+    $marker3 = Marker::factory()->for($trip)->create([
+        'name' => 'Eiffel Tower',
+        'type' => 'sight',
+        'is_unesco' => false,
+        'estimated_hours' => 3.0,
+    ]);
+
+    $marker4 = Marker::factory()->for($trip)->create([
+        'name' => 'Paris Restaurant',
+        'type' => 'restaurant',
+        'estimated_hours' => 1.5,
+    ]);
+
+    $tour1->markers()->attach([$marker1->id, $marker2->id]);
+    $tour2->markers()->attach([$marker3->id, $marker4->id]);
+
+    $response = $this->actingAs($user)->get("/trips/{$trip->id}/export-pdf");
+
+    $response->assertSuccessful();
+    $response->assertHeader('Content-Type', 'application/pdf');
+
+    // Note: Full TOC validation would require PDF parsing
+    // This test ensures PDF generation succeeds with TOC data structure
+});

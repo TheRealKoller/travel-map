@@ -58,6 +58,9 @@ class TripPdfExportService
         // Convert trip notes from Markdown to HTML if they exist
         $tripNotesHtml = $trip->notes ? $this->convertMarkdownToHtml($trip->notes) : null;
 
+        // Build table of contents
+        $tableOfContents = $this->buildTableOfContents($toursData, count($markers));
+
         $pdf = Pdf::loadView('trip-pdf', [
             'trip' => $trip,
             'tripImageUrl' => $tripImageBase64,
@@ -66,6 +69,7 @@ class TripPdfExportService
             'markersOverviewUrl' => $markersOverviewBase64,
             'markersCount' => count($markers),
             'tours' => $toursData,
+            'tableOfContents' => $tableOfContents,
         ]);
 
         // Generate a safe filename from the trip name
@@ -89,6 +93,43 @@ class TripPdfExportService
                 ]);
             }
         }
+    }
+
+    /**
+     * Build table of contents data structure.
+     * Creates a simplified TOC without page numbers (DomPDF limitation).
+     *
+     * @param  array  $toursData  Array of tours with markers
+     * @param  int  $markersCount  Total number of markers
+     * @return array Table of contents data
+     */
+    private function buildTableOfContents(array $toursData, int $markersCount): array
+    {
+        $toc = [
+            'hasOverview' => $markersCount > 0,
+            'tours' => [],
+        ];
+
+        foreach ($toursData as $tour) {
+            $tourEntry = [
+                'name' => $tour['name'],
+                'markerCount' => count($tour['markers']),
+                'estimatedDurationHours' => $tour['estimated_duration_hours'],
+                'markers' => [],
+            ];
+
+            foreach ($tour['markers'] as $marker) {
+                $tourEntry['markers'][] = [
+                    'name' => $marker['name'],
+                    'type' => $marker['type'],
+                    'isUnesco' => $marker['is_unesco'],
+                ];
+            }
+
+            $toc['tours'][] = $tourEntry;
+        }
+
+        return $toc;
     }
 
     /**
