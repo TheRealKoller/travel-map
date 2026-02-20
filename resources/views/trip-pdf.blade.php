@@ -762,8 +762,8 @@
                                 <div class="toc-tour-name">{{ $tourEntry['name'] }}</div>
                                 <div class="toc-tour-meta">
                                     <span class="toc-tour-meta-item">📍 {{ $tourEntry['markerCount'] }} {{ $tourEntry['markerCount'] == 1 ? 'location' : 'locations' }}</span>
-                                    @if($tourEntry['estimatedDurationHours'])
-                                        <span class="toc-tour-meta-item">⏱️ {{ $tourEntry['estimatedDurationHours'] }}h</span>
+                                    @if(isset($tourEntry['estimatedDurationHours']) && $tourEntry['estimatedDurationHours'] > 0)
+                                        <span class="toc-tour-meta-item">⏱️ {{ number_format($tourEntry['estimatedDurationHours'], 1) }}h</span>
                                     @endif
                                 </div>
                             </div>
