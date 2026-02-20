@@ -397,3 +397,146 @@ test('generatePdf renders Markdown formatted notes as HTML', function () {
     // Verify PDF is generated successfully
     expect($response->headers->get('content-type'))->toContain('application/pdf');
 });
+
+test('buildTableOfContents generates correct structure', function () {
+    config(['services.mapbox.access_token' => 'pk.test.fake_token_for_testing_only']);
+
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'TOC Test Trip',
+    ]);
+
+    // Create multiple tours with different characteristics
+    $tour1 = Tour::factory()->create([
+        'trip_id' => $trip->id,
+        'name' => 'Germany Tour',
+    ]);
+
+    $tour2 = Tour::factory()->create([
+        'trip_id' => $trip->id,
+        'name' => 'France Tour',
+    ]);
+
+    // Create markers with different types and UNESCO status
+    $marker1 = Marker::factory()->create([
+        'trip_id' => $trip->id,
+        'user_id' => $this->user->id,
+        'name' => 'Berlin Cathedral',
+        'type' => 'sight',
+        'is_unesco' => true,
+        'estimated_hours' => 2.5,
+    ]);
+
+    $marker2 = Marker::factory()->create([
+        'trip_id' => $trip->id,
+        'user_id' => $this->user->id,
+        'name' => 'Hotel Berlin',
+        'type' => 'accommodation',
+        'is_unesco' => false,
+        'estimated_hours' => 1.0,
+    ]);
+
+    $marker3 = Marker::factory()->create([
+        'trip_id' => $trip->id,
+        'user_id' => $this->user->id,
+        'name' => 'Eiffel Tower',
+        'type' => 'sight',
+        'is_unesco' => false,
+        'estimated_hours' => 3.0,
+    ]);
+
+    // Attach markers to tours
+    $tour1->markers()->attach([$marker1->id, $marker2->id]);
+    $tour2->markers()->attach([$marker3->id]);
+
+    $this->unsplashService->shouldReceive('trackDownload')->andReturn(true);
+    $this->mapboxService->shouldReceive('generateStaticImageWithMarkers')
+        ->andReturn('https://api.mapbox.com/test-image');
+
+    // Use reflection to access the private buildTableOfContents method
+    $reflection = new \ReflectionClass($this->pdfService);
+    $method = $reflection->getMethod('buildTableOfContents');
+    $method->setAccessible(true);
+
+    // Prepare tours data (simulate what prepareToursData would return)
+    $toursData = [
+        [
+            'name' => 'Germany Tour',
+            'estimated_duration_hours' => 3.5,
+            'markers' => [
+                [
+                    'name' => 'Berlin Cathedral',
+                    'type' => 'sight',
+                    'is_unesco' => true,
+                ],
+                [
+                    'name' => 'Hotel Berlin',
+                    'type' => 'accommodation',
+                    'is_unesco' => false,
+                ],
+            ],
+        ],
+        [
+            'name' => 'France Tour',
+            'estimated_duration_hours' => 3.0,
+            'markers' => [
+                [
+                    'name' => 'Eiffel Tower',
+                    'type' => 'sight',
+                    'is_unesco' => false,
+                ],
+            ],
+        ],
+    ];
+
+    $markersCount = 3;
+
+    // Call the method
+    $toc = $method->invoke($this->pdfService, $toursData, $markersCount);
+
+    // Verify TOC structure
+    expect($toc)->toBeArray();
+    expect($toc)->toHaveKey('hasOverview');
+    expect($toc)->toHaveKey('tours');
+    expect($toc['hasOverview'])->toBeTrue();
+    expect($toc['tours'])->toHaveCount(2);
+
+    // Verify first tour
+    expect($toc['tours'][0]['name'])->toBe('Germany Tour');
+    expect($toc['tours'][0]['markerCount'])->toBe(2);
+    expect($toc['tours'][0]['estimatedDurationHours'])->toBe(3.5);
+    expect($toc['tours'][0]['markers'])->toHaveCount(2);
+
+    // Verify first tour's first marker
+    expect($toc['tours'][0]['markers'][0]['name'])->toBe('Berlin Cathedral');
+    expect($toc['tours'][0]['markers'][0]['type'])->toBe('sight');
+    expect($toc['tours'][0]['markers'][0]['isUnesco'])->toBeTrue();
+
+    // Verify first tour's second marker
+    expect($toc['tours'][0]['markers'][1]['name'])->toBe('Hotel Berlin');
+    expect($toc['tours'][0]['markers'][1]['type'])->toBe('accommodation');
+    expect($toc['tours'][0]['markers'][1]['isUnesco'])->toBeFalse();
+
+    // Verify second tour
+    expect($toc['tours'][1]['name'])->toBe('France Tour');
+    expect($toc['tours'][1]['markerCount'])->toBe(1);
+    expect($toc['tours'][1]['estimatedDurationHours'])->toBe(3.0);
+    expect($toc['tours'][1]['markers'])->toHaveCount(1);
+    expect($toc['tours'][1]['markers'][0]['name'])->toBe('Eiffel Tower');
+    expect($toc['tours'][1]['markers'][0]['type'])->toBe('sight');
+    expect($toc['tours'][1]['markers'][0]['isUnesco'])->toBeFalse();
+});
+
+test('buildTableOfContents handles trip without markers', function () {
+    // Use reflection to access the private buildTableOfContents method
+    $reflection = new \ReflectionClass($this->pdfService);
+    $method = $reflection->getMethod('buildTableOfContents');
+    $method->setAccessible(true);
+
+    // Call with empty tours and no markers
+    $toc = $method->invoke($this->pdfService, [], 0);
+
+    expect($toc)->toBeArray();
+    expect($toc['hasOverview'])->toBeFalse();
+    expect($toc['tours'])->toBeEmpty();
+});
