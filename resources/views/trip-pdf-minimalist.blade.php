@@ -491,7 +491,7 @@
             color: #1f2937;
             margin-bottom: 12px;
             padding-bottom: 10px;
-            border-bottom: 2px solid #f59e0b;
+            border-bottom: 2px solid var(--accent);
             page-break-after: avoid;
         }
         
@@ -1066,7 +1066,7 @@
         </div>
 
         <div class="pdf-footer">
-            Generated on {{ now()->format('F j, Y \a\t g:i A') }}
+            Generated on {{ $generatedAt->format('F j, Y \a\t g:i A') }}
         </div>
     </div>
 

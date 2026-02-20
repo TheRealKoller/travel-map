@@ -1058,7 +1058,7 @@
         </div>
 
         <div class="pdf-footer">
-            Generated on {{ now()->format('F j, Y \a\t g:i A') }}
+            Generated on {{ $generatedAt->format('F j, Y \a\t g:i A') }}
         </div>
     </div>
 

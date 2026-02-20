@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\PdfTemplate;
 use App\Models\Marker;
 use App\Models\Route;
 use App\Models\Tour;
@@ -993,7 +994,7 @@ test('generatePdf with modern template returns PDF response', function () {
 
     $this->unsplashService->shouldReceive('trackDownload')->andReturn(true);
 
-    $response = $this->pdfService->generatePdf($trip, 'modern');
+    $response = $this->pdfService->generatePdf($trip, PdfTemplate::MODERN);
 
     expect($response)->toBeInstanceOf(\Illuminate\Http\Response::class);
     expect($response->headers->get('content-type'))->toContain('application/pdf');
@@ -1007,7 +1008,7 @@ test('generatePdf with professional template returns PDF response', function () 
 
     $this->unsplashService->shouldReceive('trackDownload')->andReturn(true);
 
-    $response = $this->pdfService->generatePdf($trip, 'professional');
+    $response = $this->pdfService->generatePdf($trip, PdfTemplate::PROFESSIONAL);
 
     expect($response)->toBeInstanceOf(\Illuminate\Http\Response::class);
     expect($response->headers->get('content-type'))->toContain('application/pdf');
@@ -1022,7 +1023,7 @@ test('generatePdf with minimalist template returns PDF response', function () {
 
     $this->unsplashService->shouldReceive('trackDownload')->andReturn(true);
 
-    $response = $this->pdfService->generatePdf($trip, 'minimalist');
+    $response = $this->pdfService->generatePdf($trip, PdfTemplate::MINIMALIST);
 
     expect($response)->toBeInstanceOf(\Illuminate\Http\Response::class);
     expect($response->headers->get('content-type'))->toContain('application/pdf');
@@ -1037,7 +1038,7 @@ test('generatePdf with compact template returns PDF response', function () {
 
     $this->unsplashService->shouldReceive('trackDownload')->andReturn(true);
 
-    $response = $this->pdfService->generatePdf($trip, 'compact');
+    $response = $this->pdfService->generatePdf($trip, PdfTemplate::COMPACT);
 
     expect($response)->toBeInstanceOf(\Illuminate\Http\Response::class);
     expect($response->headers->get('content-type'))->toContain('application/pdf');

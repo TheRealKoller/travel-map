@@ -60,7 +60,7 @@ export default function TripsIndex() {
         e.stopPropagation();
         // Open PDF in a new tab with selected template
         window.open(
-            `/trips/${tripId}/export-pdf?template=${template}`,
+            `/trips/${tripId}/export-pdf?template=${encodeURIComponent(template)}`,
             '_blank',
         );
     };

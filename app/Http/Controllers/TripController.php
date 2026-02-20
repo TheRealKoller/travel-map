@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PdfTemplate;
 use App\Http\Requests\FetchTripImageRequest;
 use App\Http\Requests\StoreTripRequest;
 use App\Http\Requests\UpdateTripRequest;
@@ -106,14 +107,9 @@ class TripController extends Controller
     {
         $this->authorize('view', $trip);
 
-        // Get template from query parameter, default to 'modern'
-        $template = $request->query('template', 'modern');
-
-        // Validate template
-        $validTemplates = ['modern', 'professional', 'minimalist', 'compact'];
-        if (! in_array($template, $validTemplates)) {
-            $template = 'modern';
-        }
+        // Get template from query parameter, validate and default to MODERN
+        $templateString = $request->query('template', 'modern');
+        $template = PdfTemplate::fromString($templateString);
 
         return $this->tripPdfExportService->generatePdf($trip, $template);
     }

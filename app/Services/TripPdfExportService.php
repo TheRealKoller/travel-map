@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\PdfTemplate;
 use App\Models\Trip;
 use App\Support\ImageHelper;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
@@ -25,7 +26,7 @@ class TripPdfExportService
      * Generate a PDF document for a trip.
      * Includes trip information, maps, markers, tours, and routes.
      */
-    public function generatePdf(Trip $trip, string $template = 'modern'): HttpResponse
+    public function generatePdf(Trip $trip, PdfTemplate $template = PdfTemplate::MODERN): HttpResponse
     {
         // Track trip image download as per Unsplash guidelines
         $this->trackTripImageDownload($trip);
@@ -67,13 +68,8 @@ class TripPdfExportService
         // Generate consistent timestamp for the entire PDF
         $generatedAt = now();
 
-        // Select view based on template
-        $viewName = match ($template) {
-            'professional' => 'trip-pdf-professional',
-            'minimalist' => 'trip-pdf-minimalist',
-            'compact' => 'trip-pdf-compact',
-            default => 'trip-pdf', // modern template
-        };
+        // Get view name from enum
+        $viewName = $template->viewName();
 
         $pdf = Pdf::loadView($viewName, [
             'trip' => $trip,
