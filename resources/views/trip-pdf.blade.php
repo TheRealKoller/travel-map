@@ -1031,7 +1031,7 @@
             </div>
             
             <div class="pdf-footer">
-                Generated on {{ now()->format('F j, Y \a\t g:i A') }}
+                Generated on {{ $generatedAt->format('F j, Y \a\t g:i A') }}
             </div>
         </div>
         
@@ -1082,7 +1082,7 @@
             </div>
 
             <div class="pdf-footer">
-                Generated on {{ now()->format('F j, Y \a\t g:i A') }}
+                Generated on {{ $generatedAt->format('F j, Y \a\t g:i A') }}
             </div>
         </div>
     @endif
@@ -1192,7 +1192,7 @@
             </div>
 
             <div class="pdf-footer">
-                Generated on {{ now()->format('F j, Y \a\t g:i A') }}
+                Generated on {{ $generatedAt->format('F j, Y \a\t g:i A') }}
             </div>
         </div>
     @endforeach
@@ -1280,10 +1280,6 @@
             <div class="summary-section">
                 <h2 class="summary-section-title">Marker Type Distribution</h2>
                 <div class="summary-distribution">
-                    @php
-                        $maxCount = max(array_column($summaryStats['markerTypeDistribution'], 'count'));
-                    @endphp
-                    
                     @foreach($summaryStats['markerTypeDistribution'] as $typeItem)
                         <div class="summary-distribution-item">
                             <div class="summary-distribution-label-cell">
@@ -1305,7 +1301,7 @@
                             </div>
                             <div class="summary-distribution-bar-cell">
                                 <div class="summary-progress-bar-bg">
-                                    <div class="summary-progress-bar-fill" style="width: {{ $maxCount > 0 ? ($typeItem['count'] / $maxCount * 100) : 0 }}%;"></div>
+                                    <div class="summary-progress-bar-fill" style="width: {{ $typeItem['percentage'] }}%;"></div>
                                 </div>
                             </div>
                             <div class="summary-distribution-value-cell">
@@ -1327,7 +1323,7 @@
         {{-- Footer --}}
         <div class="summary-footer">
             <div class="summary-footer-date">
-                Generated on {{ now()->format('F j, Y \a\t g:i A') }}
+                Generated on {{ $generatedAt->format('F j, Y \a\t g:i A') }}
             </div>
             <div class="summary-footer-tagline">
                 "The journey of a thousand miles begins with a single step" 🌍

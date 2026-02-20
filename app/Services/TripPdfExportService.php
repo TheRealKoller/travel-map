@@ -62,7 +62,10 @@ class TripPdfExportService
         $tableOfContents = $this->buildTableOfContents($toursData, count($markers));
 
         // Calculate summary statistics
-        $summaryStats = $this->calculateSummaryStats($trip, $toursData);
+        $summaryStats = $this->calculateSummaryStats($trip, $toursData, $tours);
+
+        // Generate consistent timestamp for the entire PDF
+        $generatedAt = now();
 
         $pdf = Pdf::loadView('trip-pdf', [
             'trip' => $trip,
@@ -74,6 +77,7 @@ class TripPdfExportService
             'tours' => $toursData,
             'tableOfContents' => $tableOfContents,
             'summaryStats' => $summaryStats,
+            'generatedAt' => $generatedAt,
         ]);
 
         // Generate a safe filename from the trip name
@@ -144,7 +148,7 @@ class TripPdfExportService
      * @param  array  $toursData  Prepared tours data array
      * @return array Summary statistics
      */
-    private function calculateSummaryStats(Trip $trip, array $toursData): array
+    private function calculateSummaryStats(Trip $trip, array $toursData, $tours): array
     {
         $totalLocations = 0;
         $totalDuration = 0.0;
@@ -162,11 +166,11 @@ class TripPdfExportService
 
             // Calculate distance for this tour
             $tourDistance = 0.0;
-            $tourModel = $trip->tours->firstWhere('id', $tour['id']);
+            $tourModel = $tours->firstWhere('id', $tour['id']);
             if ($tourModel) {
                 foreach ($tourModel->routes as $route) {
                     if (! empty($route->distance)) {
-                        $routeDistanceKm = $route->distance / 1000; // Convert meters to km
+                        $routeDistanceKm = $route->distance_in_km;
                         $tourDistance += $routeDistanceKm;
                         $totalDistance += $routeDistanceKm;
                     }

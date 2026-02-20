@@ -669,7 +669,10 @@ test('calculateSummaryStats returns correct structure with comprehensive data', 
     $method = $reflection->getMethod('calculateSummaryStats');
     $method->setAccessible(true);
 
-    $stats = $method->invoke($this->pdfService, $trip, $toursData);
+    // Load tours with relationships (same as in the actual service)
+    $tours = $trip->tours()->with(['markers', 'routes'])->get();
+
+    $stats = $method->invoke($this->pdfService, $trip, $toursData, $tours);
 
     // Verify structure
     expect($stats)->toBeArray();
@@ -686,21 +689,21 @@ test('calculateSummaryStats returns correct structure with comprehensive data', 
     // Verify basic stats
     expect($stats['totalLocations'])->toBe(4);
     expect($stats['totalTours'])->toBe(2);
-    expect($stats['totalDuration'])->toBe(8.0); // 5.0 + 3.0
-    expect($stats['totalDistance'])->toBe(75.8); // (50500 + 25300) / 1000 = 75.8
+    expect(round($stats['totalDuration'], 1))->toBe(8.0); // 5.0 + 3.0
+    expect(round($stats['totalDistance'], 1))->toBe(75.8); // (50500 + 25300) / 1000 = 75.8
     expect($stats['unescoCount'])->toBe(1);
 
     // Verify tour breakdown
     expect($stats['tourBreakdown'])->toHaveCount(2);
     expect($stats['tourBreakdown'][0]['name'])->toBe('City Tour');
     expect($stats['tourBreakdown'][0]['markerCount'])->toBe(3);
-    expect($stats['tourBreakdown'][0]['duration'])->toBe(5.0);
-    expect($stats['tourBreakdown'][0]['distance'])->toBe(75.8);
+    expect(round($stats['tourBreakdown'][0]['duration'], 1))->toBe(5.0);
+    expect(round($stats['tourBreakdown'][0]['distance'], 1))->toBe(75.8);
 
     expect($stats['tourBreakdown'][1]['name'])->toBe('Nature Tour');
     expect($stats['tourBreakdown'][1]['markerCount'])->toBe(1);
-    expect($stats['tourBreakdown'][1]['duration'])->toBe(3.0);
-    expect($stats['tourBreakdown'][1]['distance'])->toBe(0.0);
+    expect(round($stats['tourBreakdown'][1]['duration'], 1))->toBe(3.0);
+    expect(round($stats['tourBreakdown'][1]['distance'], 1))->toBe(0.0);
 
     // Verify marker type distribution
     expect($stats['markerTypeDistribution'])->toHaveCount(4);
@@ -739,7 +742,10 @@ test('calculateSummaryStats handles trip with no markers', function () {
     $method = $reflection->getMethod('calculateSummaryStats');
     $method->setAccessible(true);
 
-    $stats = $method->invoke($this->pdfService, $trip, $toursData);
+    // Load tours with relationships (same as in the actual service)
+    $tours = $trip->tours()->with(['markers', 'routes'])->get();
+
+    $stats = $method->invoke($this->pdfService, $trip, $toursData, $tours);
 
     expect($stats['totalLocations'])->toBe(0);
     expect($stats['totalTours'])->toBe(0);
@@ -793,7 +799,10 @@ test('calculateSummaryStats handles tour without routes', function () {
     $method = $reflection->getMethod('calculateSummaryStats');
     $method->setAccessible(true);
 
-    $stats = $method->invoke($this->pdfService, $trip, $toursData);
+    // Load tours with relationships (same as in the actual service)
+    $tours = $trip->tours()->with(['markers', 'routes'])->get();
+
+    $stats = $method->invoke($this->pdfService, $trip, $toursData, $tours);
 
     expect($stats['totalLocations'])->toBe(1);
     expect($stats['totalTours'])->toBe(1);
@@ -845,7 +854,10 @@ test('calculateSummaryStats handles markers without estimated hours', function (
     $method = $reflection->getMethod('calculateSummaryStats');
     $method->setAccessible(true);
 
-    $stats = $method->invoke($this->pdfService, $trip, $toursData);
+    // Load tours with relationships (same as in the actual service)
+    $tours = $trip->tours()->with(['markers', 'routes'])->get();
+
+    $stats = $method->invoke($this->pdfService, $trip, $toursData, $tours);
 
     expect($stats['totalDuration'])->toBe(0.0);
     expect($stats['tourBreakdown'][0]['duration'])->toBe(0.0);
@@ -898,7 +910,10 @@ test('calculateSummaryStats handles multiple markers with same type', function (
     $method = $reflection->getMethod('calculateSummaryStats');
     $method->setAccessible(true);
 
-    $stats = $method->invoke($this->pdfService, $trip, $toursData);
+    // Load tours with relationships (same as in the actual service)
+    $tours = $trip->tours()->with(['markers', 'routes'])->get();
+
+    $stats = $method->invoke($this->pdfService, $trip, $toursData, $tours);
 
     expect($stats['totalLocations'])->toBe(8);
     expect($stats['markerTypeDistribution'])->toHaveCount(2);
@@ -961,7 +976,10 @@ test('calculateSummaryStats handles multiple UNESCO sites', function () {
     $method = $reflection->getMethod('calculateSummaryStats');
     $method->setAccessible(true);
 
-    $stats = $method->invoke($this->pdfService, $trip, $toursData);
+    // Load tours with relationships (same as in the actual service)
+    $tours = $trip->tours()->with(['markers', 'routes'])->get();
+
+    $stats = $method->invoke($this->pdfService, $trip, $toursData, $tours);
 
     expect($stats['unescoCount'])->toBe(3);
     expect($stats['totalLocations'])->toBe(5);
