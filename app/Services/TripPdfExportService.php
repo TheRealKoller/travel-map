@@ -61,6 +61,12 @@ class TripPdfExportService
         // Build table of contents
         $tableOfContents = $this->buildTableOfContents($toursData, count($markers));
 
+        // Calculate summary statistics
+        $summaryStats = $this->calculateSummaryStats($trip, $toursData, $tours);
+
+        // Generate consistent timestamp for the entire PDF
+        $generatedAt = now();
+
         $pdf = Pdf::loadView('trip-pdf', [
             'trip' => $trip,
             'tripImageUrl' => $tripImageBase64,
@@ -70,6 +76,8 @@ class TripPdfExportService
             'markersCount' => count($markers),
             'tours' => $toursData,
             'tableOfContents' => $tableOfContents,
+            'summaryStats' => $summaryStats,
+            'generatedAt' => $generatedAt,
         ]);
 
         // Generate a safe filename from the trip name
@@ -133,6 +141,92 @@ class TripPdfExportService
     }
 
     /**
+     * Calculate trip summary statistics.
+     * Computes total locations, tours, duration, distance, UNESCO sites, and marker type distribution.
+     *
+     * @param  Trip  $trip  The trip instance
+     * @param  array  $toursData  Prepared tours data array
+     * @return array Summary statistics
+     */
+    private function calculateSummaryStats(Trip $trip, array $toursData, $tours): array
+    {
+        $totalLocations = 0;
+        $totalDuration = 0.0;
+        $totalDistance = 0.0;
+        $unescoCount = 0;
+        $markerTypes = [];
+        $tourBreakdown = [];
+
+        foreach ($toursData as $tour) {
+            $tourLocationCount = count($tour['markers']);
+            $totalLocations += $tourLocationCount;
+
+            $tourDuration = (float) ($tour['estimated_duration_hours'] ?? 0);
+            $totalDuration += $tourDuration;
+
+            // Calculate distance for this tour
+            $tourDistance = 0.0;
+            $tourModel = $tours->firstWhere('id', $tour['id']);
+            if ($tourModel) {
+                foreach ($tourModel->routes as $route) {
+                    if (! empty($route->distance)) {
+                        $routeDistanceKm = $route->distance_in_km;
+                        $tourDistance += $routeDistanceKm;
+                        $totalDistance += $routeDistanceKm;
+                    }
+                }
+            }
+
+            // Tour breakdown
+            $tourBreakdown[] = [
+                'name' => $tour['name'],
+                'markerCount' => $tourLocationCount,
+                'duration' => $tourDuration,
+                'distance' => $tourDistance,
+            ];
+
+            // Process markers
+            foreach ($tour['markers'] as $marker) {
+                // Count UNESCO sites
+                if ($marker['is_unesco']) {
+                    $unescoCount++;
+                }
+
+                // Count marker types
+                $type = $marker['type'] ?? 'other';
+                if (! isset($markerTypes[$type])) {
+                    $markerTypes[$type] = 0;
+                }
+                $markerTypes[$type]++;
+            }
+        }
+
+        // Sort marker types by count (descending)
+        arsort($markerTypes);
+
+        // Convert marker types to distribution array with percentages
+        $markerTypeDistribution = [];
+        foreach ($markerTypes as $type => $count) {
+            $percentage = $totalLocations > 0 ? (int) round(($count / $totalLocations) * 100) : 0;
+            $markerTypeDistribution[] = [
+                'type' => $type,
+                'count' => $count,
+                'percentage' => $percentage,
+            ];
+        }
+
+        return [
+            'totalLocations' => $totalLocations,
+            'totalTours' => count($toursData),
+            'totalDuration' => $totalDuration,
+            'totalDistance' => $totalDistance,
+            'unescoCount' => $unescoCount,
+            'tourBreakdown' => $tourBreakdown,
+            'markerTypeDistribution' => $markerTypeDistribution,
+        ];
+    }
+
+    /**
      * Prepare tour data with markers, routes, and static maps.
      */
     private function prepareToursData(\Illuminate\Database\Eloquent\Collection $tours): array
@@ -187,6 +281,7 @@ class TripPdfExportService
             $tourMapBase64 = $this->generateTourMap($tour, $tourMarkers, $tourRoutes);
 
             $toursData[] = [
+                'id' => $tour->id,
                 'name' => $tour->name,
                 'markers' => $tourMarkers,
                 'mapUrl' => $tourMapBase64,
