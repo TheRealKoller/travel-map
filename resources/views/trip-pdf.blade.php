@@ -11,11 +11,46 @@
             box-sizing: border-box;
         }
         
+        /* Color Scheme Variables */
         body {
             font-family: 'DejaVu Sans', sans-serif;
-            font-size: 12px;
+            font-size: 11px;
             line-height: 1.6;
-            color: #333;
+            color: #374151;
+            background-color: white;
+            --primary: #2563eb;
+            --secondary: #f59e0b;
+            --accent: #10b981;
+            --dark: #1f2937;
+            --light: #f3f4f6;
+            --border: #e5e7eb;
+        }
+        
+        /* Typography Hierarchy */
+        h1 { 
+            font-size: 42px; 
+            font-weight: 800; 
+            color: #1f2937;
+            line-height: 1.2; 
+            margin-bottom: 15px;
+        }
+
+        h2 { 
+            font-size: 28px; 
+            font-weight: 700; 
+            color: #1f2937;
+            line-height: 1.3; 
+            margin-top: 25px; 
+            margin-bottom: 12px;
+        }
+
+        h3 { 
+            font-size: 18px; 
+            font-weight: 600; 
+            color: #2563eb;
+            line-height: 1.4; 
+            margin-top: 15px; 
+            margin-bottom: 8px;
         }
         
         .container {
@@ -24,10 +59,92 @@
             padding: 40px;
         }
         
+        .page-break {
+            page-break-after: always;
+        }
+        
+        /* Cover Page Styles */
+        .cover-page {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            page-break-after: always;
+            padding: 60px 40px;
+        }
+        
+        .cover-image-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .cover-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .cover-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.7) 0%, rgba(118, 75, 162, 0.7) 100%);
+        }
+        
+        .cover-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            color: white;
+            padding: 60px 40px;
+        }
+        
+        .cover-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+        
+        .trip-title {
+            font-size: 52px;
+            font-weight: 900;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
+            color: white;
+        }
+        
+        .cover-dates,
+        .cover-duration {
+            font-size: 18px;
+            font-weight: 500;
+            margin: 10px 0;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+        }
+        
+        .date-icon,
+        .duration-icon {
+            margin-right: 8px;
+        }
+        
+        /* Header Styles */
         .header {
             margin-bottom: 40px;
             padding-bottom: 20px;
-            border-bottom: 2px solid #e5e7eb;
+            border-bottom: 3px solid #2563eb;
         }
         
         .trip-name {
@@ -37,6 +154,7 @@
             margin-bottom: 10px;
         }
         
+        /* Section Styles */
         .section {
             margin-bottom: 40px;
         }
@@ -50,6 +168,13 @@
             border-bottom: 1px solid #e5e7eb;
         }
         
+        .section-divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, #2563eb 50%, transparent 100%);
+            margin: 30px 0;
+        }
+        
+        /* Image Styles */
         .image-container {
             margin-top: 15px;
             text-align: center;
@@ -58,8 +183,8 @@
         .image-container img {
             max-width: 100%;
             height: auto;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
         }
         
         .placeholder {
@@ -72,88 +197,191 @@
             font-size: 14px;
         }
         
-        .footer {
-            margin-top: 60px;
+        /* Tour Page Styles */
+        .tour-page {
+            page-break-before: always;
             padding-top: 20px;
-            border-top: 1px solid #e5e7eb;
-            text-align: center;
-            color: #9ca3af;
-            font-size: 10px;
         }
         
-        .page-break {
-            page-break-after: always;
+        .tour-header-section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #2563eb;
         }
         
-        .markers-info {
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #f9fafb;
-            border-radius: 6px;
-            font-size: 11px;
-            color: #6b7280;
-        }
-        
-        .tour-header {
-            font-size: 24px;
-            font-weight: bold;
+        .tour-title {
+            font-size: 32px;
+            font-weight: 800;
             color: #1f2937;
-            margin-bottom: 10px;
-            
-            /* Optional: Neue Seite vor einer Tour beginnen wenn wenig Platz */
-            page-break-before: auto;
+            margin-bottom: 15px;
         }
         
+        .tour-stats-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 25px;
+            font-weight: 600;
+        }
+        
+        .stat-icon {
+            font-size: 18px;
+        }
+        
+        .stat-value {
+            font-size: 18px;
+            font-weight: 800;
+        }
+        
+        .stat-label {
+            font-size: 11px;
+            opacity: 0.9;
+        }
+        
+        .tour-map-container {
+            margin-bottom: 25px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            border: 4px solid white;
+            outline: 1px solid #e5e7eb;
+        }
+        
+        .tour-map {
+            width: 100%;
+            display: block;
+        }
+        
+        /* Marker Card Styles */
         .marker-list {
             margin-top: 20px;
         }
         
-        .marker-item {
-            margin-bottom: 15px;
-            padding: 12px;
-            background-color: #f9fafb;
-            border-left: 3px solid #3b82f6;
-            border-radius: 4px;
-            
-            /* Verhindert Seitenumbruch innerhalb des Markers */
+        .marker-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
             page-break-inside: avoid;
             break-inside: avoid;
-            
-            /* Minimale Zeilen am Seiten-Ende/-Anfang */
+            margin-bottom: 20px;
             orphans: 3;
             widows: 3;
         }
         
-        .marker-name {
-            font-size: 13px;
-            font-weight: bold;
+        .marker-image-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .marker-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .marker-image-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+        }
+        
+        .marker-type-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: #f59e0b;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .unesco-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(254, 243, 199, 0.95);
+            color: #92400e;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+        
+        .marker-body {
+            padding: 18px;
+        }
+        
+        .marker-title {
+            font-size: 18px;
+            font-weight: 700;
             color: #1f2937;
-            margin-bottom: 4px;
-            
-            /* Verhindert Umbruch zwischen Marker-Name und Content */
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f59e0b;
             page-break-after: avoid;
         }
         
-        .marker-detail {
-            font-size: 11px;
-            color: #4b5563;
-            margin-bottom: 3px;
+        .marker-details-grid {
+            display: table;
+            width: 100%;
+            margin-bottom: 12px;
+            padding: 10px;
+            background-color: #f3f4f6;
+            border-radius: 8px;
+        }
+        
+        .detail-item {
+            display: table-row;
+        }
+        
+        .detail-icon,
+        .detail-text {
+            display: table-cell;
+            padding: 4px;
+            font-size: 10px;
+            color: #6b7280;
+        }
+        
+        .detail-icon {
+            width: 20px;
+            font-size: 14px;
         }
         
         .marker-notes {
             font-size: 11px;
             color: #4b5563;
-            margin-top: 6px;
-            padding-top: 6px;
-            border-top: 1px solid #e5e7eb;
-            
-            /* Notes können bei sehr langen Texten umbrochen werden,
-               aber Header und Content bleiben zusammen */
+            line-height: 1.6;
+            margin-top: 12px;
+            padding: 12px;
+            background-color: #fafafa;
+            border-radius: 6px;
+            border-left: 3px solid #2563eb;
             orphans: 2;
             widows: 2;
         }
         
-        /* Markdown formatting styles for notes */
+        /* Markdown formatting for notes */
         .marker-notes p {
             margin-bottom: 8px;
         }
@@ -207,7 +435,7 @@
         }
         
         .marker-notes a {
-            color: #3b82f6;
+            color: #2563eb;
             text-decoration: underline;
         }
         
@@ -230,91 +458,88 @@
         .marker-notes h5,
         .marker-notes h6 { font-size: 11px; }
         
-        .unesco-badge {
-            display: inline-block;
-            background-color: #fef3c7;
-            color: #92400e;
-            font-size: 10px;
-            padding: 2px 8px;
-            border-radius: 3px;
-            margin-left: 8px;
-            font-weight: bold;
-        }
-        
-        .marker-content {
+        /* QR Code Section */
+        .qr-section {
             display: table;
             width: 100%;
-            margin-bottom: 10px;
-            
-            /* Auch den Content-Bereich schützen */
-            page-break-inside: avoid;
-            break-inside: avoid;
-        }
-        
-        .marker-left {
-            display: table-cell;
-            width: 50%;
-            vertical-align: top;
-            padding-right: 15px;
-        }
-        
-        .marker-right {
-            display: table-cell;
-            width: 50%;
-            vertical-align: top;
-        }
-        
-        .marker-image {
-            width: 100%;
-            max-height: 200px;
-            border-radius: 4px;
-            object-fit: cover;
-        }
-        
-        .marker-image-placeholder {
+            margin-top: 15px;
+            padding: 12px;
             background-color: #f3f4f6;
-            border: 2px dashed #d1d5db;
-            border-radius: 4px;
-            padding: 40px 10px;
-            text-align: center;
-            color: #9ca3af;
-            font-size: 11px;
+            border-radius: 8px;
         }
         
-        .qr-code-container {
-            padding: 10px;
-            background-color: #ffffff;
-            border-radius: 4px;
-            border: 1px solid #e5e7eb;
+        .qr-code-box {
+            display: table-cell;
+            width: 70px;
+            vertical-align: middle;
         }
         
-        .qr-code-container img {
-            display: block;
-            margin: 0 auto;
+        .qr-code-box img {
             width: 60px;
             height: 60px;
+            background: white;
+            padding: 4px;
+            border-radius: 6px;
+            border: 2px solid #e5e7eb;
         }
         
-        .qr-code-url {
-            margin-top: 6px;
+        .qr-text {
+            display: table-cell;
+            vertical-align: middle;
+            padding-left: 12px;
+        }
+        
+        .qr-label {
             font-size: 9px;
             color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        
+        .qr-url {
+            font-size: 10px;
+            color: #2563eb;
+            font-weight: 500;
             word-break: break-all;
+        }
+        
+        /* Footer Styles */
+        .pdf-footer {
+            border-top: 1px solid #e5e7eb;
+            padding-top: 10px;
+            margin-top: 30px;
+            text-align: center;
+            font-size: 9px;
+            color: #9ca3af;
+        }
+        
+        .markers-info {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f9fafb;
+            border-radius: 6px;
+            font-size: 11px;
+            color: #6b7280;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1 class="trip-name">{{ $trip->name }}</h1>
+    {{-- Cover Page --}}
+    <div class="cover-page">
+        @if($tripImageUrl)
+            <div class="cover-image-container">
+                <img src="{{ $tripImageUrl }}" alt="Trip cover" class="cover-image">
+                <div class="cover-overlay"></div>
+            </div>
+        @endif
+        
+        <div class="cover-content">
+            <div class="cover-badge">Travel Itinerary</div>
+            <h1 class="trip-title">{{ $trip->name }}</h1>
             
-            @if($tripImageUrl)
-                <div class="image-container" style="margin-bottom: 20px;">
-                    <img src="{{ $tripImageUrl }}" alt="{{ $trip->name }}" style="max-height: 300px;">
-                </div>
-            @endif
-            
-            @if($trip->planned_start_year || $trip->planned_end_year || $trip->planned_duration_days)
+            @if($trip->planned_start_year || $trip->planned_end_year)
                 @php
                 $monthNames = [
                     1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April',
@@ -345,37 +570,54 @@
                 }
                 @endphp
                 
-                <div class="planning-section">
-                    <div class="planning-label">Planning</div>
-                    @if($startPeriod || $endPeriod)
-                        <div class="planning-detail">
-                            <strong>Period:</strong> 
-                            {{ $startPeriod }}
-                            @if($endPeriod)
-                                → {{ $endPeriod }}
-                            @endif
-                        </div>
-                    @endif
-                    @if($trip->planned_duration_days)
-                        <div class="planning-detail">
-                            <strong>Duration:</strong> {{ $trip->planned_duration_days }} {{ $trip->planned_duration_days == 1 ? 'day' : 'days' }}
-                        </div>
+                <div class="cover-dates">
+                    <span class="date-icon">📅</span>
+                    {{ $startPeriod }}
+                    @if($endPeriod)
+                        → {{ $endPeriod }}
                     @endif
                 </div>
             @endif
+            
+            @if($trip->planned_duration_days)
+                <div class="cover-duration">
+                    <span class="duration-icon">⏱️</span>
+                    {{ $trip->planned_duration_days }} {{ $trip->planned_duration_days == 1 ? 'day' : 'days' }}
+                </div>
+            @endif
         </div>
+    </div>
 
-        @if($tripNotesHtml)
+    {{-- Trip Notes Page --}}
+    @if($tripNotesHtml)
+        <div class="container">
+            <div class="header">
+                <h1 class="trip-name">{{ $trip->name }}</h1>
+            </div>
+            
             <div class="section">
-                <h2 class="section-title">Trip notes</h2>
+                <h2 class="section-title">Trip Notes</h2>
                 <div class="marker-notes">
                     {!! $tripNotesHtml !!}
                 </div>
             </div>
-        @endif
+            
+            <div class="pdf-footer">
+                Generated on {{ now()->format('F j, Y \a\t g:i A') }}
+            </div>
+        </div>
+        
+        <div class="page-break"></div>
+    @endif
 
+    {{-- Map Viewport Page --}}
+    <div class="container">
+        <div class="header">
+            <h1 class="trip-name">{{ $trip->name }}</h1>
+        </div>
+        
         <div class="section">
-            <h2 class="section-title">Map viewport</h2>
+            <h2 class="section-title">Map Viewport</h2>
             <div class="image-container">
                 @if($viewportImageUrl)
                     <img src="{{ $viewportImageUrl }}" alt="Map viewport">
@@ -387,11 +629,12 @@
             </div>
         </div>
 
-        <div class="footer">
+        <div class="pdf-footer">
             Generated on {{ now()->format('F j, Y \a\t g:i A') }}
         </div>
     </div>
 
+    {{-- Markers Overview Page --}}
     @if($markersOverviewUrl)
         <div class="page-break"></div>
         
@@ -401,7 +644,7 @@
             </div>
 
             <div class="section">
-                <h2 class="section-title">Markers overview</h2>
+                <h2 class="section-title">Markers Overview</h2>
                 <div class="markers-info">
                     This map shows all {{ $markersCount }} marker(s) of your trip.
                 </div>
@@ -410,12 +653,13 @@
                 </div>
             </div>
 
-            <div class="footer">
+            <div class="pdf-footer">
                 Generated on {{ now()->format('F j, Y \a\t g:i A') }}
             </div>
         </div>
     @endif
 
+    {{-- Tour Pages --}}
     @foreach($tours as $tour)
         <div class="page-break"></div>
         
@@ -424,93 +668,102 @@
                 <h1 class="trip-name">{{ $trip->name }}</h1>
             </div>
 
-            <div class="section">
-                <h2 class="tour-header">{{ $tour['name'] }}</h2>
-                
-                @if(isset($tour['estimated_duration_hours']) && $tour['estimated_duration_hours'] > 0)
-                    @php
-                    $hours = $tour['estimated_duration_hours'];
-                    $wholeHours = floor($hours);
-                    $minutes = round(($hours - $wholeHours) * 60);
-                    $durationText = '';
-                    if ($wholeHours > 0) {
-                        $durationText .= $wholeHours . ' ' . ($wholeHours == 1 ? 'hour' : 'hours');
-                    }
-                    if ($minutes > 0) {
-                        if ($wholeHours > 0) {
-                            $durationText .= ' ';
-                        }
-                        $durationText .= $minutes . ' ' . ($minutes == 1 ? 'minute' : 'minutes');
-                    }
-                    @endphp
-                    <div class="markers-info" style="margin-bottom: 15px;">
-                        Estimated duration: {{ $durationText }}
+            <div class="tour-page">
+                <div class="tour-header-section">
+                    <h2 class="tour-title">{{ $tour['name'] }}</h2>
+                    
+                    <div class="tour-stats-row">
+                        @if(!empty($tour['markers']))
+                            <div class="stat-badge">
+                                <span class="stat-icon">📍</span>
+                                <span class="stat-value">{{ count($tour['markers']) }}</span>
+                                <span class="stat-label">Locations</span>
+                            </div>
+                        @endif
+                        
+                        @if(isset($tour['estimated_duration_hours']) && $tour['estimated_duration_hours'] > 0)
+                            <div class="stat-badge">
+                                <span class="stat-icon">⏱️</span>
+                                <span class="stat-value">{{ number_format($tour['estimated_duration_hours'], 1) }}</span>
+                                <span class="stat-label">Hours</span>
+                            </div>
+                        @endif
                     </div>
-                @endif
+                </div>
                 
                 @if($tour['mapUrl'])
-                    <div class="image-container">
-                        <img src="{{ $tour['mapUrl'] }}" alt="Tour map: {{ $tour['name'] }}">
+                    <div class="tour-map-container">
+                        <img src="{{ $tour['mapUrl'] }}" alt="Tour map: {{ $tour['name'] }}" class="tour-map">
                     </div>
                 @endif
 
                 @if(!empty($tour['markers']))
                     <div class="marker-list">
-                        <h3 class="section-title">Markers</h3>
+                        <h3 class="section-title">Locations</h3>
                         @foreach($tour['markers'] as $marker)
-                            <div class="marker-item">
-                                <div class="marker-name" style="margin-bottom: 10px;">
-                                    {{ $marker['name'] }}
-                                </div>
-                                <div class="marker-content">
-                                    <div class="marker-left">
-                                        @if(!empty($marker['image_base64']))
-                                            <img src="{{ $marker['image_base64'] }}" alt="{{ $marker['name'] }}" class="marker-image">
-                                        @else
-                                            <div class="marker-image-placeholder">
-                                                No image available
-                                            </div>
-                                        @endif
-                                    </div>
-                                    <div class="marker-right">
-                                        @if($marker['type'])
-                                            <div class="marker-detail">
-                                                <strong>Type:</strong> {{ $marker['type'] }}
-                                                @if($marker['is_unesco'])
-                                                    <span class="unesco-badge">UNESCO</span>
-                                                @endif
-                                            </div>
-                                        @endif
-                                        <div class="marker-detail">
-                                            <strong>Coordinates:</strong> {{ number_format($marker['latitude'], 6) }}, {{ number_format($marker['longitude'], 6) }}
+                            <div class="marker-card">
+                                <div class="marker-image-container">
+                                    @if(!empty($marker['image_base64']))
+                                        <img src="{{ $marker['image_base64'] }}" alt="{{ $marker['name'] }}" class="marker-image">
+                                    @else
+                                        <div class="marker-image-placeholder">
+                                            <span>📍</span>
                                         </div>
-                                        @if($marker['estimated_hours'])
-                                            <div class="marker-detail">
-                                                <strong>Estimated time:</strong> {{ number_format($marker['estimated_hours'], 1) }} {{ $marker['estimated_hours'] == 1 ? 'hour' : 'hours' }}
-                                            </div>
-                                        @endif
-                                        @if($marker['url'])
-                                            <div class="qr-code-container" style="margin-top: 10px;">
-                                                @if(!empty($marker['qr_code']))
-                                                    <img src="{{ $marker['qr_code'] }}" alt="QR Code for {{ $marker['url'] }}">
-                                                @endif
-                                                <div class="qr-code-url">{{ $marker['url'] }}</div>
-                                            </div>
-                                        @endif
-                                    </div>
+                                    @endif
+                                    
+                                    @if($marker['type'])
+                                        <div class="marker-type-badge">{{ $marker['type'] }}</div>
+                                    @endif
+                                    
+                                    @if($marker['is_unesco'])
+                                        <div class="unesco-badge">🏛️ UNESCO</div>
+                                    @endif
                                 </div>
-                                @if($marker['notes_html'])
-                                    <div class="marker-notes">
-                                        {!! $marker['notes_html'] !!}
+                                
+                                <div class="marker-body">
+                                    <h3 class="marker-title">{{ $marker['name'] }}</h3>
+                                    
+                                    <div class="marker-details-grid">
+                                        <div class="detail-item">
+                                            <div class="detail-icon">📍</div>
+                                            <div class="detail-text">{{ number_format($marker['latitude'], 4) }}, {{ number_format($marker['longitude'], 4) }}</div>
+                                        </div>
+                                        
+                                        @if($marker['estimated_hours'])
+                                            <div class="detail-item">
+                                                <div class="detail-icon">⏱️</div>
+                                                <div class="detail-text">{{ number_format($marker['estimated_hours'], 1) }}h</div>
+                                            </div>
+                                        @endif
                                     </div>
-                                @endif
+                                    
+                                    @if($marker['notes_html'])
+                                        <div class="marker-notes">
+                                            {!! $marker['notes_html'] !!}
+                                        </div>
+                                    @endif
+                                    
+                                    @if($marker['url'])
+                                        <div class="qr-section">
+                                            <div class="qr-code-box">
+                                                @if(!empty($marker['qr_code']))
+                                                    <img src="{{ $marker['qr_code'] }}" alt="QR Code">
+                                                @endif
+                                            </div>
+                                            <div class="qr-text">
+                                                <p class="qr-label">Scan for details</p>
+                                                <p class="qr-url">{{ Str::limit($marker['url'], 40) }}</p>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
                             </div>
                         @endforeach
                     </div>
                 @endif
             </div>
 
-            <div class="footer">
+            <div class="pdf-footer">
                 Generated on {{ now()->format('F j, Y \a\t g:i A') }}
             </div>
         </div>
