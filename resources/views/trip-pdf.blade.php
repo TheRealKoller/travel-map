@@ -99,6 +99,9 @@
             font-weight: bold;
             color: #1f2937;
             margin-bottom: 10px;
+            
+            /* Optional: Neue Seite vor einer Tour beginnen wenn wenig Platz */
+            page-break-before: auto;
         }
         
         .marker-list {
@@ -111,6 +114,14 @@
             background-color: #f9fafb;
             border-left: 3px solid #3b82f6;
             border-radius: 4px;
+            
+            /* Verhindert Seitenumbruch innerhalb des Markers */
+            page-break-inside: avoid;
+            break-inside: avoid;
+            
+            /* Minimale Zeilen am Seiten-Ende/-Anfang */
+            orphans: 3;
+            widows: 3;
         }
         
         .marker-name {
@@ -118,6 +129,9 @@
             font-weight: bold;
             color: #1f2937;
             margin-bottom: 4px;
+            
+            /* Verhindert Umbruch zwischen Marker-Name und Content */
+            page-break-after: avoid;
         }
         
         .marker-detail {
@@ -132,6 +146,11 @@
             margin-top: 6px;
             padding-top: 6px;
             border-top: 1px solid #e5e7eb;
+            
+            /* Notes können bei sehr langen Texten umbrochen werden,
+               aber Header und Content bleiben zusammen */
+            orphans: 2;
+            widows: 2;
         }
         
         /* Markdown formatting styles for notes */
@@ -226,6 +245,10 @@
             display: table;
             width: 100%;
             margin-bottom: 10px;
+            
+            /* Auch den Content-Bereich schützen */
+            page-break-inside: avoid;
+            break-inside: avoid;
         }
         
         .marker-left {
