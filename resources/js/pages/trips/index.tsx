@@ -1,12 +1,19 @@
 import InvitationDialog from '@/components/invitation-dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import { useTrips } from '@/hooks/use-trips';
 import AppLayout from '@/layouts/app-layout';
 import { COUNTRIES } from '@/lib/countries';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { FileDown, Pencil, Plus, UserPlus } from 'lucide-react';
+import { FileDown, MoreVertical, Pencil, Plus, UserPlus } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -17,6 +24,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function TripsIndex() {
     const { trips } = useTrips();
+    const { t } = useTranslation();
     const [invitationDialogOpen, setInvitationDialogOpen] = useState(false);
     const [selectedTripForInvitation, setSelectedTripForInvitation] = useState<{
         id: number;
@@ -107,38 +115,51 @@ export default function TripsIndex() {
                             className="group relative flex flex-col overflow-hidden rounded-xl border-2 border-sidebar-border bg-card shadow-md transition-all hover:border-sidebar-border hover:shadow-xl dark:border-sidebar-border"
                         >
                             {/* Action Buttons */}
-                            <div className="absolute top-3 right-3 z-10 flex gap-2">
-                                {/* Invite Button */}
-                                <button
-                                    data-testid={`invite-button-${trip.id}`}
-                                    onClick={(e) =>
-                                        handleInvite(e, trip.id, trip.name)
-                                    }
-                                    className="flex size-8 items-center justify-center rounded-lg bg-background/80 text-muted-foreground opacity-0 backdrop-blur-sm transition-all group-hover:opacity-100 hover:bg-background hover:text-foreground"
-                                    aria-label="Invite users"
-                                    title="Invite users"
-                                >
-                                    <UserPlus className="size-4" />
-                                </button>
-                                {/* PDF Export Button */}
-                                <button
-                                    data-testid={`export-pdf-button-${trip.id}`}
-                                    onClick={(e) => handleExportPdf(e, trip.id)}
-                                    className="flex size-8 items-center justify-center rounded-lg bg-background/80 text-muted-foreground opacity-0 backdrop-blur-sm transition-all group-hover:opacity-100 hover:bg-background hover:text-foreground"
-                                    aria-label="Export as PDF"
-                                    title="Export as PDF"
-                                >
-                                    <FileDown className="size-4" />
-                                </button>
-                                {/* Edit Button */}
-                                <button
-                                    data-testid={`edit-trip-button-${trip.id}`}
-                                    onClick={(e) => handleEditTrip(e, trip.id)}
-                                    className="flex size-8 items-center justify-center rounded-lg bg-background/80 text-muted-foreground opacity-0 backdrop-blur-sm transition-all group-hover:opacity-100 hover:bg-background hover:text-foreground"
-                                    aria-label="Edit trip"
-                                >
-                                    <Pencil className="size-4" />
-                                </button>
+                            <div className="absolute top-3 right-3 z-10">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <button
+                                            data-testid={`trip-actions-${trip.id}`}
+                                            className="flex size-8 items-center justify-center rounded-lg bg-background/80 text-muted-foreground backdrop-blur-sm transition-all hover:bg-background hover:text-foreground"
+                                            aria-label="Trip actions"
+                                        >
+                                            <MoreVertical className="size-4" />
+                                        </button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem
+                                            data-testid={`invite-button-${trip.id}`}
+                                            onClick={(e) =>
+                                                handleInvite(
+                                                    e,
+                                                    trip.id,
+                                                    trip.name,
+                                                )
+                                            }
+                                        >
+                                            <UserPlus className="mr-2 size-4" />
+                                            {t('trips.invite_users')}
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            data-testid={`export-pdf-button-${trip.id}`}
+                                            onClick={(e) =>
+                                                handleExportPdf(e, trip.id)
+                                            }
+                                        >
+                                            <FileDown className="mr-2 size-4" />
+                                            {t('trips.export_pdf')}
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem
+                                            data-testid={`edit-trip-button-${trip.id}`}
+                                            onClick={(e) =>
+                                                handleEditTrip(e, trip.id)
+                                            }
+                                        >
+                                            <Pencil className="mr-2 size-4" />
+                                            {t('trips.edit_trip')}
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </div>
 
                             {/* Cover Image */}
