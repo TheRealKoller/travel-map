@@ -186,14 +186,22 @@ class MapboxStaticImageService
         $overlays = [];
 
         // Add route paths
+        $routeCount = 0;
         foreach ($routes as $route) {
             if (! empty($route['geometry'])) {
                 $pathOverlay = $this->buildPathOverlay($route['geometry']);
                 if ($pathOverlay) {
                     $overlays[] = $pathOverlay;
+                    $routeCount++;
                 }
             }
         }
+
+        Log::debug('Static image with routes', [
+            'total_routes' => count($routes),
+            'routes_with_geometry' => $routeCount,
+            'marker_count' => count($markers),
+        ]);
 
         // Add marker overlays
         $markerOverlays = $this->buildMarkerOverlays($markers);
@@ -201,13 +209,20 @@ class MapboxStaticImageService
             $overlays[] = $markerOverlays;
         }
 
+        if (empty($overlays)) {
+            Log::warning('No overlays generated for static image');
+
+            return null;
+        }
+
         // Format: /styles/v1/{username}/{style_id}/static/{overlay}/{longitude},{latitude},{zoom}/{width}x{height}
         // Using calculated center and zoom based on markers
+        $overlayString = implode(',', $overlays);
         $url = sprintf(
             '%s/%s/static/%s/%s,%s,%s,0,0/%dx%d?access_token=%s',
             self::MAPBOX_STATIC_IMAGE_BASE_URL,
             $style,
-            implode(',', $overlays),
+            $overlayString,
             $center['longitude'],
             $center['latitude'],
             $zoom,
@@ -215,6 +230,11 @@ class MapboxStaticImageService
             $height,
             $this->accessToken
         );
+
+        Log::debug('Generated static image URL', [
+            'url_length' => strlen($url),
+            'overlay_count' => count($overlays),
+        ]);
 
         return $url;
     }
@@ -230,6 +250,8 @@ class MapboxStaticImageService
     private function buildPathOverlay(array $geometry): ?string
     {
         if (empty($geometry)) {
+            Log::debug('Path overlay: empty geometry provided');
+
             return null;
         }
 
@@ -237,24 +259,42 @@ class MapboxStaticImageService
         // Take every Nth point to reduce coordinate count while preserving route shape
         $simplified = $this->simplifyGeometry($geometry, 50);
 
+        Log::debug('Path overlay: geometry simplified', [
+            'original_count' => count($geometry),
+            'simplified_count' => count($simplified),
+        ]);
+
         // Build coordinate string: lng,lat lng,lat lng,lat
         $coords = [];
         foreach ($simplified as $coord) {
-            if (isset($coord[0], $coord[1])) {
+            if (isset($coord[0], $coord[1]) && is_numeric($coord[0]) && is_numeric($coord[1])) {
                 $coords[] = sprintf('%s,%s', $coord[0], $coord[1]);
+            } else {
+                Log::warning('Path overlay: invalid coordinate', ['coord' => $coord]);
             }
         }
 
         if (empty($coords)) {
+            Log::warning('Path overlay: no valid coordinates after filtering');
+
             return null;
         }
 
         // Use blue color with medium width for routes
         // Format: path-<width>+<color>-<opacity>(<coordinates>)
-        return sprintf(
+        $coordString = implode(' ', $coords);
+        $pathOverlay = sprintf(
             'path-3+0000ff-0.7(%s)',
-            implode(' ', $coords)
+            $coordString
         );
+
+        Log::debug('Path overlay generated', [
+            'coord_count' => count($coords),
+            'overlay_length' => strlen($pathOverlay),
+            'first_coords' => implode(' ', array_slice($coords, 0, 3)),
+        ]);
+
+        return $pathOverlay;
     }
 
     /**
