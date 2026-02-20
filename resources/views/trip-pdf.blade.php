@@ -668,6 +668,216 @@
             font-size: 11px;
             color: #6b7280;
         }
+        
+        /* Summary Page Styles */
+        .summary-page {
+            page-break-before: always;
+            padding: 40px;
+            min-height: 90vh;
+        }
+        
+        .summary-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid var(--primary);
+        }
+        
+        .summary-title {
+            font-size: 42px;
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+        
+        .summary-subtitle {
+            font-size: 14px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .summary-stats-grid {
+            display: table;
+            width: 100%;
+            margin-bottom: 30px;
+            border-spacing: 15px 0;
+        }
+        
+        .summary-stat-row {
+            display: table-row;
+        }
+        
+        .summary-stat-card {
+            display: table-cell;
+            width: 33.333%;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(37, 99, 235, 0.03) 100%);
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid rgba(37, 99, 235, 0.1);
+        }
+        
+        .summary-stat-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .summary-stat-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .summary-stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .summary-section {
+            margin-bottom: 30px;
+            page-break-inside: avoid;
+        }
+        
+        .summary-section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .summary-tour-breakdown {
+            margin-bottom: 15px;
+        }
+        
+        .summary-tour-item {
+            display: table;
+            width: 100%;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            page-break-inside: avoid;
+        }
+        
+        .summary-tour-icon-cell {
+            display: table-cell;
+            width: 40px;
+            vertical-align: middle;
+            font-size: 24px;
+        }
+        
+        .summary-tour-info-cell {
+            display: table-cell;
+            vertical-align: middle;
+            padding-left: 15px;
+        }
+        
+        .summary-tour-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+        
+        .summary-tour-stats {
+            font-size: 10px;
+            color: #6b7280;
+        }
+        
+        .summary-tour-stat-item {
+            display: inline-block;
+            margin-right: 15px;
+        }
+        
+        .summary-distribution {
+            margin-top: 10px;
+        }
+        
+        .summary-distribution-item {
+            display: table;
+            width: 100%;
+            margin-bottom: 12px;
+            page-break-inside: avoid;
+        }
+        
+        .summary-distribution-label-cell {
+            display: table-cell;
+            width: 30%;
+            vertical-align: middle;
+            font-size: 11px;
+            color: #4b5563;
+            font-weight: 600;
+        }
+        
+        .summary-distribution-bar-cell {
+            display: table-cell;
+            vertical-align: middle;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+        
+        .summary-distribution-value-cell {
+            display: table-cell;
+            width: 50px;
+            text-align: right;
+            vertical-align: middle;
+            font-size: 11px;
+            color: #6b7280;
+            font-weight: 600;
+        }
+        
+        .summary-progress-bar-bg {
+            width: 100%;
+            height: 20px;
+            background: #f3f4f6;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .summary-progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        
+        .summary-empty-state {
+            padding: 30px;
+            text-align: center;
+            color: #9ca3af;
+            font-size: 12px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border: 2px dashed #e5e7eb;
+        }
+        
+        .summary-footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid var(--border);
+            text-align: center;
+        }
+        
+        .summary-footer-date {
+            font-size: 10px;
+            color: #6b7280;
+            margin-bottom: 10px;
+        }
+        
+        .summary-footer-tagline {
+            font-size: 12px;
+            color: var(--primary);
+            font-weight: 600;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -986,5 +1196,143 @@
             </div>
         </div>
     @endforeach
+
+    {{-- Summary Page --}}
+    <div class="summary-page">
+        <div class="summary-header">
+            <h1 class="summary-title">Trip Summary</h1>
+            <p class="summary-subtitle">Your travel statistics and highlights</p>
+        </div>
+        
+        {{-- Key Statistics --}}
+        <div class="summary-stats-grid">
+            <div class="summary-stat-row">
+                <div class="summary-stat-card">
+                    <div class="summary-stat-icon">📍</div>
+                    <div class="summary-stat-value">{{ $summaryStats['totalLocations'] }}</div>
+                    <div class="summary-stat-label">Total Locations</div>
+                </div>
+                
+                <div class="summary-stat-card">
+                    <div class="summary-stat-icon">🗺️</div>
+                    <div class="summary-stat-value">{{ $summaryStats['totalTours'] }}</div>
+                    <div class="summary-stat-label">Tours</div>
+                </div>
+                
+                <div class="summary-stat-card">
+                    <div class="summary-stat-icon">⏱️</div>
+                    <div class="summary-stat-value">{{ number_format($summaryStats['totalDuration'], 1) }}</div>
+                    <div class="summary-stat-label">Total Hours</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="summary-stats-grid">
+            <div class="summary-stat-row">
+                <div class="summary-stat-card">
+                    <div class="summary-stat-icon">🚗</div>
+                    <div class="summary-stat-value">{{ number_format($summaryStats['totalDistance'], 1) }}</div>
+                    <div class="summary-stat-label">Kilometers</div>
+                </div>
+                
+                <div class="summary-stat-card">
+                    <div class="summary-stat-icon">🏛️</div>
+                    <div class="summary-stat-value">{{ $summaryStats['unescoCount'] }}</div>
+                    <div class="summary-stat-label">UNESCO Sites</div>
+                </div>
+                
+                <div class="summary-stat-card">
+                    <div class="summary-stat-icon">📌</div>
+                    <div class="summary-stat-value">{{ count($summaryStats['markerTypeDistribution']) }}</div>
+                    <div class="summary-stat-label">Marker Types</div>
+                </div>
+            </div>
+        </div>
+        
+        {{-- Tour Breakdown --}}
+        @if(!empty($summaryStats['tourBreakdown']))
+            <div class="summary-section">
+                <h2 class="summary-section-title">Tour Breakdown</h2>
+                <div class="summary-tour-breakdown">
+                    @foreach($summaryStats['tourBreakdown'] as $tourItem)
+                        <div class="summary-tour-item">
+                            <div class="summary-tour-icon-cell">🗺️</div>
+                            <div class="summary-tour-info-cell">
+                                <div class="summary-tour-name">{{ $tourItem['name'] }}</div>
+                                <div class="summary-tour-stats">
+                                    <span class="summary-tour-stat-item">📍 {{ $tourItem['markerCount'] }} {{ $tourItem['markerCount'] == 1 ? 'location' : 'locations' }}</span>
+                                    @if($tourItem['duration'] > 0)
+                                        <span class="summary-tour-stat-item">⏱️ {{ number_format($tourItem['duration'], 1) }}h</span>
+                                    @endif
+                                    @if($tourItem['distance'] > 0)
+                                        <span class="summary-tour-stat-item">🚗 {{ number_format($tourItem['distance'], 1) }}km</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+        
+        {{-- Marker Type Distribution --}}
+        @if(!empty($summaryStats['markerTypeDistribution']))
+            <div class="summary-section">
+                <h2 class="summary-section-title">Marker Type Distribution</h2>
+                <div class="summary-distribution">
+                    @php
+                        $maxCount = max(array_column($summaryStats['markerTypeDistribution'], 'count'));
+                    @endphp
+                    
+                    @foreach($summaryStats['markerTypeDistribution'] as $typeItem)
+                        <div class="summary-distribution-item">
+                            <div class="summary-distribution-label-cell">
+                                @if($typeItem['type'] === 'accommodation')
+                                    🏨 Accommodation
+                                @elseif($typeItem['type'] === 'restaurant')
+                                    🍽️ Restaurant
+                                @elseif($typeItem['type'] === 'activity')
+                                    🎯 Activity
+                                @elseif($typeItem['type'] === 'sight')
+                                    🏛️ Sight
+                                @elseif($typeItem['type'] === 'nature')
+                                    🌲 Nature
+                                @elseif($typeItem['type'] === 'transport')
+                                    🚗 Transport
+                                @else
+                                    📍 {{ ucfirst($typeItem['type']) }}
+                                @endif
+                            </div>
+                            <div class="summary-distribution-bar-cell">
+                                <div class="summary-progress-bar-bg">
+                                    <div class="summary-progress-bar-fill" style="width: {{ $maxCount > 0 ? ($typeItem['count'] / $maxCount * 100) : 0 }}%;"></div>
+                                </div>
+                            </div>
+                            <div class="summary-distribution-value-cell">
+                                {{ $typeItem['count'] }} ({{ $typeItem['percentage'] }}%)
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @else
+            <div class="summary-section">
+                <h2 class="summary-section-title">Marker Type Distribution</h2>
+                <div class="summary-empty-state">
+                    No markers to display
+                </div>
+            </div>
+        @endif
+        
+        {{-- Footer --}}
+        <div class="summary-footer">
+            <div class="summary-footer-date">
+                Generated on {{ now()->format('F j, Y \a\t g:i A') }}
+            </div>
+            <div class="summary-footer-tagline">
+                "The journey of a thousand miles begins with a single step" 🌍
+            </div>
+        </div>
+    </div>
 </body>
 </html>

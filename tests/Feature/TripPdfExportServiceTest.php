@@ -540,3 +540,429 @@ test('buildTableOfContents handles trip without markers', function () {
     expect($toc['hasOverview'])->toBeFalse();
     expect($toc['tours'])->toBeEmpty();
 });
+
+test('calculateSummaryStats returns correct structure with comprehensive data', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Summary Stats Test',
+    ]);
+
+    // Create tours with different characteristics
+    $tour1 = Tour::factory()->create([
+        'trip_id' => $trip->id,
+        'name' => 'City Tour',
+    ]);
+
+    $tour2 = Tour::factory()->create([
+        'trip_id' => $trip->id,
+        'name' => 'Nature Tour',
+    ]);
+
+    // Create markers with various types and UNESCO status
+    $marker1 = Marker::factory()->create([
+        'trip_id' => $trip->id,
+        'user_id' => $this->user->id,
+        'name' => 'UNESCO Site',
+        'type' => 'sight',
+        'is_unesco' => true,
+        'estimated_hours' => 2.5,
+    ]);
+
+    $marker2 = Marker::factory()->create([
+        'trip_id' => $trip->id,
+        'user_id' => $this->user->id,
+        'name' => 'Hotel',
+        'type' => 'accommodation',
+        'is_unesco' => false,
+        'estimated_hours' => 1.0,
+    ]);
+
+    $marker3 = Marker::factory()->create([
+        'trip_id' => $trip->id,
+        'user_id' => $this->user->id,
+        'name' => 'Restaurant',
+        'type' => 'restaurant',
+        'is_unesco' => false,
+        'estimated_hours' => 1.5,
+    ]);
+
+    $marker4 = Marker::factory()->create([
+        'trip_id' => $trip->id,
+        'user_id' => $this->user->id,
+        'name' => 'Park',
+        'type' => 'nature',
+        'is_unesco' => false,
+        'estimated_hours' => 3.0,
+    ]);
+
+    // Attach markers to tours
+    $tour1->markers()->attach([$marker1->id, $marker2->id, $marker3->id]);
+    $tour2->markers()->attach([$marker4->id]);
+
+    // Create routes for tour1
+    Route::factory()->create([
+        'trip_id' => $trip->id,
+        'tour_id' => $tour1->id,
+        'start_marker_id' => $marker1->id,
+        'end_marker_id' => $marker2->id,
+        'distance' => 50500, // meters
+        'duration' => 3600,
+    ]);
+
+    Route::factory()->create([
+        'trip_id' => $trip->id,
+        'tour_id' => $tour1->id,
+        'start_marker_id' => $marker2->id,
+        'end_marker_id' => $marker3->id,
+        'distance' => 25300, // meters
+        'duration' => 1800,
+    ]);
+
+    // Prepare mock tours data
+    $toursData = [
+        [
+            'id' => $tour1->id,
+            'name' => 'City Tour',
+            'estimated_duration_hours' => 5.0,
+            'markers' => [
+                [
+                    'id' => $marker1->id,
+                    'name' => 'UNESCO Site',
+                    'type' => 'sight',
+                    'is_unesco' => true,
+                    'estimated_hours' => 2.5,
+                ],
+                [
+                    'id' => $marker2->id,
+                    'name' => 'Hotel',
+                    'type' => 'accommodation',
+                    'is_unesco' => false,
+                    'estimated_hours' => 1.0,
+                ],
+                [
+                    'id' => $marker3->id,
+                    'name' => 'Restaurant',
+                    'type' => 'restaurant',
+                    'is_unesco' => false,
+                    'estimated_hours' => 1.5,
+                ],
+            ],
+        ],
+        [
+            'id' => $tour2->id,
+            'name' => 'Nature Tour',
+            'estimated_duration_hours' => 3.0,
+            'markers' => [
+                [
+                    'id' => $marker4->id,
+                    'name' => 'Park',
+                    'type' => 'nature',
+                    'is_unesco' => false,
+                    'estimated_hours' => 3.0,
+                ],
+            ],
+        ],
+    ];
+
+    // Use reflection to access the private calculateSummaryStats method
+    $reflection = new \ReflectionClass($this->pdfService);
+    $method = $reflection->getMethod('calculateSummaryStats');
+    $method->setAccessible(true);
+
+    $stats = $method->invoke($this->pdfService, $trip, $toursData);
+
+    // Verify structure
+    expect($stats)->toBeArray();
+    expect($stats)->toHaveKeys([
+        'totalLocations',
+        'totalTours',
+        'totalDuration',
+        'totalDistance',
+        'unescoCount',
+        'tourBreakdown',
+        'markerTypeDistribution',
+    ]);
+
+    // Verify basic stats
+    expect($stats['totalLocations'])->toBe(4);
+    expect($stats['totalTours'])->toBe(2);
+    expect($stats['totalDuration'])->toBe(8.0); // 5.0 + 3.0
+    expect($stats['totalDistance'])->toBe(75.8); // (50500 + 25300) / 1000 = 75.8
+    expect($stats['unescoCount'])->toBe(1);
+
+    // Verify tour breakdown
+    expect($stats['tourBreakdown'])->toHaveCount(2);
+    expect($stats['tourBreakdown'][0]['name'])->toBe('City Tour');
+    expect($stats['tourBreakdown'][0]['markerCount'])->toBe(3);
+    expect($stats['tourBreakdown'][0]['duration'])->toBe(5.0);
+    expect($stats['tourBreakdown'][0]['distance'])->toBe(75.8);
+
+    expect($stats['tourBreakdown'][1]['name'])->toBe('Nature Tour');
+    expect($stats['tourBreakdown'][1]['markerCount'])->toBe(1);
+    expect($stats['tourBreakdown'][1]['duration'])->toBe(3.0);
+    expect($stats['tourBreakdown'][1]['distance'])->toBe(0.0);
+
+    // Verify marker type distribution
+    expect($stats['markerTypeDistribution'])->toHaveCount(4);
+
+    // Find sight type
+    $sightType = collect($stats['markerTypeDistribution'])->firstWhere('type', 'sight');
+    expect($sightType['count'])->toBe(1);
+    expect($sightType['percentage'])->toBe(25);
+
+    // Find accommodation type
+    $accommodationType = collect($stats['markerTypeDistribution'])->firstWhere('type', 'accommodation');
+    expect($accommodationType['count'])->toBe(1);
+    expect($accommodationType['percentage'])->toBe(25);
+
+    // Find restaurant type
+    $restaurantType = collect($stats['markerTypeDistribution'])->firstWhere('type', 'restaurant');
+    expect($restaurantType['count'])->toBe(1);
+    expect($restaurantType['percentage'])->toBe(25);
+
+    // Find nature type
+    $natureType = collect($stats['markerTypeDistribution'])->firstWhere('type', 'nature');
+    expect($natureType['count'])->toBe(1);
+    expect($natureType['percentage'])->toBe(25);
+});
+
+test('calculateSummaryStats handles trip with no markers', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Empty Trip',
+    ]);
+
+    $toursData = [];
+
+    // Use reflection to access the private calculateSummaryStats method
+    $reflection = new \ReflectionClass($this->pdfService);
+    $method = $reflection->getMethod('calculateSummaryStats');
+    $method->setAccessible(true);
+
+    $stats = $method->invoke($this->pdfService, $trip, $toursData);
+
+    expect($stats['totalLocations'])->toBe(0);
+    expect($stats['totalTours'])->toBe(0);
+    expect($stats['totalDuration'])->toBe(0.0);
+    expect($stats['totalDistance'])->toBe(0.0);
+    expect($stats['unescoCount'])->toBe(0);
+    expect($stats['tourBreakdown'])->toBeEmpty();
+    expect($stats['markerTypeDistribution'])->toBeEmpty();
+});
+
+test('calculateSummaryStats handles tour without routes', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Trip without Routes',
+    ]);
+
+    $tour = Tour::factory()->create([
+        'trip_id' => $trip->id,
+        'name' => 'Walking Tour',
+    ]);
+
+    $marker = Marker::factory()->create([
+        'trip_id' => $trip->id,
+        'user_id' => $this->user->id,
+        'name' => 'Museum',
+        'type' => 'sight',
+        'estimated_hours' => 2.0,
+    ]);
+
+    $tour->markers()->attach($marker->id);
+
+    $toursData = [
+        [
+            'id' => $tour->id,
+            'name' => 'Walking Tour',
+            'estimated_duration_hours' => 2.0,
+            'markers' => [
+                [
+                    'id' => $marker->id,
+                    'name' => 'Museum',
+                    'type' => 'sight',
+                    'is_unesco' => false,
+                    'estimated_hours' => 2.0,
+                ],
+            ],
+        ],
+    ];
+
+    // Use reflection to access the private calculateSummaryStats method
+    $reflection = new \ReflectionClass($this->pdfService);
+    $method = $reflection->getMethod('calculateSummaryStats');
+    $method->setAccessible(true);
+
+    $stats = $method->invoke($this->pdfService, $trip, $toursData);
+
+    expect($stats['totalLocations'])->toBe(1);
+    expect($stats['totalTours'])->toBe(1);
+    expect($stats['totalDuration'])->toBe(2.0);
+    expect($stats['totalDistance'])->toBe(0.0);
+    expect($stats['tourBreakdown'][0]['distance'])->toBe(0.0);
+});
+
+test('calculateSummaryStats handles markers without estimated hours', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Trip',
+    ]);
+
+    $tour = Tour::factory()->create([
+        'trip_id' => $trip->id,
+        'name' => 'Tour',
+    ]);
+
+    $marker = Marker::factory()->create([
+        'trip_id' => $trip->id,
+        'user_id' => $this->user->id,
+        'name' => 'Quick Stop',
+        'type' => 'transport',
+        'estimated_hours' => null,
+    ]);
+
+    $tour->markers()->attach($marker->id);
+
+    $toursData = [
+        [
+            'id' => $tour->id,
+            'name' => 'Tour',
+            'estimated_duration_hours' => 0,
+            'markers' => [
+                [
+                    'id' => $marker->id,
+                    'name' => 'Quick Stop',
+                    'type' => 'transport',
+                    'is_unesco' => false,
+                    'estimated_hours' => null,
+                ],
+            ],
+        ],
+    ];
+
+    // Use reflection to access the private calculateSummaryStats method
+    $reflection = new \ReflectionClass($this->pdfService);
+    $method = $reflection->getMethod('calculateSummaryStats');
+    $method->setAccessible(true);
+
+    $stats = $method->invoke($this->pdfService, $trip, $toursData);
+
+    expect($stats['totalDuration'])->toBe(0.0);
+    expect($stats['tourBreakdown'][0]['duration'])->toBe(0.0);
+});
+
+test('calculateSummaryStats handles multiple markers with same type', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'Trip',
+    ]);
+
+    $tour = Tour::factory()->create([
+        'trip_id' => $trip->id,
+        'name' => 'Restaurant Tour',
+    ]);
+
+    $markers = Marker::factory()->count(5)->create([
+        'trip_id' => $trip->id,
+        'user_id' => $this->user->id,
+        'type' => 'restaurant',
+    ]);
+
+    $sightMarkers = Marker::factory()->count(3)->create([
+        'trip_id' => $trip->id,
+        'user_id' => $this->user->id,
+        'type' => 'sight',
+    ]);
+
+    $markers->merge($sightMarkers)->each(function ($marker) use ($tour) {
+        $tour->markers()->attach($marker->id);
+    });
+
+    $toursData = [
+        [
+            'id' => $tour->id,
+            'name' => 'Restaurant Tour',
+            'estimated_duration_hours' => 0,
+            'markers' => collect($markers->merge($sightMarkers))->map(fn ($m) => [
+                'id' => $m->id,
+                'name' => $m->name,
+                'type' => $m->type,
+                'is_unesco' => false,
+                'estimated_hours' => null,
+            ])->toArray(),
+        ],
+    ];
+
+    // Use reflection to access the private calculateSummaryStats method
+    $reflection = new \ReflectionClass($this->pdfService);
+    $method = $reflection->getMethod('calculateSummaryStats');
+    $method->setAccessible(true);
+
+    $stats = $method->invoke($this->pdfService, $trip, $toursData);
+
+    expect($stats['totalLocations'])->toBe(8);
+    expect($stats['markerTypeDistribution'])->toHaveCount(2);
+
+    $restaurantType = collect($stats['markerTypeDistribution'])->firstWhere('type', 'restaurant');
+    expect($restaurantType['count'])->toBe(5);
+    expect($restaurantType['percentage'])->toBe(63); // 5/8 * 100 = 62.5 rounded to 63
+
+    $sightType = collect($stats['markerTypeDistribution'])->firstWhere('type', 'sight');
+    expect($sightType['count'])->toBe(3);
+    expect($sightType['percentage'])->toBe(38); // 3/8 * 100 = 37.5 rounded to 38
+});
+
+test('calculateSummaryStats handles multiple UNESCO sites', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->user->id,
+        'name' => 'UNESCO Trip',
+    ]);
+
+    $tour = Tour::factory()->create([
+        'trip_id' => $trip->id,
+        'name' => 'Heritage Tour',
+    ]);
+
+    $unescoMarkers = Marker::factory()->count(3)->create([
+        'trip_id' => $trip->id,
+        'user_id' => $this->user->id,
+        'is_unesco' => true,
+        'type' => 'sight',
+    ]);
+
+    $regularMarkers = Marker::factory()->count(2)->create([
+        'trip_id' => $trip->id,
+        'user_id' => $this->user->id,
+        'is_unesco' => false,
+        'type' => 'restaurant',
+    ]);
+
+    $unescoMarkers->merge($regularMarkers)->each(function ($marker) use ($tour) {
+        $tour->markers()->attach($marker->id);
+    });
+
+    $toursData = [
+        [
+            'id' => $tour->id,
+            'name' => 'Heritage Tour',
+            'estimated_duration_hours' => 0,
+            'markers' => collect($unescoMarkers->merge($regularMarkers))->map(fn ($m) => [
+                'id' => $m->id,
+                'name' => $m->name,
+                'type' => $m->type,
+                'is_unesco' => $m->is_unesco,
+                'estimated_hours' => null,
+            ])->toArray(),
+        ],
+    ];
+
+    // Use reflection to access the private calculateSummaryStats method
+    $reflection = new \ReflectionClass($this->pdfService);
+    $method = $reflection->getMethod('calculateSummaryStats');
+    $method->setAccessible(true);
+
+    $stats = $method->invoke($this->pdfService, $trip, $toursData);
+
+    expect($stats['unescoCount'])->toBe(3);
+    expect($stats['totalLocations'])->toBe(5);
+});
