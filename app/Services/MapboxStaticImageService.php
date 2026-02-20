@@ -282,7 +282,6 @@ class MapboxStaticImageService
 
         // Use blue color with medium width for routes
         // Format: path-<width>+<color>-<opacity>(<coordinates>)
-        // URL encode the entire path overlay to handle special characters
         $coordString = implode(' ', $coords);
         $pathOverlay = sprintf(
             'path-3+0000ff-0.7(%s)',

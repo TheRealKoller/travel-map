@@ -5,10 +5,19 @@ use App\Models\Route;
 use App\Models\Tour;
 use App\Models\Trip;
 use App\Models\User;
+use App\Services\MapboxStaticImageService;
 
 uses()->group('pdf');
 
-it('exports trip with routes to PDF successfully', function () {
+test('exports trip with routes to PDF successfully', function () {
+    // Mock MapboxStaticImageService to prevent real API calls
+    $this->mock(MapboxStaticImageService::class, function ($mock) {
+        $mock->shouldReceive('generateStaticImageWithMarkersAndRoutes')
+            ->andReturn('https://api.mapbox.com/styles/v1/test/static/test.png');
+        $mock->shouldReceive('generateStaticImageWithMarkers')
+            ->andReturn('https://api.mapbox.com/styles/v1/test/static/test.png');
+    });
+
     // Create a user
     $user = User::factory()->create();
 
@@ -62,7 +71,15 @@ it('exports trip with routes to PDF successfully', function () {
     $response->assertDownload('Test_Trip_with_Routes.pdf');
 });
 
-it('exports trip with multiple routes to PDF successfully', function () {
+test('exports trip with multiple routes to PDF successfully', function () {
+    // Mock MapboxStaticImageService to prevent real API calls
+    $this->mock(MapboxStaticImageService::class, function ($mock) {
+        $mock->shouldReceive('generateStaticImageWithMarkersAndRoutes')
+            ->andReturn('https://api.mapbox.com/styles/v1/test/static/test.png');
+        $mock->shouldReceive('generateStaticImageWithMarkers')
+            ->andReturn('https://api.mapbox.com/styles/v1/test/static/test.png');
+    });
+
     // Create a user
     $user = User::factory()->create();
 
@@ -132,7 +149,13 @@ it('exports trip with multiple routes to PDF successfully', function () {
     $response->assertHeader('Content-Type', 'application/pdf');
 });
 
-it('exports trip without routes to PDF successfully', function () {
+test('exports trip without routes to PDF successfully', function () {
+    // Mock MapboxStaticImageService to prevent real API calls
+    $this->mock(MapboxStaticImageService::class, function ($mock) {
+        $mock->shouldReceive('generateStaticImageWithMarkers')
+            ->andReturn('https://api.mapbox.com/styles/v1/test/static/test.png');
+    });
+
     // Create a user
     $user = User::factory()->create();
 
@@ -157,7 +180,7 @@ it('exports trip without routes to PDF successfully', function () {
     $response->assertHeader('Content-Type', 'application/pdf');
 });
 
-it('requires authentication to export trip PDF', function () {
+test('requires authentication to export trip PDF', function () {
     $trip = Trip::factory()->create();
 
     $response = $this->get("/trips/{$trip->id}/export-pdf");
@@ -165,7 +188,7 @@ it('requires authentication to export trip PDF', function () {
     $response->assertRedirect('/login');
 });
 
-it('prevents exporting PDF for other users trips', function () {
+test('prevents exporting PDF for other users trips', function () {
     $owner = User::factory()->create();
     $otherUser = User::factory()->create();
 

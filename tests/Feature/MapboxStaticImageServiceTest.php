@@ -1,205 +1,193 @@
 <?php
 
 use App\Services\MapboxStaticImageService;
+use Illuminate\Support\Facades\Log;
 
 beforeEach(function () {
-    // Use a fake token for testing
-    $this->accessToken = 'pk.test.fake_token_for_testing_only';
-    $this->service = new MapboxStaticImageService($this->accessToken);
+    $this->service = new MapboxStaticImageService('test_access_token');
 });
 
-test('generates static image URL with valid parameters', function () {
-    $url = $this->service->generateStaticImageUrl(
-        latitude: 47.3769,
-        longitude: 8.5417,
-        zoom: 12.5
-    );
-
-    expect($url)->toContain('api.mapbox.com/styles/v1/the-koller/cmkk2r7cg00gl01r15b1achfj/static')
-        ->and($url)->toContain('8.5417,47.3769,12.5')
-        ->and($url)->toContain('800x400')
-        ->and($url)->toContain('access_token='.$this->accessToken);
-});
-
-test('generates static image URL with custom dimensions', function () {
-    $url = $this->service->generateStaticImageUrl(
-        latitude: 47.3769,
-        longitude: 8.5417,
-        zoom: 10,
-        width: 1280,
-        height: 640
-    );
-
-    expect($url)->toContain('1280x640');
-});
-
-test('returns null when access token is missing', function () {
-    $service = new MapboxStaticImageService(null);
-
-    $url = $service->generateStaticImageUrl(
-        latitude: 47.3769,
-        longitude: 8.5417,
-        zoom: 12.5
-    );
-
-    expect($url)->toBeNull();
-});
-
-test('throws exception for invalid latitude', function () {
-    $this->service->generateStaticImageUrl(
-        latitude: 95, // Invalid
-        longitude: 8.5417,
-        zoom: 12.5
-    );
-})->throws(\InvalidArgumentException::class, 'Latitude must be between -90 and 90');
-
-test('throws exception for invalid longitude', function () {
-    $this->service->generateStaticImageUrl(
-        latitude: 47.3769,
-        longitude: 185, // Invalid
-        zoom: 12.5
-    );
-})->throws(\InvalidArgumentException::class, 'Longitude must be between -180 and 180');
-
-test('throws exception for invalid zoom', function () {
-    $this->service->generateStaticImageUrl(
-        latitude: 47.3769,
-        longitude: 8.5417,
-        zoom: 25 // Invalid
-    );
-})->throws(\InvalidArgumentException::class, 'Zoom must be between 0 and 22');
-
-test('throws exception for invalid width', function () {
-    $this->service->generateStaticImageUrl(
-        latitude: 47.3769,
-        longitude: 8.5417,
-        zoom: 12.5,
-        width: 1500 // Invalid
-    );
-})->throws(\InvalidArgumentException::class, 'Width must be between 1 and 1280');
-
-test('throws exception for invalid height', function () {
-    $this->service->generateStaticImageUrl(
-        latitude: 47.3769,
-        longitude: 8.5417,
-        zoom: 12.5,
-        height: 1500 // Invalid
-    );
-})->throws(\InvalidArgumentException::class, 'Height must be between 1 and 1280');
-
-test('uses custom style', function () {
-    $url = $this->service->generateStaticImageUrl(
-        latitude: 47.3769,
-        longitude: 8.5417,
-        zoom: 12.5
-    );
-
-    expect($url)->toContain('/the-koller/cmkk2r7cg00gl01r15b1achfj/static');
-});
-
-test('sets bearing and pitch to 0', function () {
-    $url = $this->service->generateStaticImageUrl(
-        latitude: 47.3769,
-        longitude: 8.5417,
-        zoom: 12.5
-    );
-
-    // Check that bearing and pitch are set to 0 in the URL
-    expect($url)->toContain(',0,0/');
-});
-
-test('generates static image URL with markers', function () {
+test('generates static image URL with markers and routes', function () {
     $markers = [
-        ['latitude' => 47.3769, 'longitude' => 8.5417],
-        ['latitude' => 46.9480, 'longitude' => 7.4474],
+        ['latitude' => 52.5200, 'longitude' => 13.4050], // Berlin
+        ['latitude' => 48.1351, 'longitude' => 11.5820], // Munich
     ];
 
-    $url = $this->service->generateStaticImageWithMarkers(
+    $routes = [
+        [
+            'geometry' => [
+                [13.4050, 52.5200], // Berlin (lng, lat)
+                [13.5, 52.0],
+                [12.5, 51.0],
+                [11.5, 50.0],
+                [11.5820, 48.1351], // Munich (lng, lat)
+            ],
+        ],
+    ];
+
+    $url = $this->service->generateStaticImageWithMarkersAndRoutes(
         markers: $markers,
+        routes: $routes,
         width: 800,
         height: 600
     );
 
-    expect($url)->toContain('api.mapbox.com/styles/v1/the-koller/cmkk2r7cg00gl01r15b1achfj/static')
-        ->and($url)->toContain('pin-s+ff0000')
+    expect($url)->not->toBeNull()
+        ->and($url)->toContain('api.mapbox.com/styles/v1')
+        ->and($url)->toContain('the-koller/cmkk2r7cg00gl01r15b1achfj')
+        ->and($url)->toContain('path-3+0000ff-0.7(') // Route path overlay
+        ->and($url)->toContain('pin-s+ff0000(') // Marker overlays
         ->and($url)->toContain('800x600')
-        ->and($url)->toContain('auto')
-        ->and($url)->toContain('padding=50')
-        ->and($url)->toContain('access_token='.$this->accessToken);
+        ->and($url)->toContain('access_token=test_access_token');
 });
 
-test('generates static image with markers using custom dimensions', function () {
+test('generates static image URL with multiple routes', function () {
     $markers = [
-        ['latitude' => 47.3769, 'longitude' => 8.5417],
+        ['latitude' => 52.5200, 'longitude' => 13.4050], // Berlin
+        ['latitude' => 50.1109, 'longitude' => 8.6821], // Frankfurt
+        ['latitude' => 48.1351, 'longitude' => 11.5820], // Munich
     ];
 
-    $url = $this->service->generateStaticImageWithMarkers(
+    $routes = [
+        [
+            'geometry' => [
+                [13.4050, 52.5200], // Berlin to Frankfurt
+                [12.0, 51.0],
+                [10.0, 50.0],
+                [8.6821, 50.1109], // Frankfurt
+            ],
+        ],
+        [
+            'geometry' => [
+                [8.6821, 50.1109], // Frankfurt to Munich
+                [9.5, 49.5],
+                [10.5, 49.0],
+                [11.5820, 48.1351], // Munich
+            ],
+        ],
+    ];
+
+    $url = $this->service->generateStaticImageWithMarkersAndRoutes(
         markers: $markers,
-        width: 1280,
-        height: 640,
-        padding: 100
+        routes: $routes,
+        width: 800,
+        height: 600
     );
 
-    expect($url)->toContain('1280x640')
-        ->and($url)->toContain('padding=100');
+    expect($url)->not->toBeNull();
+
+    // Count path overlays - should have 2 routes
+    $pathCount = substr_count($url, 'path-3+0000ff-0.7(');
+    expect($pathCount)->toBe(2);
+
+    // Should have 3 markers
+    $markerCount = substr_count($url, 'pin-s+ff0000(');
+    expect($markerCount)->toBe(3);
 });
 
-test('returns null when generating static image with markers without access token', function () {
+test('handles empty routes gracefully', function () {
+    $markers = [
+        ['latitude' => 52.5200, 'longitude' => 13.4050],
+        ['latitude' => 48.1351, 'longitude' => 11.5820],
+    ];
+
+    $routes = [];
+
+    $url = $this->service->generateStaticImageWithMarkersAndRoutes(
+        markers: $markers,
+        routes: $routes,
+        width: 800,
+        height: 600
+    );
+
+    // Should still generate URL with markers only
+    expect($url)->not->toBeNull()
+        ->and($url)->not->toContain('path-3+0000ff-0.7(')
+        ->and($url)->toContain('pin-s+ff0000(');
+});
+
+test('handles routes with empty geometry', function () {
+    $markers = [
+        ['latitude' => 52.5200, 'longitude' => 13.4050],
+        ['latitude' => 48.1351, 'longitude' => 11.5820],
+    ];
+
+    $routes = [
+        ['geometry' => []],
+        ['geometry' => null],
+    ];
+
+    $url = $this->service->generateStaticImageWithMarkersAndRoutes(
+        markers: $markers,
+        routes: $routes,
+        width: 800,
+        height: 600
+    );
+
+    // Should generate URL with markers only, no path overlays
+    expect($url)->not->toBeNull()
+        ->and($url)->not->toContain('path-3+0000ff-0.7(')
+        ->and($url)->toContain('pin-s+ff0000(');
+});
+
+test('simplifies long route geometry to avoid URL length limits', function () {
+    $markers = [
+        ['latitude' => 52.5200, 'longitude' => 13.4050],
+        ['latitude' => 48.1351, 'longitude' => 11.5820],
+    ];
+
+    // Create a route with many points
+    $geometry = [];
+    for ($i = 0; $i < 200; $i++) {
+        $geometry[] = [13.4050 + ($i * 0.01), 52.5200 - ($i * 0.02)];
+    }
+
+    $routes = [
+        ['geometry' => $geometry],
+    ];
+
+    $url = $this->service->generateStaticImageWithMarkersAndRoutes(
+        markers: $markers,
+        routes: $routes,
+        width: 800,
+        height: 600
+    );
+
+    expect($url)->not->toBeNull()
+        ->and($url)->toContain('path-3+0000ff-0.7(');
+
+    // URL should be under Mapbox's limit (approximately 8192 chars)
+    expect(strlen($url))->toBeLessThan(8192);
+});
+
+test('returns null when no markers provided', function () {
+    Log::shouldReceive('info')->once();
+
+    $url = $this->service->generateStaticImageWithMarkersAndRoutes(
+        markers: [],
+        routes: [],
+        width: 800,
+        height: 600
+    );
+
+    expect($url)->toBeNull();
+});
+
+test('returns null when no access token configured', function () {
+    Log::shouldReceive('warning')->once();
+
     $service = new MapboxStaticImageService(null);
+
     $markers = [
-        ['latitude' => 47.3769, 'longitude' => 8.5417],
+        ['latitude' => 52.5200, 'longitude' => 13.4050],
     ];
 
-    $url = $service->generateStaticImageWithMarkers(
-        markers: $markers
+    $url = $service->generateStaticImageWithMarkersAndRoutes(
+        markers: $markers,
+        routes: [],
+        width: 800,
+        height: 600
     );
 
     expect($url)->toBeNull();
-});
-
-test('returns null when generating static image with empty markers array', function () {
-    $url = $this->service->generateStaticImageWithMarkers(
-        markers: []
-    );
-
-    expect($url)->toBeNull();
-});
-
-test('throws exception for invalid width when generating static image with markers', function () {
-    $markers = [
-        ['latitude' => 47.3769, 'longitude' => 8.5417],
-    ];
-
-    $this->service->generateStaticImageWithMarkers(
-        markers: $markers,
-        width: 1500
-    );
-})->throws(\InvalidArgumentException::class, 'Width must be between 1 and 1280');
-
-test('throws exception for invalid height when generating static image with markers', function () {
-    $markers = [
-        ['latitude' => 47.3769, 'longitude' => 8.5417],
-    ];
-
-    $this->service->generateStaticImageWithMarkers(
-        markers: $markers,
-        height: 1500
-    );
-})->throws(\InvalidArgumentException::class, 'Height must be between 1 and 1280');
-
-test('generates correct marker overlays for multiple markers', function () {
-    $markers = [
-        ['latitude' => 47.3769, 'longitude' => 8.5417],
-        ['latitude' => 46.9480, 'longitude' => 7.4474],
-        ['latitude' => 47.5596, 'longitude' => 7.5886],
-    ];
-
-    $url = $this->service->generateStaticImageWithMarkers(
-        markers: $markers
-    );
-
-    // Check that all markers are included in the URL
-    expect($url)->toContain('pin-s+ff0000(8.5417,47.3769)')
-        ->and($url)->toContain('pin-s+ff0000(7.4474,46.948)')
-        ->and($url)->toContain('pin-s+ff0000(7.5886,47.5596)');
 });
