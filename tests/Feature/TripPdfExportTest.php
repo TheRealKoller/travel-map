@@ -223,7 +223,7 @@ test('generates PDF with proper marker layout', function () {
     $response = $this->actingAs($user)->get("/trips/{$trip->id}/export-pdf");
 
     $response->assertSuccessful();
-    $response->assertHeader('content-type', 'application/pdf');
+    $response->assertHeader('Content-Type', 'application/pdf');
 
     // Note: Actual page break validation would require PDF parsing library
     // This test ensures the PDF generation doesn't crash with many markers
