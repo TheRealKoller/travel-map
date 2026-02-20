@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PdfTemplate;
 use App\Http\Requests\FetchTripImageRequest;
 use App\Http\Requests\StoreTripRequest;
 use App\Http\Requests\UpdateTripRequest;
@@ -102,11 +103,15 @@ class TripController extends Controller
      * Export a trip as PDF.
      * Generates a PDF document with trip information including name, title image, map viewport, and markers overview.
      */
-    public function exportPdf(Trip $trip): HttpResponse
+    public function exportPdf(Request $request, Trip $trip): HttpResponse
     {
         $this->authorize('view', $trip);
 
-        return $this->tripPdfExportService->generatePdf($trip);
+        // Get template from query parameter, validate and default to MODERN
+        $templateString = $request->query('template', 'modern');
+        $template = PdfTemplate::fromString($templateString);
+
+        return $this->tripPdfExportService->generatePdf($trip, $template);
     }
 
     /**
