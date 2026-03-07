@@ -1,8 +1,14 @@
+export interface TripOwner {
+    id: number;
+    name: string;
+}
+
 export interface Trip {
     id: number;
     name: string;
     country: string | null;
     user_id: number;
+    owner?: TripOwner;
     image_url: string | null;
     viewport_latitude: number | null;
     viewport_longitude: number | null;

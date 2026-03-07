@@ -8,7 +8,7 @@ import { Trip } from '@/types/trip';
 import axios from 'axios';
 import { useCallback, useEffect, useState } from 'react';
 
-export function useTrips() {
+export function useTrips(showAll: boolean = false) {
     const [trips, setTrips] = useState<Trip[]>([]);
     const [selectedTripId, setSelectedTripId] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -19,7 +19,10 @@ export function useTrips() {
         setError(null);
 
         try {
-            const response = await axios.get<Trip[]>(tripsIndex.url());
+            const url = showAll
+                ? `${tripsIndex.url()}?show_all=1`
+                : tripsIndex.url();
+            const response = await axios.get<Trip[]>(url);
             const loadedTrips = response.data;
             setTrips(loadedTrips);
 
@@ -32,7 +35,7 @@ export function useTrips() {
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [showAll]);
 
     const createTrip = useCallback(
         async (name: string, country: string | null = null) => {
@@ -167,7 +170,7 @@ export function useTrips() {
     useEffect(() => {
         loadTrips();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [showAll]);
 
     return {
         trips,

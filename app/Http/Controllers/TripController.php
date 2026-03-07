@@ -29,13 +29,29 @@ class TripController extends Controller
     {
         $user = auth()->user();
 
-        // Get all accessible trips (both owned and shared) in a single query
-        $trips = $user->allAccessibleTrips()
-            ->orderBy('created_at', 'asc')
-            ->get();
-
         // If this is an API request (has Accept: application/json), return JSON
         if ($request->expectsJson()) {
+            // Admin can request all trips from all users
+            if ($user->isAdmin() && $request->boolean('show_all')) {
+                $trips = Trip::with('user:id,name')
+                    ->orderBy('created_at', 'asc')
+                    ->get()
+                    ->map(function (Trip $trip) {
+                        $data = $trip->toArray();
+                        $data['owner'] = ['id' => $trip->user->id, 'name' => $trip->user->name];
+                        unset($data['user']);
+
+                        return $data;
+                    });
+
+                return response()->json($trips);
+            }
+
+            // Get all accessible trips (both owned and shared) in a single query
+            $trips = $user->allAccessibleTrips()
+                ->orderBy('created_at', 'asc')
+                ->get();
+
             return response()->json($trips);
         }
 
