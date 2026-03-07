@@ -604,7 +604,7 @@ Before creating a pull request, run ALL of the following:
 
 #### 5. Request Copilot Code Review
 
-- Use the GitHub tool to request a Copilot review: `GitHub_request_copilot_review`
+- Request a Copilot review using the GitHub CLI: `gh pr review <pr-number> --request-copilot`
 - Wait for the review to complete
 
 #### 6. Address Review Comments

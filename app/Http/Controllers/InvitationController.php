@@ -144,7 +144,7 @@ class InvitationController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('dashboard')->with('success', 'Welcome! Your account has been created successfully.');
+        return redirect()->route('trips.index')->with('success', 'Welcome! Your account has been created successfully.');
     }
 
     /**

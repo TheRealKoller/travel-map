@@ -22,10 +22,6 @@ Route::post('/register/{token}', [InvitationController::class, 'accept'])
     ->name('register.invitation.accept');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
-
     // Admin-only invitation management routes
     Route::prefix('admin')->middleware('admin')->group(function () {
         Route::get('/invitations', [InvitationController::class, 'index'])->name('admin.invitations.index');
