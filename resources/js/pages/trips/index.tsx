@@ -9,11 +9,12 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
+import { Switch } from '@/components/ui/switch';
 import { useTrips } from '@/hooks/use-trips';
 import AppLayout from '@/layouts/app-layout';
 import { COUNTRIES } from '@/lib/countries';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import {
     FileDown,
     FileText,
@@ -35,7 +36,10 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function TripsIndex() {
-    const { trips } = useTrips();
+    const { auth } = usePage<SharedData>().props;
+    const isAdmin = auth.user?.role === 'admin';
+    const [showAll, setShowAll] = useState(false);
+    const { trips } = useTrips(showAll);
     const { t } = useTranslation();
     const [invitationDialogOpen, setInvitationDialogOpen] = useState(false);
     const [selectedTripForInvitation, setSelectedTripForInvitation] = useState<{
@@ -120,212 +124,256 @@ export default function TripsIndex() {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Select trip" />
             <div className="flex h-full flex-1 flex-col gap-6 p-6">
-                <div>
-                    <h1 className="text-3xl font-semibold">Select a trip</h1>
-                    <p className="mt-2 text-muted-foreground">
-                        Choose a trip to view or create a new one
-                    </p>
+                <div className="flex items-start justify-between gap-4">
+                    <div>
+                        <h1 className="text-3xl font-semibold">
+                            Select a trip
+                        </h1>
+                        <p className="mt-2 text-muted-foreground">
+                            Choose a trip to view or create a new one
+                        </p>
+                    </div>
+
+                    {isAdmin && (
+                        <div className="flex shrink-0 items-center gap-3 rounded-lg border border-sidebar-border bg-card px-4 py-2.5 shadow-sm">
+                            <Switch
+                                id="show-all-trips"
+                                data-testid="show-all-trips-toggle"
+                                checked={showAll}
+                                onCheckedChange={setShowAll}
+                            />
+                            <label
+                                htmlFor="show-all-trips"
+                                className="cursor-pointer text-sm font-medium select-none"
+                            >
+                                Show all users&apos; trips
+                            </label>
+                        </div>
+                    )}
                 </div>
 
                 <div className="grid auto-rows-fr gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {trips.map((trip) => (
-                        <div
-                            key={trip.id}
-                            className="group relative flex flex-col overflow-hidden rounded-xl border-2 border-sidebar-border bg-card shadow-md transition-all hover:border-sidebar-border hover:shadow-xl dark:border-sidebar-border"
-                        >
-                            {/* Action Buttons */}
-                            <div className="absolute top-3 right-3 z-10">
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <button
-                                            data-testid={`trip-actions-${trip.id}`}
-                                            className="flex size-8 items-center justify-center rounded-lg bg-background/80 text-muted-foreground backdrop-blur-sm transition-all hover:bg-background hover:text-foreground"
-                                            aria-label="Trip actions"
-                                        >
-                                            <MoreVertical className="size-4" />
-                                        </button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuItem
-                                            data-testid={`invite-button-${trip.id}`}
-                                            onClick={(e) =>
-                                                handleInvite(
-                                                    e,
-                                                    trip.id,
-                                                    trip.name,
-                                                )
-                                            }
-                                        >
-                                            <UserPlus className="mr-2 size-4" />
-                                            {t('trips.invite_users')}
-                                        </DropdownMenuItem>
-                                        <DropdownMenuSub>
-                                            <DropdownMenuSubTrigger
-                                                data-testid={`export-pdf-button-${trip.id}`}
+                    {trips.map((trip) => {
+                        const isOtherUsersTrip =
+                            showAll &&
+                            isAdmin &&
+                            trip.owner !== undefined &&
+                            trip.owner.id !== auth.user.id;
+
+                        return (
+                            <div
+                                key={trip.id}
+                                className={`group relative flex flex-col overflow-hidden rounded-xl border-2 bg-card shadow-md transition-all hover:shadow-xl ${
+                                    isOtherUsersTrip
+                                        ? 'border-red-500 hover:border-red-400'
+                                        : 'border-sidebar-border hover:border-sidebar-border dark:border-sidebar-border'
+                                }`}
+                            >
+                                {/* Owner badge for other users' trips */}
+                                {isOtherUsersTrip && trip.owner && (
+                                    <div className="absolute top-3 left-3 z-10 max-w-[55%] truncate rounded-md bg-red-500 px-2 py-0.5 text-xs font-semibold text-white shadow">
+                                        {trip.owner.name}
+                                    </div>
+                                )}
+
+                                {/* Action Buttons */}
+                                <div className="absolute top-3 right-3 z-10">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <button
+                                                data-testid={`trip-actions-${trip.id}`}
+                                                className="flex size-8 items-center justify-center rounded-lg bg-background/80 text-muted-foreground backdrop-blur-sm transition-all hover:bg-background hover:text-foreground"
+                                                aria-label="Trip actions"
                                             >
-                                                <FileDown className="mr-2 size-4" />
-                                                {t('trips.export_pdf')}
-                                            </DropdownMenuSubTrigger>
-                                            <DropdownMenuSubContent>
-                                                <DropdownMenuItem
-                                                    data-testid={`export-pdf-modern-${trip.id}`}
-                                                    onClick={(e) =>
-                                                        handleExportPdf(
-                                                            e,
-                                                            trip.id,
-                                                            'modern',
-                                                        )
-                                                    }
-                                                >
-                                                    <Sparkles className="mr-2 size-4" />
-                                                    Modern Travel Brochure
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    data-testid={`export-pdf-professional-${trip.id}`}
-                                                    onClick={(e) =>
-                                                        handleExportPdf(
-                                                            e,
-                                                            trip.id,
-                                                            'professional',
-                                                        )
-                                                    }
-                                                >
-                                                    <FileText className="mr-2 size-4" />
-                                                    Professional Document
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    data-testid={`export-pdf-minimalist-${trip.id}`}
-                                                    onClick={(e) =>
-                                                        handleExportPdf(
-                                                            e,
-                                                            trip.id,
-                                                            'minimalist',
-                                                        )
-                                                    }
-                                                >
-                                                    <Minimize2 className="mr-2 size-4" />
-                                                    Minimalist Elegant
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    data-testid={`export-pdf-compact-${trip.id}`}
-                                                    onClick={(e) =>
-                                                        handleExportPdf(
-                                                            e,
-                                                            trip.id,
-                                                            'compact',
-                                                        )
-                                                    }
+                                                <MoreVertical className="size-4" />
+                                            </button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem
+                                                data-testid={`invite-button-${trip.id}`}
+                                                onClick={(e) =>
+                                                    handleInvite(
+                                                        e,
+                                                        trip.id,
+                                                        trip.name,
+                                                    )
+                                                }
+                                            >
+                                                <UserPlus className="mr-2 size-4" />
+                                                {t('trips.invite_users')}
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSub>
+                                                <DropdownMenuSubTrigger
+                                                    data-testid={`export-pdf-button-${trip.id}`}
                                                 >
                                                     <FileDown className="mr-2 size-4" />
-                                                    Compact Overview
-                                                </DropdownMenuItem>
-                                            </DropdownMenuSubContent>
-                                        </DropdownMenuSub>
-                                        <DropdownMenuItem
-                                            data-testid={`edit-trip-button-${trip.id}`}
-                                            onClick={(e) =>
-                                                handleEditTrip(e, trip.id)
-                                            }
-                                        >
-                                            <Pencil className="mr-2 size-4" />
-                                            {t('trips.edit_trip')}
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
-
-                            {/* Cover Image */}
-                            <button
-                                data-testid={`trip-tile-${trip.id}`}
-                                onClick={() => handleSelectTrip(trip.id)}
-                                className="flex flex-1 flex-col"
-                            >
-                                <div className="relative aspect-video w-full overflow-hidden bg-muted">
-                                    {trip.image_url ? (
-                                        <img
-                                            src={trip.image_url}
-                                            alt={trip.name}
-                                            className="size-full object-cover transition-transform group-hover:scale-105"
-                                        />
-                                    ) : (
-                                        <div className="flex size-full items-center justify-center">
-                                            <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                                        </div>
-                                    )}
+                                                    {t('trips.export_pdf')}
+                                                </DropdownMenuSubTrigger>
+                                                <DropdownMenuSubContent>
+                                                    <DropdownMenuItem
+                                                        data-testid={`export-pdf-modern-${trip.id}`}
+                                                        onClick={(e) =>
+                                                            handleExportPdf(
+                                                                e,
+                                                                trip.id,
+                                                                'modern',
+                                                            )
+                                                        }
+                                                    >
+                                                        <Sparkles className="mr-2 size-4" />
+                                                        Modern Travel Brochure
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        data-testid={`export-pdf-professional-${trip.id}`}
+                                                        onClick={(e) =>
+                                                            handleExportPdf(
+                                                                e,
+                                                                trip.id,
+                                                                'professional',
+                                                            )
+                                                        }
+                                                    >
+                                                        <FileText className="mr-2 size-4" />
+                                                        Professional Document
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        data-testid={`export-pdf-minimalist-${trip.id}`}
+                                                        onClick={(e) =>
+                                                            handleExportPdf(
+                                                                e,
+                                                                trip.id,
+                                                                'minimalist',
+                                                            )
+                                                        }
+                                                    >
+                                                        <Minimize2 className="mr-2 size-4" />
+                                                        Minimalist Elegant
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        data-testid={`export-pdf-compact-${trip.id}`}
+                                                        onClick={(e) =>
+                                                            handleExportPdf(
+                                                                e,
+                                                                trip.id,
+                                                                'compact',
+                                                            )
+                                                        }
+                                                    >
+                                                        <FileDown className="mr-2 size-4" />
+                                                        Compact Overview
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuSubContent>
+                                            </DropdownMenuSub>
+                                            <DropdownMenuItem
+                                                data-testid={`edit-trip-button-${trip.id}`}
+                                                onClick={(e) =>
+                                                    handleEditTrip(e, trip.id)
+                                                }
+                                            >
+                                                <Pencil className="mr-2 size-4" />
+                                                {t('trips.edit_trip')}
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 </div>
 
-                                {/* Trip Info */}
-                                <div className="flex flex-1 flex-col gap-2 p-4">
-                                    <h2
-                                        className="text-lg font-semibold"
-                                        data-testid={`trip-name-${trip.id}`}
-                                    >
-                                        {trip.name}
-                                    </h2>
-                                    {trip.country && (
-                                        <p
-                                            className="text-sm text-muted-foreground"
-                                            data-testid={`trip-country-${trip.id}`}
-                                        >
-                                            {getCountryName(trip.country)}
-                                        </p>
-                                    )}
-                                    {(trip.planned_start_year ||
-                                        trip.planned_end_year ||
-                                        trip.planned_duration_days) && (
-                                        <div className="mt-2 space-y-1 rounded-md border border-gray-200 bg-gray-50 p-2 text-xs dark:border-gray-700 dark:bg-gray-800">
-                                            {(trip.planned_start_year ||
-                                                trip.planned_end_year) && (
-                                                <div className="text-gray-700 dark:text-gray-300">
-                                                    <span className="font-medium">
-                                                        Period:{' '}
-                                                    </span>
-                                                    {formatPlannedPeriod(
-                                                        trip.planned_start_year,
-                                                        trip.planned_start_month,
-                                                        trip.planned_start_day,
-                                                    )}
-                                                    {trip.planned_end_year && (
-                                                        <>
-                                                            {' → '}
-                                                            {formatPlannedPeriod(
-                                                                trip.planned_end_year,
-                                                                trip.planned_end_month,
-                                                                trip.planned_end_day,
-                                                            )}
-                                                        </>
-                                                    )}
-                                                </div>
-                                            )}
-                                            {trip.planned_duration_days && (
-                                                <div className="text-gray-700 dark:text-gray-300">
-                                                    <span className="font-medium">
-                                                        Duration:{' '}
-                                                    </span>
-                                                    {trip.planned_duration_days}{' '}
-                                                    {trip.planned_duration_days ===
-                                                    1
-                                                        ? 'day'
-                                                        : 'days'}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Map Viewport Placeholder */}
-                                {trip.viewport_static_image_url ? (
-                                    <div className="relative aspect-[4/3] w-full border-t border-sidebar-border/70 bg-muted/50 dark:border-sidebar-border">
-                                        <img
-                                            src={trip.viewport_static_image_url}
-                                            alt="Map preview"
-                                            className="size-full object-cover"
-                                        />
+                                {/* Cover Image */}
+                                <button
+                                    data-testid={`trip-tile-${trip.id}`}
+                                    onClick={() => handleSelectTrip(trip.id)}
+                                    className="flex flex-1 flex-col"
+                                >
+                                    <div className="relative aspect-video w-full overflow-hidden bg-muted">
+                                        {trip.image_url ? (
+                                            <img
+                                                src={trip.image_url}
+                                                alt={trip.name}
+                                                className="size-full object-cover transition-transform group-hover:scale-105"
+                                            />
+                                        ) : (
+                                            <div className="flex size-full items-center justify-center">
+                                                <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+                                            </div>
+                                        )}
                                     </div>
-                                ) : null}
-                            </button>
-                        </div>
-                    ))}
+
+                                    {/* Trip Info */}
+                                    <div className="flex flex-1 flex-col gap-2 p-4">
+                                        <h2
+                                            className="text-lg font-semibold"
+                                            data-testid={`trip-name-${trip.id}`}
+                                        >
+                                            {trip.name}
+                                        </h2>
+                                        {trip.country && (
+                                            <p
+                                                className="text-sm text-muted-foreground"
+                                                data-testid={`trip-country-${trip.id}`}
+                                            >
+                                                {getCountryName(trip.country)}
+                                            </p>
+                                        )}
+                                        {(trip.planned_start_year ||
+                                            trip.planned_end_year ||
+                                            trip.planned_duration_days) && (
+                                            <div className="mt-2 space-y-1 rounded-md border border-gray-200 bg-gray-50 p-2 text-xs dark:border-gray-700 dark:bg-gray-800">
+                                                {(trip.planned_start_year ||
+                                                    trip.planned_end_year) && (
+                                                    <div className="text-gray-700 dark:text-gray-300">
+                                                        <span className="font-medium">
+                                                            Period:{' '}
+                                                        </span>
+                                                        {formatPlannedPeriod(
+                                                            trip.planned_start_year,
+                                                            trip.planned_start_month,
+                                                            trip.planned_start_day,
+                                                        )}
+                                                        {trip.planned_end_year && (
+                                                            <>
+                                                                {' → '}
+                                                                {formatPlannedPeriod(
+                                                                    trip.planned_end_year,
+                                                                    trip.planned_end_month,
+                                                                    trip.planned_end_day,
+                                                                )}
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                )}
+                                                {trip.planned_duration_days && (
+                                                    <div className="text-gray-700 dark:text-gray-300">
+                                                        <span className="font-medium">
+                                                            Duration:{' '}
+                                                        </span>
+                                                        {
+                                                            trip.planned_duration_days
+                                                        }{' '}
+                                                        {trip.planned_duration_days ===
+                                                        1
+                                                            ? 'day'
+                                                            : 'days'}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Map Viewport Placeholder */}
+                                    {trip.viewport_static_image_url ? (
+                                        <div className="relative aspect-[4/3] w-full border-t border-sidebar-border/70 bg-muted/50 dark:border-sidebar-border">
+                                            <img
+                                                src={
+                                                    trip.viewport_static_image_url
+                                                }
+                                                alt="Map preview"
+                                                className="size-full object-cover"
+                                            />
+                                        </div>
+                                    ) : null}
+                                </button>
+                            </div>
+                        );
+                    })}
 
                     {/* Create New Trip Tile */}
                     <button

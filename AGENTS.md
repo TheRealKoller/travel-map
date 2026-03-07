@@ -360,7 +360,7 @@ If your application uses the `<Form>` component from Inertia, you can use Wayfin
   it('returns all', function () {
   $response = $this->postJson('/api/docs', []);
 
-        $response->assertSuccessful();
+          $response->assertSuccessful();
 
     });
     </code-snippet>
@@ -453,6 +453,7 @@ import { Link } from '@inertiajs/react'
 import { Form } from '@inertiajs/react'
 
 export default () => (
+
 <Form action="/users" method="post">
 {({
 errors,
@@ -604,7 +605,7 @@ Before creating a pull request, run ALL of the following:
 
 #### 5. Request Copilot Code Review
 
-- Request a Copilot review using the GitHub CLI: `gh pr review <pr-number> --request-copilot`
+- Request a Copilot review using the GitHub CLI: `gh pr edit <pr-number> --add-reviewer copilot-pull-request-reviewer`
 - Wait for the review to complete
 
 #### 6. Address Review Comments
