@@ -87,7 +87,7 @@ test('user can register with valid token', function () {
         'password' => 'password123',
         'password_confirmation' => 'password123',
     ])
-        ->assertRedirect(route('dashboard'))
+        ->assertRedirect(route('trips.index'))
         ->assertSessionHas('success');
 
     assertAuthenticated();
