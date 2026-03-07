@@ -10,7 +10,6 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
 import { index as adminInvitationsIndex } from '@/routes/admin/invitations';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
@@ -18,7 +17,6 @@ import {
     BookOpen,
     FileText,
     Folder,
-    LayoutGrid,
     Luggage,
     Map,
     UserPlus,
@@ -37,11 +35,6 @@ const getMainNavItems = (isAdmin: boolean): NavItem[] => {
             title: 'Trips',
             href: '/trips',
             icon: Luggage,
-        },
-        {
-            title: 'Dashboard',
-            href: dashboard(),
-            icon: LayoutGrid,
         },
     ];
 
@@ -86,7 +79,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
+                            <Link href="/trips" prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>

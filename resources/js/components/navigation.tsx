@@ -8,7 +8,6 @@ interface NavItem {
 export default function Navigation() {
     const navItems: NavItem[] = [
         { name: 'Map', href: '/' },
-        { name: 'Dashboard', href: '/dashboard' },
         { name: 'Settings', href: '/settings' },
     ];
 

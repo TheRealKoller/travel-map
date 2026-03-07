@@ -12,8 +12,8 @@ test('unauthenticated users cannot access home page', function () {
     $response->assertRedirect(route('login'));
 });
 
-test('unauthenticated users cannot access dashboard', function () {
-    $response = $this->get('/dashboard');
+test('unauthenticated users cannot access trips page', function () {
+    $response = $this->get('/trips');
 
     $response->assertRedirect(route('login'));
 });
