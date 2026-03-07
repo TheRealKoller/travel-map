@@ -53,12 +53,13 @@ test('regular user cannot use show_all to see other users trips', function () {
         ->assertJsonCount(2);
 });
 
-test('admin with show_all sees all trips including own', function () {
-    Trip::factory()->count(2)->create(['user_id' => $this->admin->id]);
-    Trip::factory()->count(2)->create(['user_id' => $this->user->id]);
+test('admin with show_all sees trips from both own and other users', function () {
+    $adminTrip = Trip::factory()->create(['user_id' => $this->admin->id]);
+    $userTrip = Trip::factory()->create(['user_id' => $this->user->id]);
 
     $response = $this->actingAs($this->admin)->getJson('/trips?show_all=1');
 
     $response->assertSuccessful()
-        ->assertJsonCount(4);
+        ->assertJsonFragment(['id' => $adminTrip->id])
+        ->assertJsonFragment(['id' => $userTrip->id]);
 });

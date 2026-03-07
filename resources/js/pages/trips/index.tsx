@@ -36,7 +36,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function TripsIndex() {
-    const { auth } = usePage().props;
+    const { auth } = usePage<SharedData>().props;
     const isAdmin = auth.user?.role === 'admin';
     const [showAll, setShowAll] = useState(false);
     const { trips } = useTrips(showAll);
@@ -138,6 +138,7 @@ export default function TripsIndex() {
                         <div className="flex shrink-0 items-center gap-3 rounded-lg border border-sidebar-border bg-card px-4 py-2.5 shadow-sm">
                             <Switch
                                 id="show-all-trips"
+                                data-testid="show-all-trips-toggle"
                                 checked={showAll}
                                 onCheckedChange={setShowAll}
                             />
