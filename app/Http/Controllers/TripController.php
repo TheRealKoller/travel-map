@@ -80,18 +80,10 @@ class TripController extends Controller
     {
         $this->authorize('update', $trip);
 
-        $props = ['trip' => $trip];
-
-        // Pass owner info so the frontend can show an admin banner
-        if (auth()->user()->isAdmin() && $trip->user_id !== auth()->id()) {
-            $trip->load('user:id,name');
-            $props['owner'] = [
-                'id' => $trip->user->id,
-                'name' => $trip->user->name,
-            ];
-        }
-
-        return Inertia::render('trips/create', $props);
+        return Inertia::render('trips/create', array_merge(
+            ['trip' => $trip],
+            $this->buildAdminOwnerProps($trip),
+        ));
     }
 
     public function show(Trip $trip): JsonResponse
