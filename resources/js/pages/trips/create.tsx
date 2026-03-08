@@ -21,8 +21,13 @@ import {
     store as tripsStore,
     update as tripsUpdate,
 } from '@/routes/trips';
-import { type BreadcrumbItem, type Trip } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import {
+    type BreadcrumbItem,
+    type SharedData,
+    type Trip,
+    type TripOwner,
+} from '@/types';
+import { Head, router, usePage } from '@inertiajs/react';
 import 'easymde/dist/easymde.min.css';
 import { ChevronLeft, ChevronRight, ImageIcon, Loader2 } from 'lucide-react';
 import { marked } from 'marked';
@@ -31,10 +36,14 @@ import SimpleMDE from 'react-simplemde-editor';
 
 interface CreateTripProps {
     trip?: Trip;
+    owner?: TripOwner;
 }
 
-export default function CreateTrip({ trip }: CreateTripProps) {
+export default function CreateTrip({ trip, owner }: CreateTripProps) {
     const isEditMode = !!trip;
+    const { auth } = usePage<SharedData>().props;
+    const isAdminViewingOtherTrip =
+        auth.user?.role === 'admin' && !!owner && owner.id !== auth.user.id;
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -427,6 +436,11 @@ export default function CreateTrip({ trip }: CreateTripProps) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={isEditMode ? 'Edit trip' : 'Create trip'} />
+            {isAdminViewingOtherTrip && owner && (
+                <div className="flex items-center gap-2 border-b border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200">
+                    <span>Du bearbeitest die Reise von {owner.name}</span>
+                </div>
+            )}
             <div className="flex h-full flex-1 items-start justify-center p-4">
                 <div className="w-full max-w-2xl space-y-6 rounded-xl border border-sidebar-border/70 bg-card p-6 dark:border-sidebar-border">
                     <div>
