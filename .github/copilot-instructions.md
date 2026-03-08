@@ -21,6 +21,7 @@ This is a **Travel Map** application built with Laravel 12 (PHP 8.2+) backend an
 ## Environment Setup
 
 ### Required Versions
+
 - **PHP:** 8.2 or higher (CI uses 8.4)
 - **Composer:** 2.8+
 - **Node.js:** 18 or higher (CI uses Node 22)
@@ -31,68 +32,83 @@ This is a **Travel Map** application built with Laravel 12 (PHP 8.2+) backend an
 **ALWAYS follow this exact sequence for a fresh clone:**
 
 1. **Install PHP dependencies first:**
-   ```bash
-   composer install --no-interaction --prefer-dist --optimize-autoloader
-   ```
-   - Takes ~30-60 seconds
-   - Ignore warnings about "Ambiguous class resolution" - these are benign
+
+    ```bash
+    composer install --no-interaction --prefer-dist --optimize-autoloader
+    ```
+
+    - Takes ~30-60 seconds
+    - Ignore warnings about "Ambiguous class resolution" - these are benign
 
 2. **Install Node dependencies:**
-   ```bash
-   npm ci
-   ```
-   - Takes ~20-30 seconds
-   - May show 1 moderate vulnerability in vite (safe to ignore for development)
+
+    ```bash
+    npm ci
+    ```
+
+    - Takes ~20-30 seconds
+    - May show 1 moderate vulnerability in vite (safe to ignore for development)
 
 3. **Setup environment file:**
-   ```bash
-   cp .env.example .env
-   php artisan key:generate
-   ```
-   - The `.env.example` defaults to SQLite (no additional DB setup needed)
-   - Database file is auto-created at `database/database.sqlite`
-   - **Security:** APP_KEY is generated dynamically and never committed to git
-   - For E2E tests, the key is auto-generated when running `npm run test:e2e`
+
+    ```bash
+    cp .env.example .env
+    php artisan key:generate
+    ```
+
+    - The `.env.example` defaults to SQLite (no additional DB setup needed)
+    - Database file is auto-created at `database/database.sqlite`
+    - **Security:** APP_KEY is generated dynamically and never committed to git
+    - For E2E tests, the key is auto-generated when running `npm run test:e2e`
 
 4. **Run migrations:**
-   ```bash
-   php artisan migrate --force
-   ```
-   - Takes ~30ms
-   - Uses SQLite by default (no MySQL/PostgreSQL setup needed)
+
+    ```bash
+    php artisan migrate --force
+    ```
+
+    - Takes ~30ms
+    - Uses SQLite by default (no MySQL/PostgreSQL setup needed)
 
 5. **Build frontend assets:**
-   ```bash
-   npm run build
-   ```
-   - Takes ~10 seconds
-   - Produces files in `public/build/`
-   - You may see a warning about chunk sizes >500kB (this is expected, can be ignored)
+    ```bash
+    npm run build
+    ```
+
+    - Takes ~10 seconds
+    - Produces files in `public/build/`
+    - You may see a warning about chunk sizes >500kB (this is expected, can be ignored)
 
 ## Build & Development
 
 ### Building Assets
 
 **Production build:**
+
 ```bash
 npm run build
 ```
+
 - Always required before running tests in CI
 - Output goes to `public/build/`
 - Takes ~10 seconds
 
 **Development mode:**
+
 ```bash
 npm run dev
 ```
+
 - Starts Vite dev server on default port
 - Use alongside `php artisan serve` for local development
 - Auto-reloads on file changes
 
 ### Alternative: All-in-one dev command
+
 ```bash
 composer dev
 ```
+
 - Runs `php artisan serve`, `php artisan queue:listen`, and `npm run dev` concurrently
 - Requires manual termination (Ctrl+C)
 
@@ -105,11 +121,15 @@ composer dev
 ```bash
 ./vendor/bin/pest
 ```
+
 OR
+
 ```bash
 composer test
 ```
+
 OR
+
 ```bash
 php artisan test
 ```
@@ -120,6 +140,7 @@ php artisan test
 - **Important:** `composer test` clears config cache first, which is safer
 
 ### Test Structure
+
 - **Unit tests:** `tests/Unit/` - Pure unit tests
 - **Feature tests:** `tests/Feature/` - Integration tests with database
 - Test configuration: `phpunit.xml` and `tests/Pest.php`
@@ -130,25 +151,30 @@ php artisan test
 **CRITICAL RULE: ALL tests (Unit, Feature, E2E) MUST NOT make real requests to 3rd-party APIs.**
 
 ### General Testing Principles
+
 - **Mock ALL external services**: Mapbox, payment gateways, email services, etc.
 - **Intercept ALL HTTP requests**: Use Laravel's `Http::fake()` to intercept requests
 - **Provide fake responses**: All intercepted requests must return appropriate fake/mock responses
 - **Never use real API keys in tests**: Use fake tokens that follow the correct format but don't work with real APIs
 
 ### PHP Tests (Unit & Feature)
+
 - Use Laravel's `Http::fake()` to mock HTTP clients:
-  ```php
-  use Illuminate\Support\Facades\Http;
-  
-  Http::fake([
-      'api.mapbox.com/*' => Http::response(['data' => 'mocked'], 200),
-      'api.stripe.com/*' => Http::response(['id' => 'fake_id'], 200),
-  ]);
-  ```
+
+    ```php
+    use Illuminate\Support\Facades\Http;
+
+    Http::fake([
+        'api.mapbox.com/*' => Http::response(['data' => 'mocked'], 200),
+        'api.stripe.com/*' => Http::response(['id' => 'fake_id'], 200),
+    ]);
+    ```
+
 - Use `Http::preventStrayRequests()` to ensure no unmocked requests slip through
 - Mock external services using Laravel's service container or test doubles
 
 ### Why This Matters
+
 - **Speed**: Tests run faster without real API calls
 - **Reliability**: Tests don't fail due to network issues or API rate limits
 - **Cost**: Avoid unnecessary API usage charges
@@ -158,20 +184,23 @@ php artisan test
 ### E2E Testing Best Practices
 
 **Test Selectors:**
+
 - **ALWAYS use `data-testid` attributes** for selecting elements in E2E tests
 - Add `data-testid` to all interactive elements (buttons, inputs, forms, links, etc.)
 - Use descriptive, kebab-case naming: `data-testid="create-marker-button"`, `data-testid="marker-name-input"`
-- Select elements in tests using: `page.getByTestId('element-id')` or  `page.locator('[data-testid="element-id"]')` when necessary
+- Select elements in tests using: `page.getByTestId('element-id')` or `page.locator('[data-testid="element-id"]')` when necessary
 - Avoid selecting by text content, CSS classes, or element types as they are fragile and break easily
 - Exception: Text content can be used for non-interactive elements like headings or labels when appropriate
 
 **Test Assertions:**
+
 - **NEVER use `if` statements to check element visibility** - they cause tests to pass silently when elements are missing
 - **ALWAYS use `await expect().toBeVisible()`** to assert element visibility
 - **Use proper timeouts** for async operations: `{ timeout: 5000 }` or `{ timeout: 10000 }`
 - If an element might not be visible, use `try/catch` or explicitly check with `.catch()`, but always fail the test if the element is required
 
 **Anti-patterns (DO NOT DO):**
+
 ```typescript
 // BAD: Test passes even if button is not visible
 if (await button.isVisible({ timeout: 2000 })) {
@@ -186,6 +215,7 @@ if (await element.isVisible()) {
 ```
 
 **Good patterns:**
+
 ```typescript
 // GOOD: Test fails if button is not visible
 const button = page.getByTestId('submit-button');
@@ -203,17 +233,19 @@ try {
 ```
 
 **Example:**
+
 ```tsx
 // Good: Using data-testid
 <button data-testid="save-marker-button" onClick={handleSave}>
-  Save Marker
-</button>
+    Save Marker
+</button>;
 
 // In test:
 await page.getByTestId('save-marker-button').click();
 ```
 
 **Running E2E Tests:**
+
 ```bash
 npm run test:e2e           # Run all E2E tests
 npm run test:e2e:ui        # Run with interactive UI
@@ -226,11 +258,13 @@ npm run test:e2e:debug     # Run in debug mode
 ### PHP Code Formatting (Laravel Pint)
 
 **Check for style issues:**
+
 ```bash
 ./vendor/bin/pint --test
 ```
 
 **Auto-fix style issues:**
+
 ```bash
 ./vendor/bin/pint
 ```
@@ -242,11 +276,13 @@ npm run test:e2e:debug     # Run in debug mode
 ### JavaScript/TypeScript Formatting (Prettier)
 
 **Check formatting:**
+
 ```bash
 npm run format:check
 ```
 
 **Auto-fix formatting:**
+
 ```bash
 npm run format
 ```
@@ -258,6 +294,7 @@ npm run format
 ### JavaScript/TypeScript Linting (ESLint)
 
 **Lint and auto-fix:**
+
 ```bash
 npm run lint
 ```
@@ -283,17 +320,19 @@ npm run types
 **Triggers:** Push/PR to `develop` or `main` branches
 
 **Steps performed:**
+
 1. Checkout code
 2. Setup PHP 8.4 with Composer
 3. Setup Node.js 22 with npm cache
 4. `npm ci` - Install Node dependencies
-5. `composer install` - Install PHP dependencies  
+5. `composer install` - Install PHP dependencies
 6. `npm run build` - Build frontend assets
 7. `cp .env.example .env` - Setup environment
 8. `php artisan key:generate` - Generate app key
 9. `./vendor/bin/pest` - Run tests
 
 **To replicate CI locally:**
+
 ```bash
 npm ci
 composer install --no-interaction --prefer-dist --optimize-autoloader
@@ -308,6 +347,7 @@ php artisan key:generate
 **Triggers:** Push/PR to `develop` or `main` branches
 
 **Steps performed:**
+
 1. Checkout code
 2. Setup PHP 8.4
 3. `composer install` and `npm install`
@@ -316,6 +356,7 @@ php artisan key:generate
 6. `npm run lint` - Lint JS/TS code
 
 **To replicate CI locally:**
+
 ```bash
 composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
 npm install
@@ -331,6 +372,7 @@ npm run lint
 ### Backend (Laravel)
 
 **Key directories:**
+
 - `app/Models/` - Eloquent models (User, Marker)
 - `app/Http/Controllers/` - HTTP controllers including MarkerController
 - `app/Http/Middleware/` - HandleInertiaRequests, HandleAppearance
@@ -340,34 +382,39 @@ npm run lint
 - `app/Providers/` - Service providers (AppServiceProvider, FortifyServiceProvider)
 
 **Routes:**
+
 - `routes/web.php` - Web routes (markers, auth)
 - `routes/settings.php` - Settings routes (profile, password, 2FA)
 - `routes/console.php` - Artisan commands
 
 **Database:**
+
 - `database/migrations/` - Schema migrations (7 migrations total)
 - `database/seeders/` - Database seeders
 - `database/factories/` - Model factories
 
 **Configuration:**
+
 - `config/` - Laravel config files (app, database, auth, fortify, inertia, etc.)
 - `.env` - Environment variables
 
 ### Frontend (React + TypeScript)
 
 **Key directories:**
+
 - `resources/js/pages/` - Inertia.js page components
-  - `auth/` - Authentication pages (login, register, etc.)
-  - `settings/` - User settings pages
-  - `map.tsx` - Main map interface
-  - `dashboard.tsx` - Dashboard page
+    - `auth/` - Authentication pages (login, register, etc.)
+    - `settings/` - User settings pages
+    - `map.tsx` - Main map interface
+    - `dashboard.tsx` - Dashboard page
 - `resources/js/components/` - Reusable React components
-  - UI components using Radix UI + Tailwind
-  - `travel-map.tsx` - Main map component with Leaflet
+    - UI components using Radix UI + Tailwind
+    - `travel-map.tsx` - Main map component with Leaflet
 - `resources/js/types/` - TypeScript type definitions
 - `resources/css/` - Global CSS files
 
 **Build configuration:**
+
 - `vite.config.ts` - Vite configuration with Laravel plugin
 - `tsconfig.json` - TypeScript configuration (strict mode, ESNext target)
 - `eslint.config.js` - ESLint flat config
@@ -387,44 +434,50 @@ npm run lint
 ### Making Code Changes
 
 1. **For PHP changes:**
-   - Edit files in `app/`, `routes/`, `database/`, `config/`
-   - Run `./vendor/bin/pint` to format
-   - Run `./vendor/bin/pest` to test
-   - Run `php artisan config:clear` if config changes aren't reflecting
+    - Edit files in `app/`, `routes/`, `database/`, `config/`
+    - Run `./vendor/bin/pint` to format
+    - Run `./vendor/bin/pest` to test
+    - Run `php artisan config:clear` if config changes aren't reflecting
 
 2. **For TypeScript/React changes:**
-   - Edit files in `resources/js/`
-   - Run `npm run types` to check types
-   - Run `npm run lint` to lint
-   - Run `npm run format` to format
-   - Run `npm run build` to verify it builds
-   - Run `./vendor/bin/pest` to ensure backend integration tests pass
+    - Edit files in `resources/js/`
+    - Run `npm run types` to check types
+    - Run `npm run lint` to lint
+    - Run `npm run format` to format
+    - Run `npm run build` to verify it builds
+    - Run `./vendor/bin/pest` to ensure backend integration tests pass
 
 3. **For full-stack features:**
-   - Make backend changes first (models, controllers, routes)
-   - Then make frontend changes (pages, components)
-   - **ALWAYS** run both PHP and JS linters
-   - **ALWAYS** run tests
-   - **ALWAYS** build assets before final verification
+    - Make backend changes first (models, controllers, routes)
+    - Then make frontend changes (pages, components)
+    - **ALWAYS** run both PHP and JS linters
+    - **ALWAYS** run tests
+    - **ALWAYS** build assets before final verification
 
 ### Common Errors & Solutions
 
 **Error: "npm WARN deprecated"**
+
 - **Solution:** Ignore - these are informational warnings about transitive dependencies
 
 **Error: "Target class does not exist"**
+
 - **Solution:** Run `composer dump-autoload`
 
 **Error: "Application key not set"**
+
 - **Solution:** Run `php artisan key:generate`
 
 **Error: "No such table" in tests**
+
 - **Solution:** Tests use in-memory SQLite automatically - this shouldn't happen. If it does, check `phpunit.xml` for `DB_CONNECTION=sqlite` and `DB_DATABASE=:memory:`
 
 **Error: Vite not found or connection refused**
+
 - **Solution:** Run `npm run build` for production, or `npm run dev` for development
 
 **Error: "Class not found" after adding new PHP class**
+
 - **Solution:** Composer's autoloader needs refresh: `composer dump-autoload`
 
 ### Database Notes
@@ -445,6 +498,7 @@ npm run lint
 ## Additional Commands
 
 ### Clear Laravel caches:
+
 ```bash
 php artisan cache:clear
 php artisan config:clear
@@ -453,6 +507,7 @@ php artisan view:clear
 ```
 
 ### Serve application locally:
+
 ```bash
 # Terminal 1
 php artisan serve
@@ -462,6 +517,7 @@ npm run dev
 ```
 
 ### Docker (optional):
+
 ```bash
 docker-compose up -d
 # Starts MariaDB on port 3306 and Adminer on port 8080
@@ -472,7 +528,7 @@ docker-compose up -d
 **Run these commands in sequence:**
 
 1. `./vendor/bin/pint` - Format PHP code
-2. `npm run format` - Format JS/TS code  
+2. `npm run format` - Format JS/TS code
 3. `npm run lint` - Lint JS/TS code
 4. `npm run types` - Check TypeScript types
 5. `npm run build` - Ensure frontend builds
@@ -512,29 +568,27 @@ These instructions are comprehensive and tested. **ALWAYS follow them exactly** 
 ### Laravel 12 Project Structure & Conventions
 
 - Follow the official Laravel project structure:
-
-  - `app/Http/Controllers` - Controllers
-  - `app/Models` - Eloquent models
-  - `app/Http/Requests` - Form request validation
-  - `app/Http/Resources` - API resource responses
-  - `app/Enums` - Enums
-  - `app/Services` - Business logic
-  - `app/Data` - Data Transfer Objects (DTOs)
-  - `app/Actions` - Single-responsibility action classes
-  - `app/Policies` - Authorization logic
+    - `app/Http/Controllers` - Controllers
+    - `app/Models` - Eloquent models
+    - `app/Http/Requests` - Form request validation
+    - `app/Http/Resources` - API resource responses
+    - `app/Enums` - Enums
+    - `app/Services` - Business logic
+    - `app/Data` - Data Transfer Objects (DTOs)
+    - `app/Actions` - Single-responsibility action classes
+    - `app/Policies` - Authorization logic
 
 - Controllers must:
-
-  - Be thin.
-  - Use dependency injection.
-  - Use Form Requests for validation.
-  - Return typed responses (e.g., `JsonResponse`).
-  - Use Resource classes for API responses.
+    - Be thin.
+    - Use dependency injection.
+    - Use Form Requests for validation.
+    - Return typed responses (e.g., `JsonResponse`).
+    - Use Resource classes for API responses.
 
 - Business logic should reside in:
-  - Service classes
-  - Action classes
-  - Event listeners or Jobs for asynchronous tasks
+    - Service classes
+    - Action classes
+    - Event listeners or Jobs for asynchronous tasks
 
 ### Eloquent ORM & Database
 
@@ -543,9 +597,9 @@ These instructions are comprehensive and tested. **ALWAYS follow them exactly** 
 - Apply **accessors & mutators** for attribute transformation.
 - Avoid direct raw SQL unless absolutely necessary; prefer Eloquent or Query Builder.
 - Migrations:
-  - Always use migrations for schema changes.
-  - Include proper constraints (foreign keys, unique indexes, etc.).
-  - Prefer UUIDs or ULIDs as primary keys where applicable.
+    - Always use migrations for schema changes.
+    - Include proper constraints (foreign keys, unique indexes, etc.).
+    - Prefer UUIDs or ULIDs as primary keys where applicable.
 
 ### API Development
 
@@ -576,12 +630,11 @@ These instructions are comprehensive and tested. **ALWAYS follow them exactly** 
 ### Software Quality & Maintainability
 
 - Follow **SOLID Principles**:
-
-  - Single Responsibility Principle (SRP)
-  - Open/Closed Principle (OCP)
-  - Liskov Substitution Principle (LSP)
-  - Interface Segregation Principle (ISP)
-  - Dependency Inversion Principle (DIP)
+    - Single Responsibility Principle (SRP)
+    - Open/Closed Principle (OCP)
+    - Liskov Substitution Principle (LSP)
+    - Interface Segregation Principle (ISP)
+    - Dependency Inversion Principle (DIP)
 
 - Follow **DRY** (Don't Repeat Yourself) and **KISS** (Keep It Simple, Stupid) principles.
 - Apply **YAGNI** (You Aren't Gonna Need It) to avoid overengineering.
@@ -624,9 +677,9 @@ These instructions are comprehensive and tested. **ALWAYS follow them exactly** 
 - **Single Responsibility:** Each component should ideally have one primary responsibility. **Components should be kept small and focused.**
 - **Component Naming:** Use `PascalCase` for all component names (e.g., `MyButton`, `UserAvatar`).
 - **Props:**
-  - Use `camelCase` for prop names.
-  - Destructure props in the component's function signature.
-  - Provide clear `interface` or `type` definitions for props in TypeScript.
+    - Use `camelCase` for prop names.
+    - Destructure props in the component's function signature.
+    - Provide clear `interface` or `type` definitions for props in TypeScript.
 - **Immutability:** Never mutate props or state directly. Always create new objects or arrays for updates.
 - **Fragments:** Use `<>...</>` or `React.Fragment` to avoid unnecessary DOM wrapper elements.
 - **Custom Hooks:** Extract reusable stateful logic into **custom hooks** (e.g., `useDebounce`, `useLocalStorage`).
@@ -657,9 +710,10 @@ These instructions are comprehensive and tested. **ALWAYS follow them exactly** 
 The Laravel Boost guidelines are specifically curated by Laravel maintainers for this application. These guidelines should be followed closely to enhance the user's satisfaction building Laravel applications.
 
 ## Foundational Context
+
 This application is a Laravel application and its main Laravel ecosystems package & versions are below. You are an expert with them all. Ensure you abide by these specific packages & versions.
 
-- php - 8.4.18
+- php - 8.5
 - inertiajs/inertia-laravel (INERTIA) - v2
 - laravel/fortify (FORTIFY) - v1
 - laravel/framework (LARAVEL) - v12
@@ -678,46 +732,58 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - prettier (PRETTIER) - v3
 
 ## Conventions
+
 - You must follow all existing code conventions used in this application. When creating or editing a file, check sibling files for the correct structure, approach, and naming.
 - Use descriptive names for variables and methods. For example, `isRegisteredForDiscounts`, not `discount()`.
 - Check for existing components to reuse before writing a new one.
 
 ## Verification Scripts
+
 - Do not create verification scripts or tinker when tests cover that functionality and prove it works. Unit and feature tests are more important.
 
 ## Application Structure & Architecture
+
 - Stick to existing directory structure; don't create new base folders without approval.
 - Do not change the application's dependencies without approval.
 
 ## Frontend Bundling
+
 - If the user doesn't see a frontend change reflected in the UI, it could mean they need to run `npm run build`, `npm run dev`, or `composer run dev`. Ask them.
 
 ## Replies
+
 - Be concise in your explanations - focus on what's important rather than explaining obvious details.
 
 ## Documentation Files
+
 - You must only create documentation files if explicitly requested by the user.
 
 === boost rules ===
 
 ## Laravel Boost
+
 - Laravel Boost is an MCP server that comes with powerful tools designed specifically for this application. Use them.
 
 ## Artisan
+
 - Use the `list-artisan-commands` tool when you need to call an Artisan command to double-check the available parameters.
 
 ## URLs
+
 - Whenever you share a project URL with the user, you should use the `get-absolute-url` tool to ensure you're using the correct scheme, domain/IP, and port.
 
 ## Tinker / Debugging
+
 - You should use the `tinker` tool when you need to execute PHP to debug code or query Eloquent models directly.
 - Use the `database-query` tool when you only need to read from the database.
 
 ## Reading Browser Logs With the `browser-logs` Tool
+
 - You can read browser logs, errors, and exceptions using the `browser-logs` tool from Boost.
 - Only recent browser logs will be useful - ignore old logs.
 
 ## Searching Documentation (Critically Important)
+
 - Boost comes with a powerful `search-docs` tool you should use before any other approaches when dealing with Laravel or Laravel ecosystem packages. This tool automatically passes a list of installed packages and their versions to the remote Boost API, so it returns only version-specific documentation for the user's circumstance. You should pass an array of packages to filter on if you know you need docs for particular packages.
 - The `search-docs` tool is perfect for all Laravel-related packages, including Laravel, Inertia, Livewire, Filament, Tailwind, Pest, Nova, Nightwatch, etc.
 - You must use this tool to search for Laravel ecosystem documentation before falling back to other approaches.
@@ -726,6 +792,7 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - Do not add package names to queries; package information is already shared. For example, use `test resource table`, not `filament 4 test resource table`.
 
 ### Available Search Syntax
+
 - You can and should pass multiple queries at once. The most relevant results will be returned first.
 
 1. Simple Word Searches with auto-stemming - query=authentication - finds 'authenticate' and 'auth'.
@@ -741,11 +808,13 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - Always use curly braces for control structures, even if it has one line.
 
 ### Constructors
+
 - Use PHP 8 constructor property promotion in `__construct()`.
-    - <code-snippet>public function __construct(public GitHub $github) { }</code-snippet>
+    - <code-snippet>public function \_\_construct(public GitHub $github) { }</code-snippet>
 - Do not allow empty `__construct()` methods with zero parameters unless the constructor is private.
 
 ### Type Declarations
+
 - Always use explicit return type declarations for methods and functions.
 - Use appropriate PHP type hints for method parameters.
 
@@ -757,12 +826,15 @@ protected function isAccessible(User $user, ?string $path = null): bool
 </code-snippet>
 
 ## Comments
+
 - Prefer PHPDoc blocks over inline comments. Never use comments within the code itself unless there is something very complex going on.
 
 ## PHPDoc Blocks
+
 - Add useful array shape type definitions for arrays when appropriate.
 
 ## Enums
+
 - Typically, keys in an Enum should be TitleCase. For example: `FavoritePerson`, `BestLake`, `Monthly`.
 
 === tests rules ===
@@ -796,6 +868,7 @@ Route::get('/users', function () {
 - Make use of all Inertia features from v1 and v2. Check the documentation before making any changes to ensure we are taking the correct approach.
 
 ### Inertia v2 New Features
+
 - Deferred props.
 - Infinite scrolling using merging props and `WhenVisible`.
 - Lazy loading data on scroll.
@@ -803,9 +876,11 @@ Route::get('/users', function () {
 - Prefetching.
 
 ### Deferred Props & Empty States
+
 - When using deferred props on the frontend, you should add a nice empty state with pulsing/animated skeleton.
 
 ### Inertia Form General Guidance
+
 - The recommended way to build forms when using Inertia is with the `<Form>` component - a useful example is below. Use the `search-docs` tool with a query of `form component` for guidance.
 - Forms can also be built using the `useForm` helper for more programmatic control, or to follow existing conventions. Use the `search-docs` tool with a query of `useForm helper` for guidance.
 - `resetOnError`, `resetOnSuccess`, and `setDefaultsOnSuccess` are available on the `<Form>` component. Use the `search-docs` tool with a query of `form component resetting` for guidance.
@@ -819,6 +894,7 @@ Route::get('/users', function () {
 - Pass `--no-interaction` to all Artisan commands to ensure they work without user input. You should also pass the correct `--options` to ensure correct behavior.
 
 ### Database
+
 - Always use proper Eloquent relationship methods with return type hints. Prefer relationship methods over raw queries or manual joins.
 - Use Eloquent models and relationships before suggesting raw database queries.
 - Avoid `DB::`; prefer `Model::query()`. Generate code that leverages Laravel's ORM capabilities rather than bypassing them.
@@ -826,33 +902,42 @@ Route::get('/users', function () {
 - Use Laravel's query builder for very complex database operations.
 
 ### Model Creation
+
 - When creating new models, create useful factories and seeders for them too. Ask the user if they need any other things, using `list-artisan-commands` to check the available options to `php artisan make:model`.
 
 ### APIs & Eloquent Resources
+
 - For APIs, default to using Eloquent API Resources and API versioning unless existing API routes do not, then you should follow existing application convention.
 
 ### Controllers & Validation
+
 - Always create Form Request classes for validation rather than inline validation in controllers. Include both validation rules and custom error messages.
 - Check sibling Form Requests to see if the application uses array or string based validation rules.
 
 ### Queues
+
 - Use queued jobs for time-consuming operations with the `ShouldQueue` interface.
 
 ### Authentication & Authorization
+
 - Use Laravel's built-in authentication and authorization features (gates, policies, Sanctum, etc.).
 
 ### URL Generation
+
 - When generating links to other pages, prefer named routes and the `route()` function.
 
 ### Configuration
+
 - Use environment variables only in configuration files - never use the `env()` function directly outside of config files. Always use `config('app.name')`, not `env('APP_NAME')`.
 
 ### Testing
+
 - When creating models for tests, use the factories for the models. Check if the factory has custom states that can be used before manually setting up the model.
 - Faker: Use methods such as `$this->faker->word()` or `fake()->randomDigit()`. Follow existing conventions whether to use `$this->faker` or `fake()`.
 - When creating tests, make use of `php artisan make:test [options] {name}` to create a feature test, and pass `--unit` to create a unit test. Most tests should be feature tests.
 
 ### Vite Error
+
 - If you receive an "Illuminate\Foundation\ViteException: Unable to locate file in Vite manifest" error, you can run `npm run build` or ask the user to run `npm run dev` or `composer run dev`.
 
 === laravel/v12 rules ===
@@ -863,6 +948,7 @@ Route::get('/users', function () {
 - Since Laravel 11, Laravel has a new streamlined file structure which this project uses.
 
 ### Laravel 12 Structure
+
 - In Laravel 12, middleware are no longer registered in `app/Http/Kernel.php`.
 - Middleware are configured declaratively in `bootstrap/app.php` using `Application::configure()->withMiddleware()`.
 - `bootstrap/app.php` is the file to register middleware, exceptions, and routing files.
@@ -871,10 +957,12 @@ Route::get('/users', function () {
 - Console commands in `app/Console/Commands/` are automatically available and do not require manual registration.
 
 ### Database
+
 - When modifying a column, the migration must include all of the attributes that were previously defined on the column. Otherwise, they will be dropped and lost.
 - Laravel 12 allows limiting eagerly loaded records natively, without external packages: `$query->latest()->limit(10);`.
 
 ### Models
+
 - Casts can and likely should be set in a `casts()` method on a model rather than the `$casts` property. Follow existing conventions from other models.
 
 === wayfinder/core rules ===
@@ -884,12 +972,14 @@ Route::get('/users', function () {
 Wayfinder generates TypeScript functions and types for Laravel controllers and routes which you can import into your client-side code. It provides type safety and automatic synchronization between backend routes and frontend code.
 
 ### Development Guidelines
+
 - Always use the `search-docs` tool to check Wayfinder correct usage before implementing any features.
 - Always prefer named imports for tree-shaking (e.g., `import { show } from '@/actions/...'`).
 - Avoid default controller imports (prevents tree-shaking).
 - Run `php artisan wayfinder:generate` after route changes if Vite plugin isn't installed.
 
 ### Feature Overview
+
 - Form Support: Use `.form()` with `--with-form` flag for HTML form attributes — `<form {...store.form()}>` → `action="/posts" method="post"`.
 - HTTP Methods: Call `.get()`, `.post()`, `.patch()`, `.put()`, `.delete()` for specific methods — `show.head(1)` → `{ url: "/posts/1", method: "head" }`.
 - Invokable Controllers: Import and invoke directly as functions. For example, `import StorePost from '@/actions/.../StorePostController'; StorePost()`.
@@ -919,9 +1009,11 @@ Wayfinder generates TypeScript functions and types for Laravel controllers and r
     // Import named routes...
     import { show as postShow } from '@/routes/post' // For route name 'post.show'
     postShow(1) // { url: "/posts/1", method: "get" }
+
 </code-snippet>
 
 ### Wayfinder + Inertia
+
 If your application uses the `<Form>` component from Inertia, you can use Wayfinder to generate form action and method automatically.
 <code-snippet name="Wayfinder Form Component (React)" lang="typescript">
 
@@ -939,22 +1031,26 @@ If your application uses the `<Form>` component from Inertia, you can use Wayfin
 === pest/core rules ===
 
 ## Pest
+
 ### Testing
+
 - If you need to verify a feature is working, write or update a Unit / Feature test.
 
 ### Pest Tests
+
 - All tests must be written using Pest. Use `php artisan make:test --pest {name}`.
 - You must not remove any tests or test files from the tests directory without approval. These are not temporary or helper files - these are core to the application.
 - Tests should test all of the happy paths, failure paths, and weird paths.
 - Tests live in the `tests/Feature` and `tests/Unit` directories.
 - Pest tests look and behave like this:
-<code-snippet name="Basic Pest Test Example" lang="php">
-it('is true', function () {
-    expect(true)->toBeTrue();
-});
-</code-snippet>
+  <code-snippet name="Basic Pest Test Example" lang="php">
+  it('is true', function () {
+  expect(true)->toBeTrue();
+  });
+  </code-snippet>
 
 ### Running Tests
+
 - Run the minimal number of tests using an appropriate filter before finalizing code edits.
 - To run all tests: `php artisan test --compact`.
 - To run all tests in a file: `php artisan test --compact tests/Feature/ExampleTest.php`.
@@ -962,21 +1058,25 @@ it('is true', function () {
 - When the tests relating to your changes are passing, ask the user if they would like to run the entire test suite to ensure everything is still passing.
 
 ### Pest Assertions
-- When asserting status codes on a response, use the specific method like `assertForbidden` and `assertNotFound` instead of using `assertStatus(403)` or similar, e.g.:
-<code-snippet name="Pest Example Asserting postJson Response" lang="php">
-it('returns all', function () {
-    $response = $this->postJson('/api/docs', []);
 
-    $response->assertSuccessful();
-});
-</code-snippet>
+- When asserting status codes on a response, use the specific method like `assertForbidden` and `assertNotFound` instead of using `assertStatus(403)` or similar, e.g.:
+  <code-snippet name="Pest Example Asserting postJson Response" lang="php">
+  it('returns all', function () {
+  $response = $this->postJson('/api/docs', []);
+
+        $response->assertSuccessful();
+
+    });
+    </code-snippet>
 
 ### Mocking
+
 - Mocking can be very helpful when appropriate.
 - When mocking, you can use the `Pest\Laravel\mock` Pest function, but always import it via `use function Pest\Laravel\mock;` before using it. Alternatively, you can use `$this->mock()` if existing tests do.
 - You can also create partial mocks using the same import or self method.
 
 ### Datasets
+
 - Use datasets in Pest to simplify tests that have a lot of duplicated data. This is often the case when testing validation rules, so consider this solution when writing tests for validation rules.
 
 <code-snippet name="Pest Dataset Example" lang="php">
@@ -998,6 +1098,7 @@ it('has emails', function (string $email) {
 - Use the `search-docs` tool for detailed guidance on utilizing these features.
 
 ### Browser Testing
+
 - You can use Laravel features like `Event::fake()`, `assertAuthenticated()`, and model factories within Pest 4 browser tests, as well as `RefreshDatabase` (when needed) to ensure a clean state for each test.
 - Interact with the page (click, type, scroll, select, submit, drag-and-drop, touch gestures, etc.) when appropriate to complete the test.
 - If requested, test on multiple browsers (Chrome, Firefox, Safari).
@@ -1023,6 +1124,7 @@ it('may reset the password', function () {
         ->assertSee('We have emailed your password reset link!')
 
     Notification::assertSent(ResetPassword::class);
+
 });
 </code-snippet>
 
@@ -1041,6 +1143,7 @@ $pages->assertNoJavascriptErrors()->assertNoConsoleLogs();
 <code-snippet name="Inertia Client Navigation" lang="react">
 
 import { Link } from '@inertiajs/react'
+
 <Link href="/">Home</Link>
 
 </code-snippet>
@@ -1054,19 +1157,19 @@ import { Link } from '@inertiajs/react'
 import { Form } from '@inertiajs/react'
 
 export default () => (
-    <Form action="/users" method="post">
-        {({
-            errors,
-            hasErrors,
-            processing,
-            wasSuccessful,
-            recentlySuccessful,
-            clearErrors,
-            resetAndClearErrors,
-            defaults
-        }) => (
-        <>
-        <input type="text" name="name" />
+<Form action="/users" method="post">
+{({
+errors,
+hasErrors,
+processing,
+wasSuccessful,
+recentlySuccessful,
+clearErrors,
+resetAndClearErrors,
+defaults
+}) => (
+<>
+<input type="text" name="name" />
 
         {errors.name && <div>{errors.name}</div>}
 
@@ -1078,6 +1181,7 @@ export default () => (
         </>
     )}
     </Form>
+
 )
 
 </code-snippet>
@@ -1092,6 +1196,7 @@ export default () => (
 - You can use the `search-docs` tool to get exact examples from the official documentation when needed.
 
 ### Spacing
+
 - When listing items, use gap utilities for spacing; don't use margins.
 
 <code-snippet name="Valid Flex Gap Spacing Example" lang="html">
@@ -1103,6 +1208,7 @@ export default () => (
 </code-snippet>
 
 ### Dark Mode
+
 - If existing pages and components support dark mode, new pages and components must support dark mode in a similar way, typically using `dark:`.
 
 === tailwindcss/v4 rules ===
@@ -1129,19 +1235,20 @@ export default () => (
 </code-snippet>
 
 ### Replaced Utilities
+
 - Tailwind v4 removed deprecated utilities. Do not use the deprecated option; use the replacement.
 - Opacity values are still numeric.
 
-| Deprecated |	Replacement |
+| Deprecated | Replacement |
 |------------+--------------|
-| bg-opacity-* | bg-black/* |
-| text-opacity-* | text-black/* |
-| border-opacity-* | border-black/* |
-| divide-opacity-* | divide-black/* |
-| ring-opacity-* | ring-black/* |
-| placeholder-opacity-* | placeholder-black/* |
-| flex-shrink-* | shrink-* |
-| flex-grow-* | grow-* |
+| bg-opacity-_ | bg-black/_ |
+| text-opacity-_ | text-black/_ |
+| border-opacity-_ | border-black/_ |
+| divide-opacity-_ | divide-black/_ |
+| ring-opacity-_ | ring-black/_ |
+| placeholder-opacity-_ | placeholder-black/_ |
+| flex-shrink-_ | shrink-_ |
+| flex-grow-_ | grow-_ |
 | overflow-ellipsis | text-ellipsis |
 | decoration-slice | box-decoration-slice |
 | decoration-clone | box-decoration-clone |
