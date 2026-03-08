@@ -29,6 +29,7 @@ export default function MapPage() {
 
     const {
         trips,
+        setTrips,
         selectedTripId,
         setSelectedTripId,
         createTrip,
@@ -118,6 +119,7 @@ export default function MapPage() {
                 tours={tours}
                 trips={trips}
                 onToursUpdate={setTours}
+                onTripsUpdate={setTrips}
                 onReloadTours={loadTours}
                 onSelectTour={setSelectedTourId}
                 onCreateTour={openCreateTourModal}

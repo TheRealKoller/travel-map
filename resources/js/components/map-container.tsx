@@ -1,6 +1,7 @@
 import TravelMap from '@/components/travel-map';
 import { Tour } from '@/types/tour';
 import { Trip } from '@/types/trip';
+import { Dispatch, SetStateAction } from 'react';
 
 interface MapContainerProps {
     selectedTripId: number | null;
@@ -8,6 +9,7 @@ interface MapContainerProps {
     tours: Tour[];
     trips: Trip[];
     onToursUpdate: (tours: Tour[]) => void;
+    onTripsUpdate: Dispatch<SetStateAction<Trip[]>>;
     onReloadTours: () => void;
     onSelectTour: (tourId: number | null) => void;
     onCreateTour: () => void;
@@ -24,6 +26,7 @@ export function MapContainer({
     tours,
     trips,
     onToursUpdate,
+    onTripsUpdate,
     onReloadTours,
     onSelectTour,
     onCreateTour,
@@ -38,6 +41,7 @@ export function MapContainer({
                 tours={tours}
                 trips={trips}
                 onToursUpdate={onToursUpdate}
+                onTripsUpdate={onTripsUpdate}
                 onReloadTours={onReloadTours}
                 onSelectTour={onSelectTour}
                 onCreateTour={onCreateTour}
