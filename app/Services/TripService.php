@@ -28,7 +28,7 @@ class TripService
         if ($tripId) {
             try {
                 return $this->findTripForUser($user, $tripId);
-            } catch (\Throwable) {
+            } catch (ModelNotFoundException|AuthorizationException) {
                 // Fall through to the default trip when the trip is not found
                 // or the user does not have access to it.
             }
