@@ -1,3 +1,9 @@
+import {
+    destroy,
+    index,
+    store,
+    update,
+} from '@/actions/App/Http/Controllers/MarkerController';
 import { createMarkerElement } from '@/lib/marker-utils';
 import { MarkerData, MarkerType } from '@/types/marker';
 import axios from 'axios';
@@ -31,9 +37,9 @@ export function useMarkers({
             if (!selectedTripId || !mapInstance) return;
 
             try {
-                const response = await axios.get('/markers', {
-                    params: { trip_id: selectedTripId },
-                });
+                const response = await axios.get(
+                    index.url({ query: { trip_id: selectedTripId } }),
+                );
                 const dbMarkers = response.data;
 
                 // Clear existing markers from map
@@ -133,7 +139,7 @@ export function useMarkers({
 
                 if (markerToSave.isSaved) {
                     // Update existing marker in database
-                    await axios.put(`/markers/${id}`, {
+                    await axios.put(update.url(id), {
                         name,
                         type,
                         notes,
@@ -163,7 +169,7 @@ export function useMarkers({
                         payload.tour_id = selectedTourId;
                     }
 
-                    await axios.post('/markers', payload);
+                    await axios.post(store.url(), payload);
                 }
 
                 // Update local state - all in one batch to avoid stale references
@@ -276,7 +282,7 @@ export function useMarkers({
         async (id: string) => {
             try {
                 // First call API to delete from database
-                await axios.delete(`/markers/${id}`);
+                await axios.delete(destroy.url(id));
 
                 // Remove from map and state in one operation
                 setMarkers((prev) => {
