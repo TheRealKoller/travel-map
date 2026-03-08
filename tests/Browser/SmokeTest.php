@@ -3,5 +3,5 @@
 it('loads the login page', function (): void {
     $page = visit('/login');
 
-    $page->assertSee('Anmelden');
+    $page->assertVisible('@login-button');
 });

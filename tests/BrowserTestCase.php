@@ -2,10 +2,9 @@
 
 namespace Tests;
 
-use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Vite;
 
-abstract class BrowserTestCase extends BaseTestCase
+abstract class BrowserTestCase extends TestCase
 {
     protected function setUp(): void
     {
