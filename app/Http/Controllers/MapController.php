@@ -15,15 +15,14 @@ class MapController extends Controller
     {
         $this->authorize('view', $trip);
 
-        $props = [
-            'trip' => [
-                'id' => $trip->id,
+        return Inertia::render('map', array_merge(
+            [
+                'trip' => [
+                    'id' => $trip->id,
+                ],
             ],
-        ];
-
-        $props = array_merge($props, $this->buildAdminOwnerProps($trip));
-
-        return Inertia::render('map', $props);
+            $this->buildAdminOwnerProps($trip),
+        ));
     }
 
     /**
