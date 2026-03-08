@@ -360,7 +360,7 @@ If your application uses the `<Form>` component from Inertia, you can use Wayfin
   it('returns all', function () {
   $response = $this->postJson('/api/docs', []);
 
-          $response->assertSuccessful();
+            $response->assertSuccessful();
 
     });
     </code-snippet>
@@ -645,3 +645,25 @@ Before creating a pull request, run ALL of the following:
 - This workflow applies ONLY when working on GitHub issues
 - For general questions, code reviews, or exploratory work, use normal development flow
 - Always ask the user if uncertain whether to follow the full workflow
+
+## Database Backup
+
+Automated daily backups are configured via `spatie/laravel-backup`. Backups run daily and are retained for 14 days.
+
+### Cronjob Setup (manual, once per environment in all-inkl.com KAS)
+
+The Laravel scheduler must be triggered every minute via a server-side cronjob. Set this up once per environment in all-inkl.com KAS:
+
+```
+* * * * * /usr/bin/php /path/to/prod/artisan schedule:run >> /dev/null 2>&1
+* * * * * /usr/bin/php /path/to/dev/artisan schedule:run >> /dev/null 2>&1
+```
+
+Replace `/path/to/prod` and `/path/to/dev` with the actual server paths for each environment.
+
+### Restore Procedure
+
+1. `php artisan backup:list` — list available backups
+2. Locate the desired `.zip` in `storage/app/<APP_NAME>/`
+3. Extract the `.zip` — it contains a `.sql` dump
+4. Restore: `mysql -u <user> -p <database> < dump.sql`
