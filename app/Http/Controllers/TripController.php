@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PdfTemplate;
+use App\Http\Controllers\Concerns\BuildsAdminOwnerProps;
 use App\Http\Requests\FetchTripImageRequest;
 use App\Http\Requests\StoreTripRequest;
 use App\Http\Requests\UpdateTripRequest;
@@ -19,6 +20,7 @@ use Inertia\Response;
 class TripController extends Controller
 {
     use AuthorizesRequests;
+    use BuildsAdminOwnerProps;
 
     public function __construct(
         private readonly UnsplashService $unsplashService,
@@ -80,18 +82,10 @@ class TripController extends Controller
     {
         $this->authorize('update', $trip);
 
-        $props = ['trip' => $trip];
-
-        // Pass owner info so the frontend can show an admin banner
-        if (auth()->user()->isAdmin() && $trip->user_id !== auth()->id()) {
-            $trip->load('user:id,name');
-            $props['owner'] = [
-                'id' => $trip->user->id,
-                'name' => $trip->user->name,
-            ];
-        }
-
-        return Inertia::render('trips/create', $props);
+        return Inertia::render('trips/create', array_merge(
+            ['trip' => $trip],
+            $this->buildAdminOwnerProps($trip),
+        ));
     }
 
     public function show(Trip $trip): JsonResponse
