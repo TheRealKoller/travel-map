@@ -26,21 +26,11 @@ class TripService
     public function getActiveTrip(User $user, ?int $tripId = null): Trip
     {
         if ($tripId) {
-            // Admins can access any trip directly
-            if ($user->isAdmin()) {
-                return Trip::findOrFail($tripId);
-            }
-
-            // Check owned trips first
-            $trip = $user->trips()->find($tripId);
-            if ($trip) {
-                return $trip;
-            }
-
-            // Check shared trips
-            $trip = $user->sharedTrips()->find($tripId);
-            if ($trip) {
-                return $trip;
+            try {
+                return $this->findTripForUser($user, $tripId);
+            } catch (\Throwable) {
+                // Fall through to the default trip when the trip is not found
+                // or the user does not have access to it.
             }
         }
 
