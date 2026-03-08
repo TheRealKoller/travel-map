@@ -75,10 +75,19 @@ class Trip extends Model
 
     /**
      * Check if a user has access to this trip (is owner or shared user).
+     * Uses the already-loaded relation when available to avoid N+1 queries.
      */
     public function hasAccess(User $user): bool
     {
-        return $this->user_id === $user->id || $this->sharedUsers()->where('user_id', $user->id)->exists();
+        if ($this->isOwner($user)) {
+            return true;
+        }
+
+        if ($this->relationLoaded('sharedUsers')) {
+            return $this->sharedUsers->contains($user);
+        }
+
+        return $this->sharedUsers()->where('user_id', $user->id)->exists();
     }
 
     /**
