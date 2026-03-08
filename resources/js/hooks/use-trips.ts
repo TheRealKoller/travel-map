@@ -1,3 +1,4 @@
+import { withLoading } from '@/lib/with-loading';
 import {
     destroy as tripsDestroy,
     index as tripsIndex,
@@ -15,10 +16,7 @@ export function useTrips(showAll: boolean = false) {
     const [error, setError] = useState<Error | null>(null);
 
     const loadTrips = useCallback(async () => {
-        setIsLoading(true);
-        setError(null);
-
-        try {
+        await withLoading(setIsLoading, setError, async () => {
             const url = showAll
                 ? `${tripsIndex.url()}?show_all=1`
                 : tripsIndex.url();
@@ -27,22 +25,12 @@ export function useTrips(showAll: boolean = false) {
             setTrips(loadedTrips);
 
             // Don't auto-select the first trip - let the user choose
-        } catch (err) {
-            const error =
-                err instanceof Error ? err : new Error('Failed to load trips');
-            setError(error);
-            console.error('Failed to load trips:', error);
-        } finally {
-            setIsLoading(false);
-        }
+        });
     }, [showAll]);
 
     const createTrip = useCallback(
         async (name: string, country: string | null = null) => {
-            setIsLoading(true);
-            setError(null);
-
-            try {
+            return withLoading(setIsLoading, setError, async () => {
                 const response = await axios.post<Trip>(tripsStore.url(), {
                     name,
                     country,
@@ -52,26 +40,13 @@ export function useTrips(showAll: boolean = false) {
                 setSelectedTripId(newTrip.id);
 
                 return newTrip;
-            } catch (err) {
-                const error =
-                    err instanceof Error
-                        ? err
-                        : new Error('Failed to create trip');
-                setError(error);
-                console.error('Failed to create trip:', error);
-                throw error;
-            } finally {
-                setIsLoading(false);
-            }
+            });
         },
         [],
     );
 
     const renameTrip = useCallback(async (trip: Trip, name: string) => {
-        setIsLoading(true);
-        setError(null);
-
-        try {
+        return withLoading(setIsLoading, setError, async () => {
             const response = await axios.put<Trip>(tripsUpdate.url(trip.id), {
                 name,
             });
@@ -81,23 +56,12 @@ export function useTrips(showAll: boolean = false) {
             );
 
             return updatedTrip;
-        } catch (err) {
-            const error =
-                err instanceof Error ? err : new Error('Failed to rename trip');
-            setError(error);
-            console.error('Failed to rename trip:', error);
-            throw error;
-        } finally {
-            setIsLoading(false);
-        }
+        });
     }, []);
 
     const deleteTrip = useCallback(
         async (tripId: number) => {
-            setIsLoading(true);
-            setError(null);
-
-            try {
+            await withLoading(setIsLoading, setError, async () => {
                 await axios.delete(tripsDestroy.url(tripId));
                 setTrips((prev) => prev.filter((t) => t.id !== tripId));
 
@@ -108,17 +72,7 @@ export function useTrips(showAll: boolean = false) {
                         remainingTrips.length > 0 ? remainingTrips[0].id : null,
                     );
                 }
-            } catch (err) {
-                const error =
-                    err instanceof Error
-                        ? err
-                        : new Error('Failed to delete trip');
-                setError(error);
-                console.error('Failed to delete trip:', error);
-                throw error;
-            } finally {
-                setIsLoading(false);
-            }
+            });
         },
         [selectedTripId, trips],
     );
@@ -132,10 +86,7 @@ export function useTrips(showAll: boolean = false) {
                 zoom: number;
             },
         ) => {
-            setIsLoading(true);
-            setError(null);
-
-            try {
+            return withLoading(setIsLoading, setError, async () => {
                 const response = await axios.put<Trip>(
                     tripsUpdate.url(tripId),
                     {
@@ -152,17 +103,7 @@ export function useTrips(showAll: boolean = false) {
                 );
 
                 return updatedTrip;
-            } catch (err) {
-                const error =
-                    err instanceof Error
-                        ? err
-                        : new Error('Failed to update trip viewport');
-                setError(error);
-                console.error('Failed to update trip viewport:', error);
-                throw error;
-            } finally {
-                setIsLoading(false);
-            }
+            });
         },
         [],
     );
