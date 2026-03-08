@@ -23,6 +23,9 @@ jobs:
     name: Test
     uses: ./.github/workflows/tests.yml
     needs: lint
+    permissions:
+      checks: write
+      contents: read
 
   build:
     name: Build
@@ -63,7 +66,7 @@ jobs:
       - name: Build production assets
         run: npm run build
         env:
-          VITE_MAPBOX_ACCESS_TOKEN: pk.eyJ1IjoidGhlLWtvbGxlciIsImEiOiJjbWs5eHBobTMwcTUwM2dyMmdwMGVqenQ4In0.dSooQl188W3T2_dRLUsZMg
+          VITE_MAPBOX_ACCESS_TOKEN: pk.eyJ1IjoidGVzdCIsImEiOiJ0ZXN0In0.test
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
