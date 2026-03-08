@@ -8,6 +8,7 @@ interface TabButtonProps {
     onClick: () => void;
     position: 'left' | 'right';
     className?: string;
+    'data-testid'?: string;
 }
 
 /**
@@ -29,6 +30,7 @@ export function TabButton({
     onClick,
     position,
     className,
+    'data-testid': dataTestId,
 }: TabButtonProps) {
     return (
         <button
@@ -65,6 +67,7 @@ export function TabButton({
             )}
             aria-pressed={isActive}
             aria-label={label}
+            data-testid={dataTestId}
         >
             <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span className="whitespace-nowrap">{label}</span>

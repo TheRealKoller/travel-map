@@ -83,8 +83,9 @@ it('can edit a marker name via the marker list', function (): void {
 
     $page = visit("/map/{$trip->id}");
 
-    // Select the marker from the list to open the edit form
-    $page->click('@marker-list-item')
+    // Open the markers panel, then select the marker from the list
+    $page->click('@tab-button-markers')
+        ->click('@marker-list-item-select')
         ->click('@button-edit-marker')
         ->clear('#marker-name')
         ->fill('#marker-name', 'Updated Marker Name')

@@ -67,3 +67,64 @@ jobs:
 
       - name: Run Unit and Feature Tests
         run: ./vendor/bin/pest --testsuite=Unit,Feature
+
+  browser-tests:
+    name: Browser Tests
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.4
+          tools: composer:v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Copy Test Environment File
+        run: cp .env.testing .env
+
+      - name: Install Node Dependencies
+        run: npm ci
+
+      - name: Build Assets
+        run: npm run build
+        env:
+          VITE_MAPBOX_ACCESS_TOKEN: pk.eyJ1IjoidGVzdCIsImEiOiJ0ZXN0In0.test
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Browser Tests
+        run: ./vendor/bin/pest --testsuite=Browser --log-junit=browser-test-report.xml
+
+      - name: Publish Browser Test Summary
+        if: always()
+        uses: mikepenz/action-junit-report@v5
+        with:
+          report_paths: browser-test-report.xml
+          check_name: Browser Test Results
+          fail_on_failure: true
+          include_passed: true
+          detailed_summary: true
+
+      - name: Upload Screenshots on Failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-test-screenshots
+          path: tests/Browser/Screenshots/
+          retention-days: 14
