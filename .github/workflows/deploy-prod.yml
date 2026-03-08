@@ -10,6 +10,9 @@ jobs:
   # Zuerst Tests ausführen
   tests:
     uses: ./.github/workflows/tests.yml
+    permissions:
+      checks: write
+      contents: read
 
   # Deployment (nur wenn Tests erfolgreich)
   deploy:
