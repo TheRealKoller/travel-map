@@ -22,10 +22,17 @@ import { useTourLines } from '@/hooks/use-tour-lines';
 import { useTourMarkers } from '@/hooks/use-tour-markers';
 import { useTripNotes } from '@/hooks/use-trip-notes';
 import { getBoundingBoxFromTrip } from '@/lib/map-utils';
+import { Route } from '@/types/route';
 import { Tour } from '@/types/tour';
 import { Trip } from '@/types/trip';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { useCallback, useEffect, useRef } from 'react';
+import {
+    Dispatch,
+    SetStateAction,
+    useCallback,
+    useEffect,
+    useRef,
+} from 'react';
 
 interface TravelMapProps {
     selectedTripId: number | null;
@@ -33,6 +40,7 @@ interface TravelMapProps {
     tours: Tour[];
     trips: Trip[];
     onToursUpdate: (tours: Tour[]) => void;
+    onTripsUpdate: Dispatch<SetStateAction<Trip[]>>;
     onReloadTours: () => void;
     onSelectTour: (tourId: number | null) => void;
     onCreateTour: () => void;
@@ -63,6 +71,7 @@ export default function TravelMap({
     tours,
     trips,
     onToursUpdate,
+    onTripsUpdate,
     onSelectTour,
     onCreateTour,
     onDeleteTour,
@@ -129,7 +138,7 @@ export default function TravelMap({
     const { isTripNotesModalOpen, closeTripNotesModal, handleSaveTripNotes } =
         useTripNotes({
             selectedTripId,
-            trips,
+            setTrips: onTripsUpdate,
         });
 
     // Marker management

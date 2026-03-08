@@ -1,10 +1,11 @@
 import { update as tripsUpdate } from '@/routes/trips';
 import { Trip } from '@/types/trip';
-import { useCallback, useState } from 'react';
+import axios from 'axios';
+import { Dispatch, SetStateAction, useCallback, useState } from 'react';
 
 interface UseTripNotesProps {
     selectedTripId: number | null;
-    trips: Trip[];
+    setTrips: Dispatch<SetStateAction<Trip[]>>;
 }
 
 interface UseTripNotesReturn {
@@ -19,7 +20,7 @@ interface UseTripNotesReturn {
  */
 export function useTripNotes({
     selectedTripId,
-    trips,
+    setTrips,
 }: UseTripNotesProps): UseTripNotesReturn {
     // Trip notes modal state
     const [isTripNotesModalOpen, setIsTripNotesModalOpen] = useState(false);
@@ -40,33 +41,23 @@ export function useTripNotes({
             if (!selectedTripId) return;
 
             try {
-                const response = await fetch(tripsUpdate.url(selectedTripId), {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN':
-                            document
-                                .querySelector('meta[name="csrf-token"]')
-                                ?.getAttribute('content') || '',
-                    },
-                    body: JSON.stringify({ notes }),
-                });
+                const response = await axios.put<Trip>(
+                    tripsUpdate.url(selectedTripId),
+                    { notes },
+                );
 
-                if (!response.ok) {
-                    throw new Error('Failed to update trip notes');
-                }
-
-                // Update the local trips state with the new notes
-                const trip = trips.find((t) => t.id === selectedTripId);
-                if (trip) {
-                    trip.notes = notes;
-                }
+                const updatedTrip = response.data;
+                setTrips((prev) =>
+                    prev.map((t) =>
+                        t.id === updatedTrip.id ? updatedTrip : t,
+                    ),
+                );
             } catch (error) {
                 console.error('Failed to save trip notes:', error);
                 throw error;
             }
         },
-        [selectedTripId, trips],
+        [selectedTripId, setTrips],
     );
 
     return {
