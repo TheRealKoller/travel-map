@@ -8,6 +8,7 @@
 /resources/js/routes
 /resources/js/wayfinder
 /storage/*.key
+/laravel
 /storage/pail
 /storage/framework/queue-worker.pid
 /vendor

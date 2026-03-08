@@ -209,11 +209,6 @@ jobs:
               cp .env .env.backup.$(date +%Y%m%d_%H%M%S)
             fi
             
-            # Pre-deploy database backup
-            echo "💾 Creating pre-deploy database backup..."
-            php artisan backup:run --only-db --no-interaction >>pre-deploy-backup.log 2>&1 || echo "⚠️ Pre-deploy backup failed, continuing anyway (see pre-deploy-backup.log on server)"
-            echo "✅ Pre-deploy backup done"
-            
             # Entpacke das Deployment
             echo "📦 Extracting deployment package..."
             unzip -q -o deployment.zip
