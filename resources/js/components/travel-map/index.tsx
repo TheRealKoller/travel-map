@@ -304,6 +304,41 @@ export default function TravelMap({
         [tours, onToursUpdate],
     );
 
+    const sharedPanelProps = {
+        markers,
+        selectedMarkerId,
+        selectedMarker,
+        setSelectedMarkerId,
+        setMarkers,
+        handleSaveMarker,
+        handleDeleteMarker,
+        handleCloseForm,
+        tours,
+        selectedTourId,
+        onSelectTour,
+        onCreateTour,
+        onDeleteTour,
+        handleToggleMarkerInTour,
+        handleMoveMarkerUp,
+        handleMoveMarkerDown,
+        handleRemoveMarkerFromTour,
+        handleTourUpdate,
+        routes,
+        setRoutes,
+        selectedTripId,
+        routeRequest,
+        highlightedRouteId,
+        expandedRoutes,
+        setExpandedRoutes,
+        setHighlightedRouteId,
+        handleRequestRoute,
+        selectedAvailableMarkerId,
+        handleSelectAvailableMarker,
+        handleAddAvailableMarkerToTour,
+        selectedTrip,
+        mapBounds,
+    };
+
     return (
         <div className="relative h-full w-full">
             {/* Toolbar at the top */}
@@ -333,86 +368,20 @@ export default function TravelMap({
             {/* Desktop Floating Panels */}
             {!isMobileLayout && (
                 <DesktopPanels
+                    {...sharedPanelProps}
                     isOpen={isOpen}
                     togglePanel={togglePanel}
                     closePanel={closePanel}
-                    markers={markers}
-                    selectedMarkerId={selectedMarkerId}
-                    selectedMarker={selectedMarker}
-                    setSelectedMarkerId={setSelectedMarkerId}
-                    setMarkers={setMarkers}
-                    handleSaveMarker={handleSaveMarker}
-                    handleDeleteMarker={handleDeleteMarker}
-                    handleCloseForm={handleCloseForm}
-                    tours={tours}
-                    selectedTourId={selectedTourId}
-                    onSelectTour={onSelectTour}
-                    onCreateTour={onCreateTour}
-                    onDeleteTour={onDeleteTour}
-                    handleToggleMarkerInTour={handleToggleMarkerInTour}
-                    handleMoveMarkerUp={handleMoveMarkerUp}
-                    handleMoveMarkerDown={handleMoveMarkerDown}
-                    handleRemoveMarkerFromTour={handleRemoveMarkerFromTour}
-                    handleTourUpdate={handleTourUpdate}
-                    routes={routes}
-                    setRoutes={setRoutes}
-                    selectedTripId={selectedTripId}
-                    routeRequest={routeRequest}
-                    highlightedRouteId={highlightedRouteId}
-                    expandedRoutes={expandedRoutes}
-                    setExpandedRoutes={setExpandedRoutes}
-                    setHighlightedRouteId={setHighlightedRouteId}
-                    handleRequestRoute={handleRequestRoute}
-                    selectedAvailableMarkerId={selectedAvailableMarkerId}
-                    handleSelectAvailableMarker={handleSelectAvailableMarker}
-                    handleAddAvailableMarkerToTour={
-                        handleAddAvailableMarkerToTour
-                    }
-                    selectedTrip={selectedTrip}
-                    mapBounds={mapBounds}
                 />
             )}
 
             {/* Mobile Panels */}
             {isMobileLayout && (
                 <MobilePanels
+                    {...sharedPanelProps}
                     activePanel={activePanel}
                     togglePanel={togglePanel}
                     closeMobilePanel={closeMobilePanel}
-                    markers={markers}
-                    selectedMarkerId={selectedMarkerId}
-                    selectedMarker={selectedMarker}
-                    setSelectedMarkerId={setSelectedMarkerId}
-                    setMarkers={setMarkers}
-                    handleSaveMarker={handleSaveMarker}
-                    handleDeleteMarker={handleDeleteMarker}
-                    handleCloseForm={handleCloseForm}
-                    tours={tours}
-                    selectedTourId={selectedTourId}
-                    onSelectTour={onSelectTour}
-                    onCreateTour={onCreateTour}
-                    onDeleteTour={onDeleteTour}
-                    handleToggleMarkerInTour={handleToggleMarkerInTour}
-                    handleMoveMarkerUp={handleMoveMarkerUp}
-                    handleMoveMarkerDown={handleMoveMarkerDown}
-                    handleRemoveMarkerFromTour={handleRemoveMarkerFromTour}
-                    handleTourUpdate={handleTourUpdate}
-                    routes={routes}
-                    setRoutes={setRoutes}
-                    selectedTripId={selectedTripId}
-                    routeRequest={routeRequest}
-                    highlightedRouteId={highlightedRouteId}
-                    expandedRoutes={expandedRoutes}
-                    setExpandedRoutes={setExpandedRoutes}
-                    setHighlightedRouteId={setHighlightedRouteId}
-                    handleRequestRoute={handleRequestRoute}
-                    selectedAvailableMarkerId={selectedAvailableMarkerId}
-                    handleSelectAvailableMarker={handleSelectAvailableMarker}
-                    handleAddAvailableMarkerToTour={
-                        handleAddAvailableMarkerToTour
-                    }
-                    selectedTrip={selectedTrip}
-                    mapBounds={mapBounds}
                 />
             )}
 
