@@ -9,7 +9,7 @@ The Laravel Boost guidelines are specifically curated by Laravel maintainers for
 
 This application is a Laravel application and its main Laravel ecosystems package & versions are below. You are an expert with them all. Ensure you abide by these specific packages & versions.
 
-- php - 8.3.6
+- php - 8.4.18
 - inertiajs/inertia-laravel (INERTIA) - v2
 - laravel/fortify (FORTIFY) - v1
 - laravel/framework (LARAVEL) - v12
@@ -360,7 +360,7 @@ If your application uses the `<Form>` component from Inertia, you can use Wayfin
   it('returns all', function () {
   $response = $this->postJson('/api/docs', []);
 
-                $response->assertSuccessful();
+        $response->assertSuccessful();
 
     });
     </code-snippet>
@@ -453,7 +453,6 @@ import { Link } from '@inertiajs/react'
 import { Form } from '@inertiajs/react'
 
 export default () => (
-
 <Form action="/users" method="post">
 {({
 errors,
@@ -648,27 +647,3 @@ Before creating a pull request, run ALL of the following:
 - This workflow applies ONLY when working on GitHub issues
 - For general questions, code reviews, or exploratory work, use normal development flow
 - Always ask the user if uncertain whether to follow the full workflow
-
-## Database Backup
-
-Automated daily backups are configured via `spatie/laravel-backup`. Backups run daily and are retained for 14 days.
-
-### Cronjob Setup (manual, once per environment in all-inkl.com KAS)
-
-The Laravel scheduler must be triggered every minute via a server-side cronjob. Set this up once per environment in all-inkl.com KAS:
-
-```
-* * * * * /usr/bin/php /path/to/prod/artisan schedule:run >> /dev/null 2>&1
-* * * * * /usr/bin/php /path/to/dev/artisan schedule:run >> /dev/null 2>&1
-```
-
-Replace `/path/to/prod` and `/path/to/dev` with the actual server paths for each environment.
-
-### Restore Procedure
-
-1. `php artisan backup:list` — list available backups
-2. Locate the desired `.zip` file on the backup disk (by default stored under `storage/app/backups/` — see `config/backup.php` and `BACKUP_NAME` env var for the exact folder name)
-3. Extract the `.zip` — it contains a database dump; the file type depends on your `DB_CONNECTION`
-4. Determine the active database connection from `.env` (`DB_CONNECTION`) and restore accordingly:
-    - **MariaDB/MySQL**: `mysql -h <host> -u <user> -p <database> < dump.sql`
-    - **SQLite**: Stop the app, back up the current `.sqlite` file, then replace `DB_DATABASE` with the `.sqlite` file from the backup and restore correct permissions
