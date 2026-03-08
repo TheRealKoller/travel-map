@@ -11,6 +11,10 @@ it('only backs up the database (no files)', function () {
     expect(config('backup.backup.source.files.include'))->toBe([]);
 });
 
+it('uses a stable BACKUP_NAME env var for the backup name', function () {
+    expect(config('backup.backup.name'))->toBe(env('BACKUP_NAME', 'backups'));
+});
+
 it('stores backups on the local disk', function () {
     expect(config('backup.backup.destination.disks'))->toBe(['local']);
 });

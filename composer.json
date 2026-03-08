@@ -18,7 +18,7 @@
         "laravel/wayfinder": "^0.1.9",
         "league/commonmark": "^2.8",
         "opcodesio/log-viewer": "^3.21",
-        "spatie/laravel-backup": "*",
+        "spatie/laravel-backup": "^10.0",
         "unsplash/unsplash": "^3.2"
     },
     "require-dev": {

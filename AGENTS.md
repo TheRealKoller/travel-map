@@ -360,7 +360,7 @@ If your application uses the `<Form>` component from Inertia, you can use Wayfin
   it('returns all', function () {
   $response = $this->postJson('/api/docs', []);
 
-            $response->assertSuccessful();
+              $response->assertSuccessful();
 
     });
     </code-snippet>
@@ -664,6 +664,8 @@ Replace `/path/to/prod` and `/path/to/dev` with the actual server paths for each
 ### Restore Procedure
 
 1. `php artisan backup:list` — list available backups
-2. Locate the desired `.zip` in `storage/app/<APP_NAME>/`
-3. Extract the `.zip` — it contains a `.sql` dump
-4. Restore: `mysql -u <user> -p <database> < dump.sql`
+2. Locate the desired `.zip` file on the backup disk (by default stored under `storage/app/backups/` — see `config/backup.php` and `BACKUP_NAME` env var for the exact folder name)
+3. Extract the `.zip` — it contains a database dump; the file type depends on your `DB_CONNECTION`
+4. Determine the active database connection from `.env` (`DB_CONNECTION`) and restore accordingly:
+    - **MariaDB/MySQL**: `mysql -h <host> -u <user> -p <database> < dump.sql`
+    - **SQLite**: Stop the app, back up the current `.sqlite` file, then replace `DB_DATABASE` with the `.sqlite` file from the backup and restore correct permissions
