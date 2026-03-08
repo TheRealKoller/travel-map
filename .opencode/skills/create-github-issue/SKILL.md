@@ -74,18 +74,42 @@ If that fails, use the GraphQL API to add it to project #3.
 
 ### 4. Link as sub-issue (if parent provided)
 
-If a parent issue number was given, link the new issue as a sub-issue:
+If a parent issue number was given, use the GraphQL `addSubIssue` mutation.
+
+First, fetch the Node IDs of both issues:
 
 ```
-gh api \
-  --method POST \
-  -H "Accept: application/vnd.github+json" \
-  -H "X-GitHub-Api-Version: 2022-11-28" \
-  /repos/TheRealKoller/travel-map/issues/<parent_number>/sub_issues \
-  -F sub_issue_id=<new_issue_number>
+# Get Node ID of parent issue
+gh api graphql -f query='
+  query($owner: String!, $repo: String!, $number: Int!) {
+    repository(owner: $owner, name: $repo) {
+      issue(number: $number) { id }
+    }
+  }
+' -f owner=TheRealKoller -f repo=travel-map -F number=<parent_number>
+
+# Get Node ID of new sub-issue
+gh api graphql -f query='
+  query($owner: String!, $repo: String!, $number: Int!) {
+    repository(owner: $owner, name: $repo) {
+      issue(number: $number) { id }
+    }
+  }
+' -f owner=TheRealKoller -f repo=travel-map -F number=<new_issue_number>
 ```
 
-Note: This API may return 404 if the GitHub plan does not support sub-issues. In that case, mention the parent in the issue body with `Parent: #<number>` and inform the user.
+Then run the mutation:
+
+```
+gh api graphql -f query='
+  mutation($issueId: ID!, $subIssueId: ID!) {
+    addSubIssue(input: { issueId: $issueId, subIssueId: $subIssueId }) {
+      issue { number title }
+      subIssue { number title }
+    }
+  }
+' -f issueId=<parent_node_id> -f subIssueId=<sub_node_id>
+```
 
 ### 5. Return the result
 
