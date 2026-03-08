@@ -105,16 +105,24 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
-      - name: Prepare Report Directory
-        run: mkdir -p playwright-report
-
       - name: Run Browser Tests
-        run: ./vendor/bin/pest --testsuite=Browser --testdox-html=playwright-report/index.html
+        run: ./vendor/bin/pest --testsuite=Browser --log-junit=browser-test-report.xml
+        continue-on-error: true
 
-      - name: Upload Browser Test Report
+      - name: Publish Browser Test Summary
         if: always()
+        uses: mikepenz/action-junit-report@v5
+        with:
+          report_paths: browser-test-report.xml
+          check_name: Browser Test Results
+          fail_on_failure: true
+          include_passed: true
+          detailed_summary: true
+
+      - name: Upload Screenshots on Failure
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: browser-test-report
-          path: playwright-report/
+          name: browser-test-screenshots
+          path: tests/Browser/Screenshots/
           retention-days: 14
