@@ -64,6 +64,18 @@ test('search nearby validates radius', function () {
         ->assertJsonValidationErrors(['radius_km']);
 });
 
+test('search nearby rejects invalid place_type value', function () {
+    $response = $this->actingAs($this->user)->postJson('/markers/search-nearby', [
+        'latitude' => 35.6762,
+        'longitude' => 139.6503,
+        'radius_km' => 10,
+        'place_type' => 'not_a_valid_type',
+    ]);
+
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['place_type']);
+});
+
 test('search nearby returns count on successful request', function () {
     // Mock the Mapbox Search API response
     Http::fake([
