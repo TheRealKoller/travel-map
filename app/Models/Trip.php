@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -57,6 +58,19 @@ class Trip extends Model
         return $this->belongsToMany(User::class, 'trip_user')
             ->withPivot('collaboration_role')
             ->withTimestamps();
+    }
+
+    /**
+     * Scope a query to trips accessible by a given user (owned or shared).
+     */
+    public function scopeAccessibleBy(Builder $query, User $user): Builder
+    {
+        return $query->where(function (Builder $accessQuery) use ($user) {
+            $accessQuery->where('user_id', $user->id)
+                ->orWhereHas('sharedUsers', function (Builder $q) use ($user) {
+                    $q->where('user_id', $user->id);
+                });
+        });
     }
 
     /**
