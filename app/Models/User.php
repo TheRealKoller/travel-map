@@ -75,12 +75,9 @@ class User extends Authenticatable
     /**
      * Get all trips accessible to this user (owned + shared).
      */
-    public function allAccessibleTrips()
+    public function allAccessibleTrips(): Builder
     {
-        return Trip::where('user_id', $this->id)
-            ->orWhereHas('sharedUsers', function ($query) {
-                $query->where('user_id', $this->id);
-            });
+        return Trip::accessibleBy($this);
     }
 
     /**

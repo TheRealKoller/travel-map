@@ -48,7 +48,7 @@ class TripController extends Controller
             }
 
             // Get all accessible trips (both owned and shared) in a single query
-            $trips = $user->allAccessibleTrips()
+            $trips = Trip::accessibleBy($user)
                 ->orderBy('created_at', 'asc')
                 ->get();
 
