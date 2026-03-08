@@ -46,6 +46,11 @@ it('navigates to create trip page via create tile', function (): void {
 });
 
 it('creates a new trip and redirects to map', function (): void {
+    // Note: The create trip page includes a ViewportMapPicker (Mapbox GL JS).
+    // Client-side browser requests to Mapbox tile servers cannot be intercepted
+    // via Http::fake() — only server-side HTTP calls are intercepted.
+    // assertNoJavaScriptErrors() is intentionally NOT used here because Mapbox
+    // GL will emit errors with the dummy token in .env.testing.
     $this->actingAs($this->user);
 
     $page = visit('/trips/create');
