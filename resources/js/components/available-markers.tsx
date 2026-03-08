@@ -8,13 +8,13 @@ import {
 import { Icon } from '@/components/ui/icon';
 import { getMarkerTypeIcon, UnescoIcon } from '@/lib/marker-icons';
 import { cn } from '@/lib/utils';
-import { MarkerData } from '@/types/marker';
+import { MarkerApiData } from '@/types/marker';
 import { ChevronDown, Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 interface AvailableMarkersProps {
     /** All markers that can be added to the tour (including those already in tour) */
-    availableMarkers: MarkerData[];
+    availableMarkers: MarkerApiData[];
     /** ID of the currently selected available marker (for blue ring highlight) */
     selectedAvailableMarkerId: string | null;
     /** Callback when an available marker is clicked to select it */

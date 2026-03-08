@@ -1,4 +1,4 @@
-import { MarkerData } from './marker';
+import { MarkerApiData } from './marker';
 
 export interface Tour {
     id: number;
@@ -7,5 +7,5 @@ export interface Tour {
     created_at: string;
     updated_at: string;
     estimated_duration_hours?: number;
-    markers?: MarkerData[];
+    markers?: MarkerApiData[];
 }

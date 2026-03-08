@@ -23,7 +23,7 @@ import {
 } from '@/lib/route-calculations';
 import { formatDuration } from '@/lib/route-formatting';
 import { getTransportColor, getTransportIcon } from '@/lib/transport-utils';
-import { MarkerData } from '@/types/marker';
+import { MarkerApiData } from '@/types/marker';
 import { Route, TransportMode } from '@/types/route';
 import { Tour } from '@/types/tour';
 import axios from 'axios';
@@ -43,7 +43,7 @@ import { toast } from 'sonner';
 interface RoutePanelProps {
     tripId: number;
     tourId?: number | null;
-    markers: MarkerData[];
+    markers: MarkerApiData[];
     routes: Route[];
     onRoutesUpdate: (routes: Route[]) => void;
     initialStartMarkerId?: string;

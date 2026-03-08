@@ -5,7 +5,7 @@ import { Icon } from '@/components/ui/icon';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getMarkerTypeIcon, UnescoIcon } from '@/lib/marker-icons';
 import { formatDuration } from '@/lib/utils';
-import { MarkerData } from '@/types/marker';
+import { MarkerApiData } from '@/types/marker';
 import { Route } from '@/types/route';
 import { Tour } from '@/types/tour';
 import {
@@ -24,7 +24,7 @@ interface TourPanelProps {
     onSelectTour: (tourId: number | null) => void;
     onCreateTour: () => void;
     onDeleteTour: (tourId: number) => void;
-    markers: MarkerData[];
+    markers: MarkerApiData[];
     routes: Route[];
     onMoveMarkerUp?: (markerId: string) => void;
     onMoveMarkerDown?: (markerId: string) => void;
@@ -62,7 +62,7 @@ function TourTab({ tour, markerCount }: TourTabProps) {
 }
 
 interface MarkerItemProps {
-    marker: MarkerData;
+    marker: MarkerApiData;
     index: number;
     isFirst: boolean;
     isLast: boolean;
@@ -166,8 +166,8 @@ function MarkerItem({
 
 interface TourCardProps {
     tour: Tour;
-    markers: MarkerData[];
-    allMarkers: MarkerData[];
+    markers: MarkerApiData[];
+    allMarkers: MarkerApiData[];
     routes: Route[];
     onDeleteTour: (tourId: number) => void;
     onMoveMarkerUp?: (markerId: string) => void;
@@ -392,7 +392,7 @@ export default function TourPanel({
               .map((tourMarker) =>
                   markers.find((marker) => marker.id === tourMarker.id),
               )
-              .filter((marker): marker is MarkerData => marker !== undefined)
+              .filter((marker): marker is MarkerApiData => marker !== undefined)
         : [];
 
     return (

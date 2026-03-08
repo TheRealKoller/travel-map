@@ -19,7 +19,11 @@ export enum MarkerType {
     Haltestelle = 'haltestelle',
 }
 
-export interface MarkerData {
+/**
+ * Pure API response shape — no live Mapbox instances.
+ * Use this type for data received from or sent to the backend.
+ */
+export interface MarkerApiData {
     id: string; // UUID - same as database ID
     lat: number;
     lng: number;
@@ -31,7 +35,14 @@ export interface MarkerData {
     isUnesco: boolean;
     aiEnriched: boolean;
     estimatedHours: number | null;
-    marker: mapboxgl.Marker;
     isSaved: boolean; // Track if marker is persisted in database
     position?: number; // Position in tour (when part of a tour)
+}
+
+/**
+ * Runtime marker state — extends the API shape with a live Mapbox marker instance.
+ * Use this type within the map UI where the Mapbox instance is available.
+ */
+export interface MarkerData extends MarkerApiData {
+    marker: mapboxgl.Marker;
 }
