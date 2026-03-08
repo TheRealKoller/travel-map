@@ -146,6 +146,7 @@ export function DesktopPanels({
                     isActive={isOpen('markers')}
                     onClick={() => togglePanel('markers')}
                     position="left"
+                    data-testid="tab-button-markers"
                 />
                 <TabButton
                     icon={MapIcon}

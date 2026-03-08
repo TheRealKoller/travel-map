@@ -112,6 +112,7 @@ function MarkerItem({
             )}
             <div
                 className="min-w-0 flex-1 cursor-pointer"
+                data-testid="marker-list-item-select"
                 onClick={() => onSelect(markerData.id)}
             >
                 <div className="mb-0.5 truncate text-sm leading-snug font-medium text-gray-900 sm:text-base dark:text-gray-100">

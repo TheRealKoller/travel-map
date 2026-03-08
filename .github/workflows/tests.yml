@@ -71,6 +71,8 @@ jobs:
   browser-tests:
     name: Browser Tests
     runs-on: ubuntu-latest
+    permissions:
+      checks: write
 
     steps:
       - name: Checkout
