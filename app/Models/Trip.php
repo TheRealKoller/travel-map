@@ -65,10 +65,12 @@ class Trip extends Model
      */
     public function scopeAccessibleBy(Builder $query, User $user): Builder
     {
-        return $query->where('user_id', $user->id)
-            ->orWhereHas('sharedUsers', function (Builder $q) use ($user) {
-                $q->where('user_id', $user->id);
-            });
+        return $query->where(function (Builder $accessQuery) use ($user) {
+            $accessQuery->where('user_id', $user->id)
+                ->orWhereHas('sharedUsers', function (Builder $q) use ($user) {
+                    $q->where('user_id', $user->id);
+                });
+        });
     }
 
     /**
