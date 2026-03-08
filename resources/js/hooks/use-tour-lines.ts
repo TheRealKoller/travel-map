@@ -2,7 +2,7 @@ import {
     ensureVectorLayerOrder,
     getFirstSymbolLayerId,
 } from '@/lib/map-layers';
-import { MarkerData } from '@/types/marker';
+import { MarkerApiData } from '@/types/marker';
 import { Route } from '@/types/route';
 import { Tour } from '@/types/tour';
 import mapboxgl from 'mapbox-gl';
@@ -12,7 +12,7 @@ interface UseTourLinesOptions {
     mapInstance: mapboxgl.Map | null;
     selectedTourId: number | null;
     tours: Tour[];
-    markers: MarkerData[];
+    markers: MarkerApiData[];
     routes: Route[];
     onTourLineClick?: (startMarkerId: string, endMarkerId: string) => void;
 }
@@ -112,7 +112,7 @@ export function useTourLines({
             .map((tourMarker) =>
                 markers.find((marker) => marker.id === tourMarker.id),
             )
-            .filter((marker): marker is MarkerData => marker !== undefined);
+            .filter((marker): marker is MarkerApiData => marker !== undefined);
 
         // Draw lines between consecutive markers
         for (let i = 0; i < tourMarkers.length - 1; i++) {

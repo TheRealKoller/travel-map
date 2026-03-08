@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
 import { useLanguage } from '@/hooks/use-language';
-import { MarkerData } from '@/types/marker';
+import { MarkerApiData } from '@/types/marker';
 import { Tour } from '@/types/tour';
 import { Bot, Map, MapPin, Route } from 'lucide-react';
 import { marked } from 'marked';
@@ -20,7 +20,7 @@ interface AiRecommendationsPanelProps {
     tripName: string | null;
     selectedTourId: number | null;
     tours: Tour[];
-    markers: MarkerData[];
+    markers: MarkerApiData[];
     mapBounds: MapBounds | null;
 }
 

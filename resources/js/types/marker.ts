@@ -1,4 +1,4 @@
-import mapboxgl from 'mapbox-gl';
+import type mapboxgl from 'mapbox-gl';
 
 export enum MarkerType {
     Restaurant = 'restaurant',
@@ -19,7 +19,12 @@ export enum MarkerType {
     Haltestelle = 'haltestelle',
 }
 
-export interface MarkerData {
+/**
+ * Frontend-normalized marker data shape (camelCase fields), without a live Mapbox instance.
+ * Use this type for marker data after mapping/parsing backend responses or before preparing
+ * payloads to send, not as the raw backend DTO shape.
+ */
+export interface MarkerApiData {
     id: string; // UUID - same as database ID
     lat: number;
     lng: number;
@@ -31,7 +36,14 @@ export interface MarkerData {
     isUnesco: boolean;
     aiEnriched: boolean;
     estimatedHours: number | null;
-    marker: mapboxgl.Marker;
     isSaved: boolean; // Track if marker is persisted in database
     position?: number; // Position in tour (when part of a tour)
+}
+
+/**
+ * Runtime marker state — extends the API shape with a live Mapbox marker instance.
+ * Use this type within the map UI where the Mapbox instance is available.
+ */
+export interface MarkerData extends MarkerApiData {
+    marker: mapboxgl.Marker;
 }
