@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PdfTemplate;
+use App\Http\Controllers\Concerns\BuildsAdminOwnerProps;
 use App\Http\Requests\FetchTripImageRequest;
 use App\Http\Requests\StoreTripRequest;
 use App\Http\Requests\UpdateTripRequest;
@@ -19,6 +20,7 @@ use Inertia\Response;
 class TripController extends Controller
 {
     use AuthorizesRequests;
+    use BuildsAdminOwnerProps;
 
     public function __construct(
         private readonly UnsplashService $unsplashService,
