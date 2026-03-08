@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\SearchNearbyMarkersRequest;
 use App\Http\Requests\StoreMarkerRequest;
 use App\Http\Requests\UpdateMarkerRequest;
 use App\Models\Marker;
@@ -96,25 +97,15 @@ class MarkerController extends Controller
     /**
      * Search for points of interest near given coordinates using Mapbox Search API.
      */
-    public function searchNearby(Request $request): JsonResponse
+    public function searchNearby(SearchNearbyMarkersRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'latitude' => ['required', 'numeric', 'min:-90', 'max:90'],
-            'longitude' => ['required', 'numeric', 'min:-180', 'max:180'],
-            'radius_km' => ['required', 'integer', 'min:1', 'max:100'],
-            'place_type' => ['nullable', 'string'],
-        ]);
-
-        // Convert place_type string to enum, default to null if not provided or invalid
-        $placeType = isset($validated['place_type']) && $validated['place_type'] !== ''
-            ? \App\Enums\PlaceType::tryFrom($validated['place_type'])
-            : null;
+        $validated = $request->validated();
 
         $result = $this->mapboxPlacesService->searchNearby(
             latitude: $validated['latitude'],
             longitude: $validated['longitude'],
             radiusKm: $validated['radius_km'],
-            placeType: $placeType
+            placeType: $request->placeType()
         );
 
         return response()->json($result);
