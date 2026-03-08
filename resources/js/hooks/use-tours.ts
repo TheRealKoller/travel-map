@@ -1,3 +1,4 @@
+import { withLoading } from '@/lib/with-loading';
 import {
     destroy as toursDestroy,
     index as toursIndex,
@@ -16,83 +17,62 @@ export function useTours(selectedTripId: number | null) {
     const loadTours = useCallback(async () => {
         if (!selectedTripId) return;
 
-        setIsLoading(true);
-        setError(null);
-
-        try {
-            const response = await axios.get<Tour[]>(
-                toursIndex.url({ query: { trip_id: selectedTripId } }),
-            );
-            setTours(response.data);
-            setSelectedTourId(null); // Reset to "All markers" when switching trips
-        } catch (err) {
-            const error =
-                err instanceof Error ? err : new Error('Failed to load tours');
-            setError(error);
-            console.error('Failed to load tours:', error);
-        } finally {
-            setIsLoading(false);
-        }
+        await withLoading(
+            setIsLoading,
+            setError,
+            async () => {
+                const response = await axios.get<Tour[]>(
+                    toursIndex.url({ query: { trip_id: selectedTripId } }),
+                );
+                setTours(response.data);
+                setSelectedTourId(null); // Reset to "All markers" when switching trips
+            },
+            { fallbackMessage: 'Failed to load tours', rethrow: false },
+        );
     }, [selectedTripId]);
 
     const createTour = useCallback(
         async (name: string) => {
             if (!selectedTripId) return;
 
-            setIsLoading(true);
-            setError(null);
+            return withLoading(
+                setIsLoading,
+                setError,
+                async () => {
+                    const response = await axios.post<Tour>(toursStore.url(), {
+                        name,
+                        trip_id: selectedTripId,
+                    });
+                    const newTour = response.data;
+                    setTours((prev) => [...prev, newTour]);
+                    setSelectedTourId(newTour.id);
 
-            try {
-                const response = await axios.post<Tour>(toursStore.url(), {
-                    name,
-                    trip_id: selectedTripId,
-                });
-                const newTour = response.data;
-                setTours((prev) => [...prev, newTour]);
-                setSelectedTourId(newTour.id);
-
-                return newTour;
-            } catch (err) {
-                const error =
-                    err instanceof Error
-                        ? err
-                        : new Error('Failed to create tour');
-                setError(error);
-                console.error('Failed to create tour:', error);
-                throw error;
-            } finally {
-                setIsLoading(false);
-            }
+                    return newTour;
+                },
+                { fallbackMessage: 'Failed to create tour' },
+            );
         },
         [selectedTripId],
     );
 
     const deleteTour = useCallback(
         async (tour: Tour) => {
-            setIsLoading(true);
-            setError(null);
+            await withLoading(
+                setIsLoading,
+                setError,
+                async () => {
+                    await axios.delete(toursDestroy.url(tour.id));
 
-            try {
-                await axios.delete(toursDestroy.url(tour.id));
+                    // Remove tour from tours array
+                    setTours((prev) => prev.filter((t) => t.id !== tour.id));
 
-                // Remove tour from tours array
-                setTours((prev) => prev.filter((t) => t.id !== tour.id));
-
-                // Reset to "All markers" view if the deleted tour was selected
-                if (selectedTourId === tour.id) {
-                    setSelectedTourId(null);
-                }
-            } catch (err) {
-                const error =
-                    err instanceof Error
-                        ? err
-                        : new Error('Failed to delete tour');
-                setError(error);
-                console.error('Failed to delete tour:', error);
-                throw error;
-            } finally {
-                setIsLoading(false);
-            }
+                    // Reset to "All markers" view if the deleted tour was selected
+                    if (selectedTourId === tour.id) {
+                        setSelectedTourId(null);
+                    }
+                },
+                { fallbackMessage: 'Failed to delete tour' },
+            );
         },
         [selectedTourId],
     );

@@ -1,3 +1,4 @@
+import { withLoading } from '@/lib/with-loading';
 import {
     destroy as tripsDestroy,
     index as tripsIndex,
@@ -15,110 +16,90 @@ export function useTrips(showAll: boolean = false) {
     const [error, setError] = useState<Error | null>(null);
 
     const loadTrips = useCallback(async () => {
-        setIsLoading(true);
-        setError(null);
+        await withLoading(
+            setIsLoading,
+            setError,
+            async () => {
+                const url = showAll
+                    ? `${tripsIndex.url()}?show_all=1`
+                    : tripsIndex.url();
+                const response = await axios.get<Trip[]>(url);
+                const loadedTrips = response.data;
+                setTrips(loadedTrips);
 
-        try {
-            const url = showAll
-                ? `${tripsIndex.url()}?show_all=1`
-                : tripsIndex.url();
-            const response = await axios.get<Trip[]>(url);
-            const loadedTrips = response.data;
-            setTrips(loadedTrips);
-
-            // Don't auto-select the first trip - let the user choose
-        } catch (err) {
-            const error =
-                err instanceof Error ? err : new Error('Failed to load trips');
-            setError(error);
-            console.error('Failed to load trips:', error);
-        } finally {
-            setIsLoading(false);
-        }
+                // Don't auto-select the first trip - let the user choose
+            },
+            { fallbackMessage: 'Failed to load trips', rethrow: false },
+        );
     }, [showAll]);
 
     const createTrip = useCallback(
         async (name: string, country: string | null = null) => {
-            setIsLoading(true);
-            setError(null);
+            return withLoading(
+                setIsLoading,
+                setError,
+                async () => {
+                    const response = await axios.post<Trip>(tripsStore.url(), {
+                        name,
+                        country,
+                    });
+                    const newTrip = response.data;
+                    setTrips((prev) => [...prev, newTrip]);
+                    setSelectedTripId(newTrip.id);
 
-            try {
-                const response = await axios.post<Trip>(tripsStore.url(), {
-                    name,
-                    country,
-                });
-                const newTrip = response.data;
-                setTrips((prev) => [...prev, newTrip]);
-                setSelectedTripId(newTrip.id);
-
-                return newTrip;
-            } catch (err) {
-                const error =
-                    err instanceof Error
-                        ? err
-                        : new Error('Failed to create trip');
-                setError(error);
-                console.error('Failed to create trip:', error);
-                throw error;
-            } finally {
-                setIsLoading(false);
-            }
+                    return newTrip;
+                },
+                { fallbackMessage: 'Failed to create trip' },
+            );
         },
         [],
     );
 
     const renameTrip = useCallback(async (trip: Trip, name: string) => {
-        setIsLoading(true);
-        setError(null);
+        return withLoading(
+            setIsLoading,
+            setError,
+            async () => {
+                const response = await axios.put<Trip>(
+                    tripsUpdate.url(trip.id),
+                    { name },
+                );
+                const updatedTrip = response.data;
+                setTrips((prev) =>
+                    prev.map((t) =>
+                        t.id === updatedTrip.id ? updatedTrip : t,
+                    ),
+                );
 
-        try {
-            const response = await axios.put<Trip>(tripsUpdate.url(trip.id), {
-                name,
-            });
-            const updatedTrip = response.data;
-            setTrips((prev) =>
-                prev.map((t) => (t.id === updatedTrip.id ? updatedTrip : t)),
-            );
-
-            return updatedTrip;
-        } catch (err) {
-            const error =
-                err instanceof Error ? err : new Error('Failed to rename trip');
-            setError(error);
-            console.error('Failed to rename trip:', error);
-            throw error;
-        } finally {
-            setIsLoading(false);
-        }
+                return updatedTrip;
+            },
+            { fallbackMessage: 'Failed to rename trip' },
+        );
     }, []);
 
     const deleteTrip = useCallback(
         async (tripId: number) => {
-            setIsLoading(true);
-            setError(null);
+            await withLoading(
+                setIsLoading,
+                setError,
+                async () => {
+                    await axios.delete(tripsDestroy.url(tripId));
+                    setTrips((prev) => prev.filter((t) => t.id !== tripId));
 
-            try {
-                await axios.delete(tripsDestroy.url(tripId));
-                setTrips((prev) => prev.filter((t) => t.id !== tripId));
-
-                // If we deleted the selected trip, select the first remaining trip
-                if (selectedTripId === tripId) {
-                    const remainingTrips = trips.filter((t) => t.id !== tripId);
-                    setSelectedTripId(
-                        remainingTrips.length > 0 ? remainingTrips[0].id : null,
-                    );
-                }
-            } catch (err) {
-                const error =
-                    err instanceof Error
-                        ? err
-                        : new Error('Failed to delete trip');
-                setError(error);
-                console.error('Failed to delete trip:', error);
-                throw error;
-            } finally {
-                setIsLoading(false);
-            }
+                    // If we deleted the selected trip, select the first remaining trip
+                    if (selectedTripId === tripId) {
+                        const remainingTrips = trips.filter(
+                            (t) => t.id !== tripId,
+                        );
+                        setSelectedTripId(
+                            remainingTrips.length > 0
+                                ? remainingTrips[0].id
+                                : null,
+                        );
+                    }
+                },
+                { fallbackMessage: 'Failed to delete trip' },
+            );
         },
         [selectedTripId, trips],
     );
@@ -132,37 +113,29 @@ export function useTrips(showAll: boolean = false) {
                 zoom: number;
             },
         ) => {
-            setIsLoading(true);
-            setError(null);
+            return withLoading(
+                setIsLoading,
+                setError,
+                async () => {
+                    const response = await axios.put<Trip>(
+                        tripsUpdate.url(tripId),
+                        {
+                            viewport_latitude: viewport.latitude,
+                            viewport_longitude: viewport.longitude,
+                            viewport_zoom: viewport.zoom,
+                        },
+                    );
+                    const updatedTrip = response.data;
+                    setTrips((prev) =>
+                        prev.map((t) =>
+                            t.id === updatedTrip.id ? updatedTrip : t,
+                        ),
+                    );
 
-            try {
-                const response = await axios.put<Trip>(
-                    tripsUpdate.url(tripId),
-                    {
-                        viewport_latitude: viewport.latitude,
-                        viewport_longitude: viewport.longitude,
-                        viewport_zoom: viewport.zoom,
-                    },
-                );
-                const updatedTrip = response.data;
-                setTrips((prev) =>
-                    prev.map((t) =>
-                        t.id === updatedTrip.id ? updatedTrip : t,
-                    ),
-                );
-
-                return updatedTrip;
-            } catch (err) {
-                const error =
-                    err instanceof Error
-                        ? err
-                        : new Error('Failed to update trip viewport');
-                setError(error);
-                console.error('Failed to update trip viewport:', error);
-                throw error;
-            } finally {
-                setIsLoading(false);
-            }
+                    return updatedTrip;
+                },
+                { fallbackMessage: 'Failed to update trip viewport' },
+            );
         },
         [],
     );
