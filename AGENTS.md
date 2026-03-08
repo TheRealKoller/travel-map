@@ -360,7 +360,7 @@ If your application uses the `<Form>` component from Inertia, you can use Wayfin
   it('returns all', function () {
   $response = $this->postJson('/api/docs', []);
 
-              $response->assertSuccessful();
+                $response->assertSuccessful();
 
     });
     </code-snippet>
@@ -592,11 +592,14 @@ Before creating a pull request, run ALL of the following:
 
 #### 4. Create Pull Request
 
+> **CRITICAL**: Every PR MUST be linked to its issue. Always include a closing keyword in the PR description. This is mandatory, no exceptions.
+
 - Push branch to remote: `git push origin <branch-name>`
 - Create pull request using GitHub CLI or web interface
 - **CRITICAL**: Link the PR to the issue using GitHub keywords in PR description:
     - Use: "Closes #123" or "Fixes #123" or "Resolves #123"
     - This automatically links and closes the issue when PR is merged
+    - Example PR body line: `Closes #437`
 - PR title should be clear and reference the issue number
 - PR description should include:
     - Summary of changes
