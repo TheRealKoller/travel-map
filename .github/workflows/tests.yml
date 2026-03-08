@@ -73,6 +73,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       checks: write
+      contents: read
 
     steps:
       - name: Checkout
@@ -109,7 +110,6 @@ jobs:
 
       - name: Run Browser Tests
         run: ./vendor/bin/pest --testsuite=Browser --log-junit=browser-test-report.xml
-        continue-on-error: true
 
       - name: Publish Browser Test Summary
         if: always()
@@ -122,7 +122,7 @@ jobs:
           detailed_summary: true
 
       - name: Upload Screenshots on Failure
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: browser-test-screenshots
