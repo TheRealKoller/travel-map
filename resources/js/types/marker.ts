@@ -1,4 +1,4 @@
-import mapboxgl from 'mapbox-gl';
+import type mapboxgl from 'mapbox-gl';
 
 export enum MarkerType {
     Restaurant = 'restaurant',
@@ -20,8 +20,9 @@ export enum MarkerType {
 }
 
 /**
- * Pure API response shape — no live Mapbox instances.
- * Use this type for data received from or sent to the backend.
+ * Frontend-normalized marker data shape (camelCase fields), without a live Mapbox instance.
+ * Use this type for marker data after mapping/parsing backend responses or before preparing
+ * payloads to send, not as the raw backend DTO shape.
  */
 export interface MarkerApiData {
     id: string; // UUID - same as database ID
