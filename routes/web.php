@@ -53,16 +53,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Map route - show map for a specific trip
     Route::get('/map/{trip}', function (\App\Models\Trip $trip) {
-        // Authorize access to the trip (owner or shared user)
-        if (! $trip->hasAccess(auth()->user())) {
+        $user = auth()->user();
+
+        // Authorize access to the trip (owner, shared user, or admin)
+        if (! $trip->hasAccess($user) && ! $user->isAdmin()) {
             abort(403);
         }
 
-        return Inertia::render('map', [
+        $props = [
             'trip' => [
                 'id' => $trip->id,
             ],
-        ]);
+        ];
+
+        // Pass owner info so the frontend can show an admin banner
+        if ($user->isAdmin() && $trip->user_id !== $user->id) {
+            $props['owner'] = [
+                'id' => $trip->user->id,
+                'name' => $trip->user->name,
+            ];
+        }
+
+        return Inertia::render('map', $props);
     })->name('map.show');
 
     // Tour routes

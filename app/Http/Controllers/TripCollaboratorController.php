@@ -43,8 +43,8 @@ class TripCollaboratorController extends Controller
      */
     public function store(AddTripCollaboratorRequest $request, Trip $trip): JsonResponse
     {
-        // Only the owner can add collaborators
-        if (! $trip->isOwner(auth()->user())) {
+        // Only the owner or an admin can add collaborators
+        if (! $trip->isOwner(auth()->user()) && ! auth()->user()->isAdmin()) {
             return response()->json(['error' => 'Only the trip owner can add collaborators'], 403);
         }
 
@@ -82,8 +82,8 @@ class TripCollaboratorController extends Controller
      */
     public function destroy(Trip $trip, User $user): JsonResponse
     {
-        // Only the owner can remove collaborators
-        if (! $trip->isOwner(auth()->user())) {
+        // Only the owner or an admin can remove collaborators
+        if (! $trip->isOwner(auth()->user()) && ! auth()->user()->isAdmin()) {
             return response()->json(['error' => 'Only the trip owner can remove collaborators'], 403);
         }
 

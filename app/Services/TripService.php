@@ -26,6 +26,11 @@ class TripService
     public function getActiveTrip(User $user, ?int $tripId = null): Trip
     {
         if ($tripId) {
+            // Admins can access any trip directly
+            if ($user->isAdmin()) {
+                return Trip::findOrFail($tripId);
+            }
+
             // Check owned trips first
             $trip = $user->trips()->find($tripId);
             if ($trip) {
@@ -52,7 +57,7 @@ class TripService
     {
         $trip = Trip::findOrFail($tripId);
 
-        if (! $trip->hasAccess($user)) {
+        if (! $user->isAdmin() && ! $trip->hasAccess($user)) {
             throw new AuthorizationException('This action is unauthorized.');
         }
 
