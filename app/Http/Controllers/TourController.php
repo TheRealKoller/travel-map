@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Exceptions\MapboxQuotaExceededException;
 use App\Exceptions\RoutingProviderException;
+use App\Http\Requests\ReorderTourMarkersRequest;
 use App\Http\Requests\StoreTourRequest;
+use App\Http\Requests\TourMarkerRequest;
 use App\Http\Requests\UpdateTourRequest;
 use App\Http\Resources\TourResource;
 use App\Models\Marker;
@@ -21,6 +23,11 @@ use Illuminate\Support\Facades\Log;
 class TourController extends Controller
 {
     use AuthorizesRequests;
+
+    public function __construct(
+        private readonly MapboxMatrixService $matrixService,
+        private readonly TourSortingService $sortingService,
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -83,13 +90,11 @@ class TourController extends Controller
         return response()->json(null, 204);
     }
 
-    public function attachMarker(Request $request, Tour $tour): JsonResponse
+    public function attachMarker(TourMarkerRequest $request, Tour $tour): JsonResponse
     {
         $this->authorize('update', $tour);
 
-        $validated = $request->validate([
-            'marker_id' => 'required|uuid|exists:markers,id',
-        ]);
+        $validated = $request->validated();
 
         $marker = Marker::findOrFail($validated['marker_id']);
 
@@ -105,13 +110,11 @@ class TourController extends Controller
         return response()->json(new TourResource($tour->load(['markers', 'routes'])));
     }
 
-    public function detachMarker(Request $request, Tour $tour): JsonResponse
+    public function detachMarker(TourMarkerRequest $request, Tour $tour): JsonResponse
     {
         $this->authorize('update', $tour);
 
-        $validated = $request->validate([
-            'marker_id' => 'required|uuid|exists:markers,id',
-        ]);
+        $validated = $request->validated();
 
         // When duplicates are allowed, only remove one instance of the marker
         // Get the first pivot record for this marker-tour combination
@@ -130,15 +133,11 @@ class TourController extends Controller
         return response()->json(new TourResource($tour->load(['markers', 'routes'])));
     }
 
-    public function reorderMarkers(Request $request, Tour $tour): JsonResponse
+    public function reorderMarkers(ReorderTourMarkersRequest $request, Tour $tour): JsonResponse
     {
         $this->authorize('update', $tour);
 
-        $validated = $request->validate([
-            'marker_ids' => 'required|array',
-            'marker_ids.*' => 'required|uuid|exists:markers,id',
-        ]);
-
+        $validated = $request->validated();
         $markerIds = $validated['marker_ids'];
 
         // Detach all current markers
@@ -173,13 +172,8 @@ class TourController extends Controller
         }
 
         try {
-            // Calculate distance matrix using Mapbox Matrix API
-            $matrixService = app(MapboxMatrixService::class);
-            $matrix = $matrixService->calculateMatrix($markers);
-
-            // Sort markers optimally using the distance matrix
-            $sortingService = app(TourSortingService::class);
-            $sortedMarkerIds = $sortingService->sortMarkersOptimally($markers, $matrix);
+            $matrix = $this->matrixService->calculateMatrix($markers);
+            $sortedMarkerIds = $this->sortingService->sortMarkersOptimally($markers, $matrix);
 
             // Update marker positions in database
             $tour->markers()->detach();
