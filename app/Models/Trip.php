@@ -65,7 +65,7 @@ class Trip extends Model
      */
     public function hasAccess(User $user): bool
     {
-        if ($this->user_id === $user->id) {
+        if ($this->isOwner($user)) {
             return true;
         }
 

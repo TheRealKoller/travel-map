@@ -36,7 +36,13 @@ test('hasAccess returns true for shared user when relation is already loaded', f
     // Eager-load the relation to exercise the in-memory path
     $trip->load('sharedUsers');
 
+    $queryCount = 0;
+    \Illuminate\Support\Facades\DB::listen(function () use (&$queryCount) {
+        $queryCount++;
+    });
+
     expect($trip->hasAccess($collaborator))->toBeTrue();
+    expect($queryCount)->toBe(0);
 });
 
 test('hasAccess returns false for unrelated user when relation is already loaded', function () {
@@ -47,5 +53,11 @@ test('hasAccess returns false for unrelated user when relation is already loaded
     // Eager-load the (empty) relation to exercise the in-memory path
     $trip->load('sharedUsers');
 
+    $queryCount = 0;
+    \Illuminate\Support\Facades\DB::listen(function () use (&$queryCount) {
+        $queryCount++;
+    });
+
     expect($trip->hasAccess($other))->toBeFalse();
+    expect($queryCount)->toBe(0);
 });
