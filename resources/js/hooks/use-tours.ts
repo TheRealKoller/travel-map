@@ -17,47 +17,62 @@ export function useTours(selectedTripId: number | null) {
     const loadTours = useCallback(async () => {
         if (!selectedTripId) return;
 
-        await withLoading(setIsLoading, setError, async () => {
-            const response = await axios.get<Tour[]>(
-                toursIndex.url({ query: { trip_id: selectedTripId } }),
-            );
-            setTours(response.data);
-            setSelectedTourId(null); // Reset to "All markers" when switching trips
-        });
+        await withLoading(
+            setIsLoading,
+            setError,
+            async () => {
+                const response = await axios.get<Tour[]>(
+                    toursIndex.url({ query: { trip_id: selectedTripId } }),
+                );
+                setTours(response.data);
+                setSelectedTourId(null); // Reset to "All markers" when switching trips
+            },
+            { fallbackMessage: 'Failed to load tours', rethrow: false },
+        );
     }, [selectedTripId]);
 
     const createTour = useCallback(
         async (name: string) => {
             if (!selectedTripId) return;
 
-            return withLoading(setIsLoading, setError, async () => {
-                const response = await axios.post<Tour>(toursStore.url(), {
-                    name,
-                    trip_id: selectedTripId,
-                });
-                const newTour = response.data;
-                setTours((prev) => [...prev, newTour]);
-                setSelectedTourId(newTour.id);
+            return withLoading(
+                setIsLoading,
+                setError,
+                async () => {
+                    const response = await axios.post<Tour>(toursStore.url(), {
+                        name,
+                        trip_id: selectedTripId,
+                    });
+                    const newTour = response.data;
+                    setTours((prev) => [...prev, newTour]);
+                    setSelectedTourId(newTour.id);
 
-                return newTour;
-            });
+                    return newTour;
+                },
+                { fallbackMessage: 'Failed to create tour' },
+            );
         },
         [selectedTripId],
     );
 
     const deleteTour = useCallback(
         async (tour: Tour) => {
-            await withLoading(setIsLoading, setError, async () => {
-                await axios.delete(toursDestroy.url(tour.id));
+            await withLoading(
+                setIsLoading,
+                setError,
+                async () => {
+                    await axios.delete(toursDestroy.url(tour.id));
 
-                // Remove tour from tours array
-                setTours((prev) => prev.filter((t) => t.id !== tour.id));
+                    // Remove tour from tours array
+                    setTours((prev) => prev.filter((t) => t.id !== tour.id));
 
-                // Reset to "All markers" view if the deleted tour was selected
-                if (selectedTourId === tour.id) {
-                    setSelectedTourId(null);
-                }
-            });
+                    // Reset to "All markers" view if the deleted tour was selected
+                    if (selectedTourId === tour.id) {
+                        setSelectedTourId(null);
+                    }
+                },
+                { fallbackMessage: 'Failed to delete tour' },
+            );
         },
         [selectedTourId],
     );
