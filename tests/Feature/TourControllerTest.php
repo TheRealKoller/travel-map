@@ -439,3 +439,74 @@ test('tour with duplicate markers maintains correct positions', function () {
     expect($markers[1]['position'])->toBe(1);
     expect($markers[2]['position'])->toBe(2);
 });
+
+test('attachMarker rejects missing marker_id', function () {
+    $tour = Tour::factory()->create(['trip_id' => $this->trip->id]);
+
+    $response = $this->actingAs($this->user)->postJson("/tours/{$tour->id}/markers", []);
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['marker_id']);
+});
+
+test('attachMarker rejects non-uuid marker_id', function () {
+    $tour = Tour::factory()->create(['trip_id' => $this->trip->id]);
+
+    $response = $this->actingAs($this->user)->postJson("/tours/{$tour->id}/markers", [
+        'marker_id' => 'not-a-uuid',
+    ]);
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['marker_id']);
+});
+
+test('attachMarker rejects non-existent marker_id', function () {
+    $tour = Tour::factory()->create(['trip_id' => $this->trip->id]);
+
+    $response = $this->actingAs($this->user)->postJson("/tours/{$tour->id}/markers", [
+        'marker_id' => '00000000-0000-0000-0000-000000000000',
+    ]);
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['marker_id']);
+});
+
+test('detachMarker rejects missing marker_id', function () {
+    $tour = Tour::factory()->create(['trip_id' => $this->trip->id]);
+
+    $response = $this->actingAs($this->user)->deleteJson("/tours/{$tour->id}/markers", []);
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['marker_id']);
+});
+
+test('reorderMarkers rejects missing marker_ids', function () {
+    $tour = Tour::factory()->create(['trip_id' => $this->trip->id]);
+
+    $response = $this->actingAs($this->user)->putJson("/tours/{$tour->id}/markers/reorder", []);
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['marker_ids']);
+});
+
+test('reorderMarkers rejects non-array marker_ids', function () {
+    $tour = Tour::factory()->create(['trip_id' => $this->trip->id]);
+
+    $response = $this->actingAs($this->user)->putJson("/tours/{$tour->id}/markers/reorder", [
+        'marker_ids' => 'not-an-array',
+    ]);
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['marker_ids']);
+});
+
+test('reorderMarkers rejects non-existent marker in marker_ids', function () {
+    $tour = Tour::factory()->create(['trip_id' => $this->trip->id]);
+
+    $response = $this->actingAs($this->user)->putJson("/tours/{$tour->id}/markers/reorder", [
+        'marker_ids' => ['00000000-0000-0000-0000-000000000000'],
+    ]);
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['marker_ids.0']);
+});
