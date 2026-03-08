@@ -68,6 +68,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Pass owner info so the frontend can show an admin banner
         if ($user->isAdmin() && $trip->user_id !== $user->id) {
+            $trip->loadMissing('user:id,name');
             $props['owner'] = [
                 'id' => $trip->user->id,
                 'name' => $trip->user->name,

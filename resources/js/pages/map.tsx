@@ -9,17 +9,15 @@ import { Head, usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-interface MapPageProps {
+type MapPageProps = SharedData & {
     trip?: {
         id: number;
     };
     owner?: TripOwner;
-    [key: string]: unknown;
-}
+};
 
 export default function MapPage() {
-    const { trip, owner } = usePage<MapPageProps>().props;
-    const { auth } = usePage<SharedData>().props;
+    const { trip, owner, auth } = usePage<MapPageProps>().props;
     const { t } = useTranslation();
 
     const breadcrumbs: BreadcrumbItem[] = [
