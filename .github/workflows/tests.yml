@@ -12,6 +12,18 @@ jobs:
     name: Unit and Feature Tests
     runs-on: ubuntu-latest
 
+    services:
+      mariadb:
+        image: mariadb:11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: travel_map
+          MARIADB_USER: travel_map
+          MARIADB_PASSWORD: secret
+        ports:
+          - 3306:3306
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=10s --health-timeout=5s --health-retries=5
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -48,7 +60,7 @@ jobs:
       - name: Build Assets
         run: npm run build
         env:
-          VITE_MAPBOX_ACCESS_TOKEN: pk.eyJ1IjoidGhlLWtvbGxlciIsImEiOiJjbWs5eHBobTMwcTUwM2dyMmdwMGVqenQ4In0.dSooQl188W3T2_dRLUsZMg
+          VITE_MAPBOX_ACCESS_TOKEN: pk.test-token-for-ci
 
       - name: Run Database Migrations
         run: php artisan migrate --force

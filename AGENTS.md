@@ -360,7 +360,7 @@ If your application uses the `<Form>` component from Inertia, you can use Wayfin
   it('returns all', function () {
   $response = $this->postJson('/api/docs', []);
 
-          $response->assertSuccessful();
+                $response->assertSuccessful();
 
     });
     </code-snippet>
@@ -592,11 +592,14 @@ Before creating a pull request, run ALL of the following:
 
 #### 4. Create Pull Request
 
+> **CRITICAL**: Every PR MUST be linked to its issue. Always include a closing keyword in the PR description. This is mandatory, no exceptions.
+
 - Push branch to remote: `git push origin <branch-name>`
 - Create pull request using GitHub CLI or web interface
 - **CRITICAL**: Link the PR to the issue using GitHub keywords in PR description:
     - Use: "Closes #123" or "Fixes #123" or "Resolves #123"
     - This automatically links and closes the issue when PR is merged
+    - Example PR body line: `Closes #437`
 - PR title should be clear and reference the issue number
 - PR description should include:
     - Summary of changes
@@ -645,3 +648,27 @@ Before creating a pull request, run ALL of the following:
 - This workflow applies ONLY when working on GitHub issues
 - For general questions, code reviews, or exploratory work, use normal development flow
 - Always ask the user if uncertain whether to follow the full workflow
+
+## Database Backup
+
+Automated daily backups are configured via `spatie/laravel-backup`. Backups run daily and are retained for 14 days.
+
+### Cronjob Setup (manual, once per environment in all-inkl.com KAS)
+
+The Laravel scheduler must be triggered every minute via a server-side cronjob. Set this up once per environment in all-inkl.com KAS:
+
+```
+* * * * * /usr/bin/php /path/to/prod/artisan schedule:run >> /dev/null 2>&1
+* * * * * /usr/bin/php /path/to/dev/artisan schedule:run >> /dev/null 2>&1
+```
+
+Replace `/path/to/prod` and `/path/to/dev` with the actual server paths for each environment.
+
+### Restore Procedure
+
+1. `php artisan backup:list` — list available backups
+2. Locate the desired `.zip` file on the backup disk (by default stored under `storage/app/backups/` — see `config/backup.php` and `BACKUP_NAME` env var for the exact folder name)
+3. Extract the `.zip` — it contains a database dump; the file type depends on your `DB_CONNECTION`
+4. Determine the active database connection from `.env` (`DB_CONNECTION`) and restore accordingly:
+    - **MariaDB/MySQL**: `mysql -h <host> -u <user> -p <database> < dump.sql`
+    - **SQLite**: Stop the app, back up the current `.sqlite` file, then replace `DB_DATABASE` with the `.sqlite` file from the backup and restore correct permissions
