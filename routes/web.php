@@ -3,13 +3,13 @@
 use App\Http\Controllers\Api\LeChatAgentController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\MapboxController;
+use App\Http\Controllers\MapController;
 use App\Http\Controllers\MarkerController;
 use App\Http\Controllers\RouteController;
 use App\Http\Controllers\TourController;
 use App\Http\Controllers\TripCollaboratorController;
 use App\Http\Controllers\TripController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::get('/', function () {
     return redirect()->route('trips.index');
@@ -52,31 +52,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/trips/{trip}/collaborators/{user}', [TripCollaboratorController::class, 'destroy'])->name('trips.collaborators.destroy');
 
     // Map route - show map for a specific trip
-    Route::get('/map/{trip}', function (\App\Models\Trip $trip) {
-        $user = auth()->user();
-
-        // Authorize access to the trip (owner, shared user, or admin)
-        if (! $trip->hasAccess($user) && ! $user->isAdmin()) {
-            abort(403);
-        }
-
-        $props = [
-            'trip' => [
-                'id' => $trip->id,
-            ],
-        ];
-
-        // Pass owner info so the frontend can show an admin banner
-        if ($user->isAdmin() && $trip->user_id !== $user->id) {
-            $trip->loadMissing('user:id,name');
-            $props['owner'] = [
-                'id' => $trip->user->id,
-                'name' => $trip->user->name,
-            ];
-        }
-
-        return Inertia::render('map', $props);
-    })->name('map.show');
+    Route::get('/map/{trip}', [MapController::class, 'show'])->name('map.show');
 
     // Tour routes
     Route::get('/tours', [TourController::class, 'index'])->name('tours.index');
