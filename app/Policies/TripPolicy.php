@@ -41,6 +41,15 @@ class TripPolicy
     }
 
     /**
+     * Determine whether the user can manage collaborators (add/remove) for the trip.
+     * Only the trip owner or an admin may manage collaborators.
+     */
+    public function manageCollaborators(User $user, Trip $trip): bool
+    {
+        return $user->isAdmin() || $trip->isOwner($user);
+    }
+
+    /**
      * Determine whether the user can delete the model.
      * Only the owner can delete a trip.
      */
