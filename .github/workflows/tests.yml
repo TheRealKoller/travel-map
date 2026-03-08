@@ -94,9 +94,6 @@ jobs:
       - name: Copy Test Environment File
         run: cp .env.testing .env
 
-      - name: Generate Application Key
-        run: php artisan key:generate
-
       - name: Install Node Dependencies
         run: npm ci
 
@@ -108,8 +105,8 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
-      - name: Run Database Migrations
-        run: php artisan migrate --force
+      - name: Prepare Report Directory
+        run: mkdir -p playwright-report
 
       - name: Run Browser Tests
         run: ./vendor/bin/pest --testsuite=Browser --testdox-html=playwright-report/index.html
