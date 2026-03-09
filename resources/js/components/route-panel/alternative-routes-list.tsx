@@ -31,11 +31,13 @@ export function AlternativeRoutesList({
             <h5 className="text-sm font-semibold">
                 Alternative routes ({alternatives.length})
             </h5>
-            <div className="space-y-2">
+            <div className="space-y-2" role="radiogroup">
                 {alternatives.map((alt, index) => (
                     <button
                         key={index}
                         type="button"
+                        role="radio"
+                        aria-checked={selectedIndex === index}
                         onClick={() => onSelect(index)}
                         className={cn(
                             'flex w-full cursor-pointer items-center justify-between rounded-md border p-2 text-xs transition-colors',

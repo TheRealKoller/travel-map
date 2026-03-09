@@ -643,8 +643,7 @@ export default function RoutePanel({
                                                                         selectedIndex={
                                                                             highlightedRouteId ===
                                                                             route.id
-                                                                                ? (selectedAlternativeIndex ??
-                                                                                  null)
+                                                                                ? selectedAlternativeIndex
                                                                                 : null
                                                                         }
                                                                         isAdopting={
