@@ -285,6 +285,7 @@ class RoutingService
 
     /**
      * Extract alternative routes information from Google Routes API v2.
+     * Includes geometry and transit_details so alternatives can be adopted as the primary route.
      */
     private function extractAlternativeRoutesV2(array $routes): array
     {
@@ -293,18 +294,29 @@ class RoutingService
             $duration = (int) rtrim($route['duration'], 's');
 
             $numTransfers = 0;
+            $geometry = null;
+            $transitDetails = null;
+
             if (isset($route['legs'][0]['steps'])) {
                 $transitSteps = array_filter(
                     $route['legs'][0]['steps'],
                     fn ($step) => ($step['travelMode'] ?? '') === 'TRANSIT'
                 );
                 $numTransfers = max(0, count($transitSteps) - 1);
+
+                $transitDetails = $this->extractTransitDetailsV2($route['legs'][0]);
+            }
+
+            if (isset($route['polyline']['encodedPolyline'])) {
+                $geometry = $this->decodePolyline($route['polyline']['encodedPolyline']);
             }
 
             return [
                 'distance' => $distance,
                 'duration' => $duration,
                 'num_transfers' => $numTransfers,
+                'geometry' => $geometry,
+                'transit_details' => $transitDetails,
             ];
         }, $routes);
     }

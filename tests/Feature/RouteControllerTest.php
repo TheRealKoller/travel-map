@@ -386,6 +386,137 @@ it('returns 404 when Google Maps finds no transit route', function () {
         ->assertJson(['error' => 'No public transport route found between the markers']);
 });
 
+// --- updateAlternative (PATCH /routes/{route}/alternative) ---
+
+it('can adopt an alternative public transport route', function () {
+    $alternatives = [
+        [
+            'distance' => 30000,
+            'duration' => 2400,
+            'geometry' => [[13.4, 52.5], [13.45, 52.52], [13.5, 52.55]],
+            'transit_details' => ['steps' => []],
+        ],
+        [
+            'distance' => 20000,
+            'duration' => 1800,
+            'geometry' => [[13.4, 52.5], [13.47, 52.53]],
+            'transit_details' => ['steps' => []],
+        ],
+    ];
+
+    $route = Route::factory()->create([
+        'trip_id' => $this->trip->id,
+        'start_marker_id' => $this->startMarker->id,
+        'end_marker_id' => $this->endMarker->id,
+        'transport_mode' => 'public-transport',
+        'alternatives' => $alternatives,
+    ]);
+
+    $response = $this->patchJson("/routes/{$route->id}/alternative", [
+        'alternative_index' => 1,
+    ]);
+
+    $response->assertOk()
+        ->assertJsonStructure(['id', 'distance', 'duration', 'geometry', 'transit_details'])
+        ->assertJsonPath('distance.meters', 20000)
+        ->assertJsonPath('duration.seconds', 1800);
+
+    $this->assertDatabaseHas('routes', [
+        'id' => $route->id,
+        'distance' => 20000,
+        'duration' => 1800,
+    ]);
+
+    // alternatives should be cleared after adoption
+    expect(Route::find($route->id)->alternatives)->toBeNull();
+});
+
+it('returns 422 when adopting alternative for non-public-transport route', function () {
+    $route = Route::factory()->create([
+        'trip_id' => $this->trip->id,
+        'start_marker_id' => $this->startMarker->id,
+        'end_marker_id' => $this->endMarker->id,
+        'transport_mode' => 'driving-car',
+        'alternatives' => null,
+    ]);
+
+    $response = $this->patchJson("/routes/{$route->id}/alternative", [
+        'alternative_index' => 0,
+    ]);
+
+    $response->assertStatus(422)
+        ->assertJson(['error' => 'Alternative selection is only available for public transport routes']);
+});
+
+it('returns 422 when alternative index is out of range', function () {
+    $route = Route::factory()->create([
+        'trip_id' => $this->trip->id,
+        'start_marker_id' => $this->startMarker->id,
+        'end_marker_id' => $this->endMarker->id,
+        'transport_mode' => 'public-transport',
+        'alternatives' => [
+            [
+                'distance' => 30000,
+                'duration' => 2400,
+                'geometry' => [[13.4, 52.5]],
+                'transit_details' => ['steps' => []],
+            ],
+        ],
+    ]);
+
+    $response = $this->patchJson("/routes/{$route->id}/alternative", [
+        'alternative_index' => 5,
+    ]);
+
+    $response->assertStatus(422)
+        ->assertJson(['error' => 'Alternative index out of range']);
+});
+
+it('validates alternative_index is required and is a non-negative integer', function () {
+    $route = Route::factory()->create([
+        'trip_id' => $this->trip->id,
+        'start_marker_id' => $this->startMarker->id,
+        'end_marker_id' => $this->endMarker->id,
+        'transport_mode' => 'public-transport',
+    ]);
+
+    $this->patchJson("/routes/{$route->id}/alternative", [])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['alternative_index']);
+
+    $this->patchJson("/routes/{$route->id}/alternative", ['alternative_index' => -1])
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['alternative_index']);
+});
+
+it('cannot adopt an alternative on another users route', function () {
+    $otherUser = User::factory()->create();
+    $otherTrip = Trip::factory()->create(['user_id' => $otherUser->id]);
+    $otherStart = Marker::factory()->create(['trip_id' => $otherTrip->id]);
+    $otherEnd = Marker::factory()->create(['trip_id' => $otherTrip->id]);
+
+    $route = Route::factory()->create([
+        'trip_id' => $otherTrip->id,
+        'start_marker_id' => $otherStart->id,
+        'end_marker_id' => $otherEnd->id,
+        'transport_mode' => 'public-transport',
+        'alternatives' => [
+            [
+                'distance' => 10000,
+                'duration' => 900,
+                'geometry' => [[13.4, 52.5]],
+                'transit_details' => ['steps' => []],
+            ],
+        ],
+    ]);
+
+    $response = $this->patchJson("/routes/{$route->id}/alternative", [
+        'alternative_index' => 0,
+    ]);
+
+    $response->assertForbidden();
+});
+
 it('can create a route with tour_id', function () {
     // Create a tour for this trip
     $tour = \App\Models\Tour::factory()->create(['trip_id' => $this->trip->id]);
