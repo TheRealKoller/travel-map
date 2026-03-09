@@ -1,5 +1,5 @@
 import TravelMap from '@/components/travel-map';
-import { TripOwner } from '@/types';
+import { type TripOwner } from '@/types';
 import { Tour } from '@/types/tour';
 import { Trip } from '@/types/trip';
 import { Dispatch, SetStateAction } from 'react';

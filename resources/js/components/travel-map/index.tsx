@@ -22,7 +22,7 @@ import { useTourLines } from '@/hooks/use-tour-lines';
 import { useTourMarkers } from '@/hooks/use-tour-markers';
 import { useTripNotes } from '@/hooks/use-trip-notes';
 import { getBoundingBoxFromTrip } from '@/lib/map-utils';
-import { TripOwner } from '@/types';
+import { type TripOwner } from '@/types';
 import { Route } from '@/types/route';
 import { Tour } from '@/types/tour';
 import { Trip } from '@/types/trip';

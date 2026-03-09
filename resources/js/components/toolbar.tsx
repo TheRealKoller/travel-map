@@ -16,7 +16,7 @@ import {
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Slider } from '@/components/ui/slider';
 import { useLanguage } from '@/hooks/use-language';
-import { TripOwner } from '@/types';
+import { type TripOwner } from '@/types';
 import { SearchBoxRetrieveResponse } from '@mapbox/search-js-core';
 import { SearchBox } from '@mapbox/search-js-react';
 import { Settings } from 'lucide-react';

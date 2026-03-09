@@ -121,7 +121,10 @@ export default function MapPage() {
                 onCreateTour={openCreateTourModal}
                 onDeleteTour={handleOpenDeleteTourDialog}
                 onSetViewport={handleSetViewport}
-                tripName={trip?.name}
+                tripName={
+                    trips.find((t) => t.id === selectedTripId)?.name ??
+                    trip?.name
+                }
                 owner={owner}
             />
             <ModalManager
