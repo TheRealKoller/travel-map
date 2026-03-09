@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 type MapPageProps = SharedData & {
     trip?: {
         id: number;
+        name: string;
     };
     owner?: TripOwner;
 };
@@ -108,11 +109,6 @@ export default function MapPage() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Map" />
-            {auth.user?.role === 'admin' && owner && (
-                <div className="flex items-center gap-2 border-b border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200">
-                    <span>Du bearbeitest die Reise von {owner.name}</span>
-                </div>
-            )}
             <MapContainer
                 selectedTripId={selectedTripId}
                 selectedTourId={selectedTourId}
@@ -125,6 +121,8 @@ export default function MapPage() {
                 onCreateTour={openCreateTourModal}
                 onDeleteTour={handleOpenDeleteTourDialog}
                 onSetViewport={handleSetViewport}
+                tripName={trip?.name}
+                owner={owner}
             />
             <ModalManager
                 isCreateTripModalOpen={modalState.isCreateTripModalOpen}

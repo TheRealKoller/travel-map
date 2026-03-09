@@ -21,6 +21,7 @@ class MapController extends Controller
             [
                 'trip' => [
                     'id' => $trip->id,
+                    'name' => $trip->name,
                 ],
             ],
             $this->buildAdminOwnerProps($trip),
