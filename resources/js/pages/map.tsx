@@ -18,7 +18,7 @@ type MapPageProps = SharedData & {
 };
 
 export default function MapPage() {
-    const { trip, owner, auth } = usePage<MapPageProps>().props;
+    const { trip, owner } = usePage<MapPageProps>().props;
     const { t } = useTranslation();
 
     const breadcrumbs: BreadcrumbItem[] = [
