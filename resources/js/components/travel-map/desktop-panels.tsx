@@ -66,6 +66,11 @@ interface DesktopPanelsProps {
     ) => void;
     setHighlightedRouteId: (id: number | null) => void;
     handleRequestRoute: (startMarkerId: string, endMarkerId: string) => void;
+    selectedAlternativeIndex: number | null;
+    onSelectedAlternativeIndexChange: (
+        routeId: number | null,
+        index: number | null,
+    ) => void;
 
     // Available marker selection (for tours)
     selectedAvailableMarkerId: string | null;
@@ -122,6 +127,8 @@ export function DesktopPanels({
     handleAddAvailableMarkerToTour,
     selectedTrip,
     mapBounds,
+    selectedAlternativeIndex,
+    onSelectedAlternativeIndexChange,
 }: DesktopPanelsProps) {
     const { t } = useTranslation();
 
@@ -251,6 +258,10 @@ export function DesktopPanels({
                         onExpandedRoutesChange={setExpandedRoutes}
                         onHighlightedRouteIdChange={setHighlightedRouteId}
                         onTourUpdate={handleTourUpdate}
+                        selectedAlternativeIndex={selectedAlternativeIndex}
+                        onSelectedAlternativeIndexChange={
+                            onSelectedAlternativeIndexChange
+                        }
                     />
                 </FloatingPanel>
             )}

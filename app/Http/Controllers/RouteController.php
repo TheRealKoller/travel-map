@@ -8,6 +8,7 @@ use App\Exceptions\RouteNotFoundException;
 use App\Exceptions\RoutingProviderException;
 use App\Http\Requests\RouteIndexRequest;
 use App\Http\Requests\StoreRouteRequest;
+use App\Http\Requests\UpdateRouteAlternativeRequest;
 use App\Http\Resources\RouteResource;
 use App\Models\Marker;
 use App\Models\Route;
@@ -99,5 +100,35 @@ class RouteController extends Controller
         $route->delete();
 
         return response()->json(null, 204);
+    }
+
+    public function updateAlternative(UpdateRouteAlternativeRequest $request, Route $route): JsonResponse
+    {
+        $this->authorize('update', $route->trip);
+
+        if ($route->transport_mode !== TransportMode::PublicTransport) {
+            return response()->json(['error' => 'Alternative selection is only available for public transport routes'], 422);
+        }
+
+        $alternatives = $route->alternatives ?? [];
+        $index = $request->validated()['alternative_index'];
+
+        if ($index >= count($alternatives)) {
+            return response()->json(['error' => 'Alternative index out of range'], 422);
+        }
+
+        $chosen = $alternatives[$index];
+
+        $route->update([
+            'distance' => $chosen['distance'],
+            'duration' => $chosen['duration'],
+            'geometry' => $chosen['geometry'] ?? $route->geometry,
+            'transit_details' => $chosen['transit_details'] ?? $route->transit_details,
+            'alternatives' => null,
+        ]);
+
+        $route->load(['startMarker', 'endMarker']);
+
+        return response()->json(new RouteResource($route));
     }
 }

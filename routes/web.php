@@ -80,6 +80,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/routes', [RouteController::class, 'index'])->name('routes.index');
     Route::post('/routes', [RouteController::class, 'store'])->name('routes.store');
     Route::get('/routes/{route}', [RouteController::class, 'show'])->name('routes.show');
+    Route::patch('/routes/{route}/alternative', [RouteController::class, 'updateAlternative'])->name('routes.alternative');
     Route::delete('/routes/{route}', [RouteController::class, 'destroy'])->name('routes.destroy');
 
     // Mapbox routes

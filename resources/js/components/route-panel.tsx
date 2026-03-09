@@ -54,6 +54,11 @@ interface RoutePanelProps {
     onExpandedRoutesChange: (expandedRoutes: Set<number>) => void;
     onHighlightedRouteIdChange?: (routeId: number | null) => void;
     onTourUpdate?: (tour: Tour) => void;
+    selectedAlternativeIndex?: number | null;
+    onSelectedAlternativeIndexChange?: (
+        routeId: number | null,
+        index: number | null,
+    ) => void;
 }
 
 export default function RoutePanel({
@@ -70,6 +75,8 @@ export default function RoutePanel({
     onExpandedRoutesChange,
     onHighlightedRouteIdChange,
     onTourUpdate,
+    selectedAlternativeIndex = null,
+    onSelectedAlternativeIndexChange,
 }: RoutePanelProps) {
     const [startMarkerId, setStartMarkerId] =
         useState<string>(initialStartMarkerId);
@@ -78,6 +85,7 @@ export default function RoutePanel({
         useState<TransportMode>('driving-car');
     const [isCreating, setIsCreating] = useState(false);
     const [isSorting, setIsSorting] = useState(false);
+    const [isAdopting, setIsAdopting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [deleteRouteId, setDeleteRouteId] = useState<number | null>(null);
     const [showOptimizeTourDialog, setShowOptimizeTourDialog] = useState(false);
@@ -245,6 +253,34 @@ export default function RoutePanel({
             setShowOptimizeTourDialog(false);
         } finally {
             setIsSorting(false);
+        }
+    };
+
+    const handleAdoptAlternative = async (route: Route) => {
+        if (selectedAlternativeIndex === null) return;
+
+        setIsAdopting(true);
+        try {
+            const response = await axios.patch(
+                `/routes/${route.id}/alternative`,
+                { alternative_index: selectedAlternativeIndex },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Accept: 'application/json',
+                    },
+                },
+            );
+            onRoutesUpdate(
+                routes.map((r) => (r.id === route.id ? response.data : r)),
+            );
+            onSelectedAlternativeIndexChange?.(null, null);
+            toast.success('Route updated successfully');
+        } catch (err) {
+            console.error('Failed to adopt alternative route:', err);
+            toast.error('Failed to adopt alternative route. Please try again.');
+        } finally {
+            setIsAdopting(false);
         }
     };
 
@@ -603,6 +639,28 @@ export default function RoutePanel({
                                                                     <AlternativeRoutesList
                                                                         alternatives={
                                                                             route.alternatives
+                                                                        }
+                                                                        selectedIndex={
+                                                                            highlightedRouteId ===
+                                                                            route.id
+                                                                                ? selectedAlternativeIndex
+                                                                                : null
+                                                                        }
+                                                                        isAdopting={
+                                                                            isAdopting
+                                                                        }
+                                                                        onSelect={(
+                                                                            index,
+                                                                        ) =>
+                                                                            onSelectedAlternativeIndexChange?.(
+                                                                                route.id,
+                                                                                index,
+                                                                            )
+                                                                        }
+                                                                        onAdopt={() =>
+                                                                            handleAdoptAlternative(
+                                                                                route,
+                                                                            )
                                                                         }
                                                                     />
                                                                 </>

@@ -57,6 +57,8 @@ export interface AlternativeRoute {
     distance: number;
     duration: number;
     num_transfers: number;
+    geometry: [number, number][] | null;
+    transit_details: TransitDetails | null;
 }
 
 export interface Route {
