@@ -33,6 +33,7 @@ import {
     useCallback,
     useEffect,
     useRef,
+    useState,
 } from 'react';
 
 interface TravelMapProps {
@@ -189,6 +190,22 @@ export default function TravelMap({
         togglePanel,
     });
 
+    // Alternative route selection state — tracks which alternative is currently
+    // selected for a given expanded public transport route
+    const [selectedAlternativeRouteId, setSelectedAlternativeRouteId] =
+        useState<number | null>(null);
+    const [selectedAlternativeIndex, setSelectedAlternativeIndex] = useState<
+        number | null
+    >(null);
+
+    const handleSelectedAlternativeIndexChange = useCallback(
+        (routeId: number | null, index: number | null) => {
+            setSelectedAlternativeRouteId(routeId);
+            setSelectedAlternativeIndex(index);
+        },
+        [],
+    );
+
     // Routes management - now with proper route click handler
     const { routes, setRoutes } = useRoutes({
         mapInstance,
@@ -197,10 +214,17 @@ export default function TravelMap({
         tours,
         expandedRoutes,
         highlightedRouteId,
+        selectedAlternativeIndex:
+            highlightedRouteId === selectedAlternativeRouteId
+                ? selectedAlternativeIndex
+                : null,
         onRouteClick: (routeId: number) => {
             if (handleRouteClickRef.current) {
                 handleRouteClickRef.current(routeId);
             }
+        },
+        onAlternativeClick: (routeId: number, index: number) => {
+            handleSelectedAlternativeIndexChange(routeId, index);
         },
     });
 
@@ -351,6 +375,11 @@ export default function TravelMap({
         handleAddAvailableMarkerToTour,
         selectedTrip,
         mapBounds,
+        selectedAlternativeIndex:
+            highlightedRouteId === selectedAlternativeRouteId
+                ? selectedAlternativeIndex
+                : null,
+        onSelectedAlternativeIndexChange: handleSelectedAlternativeIndexChange,
     };
 
     return (

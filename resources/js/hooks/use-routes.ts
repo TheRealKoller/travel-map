@@ -15,7 +15,9 @@ interface UseRoutesOptions {
     tours: Tour[];
     expandedRoutes: Set<number>;
     highlightedRouteId?: number | null;
+    selectedAlternativeIndex?: number | null;
     onRouteClick?: (routeId: number) => void;
+    onAlternativeClick?: (routeId: number, index: number) => void;
 }
 
 export function useRoutes({
@@ -25,17 +27,25 @@ export function useRoutes({
     tours,
     expandedRoutes,
     highlightedRouteId,
+    selectedAlternativeIndex,
     onRouteClick,
+    onAlternativeClick,
 }: UseRoutesOptions) {
     const [routes, setRoutes] = useState<Route[]>([]);
     const routeLayerIdsRef = useRef<Map<number, string>>(new Map());
     const transitStopLayerIdsRef = useRef<Map<number, string>>(new Map());
-    const onRouteClickRef = useRef(onRouteClick); // Store callback in ref to avoid re-rendering
+    const alternativeLayerIdsRef = useRef<Map<string, string>>(new Map());
+    const onRouteClickRef = useRef(onRouteClick);
+    const onAlternativeClickRef = useRef(onAlternativeClick);
 
     // Update ref when callback changes
     useEffect(() => {
         onRouteClickRef.current = onRouteClick;
     }, [onRouteClick]);
+
+    useEffect(() => {
+        onAlternativeClickRef.current = onAlternativeClick;
+    }, [onAlternativeClick]);
 
     // Load routes from database when trip changes
     useEffect(() => {
@@ -86,6 +96,17 @@ export function useRoutes({
             }
         });
         transitStopLayerIdsRef.current.clear();
+
+        // Clear existing alternative route layers
+        alternativeLayerIdsRef.current.forEach((layerId) => {
+            if (mapInstance.getLayer(layerId)) {
+                mapInstance.removeLayer(layerId);
+            }
+            if (mapInstance.getSource(layerId)) {
+                mapInstance.removeSource(layerId);
+            }
+        });
+        alternativeLayerIdsRef.current.clear();
 
         // Filter routes by selected tour (if a tour is selected)
         // If no tour is selected, only show expanded routes
@@ -346,6 +367,71 @@ export function useRoutes({
                     transitStopLayerIdsRef.current.set(route.id, stopsLayerId);
                 }
             }
+
+            // Render alternative route geometries for expanded public transport routes
+            if (
+                route.transport_mode.value === 'public-transport' &&
+                expandedRoutes.has(route.id) &&
+                route.alternatives &&
+                route.alternatives.length > 0
+            ) {
+                route.alternatives.forEach((alt, altIndex) => {
+                    if (!alt.geometry || alt.geometry.length === 0) {
+                        return;
+                    }
+
+                    const altLayerId = `route-${route.id}-alt-${altIndex}`;
+                    const isSelectedAlt = selectedAlternativeIndex === altIndex;
+
+                    mapInstance.addSource(altLayerId, {
+                        type: 'geojson',
+                        data: {
+                            type: 'Feature',
+                            properties: {},
+                            geometry: {
+                                type: 'LineString',
+                                coordinates: alt.geometry,
+                            },
+                        },
+                    });
+
+                    mapInstance.addLayer(
+                        {
+                            id: altLayerId,
+                            type: 'line',
+                            source: altLayerId,
+                            layout: {
+                                'line-join': 'round',
+                                'line-cap': 'round',
+                            },
+                            paint: {
+                                'line-color': '#3498db',
+                                'line-width': isSelectedAlt ? 5 : 3,
+                                'line-opacity': isSelectedAlt ? 0.85 : 0.35,
+                                'line-dasharray': [2, 2],
+                            },
+                        },
+                        beforeLayerId,
+                    );
+
+                    mapInstance.on('click', altLayerId, (e) => {
+                        e.originalEvent.stopPropagation();
+                        if (onAlternativeClickRef.current) {
+                            onAlternativeClickRef.current(route.id, altIndex);
+                        }
+                    });
+
+                    mapInstance.on('mouseenter', altLayerId, () => {
+                        mapInstance.getCanvas().style.cursor = 'pointer';
+                    });
+
+                    mapInstance.on('mouseleave', altLayerId, () => {
+                        mapInstance.getCanvas().style.cursor = 'crosshair';
+                    });
+
+                    alternativeLayerIdsRef.current.set(altLayerId, altLayerId);
+                });
+            }
         });
 
         // Ensure proper layer ordering after adding all routes
@@ -357,6 +443,7 @@ export function useRoutes({
         tours,
         expandedRoutes,
         highlightedRouteId,
+        selectedAlternativeIndex,
     ]);
 
     return {

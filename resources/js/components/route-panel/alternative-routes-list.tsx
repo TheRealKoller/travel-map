@@ -1,17 +1,28 @@
 /**
- * Component for displaying alternative public transport routes
- * Shows list of alternative route options with distance, duration and transfers
+ * Component for selecting alternative public transport routes.
+ * Allows the user to pick an alternative and adopt it as the primary route.
  */
 
+import { Button } from '@/components/ui/button';
 import { formatDurationFromSeconds } from '@/lib/route-formatting';
-import { AlternativeRoute } from '@/types/route';
+import { cn } from '@/lib/utils';
+import { type AlternativeRoute } from '@/types/route';
+import { Check } from 'lucide-react';
 
 interface AlternativeRoutesListProps {
     alternatives: AlternativeRoute[] | null;
+    selectedIndex: number | null;
+    isAdopting: boolean;
+    onSelect: (index: number) => void;
+    onAdopt: () => void;
 }
 
 export function AlternativeRoutesList({
     alternatives,
+    selectedIndex,
+    isAdopting,
+    onSelect,
+    onAdopt,
 }: AlternativeRoutesListProps) {
     if (!alternatives || alternatives.length === 0) return null;
 
@@ -22,9 +33,16 @@ export function AlternativeRoutesList({
             </h5>
             <div className="space-y-2">
                 {alternatives.map((alt, index) => (
-                    <div
+                    <button
                         key={index}
-                        className="flex items-center justify-between rounded-md bg-background p-2 text-xs"
+                        type="button"
+                        onClick={() => onSelect(index)}
+                        className={cn(
+                            'flex w-full cursor-pointer items-center justify-between rounded-md border p-2 text-xs transition-colors',
+                            selectedIndex === index
+                                ? 'border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-950/30'
+                                : 'border-transparent bg-background hover:border-muted-foreground/30 hover:bg-muted',
+                        )}
                     >
                         <span className="font-medium">Option {index + 2}</span>
                         <div className="flex items-center gap-3 text-muted-foreground">
@@ -40,10 +58,24 @@ export function AlternativeRoutesList({
                                     ? 'transfer'
                                     : 'transfers'}
                             </span>
+                            {selectedIndex === index && (
+                                <Check className="h-3 w-3 text-blue-500" />
+                            )}
                         </div>
-                    </div>
+                    </button>
                 ))}
             </div>
+
+            {selectedIndex !== null && (
+                <Button
+                    size="sm"
+                    className="mt-2 w-full"
+                    disabled={isAdopting}
+                    onClick={onAdopt}
+                >
+                    {isAdopting ? 'Adopting...' : 'Adopt this route'}
+                </Button>
+            )}
         </div>
     );
 }
