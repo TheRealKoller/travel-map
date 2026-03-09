@@ -1,4 +1,5 @@
 import TravelMap from '@/components/travel-map';
+import { type TripOwner } from '@/types';
 import { Tour } from '@/types/tour';
 import { Trip } from '@/types/trip';
 import { Dispatch, SetStateAction } from 'react';
@@ -18,6 +19,8 @@ interface MapContainerProps {
         tripId: number,
         viewport: { latitude: number; longitude: number; zoom: number },
     ) => Promise<void>;
+    tripName?: string;
+    owner?: TripOwner;
 }
 
 export function MapContainer({
@@ -32,6 +35,8 @@ export function MapContainer({
     onCreateTour,
     onDeleteTour,
     onSetViewport,
+    tripName,
+    owner,
 }: MapContainerProps) {
     return (
         <div className="fixed inset-0 h-screen w-screen overflow-hidden">
@@ -47,6 +52,8 @@ export function MapContainer({
                 onCreateTour={onCreateTour}
                 onDeleteTour={onDeleteTour}
                 onSetViewport={onSetViewport}
+                tripName={tripName}
+                owner={owner}
             />
         </div>
     );

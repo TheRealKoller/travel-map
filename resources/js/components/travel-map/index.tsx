@@ -22,6 +22,7 @@ import { useTourLines } from '@/hooks/use-tour-lines';
 import { useTourMarkers } from '@/hooks/use-tour-markers';
 import { useTripNotes } from '@/hooks/use-trip-notes';
 import { getBoundingBoxFromTrip } from '@/lib/map-utils';
+import { type TripOwner } from '@/types';
 import { Route } from '@/types/route';
 import { Tour } from '@/types/tour';
 import { Trip } from '@/types/trip';
@@ -49,6 +50,8 @@ interface TravelMapProps {
         tripId: number,
         viewport: { latitude: number; longitude: number; zoom: number },
     ) => Promise<void>;
+    tripName?: string;
+    owner?: TripOwner;
 }
 
 /**
@@ -76,6 +79,8 @@ export default function TravelMap({
     onCreateTour,
     onDeleteTour,
     onSetViewport,
+    tripName,
+    owner,
 }: TravelMapProps) {
     // Detect mobile/desktop breakpoint
     const { isMobileLayout } = useBreakpoint();
@@ -364,6 +369,8 @@ export default function TravelMap({
                 placeTypes={placeTypes}
                 selectedPlaceType={selectedPlaceType}
                 onPlaceTypeChange={setSelectedPlaceType}
+                tripName={tripName}
+                owner={owner}
             />
 
             {/* Map fills the entire screen */}

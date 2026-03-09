@@ -17,6 +17,7 @@ test('owner can view the map for their trip', function () {
             ->component('map')
             ->has('trip')
             ->where('trip.id', $trip->id)
+            ->where('trip.name', $trip->name)
             ->missing('owner')
         );
 });
@@ -76,6 +77,7 @@ test('admin viewing another user trip receives owner prop for banner', function 
         ->assertInertia(fn ($page) => $page
             ->component('map')
             ->where('trip.id', $trip->id)
+            ->where('trip.name', $trip->name)
             ->has('owner')
             ->where('owner.id', $owner->id)
             ->where('owner.name', $owner->name)

@@ -16,6 +16,7 @@ import {
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Slider } from '@/components/ui/slider';
 import { useLanguage } from '@/hooks/use-language';
+import { type TripOwner } from '@/types';
 import { SearchBoxRetrieveResponse } from '@mapbox/search-js-core';
 import { SearchBox } from '@mapbox/search-js-react';
 import { Settings } from 'lucide-react';
@@ -39,6 +40,8 @@ interface ToolbarProps {
     placeTypes?: PlaceType[];
     selectedPlaceType?: string;
     onPlaceTypeChange?: (placeType: string) => void;
+    tripName?: string;
+    owner?: TripOwner;
 }
 
 /**
@@ -56,6 +59,8 @@ export function Toolbar({
     placeTypes = [],
     selectedPlaceType = '',
     onPlaceTypeChange,
+    tripName,
+    owner,
 }: ToolbarProps) {
     const { language } = useLanguage();
     const [isOptionsOpen, setIsOptionsOpen] = useState(false);
@@ -87,6 +92,26 @@ export function Toolbar({
                     data-testid="sidebar-trigger"
                 />
             </div>
+
+            {/* Trip Name */}
+            {tripName && (
+                <div className="flex min-w-0 shrink-0 flex-col justify-center">
+                    {owner ? (
+                        <div className="flex flex-col gap-0.5">
+                            <span className="max-w-[160px] truncate rounded-sm border border-red-300 bg-red-100 px-2 py-0.5 text-sm font-semibold text-red-800 dark:border-red-700 dark:bg-red-900 dark:text-red-200">
+                                {tripName}
+                            </span>
+                            <span className="max-w-[160px] truncate px-2 text-xs text-red-600 dark:text-red-400">
+                                von {owner.name}
+                            </span>
+                        </div>
+                    ) : (
+                        <span className="max-w-[200px] truncate text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {tripName}
+                        </span>
+                    )}
+                </div>
+            )}
 
             {/* Search Box */}
             {accessToken && (
