@@ -219,24 +219,7 @@ it('stores is_manual as false for regular routes', function () {
 });
 
 it('rejects transit_details when transport mode is not manual-public-transport', function () {
-    config(['services.mapbox.access_token' => 'test-token']);
-
-    \Illuminate\Support\Facades\Http::fake([
-        'api.mapbox.com/*' => \Illuminate\Support\Facades\Http::response([
-            'routes' => [
-                [
-                    'distance' => 10000,
-                    'duration' => 600,
-                    'geometry' => [
-                        'coordinates' => [
-                            [$this->startMarker->longitude, $this->startMarker->latitude],
-                            [$this->endMarker->longitude, $this->endMarker->latitude],
-                        ],
-                    ],
-                ],
-            ],
-        ], 200),
-    ]);
+    \Illuminate\Support\Facades\Http::preventStrayRequests();
 
     $response = $this->postJson('/routes', [
         'trip_id' => $this->trip->id,
