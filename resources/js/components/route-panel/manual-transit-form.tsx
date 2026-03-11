@@ -301,7 +301,12 @@ export function ManualTransitForm({
 
                         {/* Vehicle type */}
                         <div>
-                            <Label className="text-xs">Type</Label>
+                            <Label
+                                htmlFor={`${baseId}-seg-${seg.id}-vehicle-type`}
+                                className="text-xs"
+                            >
+                                Type
+                            </Label>
                             <Select
                                 value={seg.vehicle_type}
                                 onValueChange={(v) =>
@@ -311,6 +316,7 @@ export function ManualTransitForm({
                                 }
                             >
                                 <SelectTrigger
+                                    id={`${baseId}-seg-${seg.id}-vehicle-type`}
                                     className="h-8 text-xs"
                                     data-testid={`segment-vehicle-type-${index}`}
                                 >
@@ -337,10 +343,14 @@ export function ManualTransitForm({
                                 {/* Line name */}
                                 <div className="grid grid-cols-2 gap-2">
                                     <div>
-                                        <Label className="text-xs">
+                                        <Label
+                                            htmlFor={`${baseId}-seg-${seg.id}-line-short`}
+                                            className="text-xs"
+                                        >
                                             Line / Number
                                         </Label>
                                         <Input
+                                            id={`${baseId}-seg-${seg.id}-line-short`}
                                             value={seg.line_short_name}
                                             onChange={(e) =>
                                                 updateSegment(index, {
@@ -354,10 +364,14 @@ export function ManualTransitForm({
                                         />
                                     </div>
                                     <div>
-                                        <Label className="text-xs">
+                                        <Label
+                                            htmlFor={`${baseId}-seg-${seg.id}-line-name`}
+                                            className="text-xs"
+                                        >
                                             Line name (opt.)
                                         </Label>
                                         <Input
+                                            id={`${baseId}-seg-${seg.id}-line-name`}
                                             value={seg.line_name}
                                             onChange={(e) =>
                                                 updateSegment(index, {
@@ -374,10 +388,14 @@ export function ManualTransitForm({
                                 {/* Stops */}
                                 <div className="grid grid-cols-2 gap-2">
                                     <div>
-                                        <Label className="text-xs">
+                                        <Label
+                                            htmlFor={`${baseId}-seg-${seg.id}-dep-stop`}
+                                            className="text-xs"
+                                        >
                                             Departure stop
                                         </Label>
                                         <Input
+                                            id={`${baseId}-seg-${seg.id}-dep-stop`}
                                             value={seg.departure_stop}
                                             onChange={(e) =>
                                                 updateSegment(index, {
@@ -391,10 +409,14 @@ export function ManualTransitForm({
                                         />
                                     </div>
                                     <div>
-                                        <Label className="text-xs">
+                                        <Label
+                                            htmlFor={`${baseId}-seg-${seg.id}-arr-stop`}
+                                            className="text-xs"
+                                        >
                                             Arrival stop
                                         </Label>
                                         <Input
+                                            id={`${baseId}-seg-${seg.id}-arr-stop`}
                                             value={seg.arrival_stop}
                                             onChange={(e) =>
                                                 updateSegment(index, {
@@ -412,10 +434,14 @@ export function ManualTransitForm({
                                 {/* Times */}
                                 <div className="grid grid-cols-2 gap-2">
                                     <div>
-                                        <Label className="text-xs">
+                                        <Label
+                                            htmlFor={`${baseId}-seg-${seg.id}-dep-time`}
+                                            className="text-xs"
+                                        >
                                             Departs at
                                         </Label>
                                         <Input
+                                            id={`${baseId}-seg-${seg.id}-dep-time`}
                                             type="time"
                                             value={seg.departure_time}
                                             onChange={(e) =>
@@ -429,10 +455,14 @@ export function ManualTransitForm({
                                         />
                                     </div>
                                     <div>
-                                        <Label className="text-xs">
+                                        <Label
+                                            htmlFor={`${baseId}-seg-${seg.id}-arr-time`}
+                                            className="text-xs"
+                                        >
                                             Arrives at
                                         </Label>
                                         <Input
+                                            id={`${baseId}-seg-${seg.id}-arr-time`}
                                             type="time"
                                             value={seg.arrival_time}
                                             onChange={(e) =>
@@ -449,10 +479,14 @@ export function ManualTransitForm({
 
                                 {/* Stops count */}
                                 <div>
-                                    <Label className="text-xs">
+                                    <Label
+                                        htmlFor={`${baseId}-seg-${seg.id}-num-stops`}
+                                        className="text-xs"
+                                    >
                                         Intermediate stops (opt.)
                                     </Label>
                                     <Input
+                                        id={`${baseId}-seg-${seg.id}-num-stops`}
                                         type="number"
                                         min="0"
                                         value={seg.num_stops}
@@ -472,10 +506,14 @@ export function ManualTransitForm({
                         {/* Duration + distance (both modes) */}
                         <div className="grid grid-cols-2 gap-2">
                             <div>
-                                <Label className="text-xs">
+                                <Label
+                                    htmlFor={`${baseId}-seg-${seg.id}-duration`}
+                                    className="text-xs"
+                                >
                                     Duration (min, opt.)
                                 </Label>
                                 <Input
+                                    id={`${baseId}-seg-${seg.id}-duration`}
                                     type="number"
                                     min="0"
                                     step="1"
@@ -491,10 +529,14 @@ export function ManualTransitForm({
                                 />
                             </div>
                             <div>
-                                <Label className="text-xs">
+                                <Label
+                                    htmlFor={`${baseId}-seg-${seg.id}-distance`}
+                                    className="text-xs"
+                                >
                                     Distance (km, opt.)
                                 </Label>
                                 <Input
+                                    id={`${baseId}-seg-${seg.id}-distance`}
                                     type="number"
                                     min="0"
                                     step="0.1"

@@ -158,7 +158,6 @@ export default function RoutePanel({
                     start_marker_id: startMarkerId,
                     end_marker_id: endMarkerId,
                     transport_mode: transportMode,
-                    is_manual: isManualMode,
                     waypoints:
                         pendingWaypoints.length > 0
                             ? pendingWaypoints
