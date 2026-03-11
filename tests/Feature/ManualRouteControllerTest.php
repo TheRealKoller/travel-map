@@ -22,7 +22,6 @@ it('can create a manual public transport route without segments', function () {
         'start_marker_id' => $this->startMarker->id,
         'end_marker_id' => $this->endMarker->id,
         'transport_mode' => 'manual-public-transport',
-        'is_manual' => true,
     ]);
 
     $response->assertCreated()
@@ -88,7 +87,6 @@ it('can create a manual public transport route with transit segments', function 
         'start_marker_id' => $this->startMarker->id,
         'end_marker_id' => $this->endMarker->id,
         'transport_mode' => 'manual-public-transport',
-        'is_manual' => true,
         'transit_details' => $transitDetails,
     ]);
 
@@ -109,16 +107,17 @@ it('can create a manual public transport route with transit segments', function 
 });
 
 it('does not call any external routing API for manual public transport routes', function () {
-    // No Http::fake() — if any HTTP call were made the test would fail with a connection refused error
+    \Illuminate\Support\Facades\Http::preventStrayRequests();
+
     $response = $this->postJson('/routes', [
         'trip_id' => $this->trip->id,
         'start_marker_id' => $this->startMarker->id,
         'end_marker_id' => $this->endMarker->id,
         'transport_mode' => 'manual-public-transport',
-        'is_manual' => true,
     ]);
 
     $response->assertCreated();
+    \Illuminate\Support\Facades\Http::assertNothingSent();
 });
 
 it('ignores waypoints provided for manual public transport routes', function () {
@@ -127,7 +126,6 @@ it('ignores waypoints provided for manual public transport routes', function () 
         'start_marker_id' => $this->startMarker->id,
         'end_marker_id' => $this->endMarker->id,
         'transport_mode' => 'manual-public-transport',
-        'is_manual' => true,
         'waypoints' => [
             ['lat' => 51.5, 'lng' => 10.0],
         ],
@@ -164,7 +162,6 @@ it('rejects transit_details with invalid structure', function () {
         'start_marker_id' => $this->startMarker->id,
         'end_marker_id' => $this->endMarker->id,
         'transport_mode' => 'manual-public-transport',
-        'is_manual' => true,
         'transit_details' => [
             'steps' => 'not-an-array',
         ],
@@ -180,7 +177,6 @@ it('accepts manual-public-transport as a valid transport mode', function () {
         'start_marker_id' => $this->startMarker->id,
         'end_marker_id' => $this->endMarker->id,
         'transport_mode' => 'manual-public-transport',
-        'is_manual' => true,
     ]);
 
     $response->assertCreated();
@@ -220,4 +216,42 @@ it('stores is_manual as false for regular routes', function () {
         'id' => $response->json('id'),
         'is_manual' => false,
     ]);
+});
+
+it('rejects transit_details when transport mode is not manual-public-transport', function () {
+    config(['services.mapbox.access_token' => 'test-token']);
+
+    \Illuminate\Support\Facades\Http::fake([
+        'api.mapbox.com/*' => \Illuminate\Support\Facades\Http::response([
+            'routes' => [
+                [
+                    'distance' => 10000,
+                    'duration' => 600,
+                    'geometry' => [
+                        'coordinates' => [
+                            [$this->startMarker->longitude, $this->startMarker->latitude],
+                            [$this->endMarker->longitude, $this->endMarker->latitude],
+                        ],
+                    ],
+                ],
+            ],
+        ], 200),
+    ]);
+
+    $response = $this->postJson('/routes', [
+        'trip_id' => $this->trip->id,
+        'start_marker_id' => $this->startMarker->id,
+        'end_marker_id' => $this->endMarker->id,
+        'transport_mode' => 'driving-car',
+        'transit_details' => [
+            'steps' => [],
+            'departure_time' => null,
+            'arrival_time' => null,
+            'start_address' => null,
+            'end_address' => null,
+        ],
+    ]);
+
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['transit_details']);
 });

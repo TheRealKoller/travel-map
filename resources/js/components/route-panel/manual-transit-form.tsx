@@ -31,6 +31,7 @@ import { useId } from 'react';
 type VehicleType = 'TRAIN' | 'BUS' | 'TRAM' | 'SUBWAY' | 'FERRY' | 'WALK';
 
 interface ManualSegment {
+    id: string;
     travel_mode: 'TRANSIT' | 'WALK';
     vehicle_type: VehicleType;
     departure_stop: string;
@@ -76,6 +77,7 @@ const vehicleOptions: {
 
 function createEmptySegment(): ManualSegment {
     return {
+        id: crypto.randomUUID(),
         travel_mode: 'TRANSIT',
         vehicle_type: 'TRAIN',
         departure_stop: '',
@@ -252,7 +254,7 @@ export function ManualTransitForm({
                 const isWalk = seg.vehicle_type === 'WALK';
                 return (
                     <div
-                        key={index}
+                        key={seg.id}
                         className="space-y-2 rounded-md border p-3"
                         data-testid={`manual-segment-${index}`}
                     >
