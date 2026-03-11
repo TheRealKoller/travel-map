@@ -219,28 +219,44 @@ it('stores is_manual as false for regular routes', function () {
 });
 
 it('rejects transit_details when transport mode is not manual-public-transport', function () {
-    \Illuminate\Support\Facades\Http::preventStrayRequests();
+    config(['services.mapbox.access_token' => 'test-token']);
 
-    $response = $this->postJson('/routes', [
+    \Illuminate\Support\Facades\Http::fake([
+        'api.mapbox.com/*' => \Illuminate\Support\Facades\Http::response([
+            'routes' => [[
+                'distance' => 10000,
+                'duration' => 600,
+                'geometry' => [
+                    'coordinates' => [
+                        [$this->startMarker->longitude, $this->startMarker->latitude],
+                        [$this->endMarker->longitude, $this->endMarker->latitude],
+                    ],
+                ],
+            ]],
+        ], 200),
+    ]);
+
+    $payload = [
         'trip_id' => $this->trip->id,
         'start_marker_id' => $this->startMarker->id,
         'end_marker_id' => $this->endMarker->id,
         'transport_mode' => 'driving-car',
         'transit_details' => [
-            'steps' => [
-                [
-                    'travel_mode' => 'TRANSIT',
-                    'distance' => 1000,
-                    'duration' => 600,
-                ],
-            ],
+            'steps' => [[
+                'travel_mode' => 'TRANSIT',
+                'distance' => 1000,
+                'duration' => 600,
+            ]],
             'departure_time' => '08:00',
             'arrival_time' => '09:00',
             'start_address' => 'Start',
             'end_address' => 'End',
         ],
-    ]);
+    ];
 
-    $response->assertUnprocessable()
+    // transit_details must be rejected for non-manual transport modes
+    // (prohibited_unless:transport_mode,manual-public-transport)
+    $this->postJson('/routes', $payload)
+        ->assertUnprocessable()
         ->assertJsonValidationErrors(['transit_details']);
 });

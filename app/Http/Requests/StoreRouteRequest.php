@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreRouteRequest extends FormRequest
 {
@@ -21,17 +22,18 @@ class StoreRouteRequest extends FormRequest
      */
     public function rules(): array
     {
+        $isNotManual = $this->input('transport_mode') !== 'manual-public-transport';
+
         return [
             'trip_id' => 'required|integer|exists:trips,id',
             'tour_id' => 'nullable|integer|exists:tours,id',
             'start_marker_id' => 'required|uuid|exists:markers,id',
             'end_marker_id' => 'required|uuid|exists:markers,id|different:start_marker_id',
             'transport_mode' => 'required|string|in:driving-car,cycling-regular,foot-walking,public-transport,manual-public-transport',
-            'is_manual' => 'boolean',
             'waypoints' => 'nullable|array|max:20',
             'waypoints.*.lat' => 'required_with:waypoints|numeric|between:-90,90',
             'waypoints.*.lng' => 'required_with:waypoints|numeric|between:-180,180',
-            'transit_details' => 'nullable|array',
+            'transit_details' => ['nullable', 'array', Rule::prohibitedIf($isNotManual)],
             'transit_details.steps' => 'nullable|array',
             'transit_details.steps.*.travel_mode' => 'required_with:transit_details.steps|string|in:TRANSIT,WALK',
             'transit_details.steps.*.distance' => 'nullable|numeric|min:0',
