@@ -7,7 +7,7 @@ import { TabButton } from '@/components/tab-button';
 import TourPanel from '@/components/tour-panel';
 import { PanelType } from '@/hooks/use-panels';
 import { MarkerData, MarkerType } from '@/types/marker';
-import { Route } from '@/types/route';
+import { Route, Waypoint } from '@/types/route';
 import { Tour } from '@/types/tour';
 import { Trip } from '@/types/trip';
 import { Bot, List, Map as MapIcon, Route as RouteIcon } from 'lucide-react';
@@ -72,6 +72,13 @@ interface DesktopPanelsProps {
         index: number | null,
     ) => void;
 
+    // Waypoint mode
+    isWaypointMode: boolean;
+    setIsWaypointMode: (value: boolean) => void;
+    pendingWaypoints: Waypoint[];
+    onRemoveWaypoint: (index: number) => void;
+    onClearWaypoints: () => void;
+
     // Available marker selection (for tours)
     selectedAvailableMarkerId: string | null;
     handleSelectAvailableMarker: (markerId: string | null) => void;
@@ -129,6 +136,11 @@ export function DesktopPanels({
     mapBounds,
     selectedAlternativeIndex,
     onSelectedAlternativeIndexChange,
+    isWaypointMode,
+    setIsWaypointMode,
+    pendingWaypoints,
+    onRemoveWaypoint,
+    onClearWaypoints,
 }: DesktopPanelsProps) {
     const { t } = useTranslation();
 
@@ -262,6 +274,11 @@ export function DesktopPanels({
                         onSelectedAlternativeIndexChange={
                             onSelectedAlternativeIndexChange
                         }
+                        isWaypointMode={isWaypointMode}
+                        onWaypointModeChange={setIsWaypointMode}
+                        pendingWaypoints={pendingWaypoints}
+                        onRemoveWaypoint={onRemoveWaypoint}
+                        onClearWaypoints={onClearWaypoints}
                     />
                 </FloatingPanel>
             )}

@@ -2,7 +2,7 @@ import {
     ensureVectorLayerOrder,
     getFirstSymbolLayerId,
 } from '@/lib/map-layers';
-import { Route } from '@/types/route';
+import { Route, Waypoint } from '@/types/route';
 import { Tour } from '@/types/tour';
 import axios from 'axios';
 import mapboxgl from 'mapbox-gl';
@@ -34,6 +34,7 @@ export function useRoutes({
     const [routes, setRoutes] = useState<Route[]>([]);
     const routeLayerIdsRef = useRef<Map<number, string>>(new Map());
     const transitStopLayerIdsRef = useRef<Map<number, string>>(new Map());
+    const waypointLayerIdsRef = useRef<Map<number, string>>(new Map());
     const alternativeLayerIdsRef = useRef<Map<string, string>>(new Map());
     const onRouteClickRef = useRef(onRouteClick);
     const onAlternativeClickRef = useRef(onAlternativeClick);
@@ -96,6 +97,17 @@ export function useRoutes({
             }
         });
         transitStopLayerIdsRef.current.clear();
+
+        // Clear existing waypoint layers
+        waypointLayerIdsRef.current.forEach((layerId) => {
+            if (mapInstance.getLayer(layerId)) {
+                mapInstance.removeLayer(layerId);
+            }
+            if (mapInstance.getSource(layerId)) {
+                mapInstance.removeSource(layerId);
+            }
+        });
+        waypointLayerIdsRef.current.clear();
 
         // Clear existing alternative route layers
         alternativeLayerIdsRef.current.forEach((layerId) => {
@@ -366,6 +378,49 @@ export function useRoutes({
 
                     transitStopLayerIdsRef.current.set(route.id, stopsLayerId);
                 }
+            }
+
+            // Render saved waypoints as small circles on non-public-transport routes
+            if (
+                route.transport_mode.value !== 'public-transport' &&
+                route.waypoints &&
+                route.waypoints.length > 0
+            ) {
+                const waypointsLayerId = `route-${route.id}-waypoints`;
+
+                mapInstance.addSource(waypointsLayerId, {
+                    type: 'geojson',
+                    data: {
+                        type: 'FeatureCollection',
+                        features: (route.waypoints as Waypoint[]).map((wp) => ({
+                            type: 'Feature' as const,
+                            properties: {},
+                            geometry: {
+                                type: 'Point' as const,
+                                coordinates: [wp.lng, wp.lat],
+                            },
+                        })),
+                    },
+                });
+
+                mapInstance.addLayer(
+                    {
+                        id: waypointsLayerId,
+                        type: 'circle',
+                        source: waypointsLayerId,
+                        paint: {
+                            'circle-radius': 6,
+                            'circle-color': color,
+                            'circle-opacity': isHighlighted ? 0.95 : 0.8,
+                            'circle-stroke-width': 2,
+                            'circle-stroke-color': '#ffffff',
+                            'circle-stroke-opacity': 0.9,
+                        },
+                    },
+                    beforeLayerId,
+                );
+
+                waypointLayerIdsRef.current.set(route.id, waypointsLayerId);
             }
 
             // Render alternative route geometries for expanded public transport routes

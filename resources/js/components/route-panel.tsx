@@ -24,7 +24,7 @@ import {
 import { formatDuration } from '@/lib/route-formatting';
 import { getTransportColor, getTransportIcon } from '@/lib/transport-utils';
 import { MarkerApiData } from '@/types/marker';
-import { Route, TransportMode } from '@/types/route';
+import { Route, TransportMode, Waypoint } from '@/types/route';
 import { Tour } from '@/types/tour';
 import axios from 'axios';
 import {
@@ -33,9 +33,11 @@ import {
     Car,
     ChevronDown,
     ChevronUp,
+    MapPin,
     PersonStanding,
     Train,
     Trash2,
+    X,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -59,6 +61,11 @@ interface RoutePanelProps {
         routeId: number | null,
         index: number | null,
     ) => void;
+    isWaypointMode?: boolean;
+    onWaypointModeChange?: (value: boolean) => void;
+    pendingWaypoints?: Waypoint[];
+    onRemoveWaypoint?: (index: number) => void;
+    onClearWaypoints?: () => void;
 }
 
 export default function RoutePanel({
@@ -77,6 +84,11 @@ export default function RoutePanel({
     onTourUpdate,
     selectedAlternativeIndex = null,
     onSelectedAlternativeIndexChange,
+    isWaypointMode = false,
+    onWaypointModeChange,
+    pendingWaypoints = [],
+    onRemoveWaypoint,
+    onClearWaypoints,
 }: RoutePanelProps) {
     const [startMarkerId, setStartMarkerId] =
         useState<string>(initialStartMarkerId);
@@ -123,6 +135,10 @@ export default function RoutePanel({
                     start_marker_id: startMarkerId,
                     end_marker_id: endMarkerId,
                     transport_mode: transportMode,
+                    waypoints:
+                        pendingWaypoints.length > 0
+                            ? pendingWaypoints
+                            : undefined,
                 },
                 {
                     headers: {
@@ -139,6 +155,8 @@ export default function RoutePanel({
             setStartMarkerId('');
             setEndMarkerId('');
             setTransportMode('driving-car');
+            onClearWaypoints?.();
+            onWaypointModeChange?.(false);
         } catch (err) {
             console.error('Failed to create route:', err);
             console.error('Request payload:', {
@@ -363,9 +381,14 @@ export default function RoutePanel({
                         <Label htmlFor="transport-mode">Transport Mode</Label>
                         <Select
                             value={transportMode}
-                            onValueChange={(value) =>
-                                setTransportMode(value as TransportMode)
-                            }
+                            onValueChange={(value) => {
+                                const newMode = value as TransportMode;
+                                setTransportMode(newMode);
+                                if (newMode === 'public-transport') {
+                                    onClearWaypoints?.();
+                                    onWaypointModeChange?.(false);
+                                }
+                            }}
                         >
                             <SelectTrigger id="transport-mode">
                                 <SelectValue />
@@ -398,6 +421,78 @@ export default function RoutePanel({
                             </SelectContent>
                         </Select>
                     </div>
+
+                    {/* Waypoint mode toggle - not available for public transport */}
+                    {onWaypointModeChange &&
+                        transportMode !== 'public-transport' && (
+                            <div className="space-y-2">
+                                <Button
+                                    type="button"
+                                    variant={
+                                        isWaypointMode ? 'default' : 'outline'
+                                    }
+                                    size="sm"
+                                    onClick={() =>
+                                        onWaypointModeChange(!isWaypointMode)
+                                    }
+                                    className="w-full"
+                                    data-testid="waypoint-mode-toggle"
+                                >
+                                    <MapPin className="mr-2 h-4 w-4" />
+                                    {isWaypointMode
+                                        ? 'Click map to add waypoints (active)'
+                                        : 'Add waypoints'}
+                                </Button>
+
+                                {pendingWaypoints.length > 0 && (
+                                    <div className="space-y-1 rounded-md border p-2">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-medium text-muted-foreground">
+                                                Waypoints (
+                                                {pendingWaypoints.length}
+                                                /20)
+                                            </span>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={onClearWaypoints}
+                                                className="h-5 px-2 text-xs text-muted-foreground hover:text-destructive"
+                                                data-testid="clear-waypoints"
+                                            >
+                                                Clear all
+                                            </Button>
+                                        </div>
+                                        {pendingWaypoints.map((wp, index) => (
+                                            <div
+                                                key={index}
+                                                className="flex items-center justify-between rounded bg-muted/50 px-2 py-1 text-xs"
+                                            >
+                                                <span className="font-mono text-muted-foreground">
+                                                    {index + 1}.{' '}
+                                                    {wp.lat.toFixed(5)},{' '}
+                                                    {wp.lng.toFixed(5)}
+                                                </span>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() =>
+                                                        onRemoveWaypoint?.(
+                                                            index,
+                                                        )
+                                                    }
+                                                    className="h-4 w-4 text-muted-foreground hover:text-destructive"
+                                                    data-testid={`remove-waypoint-${index}`}
+                                                >
+                                                    <X className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                     {error && (
                         <div className="rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-400">

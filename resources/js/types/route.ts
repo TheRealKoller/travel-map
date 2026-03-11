@@ -4,6 +4,11 @@ export type TransportMode =
     | 'foot-walking'
     | 'public-transport';
 
+export interface Waypoint {
+    lat: number;
+    lng: number;
+}
+
 export interface RouteMarker {
     id: string;
     name: string;
@@ -80,6 +85,7 @@ export interface Route {
         minutes: number;
     };
     geometry: [number, number][]; // GeoJSON coordinates [lng, lat]
+    waypoints: Waypoint[] | null;
     transit_details: TransitDetails | null;
     alternatives: AlternativeRoute[] | null;
     warning: string | null;

@@ -7,7 +7,7 @@ import RoutePanel from '@/components/route-panel';
 import TourPanel from '@/components/tour-panel';
 import { PanelType } from '@/hooks/use-panels';
 import { MarkerData, MarkerType } from '@/types/marker';
-import { Route } from '@/types/route';
+import { Route, Waypoint } from '@/types/route';
 import { Tour } from '@/types/tour';
 import { Trip } from '@/types/trip';
 import { AnimatePresence } from 'framer-motion';
@@ -72,6 +72,13 @@ interface MobilePanelsProps {
         index: number | null,
     ) => void;
 
+    // Waypoint mode
+    isWaypointMode: boolean;
+    setIsWaypointMode: (value: boolean) => void;
+    pendingWaypoints: Waypoint[];
+    onRemoveWaypoint: (index: number) => void;
+    onClearWaypoints: () => void;
+
     // Available marker selection (for tours)
     selectedAvailableMarkerId: string | null;
     handleSelectAvailableMarker: (markerId: string | null) => void;
@@ -129,6 +136,11 @@ export function MobilePanels({
     mapBounds,
     selectedAlternativeIndex,
     onSelectedAlternativeIndexChange,
+    isWaypointMode,
+    setIsWaypointMode,
+    pendingWaypoints,
+    onRemoveWaypoint,
+    onClearWaypoints,
 }: MobilePanelsProps) {
     const { t } = useTranslation();
 
@@ -237,6 +249,11 @@ export function MobilePanels({
                             onSelectedAlternativeIndexChange={
                                 onSelectedAlternativeIndexChange
                             }
+                            isWaypointMode={isWaypointMode}
+                            onWaypointModeChange={setIsWaypointMode}
+                            pendingWaypoints={pendingWaypoints}
+                            onRemoveWaypoint={onRemoveWaypoint}
+                            onClearWaypoints={onClearWaypoints}
                         />
                     </DraggableSheet>
                 )}

@@ -27,6 +27,9 @@ class StoreRouteRequest extends FormRequest
             'start_marker_id' => 'required|uuid|exists:markers,id',
             'end_marker_id' => 'required|uuid|exists:markers,id|different:start_marker_id',
             'transport_mode' => 'required|string|in:driving-car,cycling-regular,foot-walking,public-transport',
+            'waypoints' => 'nullable|array|max:20',
+            'waypoints.*.lat' => 'required_with:waypoints|numeric|between:-90,90',
+            'waypoints.*.lng' => 'required_with:waypoints|numeric|between:-180,180',
         ];
     }
 }

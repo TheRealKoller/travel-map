@@ -22,6 +22,7 @@ class RoutingService
     /**
      * Calculate route between two markers using Mapbox Directions API.
      *
+     * @param  array<int, array{lat: float, lng: float}>  $waypoints
      * @return array{distance: int, duration: int, geometry: array, warning: string|null}
      *
      * @throws RouteNotFoundException
@@ -31,7 +32,8 @@ class RoutingService
     public function calculateRoute(
         Marker $startMarker,
         Marker $endMarker,
-        TransportMode $transportMode = TransportMode::DrivingCar
+        TransportMode $transportMode = TransportMode::DrivingCar,
+        array $waypoints = []
     ): array {
         // Use Google Transit API for public transport
         if ($transportMode === TransportMode::PublicTransport) {
@@ -39,7 +41,7 @@ class RoutingService
         }
 
         // Use Mapbox for other transport modes
-        return $this->calculateMapboxRoute($startMarker, $endMarker, $transportMode);
+        return $this->calculateMapboxRoute($startMarker, $endMarker, $transportMode, $waypoints);
     }
 
     /**
@@ -146,6 +148,7 @@ class RoutingService
     /**
      * Calculate route using Mapbox Directions API.
      *
+     * @param  array<int, array{lat: float, lng: float}>  $waypoints
      * @return array{distance: int, duration: int, geometry: array, transit_details: null, alternatives: null, warning: string|null}
      *
      * @throws RouteNotFoundException
@@ -155,7 +158,8 @@ class RoutingService
     private function calculateMapboxRoute(
         Marker $startMarker,
         Marker $endMarker,
-        TransportMode $transportMode
+        TransportMode $transportMode,
+        array $waypoints = []
     ): array {
         // Check quota before making request
         $this->limiter->checkQuota();
@@ -168,13 +172,18 @@ class RoutingService
 
         $profile = $this->getMapboxProfile($transportMode);
 
-        $coordinates = sprintf(
-            '%s,%s;%s,%s',
-            $startMarker->longitude,
-            $startMarker->latitude,
-            $endMarker->longitude,
-            $endMarker->latitude
-        );
+        // Build coordinate string: start ; waypoints... ; end
+        $coordinateParts = [
+            sprintf('%s,%s', $startMarker->longitude, $startMarker->latitude),
+        ];
+
+        foreach ($waypoints as $waypoint) {
+            $coordinateParts[] = sprintf('%s,%s', $waypoint['lng'], $waypoint['lat']);
+        }
+
+        $coordinateParts[] = sprintf('%s,%s', $endMarker->longitude, $endMarker->latitude);
+
+        $coordinates = implode(';', $coordinateParts);
 
         $url = sprintf(
             '%s/directions/v5/mapbox/%s/%s',
