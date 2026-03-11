@@ -33,6 +33,7 @@ class RouteResource extends JsonResource
                 'minutes' => $this->duration_in_minutes,
             ],
             'geometry' => $this->geometry,
+            'waypoints' => $this->waypoints,
             'transit_details' => $this->transit_details,
             'alternatives' => $this->alternatives,
             'warning' => $this->warning,

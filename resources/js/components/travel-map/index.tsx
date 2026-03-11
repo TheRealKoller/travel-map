@@ -21,6 +21,7 @@ import { useSearchResults } from '@/hooks/use-search-results';
 import { useTourLines } from '@/hooks/use-tour-lines';
 import { useTourMarkers } from '@/hooks/use-tour-markers';
 import { useTripNotes } from '@/hooks/use-trip-notes';
+import { useWaypointMode } from '@/hooks/use-waypoint-mode';
 import { getBoundingBoxFromTrip } from '@/lib/map-utils';
 import { type TripOwner } from '@/types';
 import { Route } from '@/types/route';
@@ -132,6 +133,17 @@ export default function TravelMap({
     const { isSearchMode, setIsSearchMode, isSearchModeRef } = useSearchMode({
         mapInstance,
     });
+
+    // Waypoint mode management
+    const {
+        isWaypointMode,
+        setIsWaypointMode,
+        isWaypointModeRef,
+        pendingWaypoints,
+        addWaypoint,
+        removeWaypoint,
+        clearWaypoints,
+    } = useWaypointMode({ mapInstance });
 
     // Search radius management
     const { searchRadius, setSearchRadius } = useSearchRadius();
@@ -313,8 +325,10 @@ export default function TravelMap({
     useMapInteractions({
         mapInstance,
         isSearchModeRef,
+        isWaypointModeRef,
         onMarkerCreated: addMarker,
         onMarkerSelected: setSelectedMarkerId,
+        onWaypointAdded: addWaypoint,
     });
 
     // Auto-open markers panel when a marker is selected, except when managing a tour in the open Tour panel
@@ -380,6 +394,11 @@ export default function TravelMap({
                 ? selectedAlternativeIndex
                 : null,
         onSelectedAlternativeIndexChange: handleSelectedAlternativeIndexChange,
+        isWaypointMode,
+        setIsWaypointMode,
+        pendingWaypoints,
+        onRemoveWaypoint: removeWaypoint,
+        onClearWaypoints: clearWaypoints,
     };
 
     return (

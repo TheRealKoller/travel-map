@@ -3,6 +3,7 @@ import {
     getMarkerTypeFromMapboxClass,
 } from '@/lib/marker-utils';
 import { MarkerData, MarkerType } from '@/types/marker';
+import { Waypoint } from '@/types/route';
 import mapboxgl, {
     FeatureSelector,
     GeoJSONFeature,
@@ -14,17 +15,26 @@ import { v4 as uuidv4 } from 'uuid';
 interface UseMapInteractionsOptions {
     mapInstance: mapboxgl.Map | null;
     isSearchModeRef: React.MutableRefObject<boolean>;
+    isWaypointModeRef?: React.MutableRefObject<boolean>;
     onMarkerCreated: (marker: MarkerData) => void;
     onMarkerSelected: (markerId: string) => void;
+    onWaypointAdded?: (waypoint: Waypoint) => void;
 }
 
 export function useMapInteractions({
     mapInstance,
     isSearchModeRef,
+    isWaypointModeRef,
     onMarkerCreated,
     onMarkerSelected,
+    onWaypointAdded,
 }: UseMapInteractionsOptions) {
     const registeredInteractionIdsRef = useRef<Set<string>>(new Set());
+    const onWaypointAddedRef = useRef(onWaypointAdded);
+
+    useEffect(() => {
+        onWaypointAddedRef.current = onWaypointAdded;
+    }, [onWaypointAdded]);
 
     useEffect(() => {
         if (!mapInstance) return;
@@ -378,6 +388,17 @@ export function useMapInteractions({
                 return f.layer?.id?.startsWith('tour-line-');
             });
 
+            // In waypoint mode, intercept clicks to add waypoints instead of markers
+            if (isWaypointModeRef?.current) {
+                if (!hasInteractiveFeature && !hasTourLineLayer) {
+                    onWaypointAddedRef.current?.({
+                        lat: e.lngLat.lat,
+                        lng: e.lngLat.lng,
+                    });
+                }
+                return;
+            }
+
             if (hasInteractiveFeature || hasRouteLayer || hasTourLineLayer) {
                 console.log(
                     'handleMapClick: Interactive feature, route layer, or tour line clicked, ignoring',
@@ -435,5 +456,11 @@ export function useMapInteractions({
         return () => {
             mapInstance.off('click', handleMapClick);
         };
-    }, [mapInstance, isSearchModeRef, onMarkerCreated, onMarkerSelected]);
+    }, [
+        mapInstance,
+        isSearchModeRef,
+        isWaypointModeRef,
+        onMarkerCreated,
+        onMarkerSelected,
+    ]);
 }

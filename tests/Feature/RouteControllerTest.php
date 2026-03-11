@@ -561,3 +561,124 @@ it('can create a route with tour_id', function () {
         'end_marker_id' => $this->endMarker->id,
     ]);
 });
+
+it('can create a route with waypoints and stores them in the database', function () {
+    config(['services.mapbox.access_token' => 'test-token']);
+
+    Http::fake([
+        'api.mapbox.com/*' => Http::response([
+            'routes' => [
+                [
+                    'distance' => 15000,
+                    'duration' => 900,
+                    'geometry' => [
+                        'coordinates' => [
+                            [$this->startMarker->longitude, $this->startMarker->latitude],
+                            [1.5, 49.0],
+                            [$this->endMarker->longitude, $this->endMarker->latitude],
+                        ],
+                    ],
+                ],
+            ],
+        ], 200),
+    ]);
+
+    $waypoints = [
+        ['lat' => 49.0, 'lng' => 1.5],
+    ];
+
+    $response = $this->postJson('/routes', [
+        'trip_id' => $this->trip->id,
+        'start_marker_id' => $this->startMarker->id,
+        'end_marker_id' => $this->endMarker->id,
+        'transport_mode' => 'foot-walking',
+        'waypoints' => $waypoints,
+    ]);
+
+    $response->assertCreated()
+        ->assertJsonPath('waypoints.0.lat', 49)
+        ->assertJsonPath('waypoints.0.lng', 1.5);
+
+    $this->assertDatabaseHas('routes', [
+        'trip_id' => $this->trip->id,
+        'start_marker_id' => $this->startMarker->id,
+        'end_marker_id' => $this->endMarker->id,
+        'transport_mode' => 'foot-walking',
+    ]);
+});
+
+it('creates a route without waypoints when not provided', function () {
+    config(['services.mapbox.access_token' => 'test-token']);
+
+    Http::fake([
+        'api.mapbox.com/*' => Http::response([
+            'routes' => [
+                [
+                    'distance' => 10000,
+                    'duration' => 600,
+                    'geometry' => [
+                        'coordinates' => [
+                            [$this->startMarker->longitude, $this->startMarker->latitude],
+                            [$this->endMarker->longitude, $this->endMarker->latitude],
+                        ],
+                    ],
+                ],
+            ],
+        ], 200),
+    ]);
+
+    $response = $this->postJson('/routes', [
+        'trip_id' => $this->trip->id,
+        'start_marker_id' => $this->startMarker->id,
+        'end_marker_id' => $this->endMarker->id,
+        'transport_mode' => 'driving-car',
+    ]);
+
+    $response->assertCreated()
+        ->assertJsonPath('waypoints', null);
+});
+
+it('rejects waypoints with invalid latitude', function () {
+    $response = $this->postJson('/routes', [
+        'trip_id' => $this->trip->id,
+        'start_marker_id' => $this->startMarker->id,
+        'end_marker_id' => $this->endMarker->id,
+        'transport_mode' => 'foot-walking',
+        'waypoints' => [
+            ['lat' => 999.0, 'lng' => 1.5],
+        ],
+    ]);
+
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['waypoints.0.lat']);
+});
+
+it('rejects waypoints with invalid longitude', function () {
+    $response = $this->postJson('/routes', [
+        'trip_id' => $this->trip->id,
+        'start_marker_id' => $this->startMarker->id,
+        'end_marker_id' => $this->endMarker->id,
+        'transport_mode' => 'foot-walking',
+        'waypoints' => [
+            ['lat' => 49.0, 'lng' => 999.0],
+        ],
+    ]);
+
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['waypoints.0.lng']);
+});
+
+it('rejects more than 20 waypoints', function () {
+    $tooManyWaypoints = array_fill(0, 21, ['lat' => 49.0, 'lng' => 1.5]);
+
+    $response = $this->postJson('/routes', [
+        'trip_id' => $this->trip->id,
+        'start_marker_id' => $this->startMarker->id,
+        'end_marker_id' => $this->endMarker->id,
+        'transport_mode' => 'foot-walking',
+        'waypoints' => $tooManyWaypoints,
+    ]);
+
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['waypoints']);
+});
