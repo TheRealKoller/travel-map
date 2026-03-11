@@ -25,6 +25,7 @@ class Route extends Model
         'transit_details',
         'alternatives',
         'warning',
+        'is_manual',
     ];
 
     protected function casts(): array
@@ -37,6 +38,7 @@ class Route extends Model
             'alternatives' => 'array',
             'distance' => 'integer',
             'duration' => 'integer',
+            'is_manual' => 'boolean',
         ];
     }
 

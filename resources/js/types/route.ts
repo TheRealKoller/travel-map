@@ -2,7 +2,8 @@ export type TransportMode =
     | 'driving-car'
     | 'cycling-regular'
     | 'foot-walking'
-    | 'public-transport';
+    | 'public-transport'
+    | 'manual-public-transport';
 
 export interface Waypoint {
     lat: number;
@@ -89,6 +90,7 @@ export interface Route {
     transit_details: TransitDetails | null;
     alternatives: AlternativeRoute[] | null;
     warning: string | null;
+    is_manual: boolean;
     created_at: string;
     updated_at: string;
 }

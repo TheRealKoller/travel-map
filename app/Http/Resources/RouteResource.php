@@ -37,6 +37,7 @@ class RouteResource extends JsonResource
             'transit_details' => $this->transit_details,
             'alternatives' => $this->alternatives,
             'warning' => $this->warning,
+            'is_manual' => $this->is_manual,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

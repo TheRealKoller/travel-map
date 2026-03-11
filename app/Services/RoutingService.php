@@ -35,6 +35,11 @@ class RoutingService
         TransportMode $transportMode = TransportMode::DrivingCar,
         array $waypoints = []
     ): array {
+        // Manual public transport: no API call needed
+        if ($transportMode === TransportMode::ManualPublicTransport) {
+            return $this->buildManualRouteData();
+        }
+
         // Use Google Transit API for public transport
         if ($transportMode === TransportMode::PublicTransport) {
             return $this->calculateTransitRoute($startMarker, $endMarker);
@@ -42,6 +47,22 @@ class RoutingService
 
         // Use Mapbox for other transport modes
         return $this->calculateMapboxRoute($startMarker, $endMarker, $transportMode, $waypoints);
+    }
+
+    /**
+     * Return placeholder route data for manually entered routes.
+     * No geometry or distance is calculated — transit_details carry all meaningful info.
+     */
+    private function buildManualRouteData(): array
+    {
+        return [
+            'distance' => 0,
+            'duration' => 0,
+            'geometry' => [],
+            'transit_details' => null,
+            'alternatives' => null,
+            'warning' => null,
+        ];
     }
 
     /**
@@ -446,7 +467,8 @@ class RoutingService
             TransportMode::DrivingCar => 'driving-traffic',
             TransportMode::CyclingRegular => 'cycling',
             TransportMode::FootWalking => 'walking',
-            TransportMode::PublicTransport => 'driving-traffic', // Should not be reached anymore
+            TransportMode::PublicTransport,
+            TransportMode::ManualPublicTransport => 'driving-traffic', // Should not be reached
         };
     }
 }

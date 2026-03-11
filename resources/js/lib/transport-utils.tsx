@@ -18,6 +18,7 @@ export function getTransportIcon(mode: TransportMode): ReactElement {
         case 'foot-walking':
             return <PersonStanding className="h-4 w-4" />;
         case 'public-transport':
+        case 'manual-public-transport':
             return <Train className="h-4 w-4" />;
     }
 }
@@ -34,6 +35,7 @@ export function getTransportColor(mode: TransportMode): string {
         case 'foot-walking':
             return 'text-green-600';
         case 'public-transport':
+        case 'manual-public-transport':
             return 'text-blue-600';
     }
 }
