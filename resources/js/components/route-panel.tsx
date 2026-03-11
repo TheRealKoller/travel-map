@@ -381,9 +381,14 @@ export default function RoutePanel({
                         <Label htmlFor="transport-mode">Transport Mode</Label>
                         <Select
                             value={transportMode}
-                            onValueChange={(value) =>
-                                setTransportMode(value as TransportMode)
-                            }
+                            onValueChange={(value) => {
+                                const newMode = value as TransportMode;
+                                setTransportMode(newMode);
+                                if (newMode === 'public-transport') {
+                                    onClearWaypoints?.();
+                                    onWaypointModeChange?.(false);
+                                }
+                            }}
                         >
                             <SelectTrigger id="transport-mode">
                                 <SelectValue />

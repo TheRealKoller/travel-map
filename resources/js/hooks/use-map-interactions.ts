@@ -390,7 +390,11 @@ export function useMapInteractions({
 
             // In waypoint mode, intercept clicks to add waypoints instead of markers
             if (isWaypointModeRef?.current) {
-                if (!hasInteractiveFeature && !hasTourLineLayer) {
+                if (
+                    !hasInteractiveFeature &&
+                    !hasRouteLayer &&
+                    !hasTourLineLayer
+                ) {
                     onWaypointAddedRef.current?.({
                         lat: e.lngLat.lat,
                         lng: e.lngLat.lng,

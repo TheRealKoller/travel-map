@@ -57,6 +57,9 @@ class RouteController extends Controller
         try {
             $transportMode = TransportMode::from($validated['transport_mode']);
             $waypoints = $validated['waypoints'] ?? [];
+            if ($transportMode === TransportMode::PublicTransport) {
+                $waypoints = [];
+            }
             $routeData = $this->routingService->calculateRoute($startMarker, $endMarker, $transportMode, $waypoints);
 
             $route = Route::create([

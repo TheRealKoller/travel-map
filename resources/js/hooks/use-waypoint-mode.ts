@@ -18,7 +18,7 @@ export function useWaypointMode({ mapInstance }: UseWaypointModeOptions) {
         if (isWaypointMode) {
             mapInstance.getCanvas().style.cursor = 'crosshair';
         } else {
-            mapInstance.getCanvas().style.cursor = 'crosshair';
+            mapInstance.getCanvas().style.cursor = '';
         }
     }, [isWaypointMode, mapInstance]);
 

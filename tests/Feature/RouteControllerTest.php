@@ -604,6 +604,7 @@ it('can create a route with waypoints and stores them in the database', function
         'start_marker_id' => $this->startMarker->id,
         'end_marker_id' => $this->endMarker->id,
         'transport_mode' => 'foot-walking',
+        'waypoints' => json_encode($waypoints),
     ]);
 });
 
