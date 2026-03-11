@@ -1,7 +1,12 @@
 import DeleteRouteDialog from '@/components/delete-route-dialog';
 import OptimizeTourDialog from '@/components/optimize-tour-dialog';
 import { AlternativeRoutesList } from '@/components/route-panel/alternative-routes-list';
+import {
+    ManualTransitForm,
+    buildTransitDetails,
+} from '@/components/route-panel/manual-transit-form';
 import { TransitDetailsView } from '@/components/route-panel/transit-details-view';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
@@ -102,6 +107,15 @@ export default function RoutePanel({
     const [deleteRouteId, setDeleteRouteId] = useState<number | null>(null);
     const [showOptimizeTourDialog, setShowOptimizeTourDialog] = useState(false);
 
+    // Manual transit form state
+    const [manualSegments, setManualSegments] = useState<
+        Parameters<typeof ManualTransitForm>[0]['value']
+    >([]);
+    const [manualDepartureTime, setManualDepartureTime] = useState('');
+    const [manualArrivalTime, setManualArrivalTime] = useState('');
+
+    const isManualMode = transportMode === 'manual-public-transport';
+
     // Update marker IDs when initialStartMarkerId or initialEndMarkerId changes
     useEffect(() => {
         if (initialStartMarkerId) {
@@ -127,6 +141,15 @@ export default function RoutePanel({
         setError(null);
 
         try {
+            const transitDetails =
+                isManualMode && manualSegments.length > 0
+                    ? buildTransitDetails(
+                          manualSegments,
+                          manualDepartureTime,
+                          manualArrivalTime,
+                      )
+                    : undefined;
+
             const response = await axios.post(
                 '/routes',
                 {
@@ -139,6 +162,7 @@ export default function RoutePanel({
                         pendingWaypoints.length > 0
                             ? pendingWaypoints
                             : undefined,
+                    transit_details: transitDetails,
                 },
                 {
                     headers: {
@@ -155,6 +179,9 @@ export default function RoutePanel({
             setStartMarkerId('');
             setEndMarkerId('');
             setTransportMode('driving-car');
+            setManualSegments([]);
+            setManualDepartureTime('');
+            setManualArrivalTime('');
             onClearWaypoints?.();
             onWaypointModeChange?.(false);
         } catch (err) {
@@ -384,9 +411,17 @@ export default function RoutePanel({
                             onValueChange={(value) => {
                                 const newMode = value as TransportMode;
                                 setTransportMode(newMode);
-                                if (newMode === 'public-transport') {
+                                if (
+                                    newMode === 'public-transport' ||
+                                    newMode === 'manual-public-transport'
+                                ) {
                                     onClearWaypoints?.();
                                     onWaypointModeChange?.(false);
+                                }
+                                if (newMode !== 'manual-public-transport') {
+                                    setManualSegments([]);
+                                    setManualDepartureTime('');
+                                    setManualArrivalTime('');
                                 }
                             }}
                         >
@@ -418,12 +453,36 @@ export default function RoutePanel({
                                         <span>Public Transport</span>
                                     </div>
                                 </SelectItem>
+                                <SelectItem value="manual-public-transport">
+                                    <div className="flex items-center gap-2">
+                                        <Train className="h-4 w-4" />
+                                        <span>Public Transport (Manual)</span>
+                                    </div>
+                                </SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
 
+                    {/* Manual transit segment builder */}
+                    {isManualMode && (
+                        <div className="space-y-2">
+                            <Label className="text-sm font-medium">
+                                Transit segments
+                            </Label>
+                            <ManualTransitForm
+                                value={manualSegments}
+                                onChange={setManualSegments}
+                                departureTime={manualDepartureTime}
+                                arrivalTime={manualArrivalTime}
+                                onDepartureTimeChange={setManualDepartureTime}
+                                onArrivalTimeChange={setManualArrivalTime}
+                            />
+                        </div>
+                    )}
+
                     {/* Waypoint mode toggle - not available for public transport */}
                     {onWaypointModeChange &&
+                        !isManualMode &&
                         transportMode !== 'public-transport' && (
                             <div className="space-y-2">
                                 <Button
@@ -607,6 +666,14 @@ export default function RoutePanel({
                                                                     .name
                                                             }
                                                         </span>
+                                                        {route.is_manual && (
+                                                            <Badge
+                                                                variant="secondary"
+                                                                className="shrink-0 text-xs"
+                                                            >
+                                                                Manual
+                                                            </Badge>
+                                                        )}
                                                     </div>
                                                     <div className="text-xs text-muted-foreground">
                                                         {route.distance.km.toFixed(
@@ -720,9 +787,12 @@ export default function RoutePanel({
                                                     </div>
 
                                                     {/* Transport Mode Specific Info */}
-                                                    {route.transport_mode
+                                                    {(route.transport_mode
                                                         .value ===
-                                                        'public-transport' && (
+                                                        'public-transport' ||
+                                                        route.transport_mode
+                                                            .value ===
+                                                            'manual-public-transport') && (
                                                         <>
                                                             {route.transit_details ? (
                                                                 <>
@@ -731,33 +801,38 @@ export default function RoutePanel({
                                                                             route.transit_details
                                                                         }
                                                                     />
-                                                                    <AlternativeRoutesList
-                                                                        alternatives={
-                                                                            route.alternatives
-                                                                        }
-                                                                        selectedIndex={
-                                                                            highlightedRouteId ===
-                                                                            route.id
-                                                                                ? selectedAlternativeIndex
-                                                                                : null
-                                                                        }
-                                                                        isAdopting={
-                                                                            isAdopting
-                                                                        }
-                                                                        onSelect={(
-                                                                            index,
-                                                                        ) =>
-                                                                            onSelectedAlternativeIndexChange?.(
-                                                                                route.id,
+                                                                    {route
+                                                                        .transport_mode
+                                                                        .value ===
+                                                                        'public-transport' && (
+                                                                        <AlternativeRoutesList
+                                                                            alternatives={
+                                                                                route.alternatives
+                                                                            }
+                                                                            selectedIndex={
+                                                                                highlightedRouteId ===
+                                                                                route.id
+                                                                                    ? selectedAlternativeIndex
+                                                                                    : null
+                                                                            }
+                                                                            isAdopting={
+                                                                                isAdopting
+                                                                            }
+                                                                            onSelect={(
                                                                                 index,
-                                                                            )
-                                                                        }
-                                                                        onAdopt={() =>
-                                                                            handleAdoptAlternative(
-                                                                                route,
-                                                                            )
-                                                                        }
-                                                                    />
+                                                                            ) =>
+                                                                                onSelectedAlternativeIndexChange?.(
+                                                                                    route.id,
+                                                                                    index,
+                                                                                )
+                                                                            }
+                                                                            onAdopt={() =>
+                                                                                handleAdoptAlternative(
+                                                                                    route,
+                                                                                )
+                                                                            }
+                                                                        />
+                                                                    )}
                                                                 </>
                                                             ) : (
                                                                 <div className="mt-3 rounded bg-blue-50 p-2 text-xs dark:bg-blue-900/20">

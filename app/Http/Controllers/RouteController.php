@@ -56,11 +56,17 @@ class RouteController extends Controller
 
         try {
             $transportMode = TransportMode::from($validated['transport_mode']);
+            $isManual = $validated['is_manual'] ?? ($transportMode === TransportMode::ManualPublicTransport);
             $waypoints = $validated['waypoints'] ?? [];
-            if ($transportMode === TransportMode::PublicTransport) {
+            if ($transportMode === TransportMode::PublicTransport || $transportMode === TransportMode::ManualPublicTransport) {
                 $waypoints = [];
             }
             $routeData = $this->routingService->calculateRoute($startMarker, $endMarker, $transportMode, $waypoints);
+
+            // For manual routes, use the transit_details provided by the user
+            $transitDetails = $isManual
+                ? ($validated['transit_details'] ?? null)
+                : ($routeData['transit_details'] ?? null);
 
             $route = Route::create([
                 'trip_id' => $trip->id,
@@ -72,9 +78,10 @@ class RouteController extends Controller
                 'duration' => $routeData['duration'],
                 'geometry' => $routeData['geometry'],
                 'waypoints' => ! empty($waypoints) ? $waypoints : null,
-                'transit_details' => $routeData['transit_details'] ?? null,
+                'transit_details' => $transitDetails,
                 'alternatives' => $routeData['alternatives'] ?? null,
                 'warning' => $routeData['warning'] ?? null,
+                'is_manual' => $isManual,
             ]);
 
             $route->load(['startMarker', 'endMarker']);
