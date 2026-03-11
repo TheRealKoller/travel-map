@@ -227,11 +227,17 @@ it('rejects transit_details when transport mode is not manual-public-transport',
         'end_marker_id' => $this->endMarker->id,
         'transport_mode' => 'driving-car',
         'transit_details' => [
-            'steps' => [],
-            'departure_time' => null,
-            'arrival_time' => null,
-            'start_address' => null,
-            'end_address' => null,
+            'steps' => [
+                [
+                    'travel_mode' => 'TRANSIT',
+                    'distance' => 1000,
+                    'duration' => 600,
+                ],
+            ],
+            'departure_time' => '08:00',
+            'arrival_time' => '09:00',
+            'start_address' => 'Start',
+            'end_address' => 'End',
         ],
     ]);
 
