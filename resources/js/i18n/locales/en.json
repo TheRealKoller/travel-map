@@ -164,6 +164,23 @@
             "access_info": "Anyone with this link and an account can view the trip details and markers.",
             "try_again_button": "Try again",
             "close_button": "Close"
+        },
+        "manage_collaborators": "Manage collaborators",
+        "collaborators_modal": {
+            "title": "Manage collaborators",
+            "description": "Add or remove collaborators for this trip.",
+            "current_members": "Current members",
+            "no_collaborators": "No collaborators yet.",
+            "add_collaborator": "Add collaborator",
+            "email_label": "Email address",
+            "email_placeholder": "colleague@example.com",
+            "add_button": "Add",
+            "adding_button": "Adding...",
+            "remove_button": "Remove",
+            "role_owner": "Owner",
+            "role_editor": "Editor",
+            "badge_owner": "Owner",
+            "badge_shared": "Shared"
         }
     },
     "tours": {
