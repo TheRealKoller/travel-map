@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AddTripCollaboratorRequest;
+use App\Jobs\SendTripCollaboratorInvitationJob;
 use App\Models\Trip;
 use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -47,7 +48,12 @@ class TripCollaboratorController extends Controller
         $this->authorize('manageCollaborators', $trip);
 
         $validated = $request->validated();
-        $user = User::where('email', $validated['email'])->firstOrFail();
+        $user = User::where('email', $validated['email'])->first();
+
+        // Silently return success if the user does not exist
+        if ($user === null) {
+            return response()->json(['message' => 'Collaborator added successfully'], 201);
+        }
 
         // Check if user is already the owner
         if ($trip->user_id === $user->id) {
@@ -59,10 +65,19 @@ class TripCollaboratorController extends Controller
             return response()->json(['error' => 'User is already a collaborator'], 422);
         }
 
+        $role = $validated['role'] ?? 'editor';
+
         // Add the collaborator
         $trip->sharedUsers()->attach($user->id, [
-            'collaboration_role' => $validated['role'] ?? 'editor',
+            'collaboration_role' => $role,
         ]);
+
+        // Dispatch the invitation email asynchronously
+        $locale = in_array($request->cookie('language'), ['de', 'en'], true)
+            ? $request->cookie('language')
+            : 'de';
+
+        SendTripCollaboratorInvitationJob::dispatch($trip, $user, $request->user(), $locale);
 
         return response()->json([
             'message' => 'Collaborator added successfully',
@@ -70,7 +85,7 @@ class TripCollaboratorController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'collaboration_role' => $validated['role'] ?? 'editor',
+                'collaboration_role' => $role,
             ],
         ], 201);
     }
