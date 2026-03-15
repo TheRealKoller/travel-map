@@ -1,0 +1,144 @@
+name: Guard Rails
+
+# Stage 1 — Runs on every feature/copilot PR targeting main.
+# Agents: Git Workflow Master + DevOps Automator
+# Checks branch naming, conventional commits, PR issue link,
+# Pint formatting, Prettier, ESLint, and TypeScript types.
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  # ── Git Workflow Master ────────────────────────────────────────────────────
+  git-conventions:
+    name: 'Git Workflow Master'
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate branch naming
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          # Allow: feature/issue-N-*, fix/issue-N-*, hotfix/issue-N-*,
+          #        chore/issue-N-*, copilot/*, dependabot/*
+          if [[ "$BRANCH" =~ ^(copilot|dependabot)/ ]]; then
+            echo "Branch '$BRANCH' is an automated branch — skipping naming check."
+            exit 0
+          fi
+          if [[ ! "$BRANCH" =~ ^(feature|fix|hotfix|chore)/issue-[0-9]+-[a-z0-9-]+$ ]]; then
+            echo "::error::Branch '$BRANCH' does not match the required naming pattern."
+            echo "::error::Expected: feature/issue-{N}-brief-description"
+            echo "::error::       or fix/issue-{N}-brief-description"
+            exit 1
+          fi
+          echo "Branch name '$BRANCH' is valid."
+
+      - name: Validate commit messages (Conventional Commits)
+        run: |
+          # Get all commit subjects added in this PR (not on main)
+          COMMITS=$(git log origin/main..HEAD --format="%s")
+          if [[ -z "$COMMITS" ]]; then
+            echo "No new commits to validate."
+            exit 0
+          fi
+
+          FAILED=0
+          PATTERN="^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?(!)?: .+"
+          while IFS= read -r MSG; do
+            if [[ -n "$MSG" ]] && ! [[ "$MSG" =~ $PATTERN ]]; then
+              echo "::error::Commit message does not follow Conventional Commits:"
+              echo "::error::  '$MSG'"
+              FAILED=1
+            fi
+          done <<< "$COMMITS"
+
+          if [[ $FAILED -eq 1 ]]; then
+            echo ""
+            echo "Valid prefixes: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert"
+            echo "Example: feat(trips): add collaborator invitation flow"
+            exit 1
+          fi
+          echo "All commit messages are valid."
+
+      - name: Validate PR body contains issue link
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if echo "$PR_BODY" | grep -qiE '(closes|fixes|resolves) #[0-9]+'; then
+            echo "PR body contains a valid issue link."
+          else
+            echo "::error::PR body must contain 'Closes #N', 'Fixes #N', or 'Resolves #N'."
+            echo "::error::Add a line like: Closes #42"
+            exit 1
+          fi
+
+  # ── DevOps Automator ──────────────────────────────────────────────────────
+  code-quality:
+    name: 'DevOps Automator'
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install PHP dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Check PHP formatting (Pint --test)
+        id: pint
+        run: |
+          if ! vendor/bin/pint --test 2>&1 | tee /tmp/pint-output.txt; then
+            echo "pint_failed=true" >> $GITHUB_OUTPUT
+          else
+            echo "pint_failed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Post Pint failure comment
+        if: steps.pint.outputs.pint_failed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const output = fs.readFileSync('/tmp/pint-output.txt', 'utf8');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## PHP Formatting (Pint)\n\nFormatting issues detected. Run \`vendor/bin/pint\` locally to fix.\n\n\`\`\`\n${output.substring(0, 3000)}\n\`\`\``
+            });
+
+      - name: Fail if Pint issues found
+        if: steps.pint.outputs.pint_failed == 'true'
+        run: exit 1
+
+      - name: Check frontend formatting (Prettier)
+        run: npm run format:check
+
+      - name: Lint frontend (ESLint)
+        run: npx eslint resources/ --max-warnings=0
+
+      - name: TypeScript type check
+        run: npm run types
