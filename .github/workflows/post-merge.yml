@@ -1,0 +1,411 @@
+name: Post-Merge Automation
+
+# Stage 5 — Runs on every push to main.
+# Agents: Senior Project Manager (close issue, move board card),
+#         Documentation Generator (CHANGELOG + semver version tag).
+# Requires PROJECT_AUTOMATION_TOKEN (PAT with 'project' scope) for board updates.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write # To commit CHANGELOG.md and push version tags
+  issues: write # To close linked issues and post comments
+  pull-requests: read # To read merged PR body for issue links
+
+jobs:
+  # ── Senior Project Manager ─────────────────────────────────────────────────
+  update-project-board:
+    name: 'Senior Project Manager'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Find linked issues from merge commit and PR
+        id: issues
+        uses: actions/github-script@v7
+        with:
+          # Use PAT for project board writes — GITHUB_TOKEN cannot write Projects v2
+          github-token: ${{ secrets.PROJECT_AUTOMATION_TOKEN || secrets.GITHUB_TOKEN }}
+          script: |
+            // Get the merge commit message
+            const commit = await github.rest.repos.getCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha,
+            });
+            const commitMsg = commit.data.commit.message;
+
+            // Find PRs associated with this commit
+            const prs = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+            });
+
+            const prBody = prs.data[0]?.body || '';
+            const prTitle = prs.data[0]?.title || '';
+            const fullText = [commitMsg, prBody, prTitle].join('\n');
+
+            // Extract all referenced issue numbers
+            const matches = [...fullText.matchAll(/(closes|fixes|resolves)\s+#(\d+)/gi)];
+            const issueNumbers = [...new Set(matches.map(m => parseInt(m[2])))];
+
+            console.log(`Found issue references: ${issueNumbers.join(', ') || 'none'}`);
+            core.setOutput('issue_numbers', JSON.stringify(issueNumbers));
+            core.setOutput('pr_number', prs.data[0]?.number?.toString() || '');
+
+      - name: Close linked issues and post deploy comment
+        uses: actions/github-script@v7
+        env:
+          ISSUE_NUMBERS: ${{ steps.issues.outputs.issue_numbers }}
+          COMMIT_SHA: ${{ github.sha }}
+        with:
+          github-token: ${{ secrets.PROJECT_AUTOMATION_TOKEN || secrets.GITHUB_TOKEN }}
+          script: |
+            const issueNumbers = JSON.parse(process.env.ISSUE_NUMBERS || '[]');
+            const sha = process.env.COMMIT_SHA.substring(0, 7);
+
+            if (issueNumbers.length === 0) {
+              console.log('No linked issues found — nothing to close.');
+              return;
+            }
+
+            for (const issueNumber of issueNumbers) {
+              console.log(`Closing issue #${issueNumber}...`);
+
+              try {
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  state: 'closed',
+                  state_reason: 'completed'
+                });
+
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issueNumber,
+                  body: `Merged to \`main\` — commit \`${sha}\`\n\nDeploying to [DEV environment](https://dev.travelmap.koller.dk) now.\n\n_Auto-closed by post-merge automation_`
+                });
+
+                console.log(`Issue #${issueNumber} closed and commented.`);
+              } catch (e) {
+                console.log(`Failed to process issue #${issueNumber}: ${e.message}`);
+              }
+            }
+
+      - name: Move GitHub Project v2 cards to Done
+        uses: actions/github-script@v7
+        env:
+          ISSUE_NUMBERS: ${{ steps.issues.outputs.issue_numbers }}
+        with:
+          github-token: ${{ secrets.PROJECT_AUTOMATION_TOKEN || secrets.GITHUB_TOKEN }}
+          script: |
+            const issueNumbers = JSON.parse(process.env.ISSUE_NUMBERS || '[]');
+            if (issueNumbers.length === 0) return;
+
+            // Project owner and number from AGENTS.md
+            const projectOwner = 'TheRealKoller';
+            const projectNumber = 3;
+
+            try {
+              // Step 1: Get project ID and Status field options
+              const projectQuery = `
+                query($owner: String!, $number: Int!) {
+                  user(login: $owner) {
+                    projectV2(number: $number) {
+                      id
+                      fields(first: 20) {
+                        nodes {
+                          ... on ProjectV2SingleSelectField {
+                            id
+                            name
+                            options { id name }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              `;
+
+              const projectData = await github.graphql(projectQuery, {
+                owner: projectOwner,
+                number: projectNumber
+              });
+
+              const project = projectData.user.projectV2;
+              const statusField = project.fields.nodes.find(f =>
+                f.name && f.name.toLowerCase() === 'status'
+              );
+
+              if (!statusField) {
+                console.log('No "Status" field found on project board.');
+                return;
+              }
+
+              // Find the "Done" option (try several name variants)
+              const doneOption = statusField.options.find(o =>
+                ['done', 'merged', 'completed', 'closed'].includes(o.name.toLowerCase())
+              );
+
+              if (!doneOption) {
+                console.log(`Available status options: ${statusField.options.map(o => o.name).join(', ')}`);
+                console.log('No "Done" option found — check project board column names.');
+                return;
+              }
+
+              // Step 2: For each issue, find project items and update status
+              for (const issueNumber of issueNumbers) {
+                const itemQuery = `
+                  query($owner: String!, $repo: String!, $issue: Int!) {
+                    repository(owner: $owner, name: $repo) {
+                      issue(number: $issue) {
+                        projectItems(first: 5) {
+                          nodes {
+                            id
+                            project { id }
+                          }
+                        }
+                      }
+                    }
+                  }
+                `;
+
+                const itemData = await github.graphql(itemQuery, {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue: issueNumber
+                });
+
+                const items = itemData.repository.issue.projectItems.nodes.filter(
+                  item => item.project.id === project.id
+                );
+
+                for (const item of items) {
+                  await github.graphql(`
+                    mutation($project: ID!, $item: ID!, $field: ID!, $value: String!) {
+                      updateProjectV2ItemFieldValue(input: {
+                        projectId: $project
+                        itemId: $item
+                        fieldId: $field
+                        value: { singleSelectOptionId: $value }
+                      }) { projectV2Item { id } }
+                    }
+                  `, {
+                    project: project.id,
+                    item: item.id,
+                    field: statusField.id,
+                    value: doneOption.id
+                  });
+
+                  console.log(`Moved issue #${issueNumber} project card to "${doneOption.name}".`);
+                }
+              }
+            } catch (e) {
+              // Non-fatal: board update failure should not break the release pipeline
+              console.log(`Board update failed (non-fatal): ${e.message}`);
+            }
+
+  # ── Documentation Generator: CHANGELOG + Version Tag ──────────────────────
+  changelog-and-tag:
+    name: 'Documentation Generator'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PROJECT_AUTOMATION_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Get commits since last tag
+        id: commits
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          echo "last_tag=$LAST_TAG" >> $GITHUB_OUTPUT
+
+          if [[ -z "$LAST_TAG" ]]; then
+            # First run — get last 20 commits
+            COMMITS=$(git log --oneline --format="%h %s" -20)
+          else
+            COMMITS=$(git log "${LAST_TAG}..HEAD" --format="%h %s")
+          fi
+
+          # Write to file to preserve newlines through GitHub output
+          echo "$COMMITS" > /tmp/commits.txt
+          COUNT=$(echo "$COMMITS" | grep -c '.' || echo "0")
+          echo "count=$COUNT" >> $GITHUB_OUTPUT
+          echo "Commits since $LAST_TAG: $COUNT"
+          cat /tmp/commits.txt
+
+      - name: Determine next version
+        id: version
+        run: |
+          LAST_TAG="${{ steps.commits.outputs.last_tag }}"
+          COMMITS=$(cat /tmp/commits.txt)
+
+          if [[ -z "$LAST_TAG" ]]; then
+            # First tag
+            NEXT="v1.0.0"
+          else
+            # Parse current version
+            MAJOR=$(echo "$LAST_TAG" | sed 's/v//' | cut -d. -f1)
+            MINOR=$(echo "$LAST_TAG" | sed 's/v//' | cut -d. -f2)
+            PATCH=$(echo "$LAST_TAG" | sed 's/v//' | cut -d. -f3)
+
+            # Determine bump type from conventional commits
+            if echo "$COMMITS" | grep -qE '(feat|fix|refactor|perf)!:|BREAKING CHANGE'; then
+              # Major bump
+              NEXT="v$((MAJOR + 1)).0.0"
+            elif echo "$COMMITS" | grep -qE '^[a-f0-9]+ feat(\(.+\))?:'; then
+              # Minor bump
+              NEXT="v${MAJOR}.$((MINOR + 1)).0"
+            else
+              # Patch bump (fix, chore, docs, style, test, ci, build)
+              NEXT="v${MAJOR}.${MINOR}.$((PATCH + 1))"
+            fi
+          fi
+
+          echo "next_version=$NEXT" >> $GITHUB_OUTPUT
+          echo "Next version: $NEXT"
+
+      - name: Generate changelog entry with LeChat
+        id: changelog
+        env:
+          LECHAT_API_KEY: ${{ secrets.LECHAT_API_KEY }}
+        run: |
+          COMMITS=$(cat /tmp/commits.txt)
+          if [[ -z "$COMMITS" ]] || [[ "${{ steps.commits.outputs.count }}" == "0" ]]; then
+            echo "No commits to generate changelog for."
+            echo "generated=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          TODAY=$(date -u '+%Y-%m-%d')
+          VERSION="${{ steps.version.outputs.next_version }}"
+
+          cat > /tmp/sys-changelog.txt << SYSTEM
+          You generate Keep a Changelog (https://keepachangelog.com) entries from Conventional Commits.
+
+          Rules:
+          - Use sections: ### Added, ### Changed, ### Fixed, ### Removed, ### Security
+          - Skip pure chore, test, ci, build, and style commits unless significant
+          - Group related commits under the same bullet
+          - Write in plain English, present tense
+          - Each bullet starts with a capital letter, no trailing period
+          - Return ONLY the markdown content for the new version section, no code fences
+          - First line must be: ## [${VERSION}] - ${TODAY}
+          SYSTEM
+
+          echo "Commits to summarize:" > /tmp/user-changelog.txt
+          cat /tmp/commits.txt >> /tmp/user-changelog.txt
+
+          chmod +x .github/scripts/lechat.sh
+          ENTRY=$(.github/scripts/lechat.sh /tmp/sys-changelog.txt /tmp/user-changelog.txt 600)
+
+          # Validate the entry starts with the version header
+          if ! echo "$ENTRY" | grep -q "## \[${VERSION}\]"; then
+            # Force the correct header
+            ENTRY="## [${VERSION}] - ${TODAY}\n\n${ENTRY}"
+          fi
+
+          echo "$ENTRY" > /tmp/changelog-entry.txt
+          echo "generated=true" >> $GITHUB_OUTPUT
+          echo "Changelog entry generated."
+          cat /tmp/changelog-entry.txt
+
+      - name: Prepend to CHANGELOG.md
+        if: steps.changelog.outputs.generated == 'true'
+        run: |
+          ENTRY=$(cat /tmp/changelog-entry.txt)
+
+          if [[ ! -f CHANGELOG.md ]]; then
+            # Create new changelog
+            cat > CHANGELOG.md << 'EOF'
+          # Changelog
+
+          All notable changes to Travel Map are documented here.
+          Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+
+          EOF
+          fi
+
+          # Prepend the new entry after any existing header lines
+          # Find the line number of the first ## [...] version entry
+          FIRST_VERSION_LINE=$(grep -n '^## \[' CHANGELOG.md | head -1 | cut -d: -f1 || echo "")
+
+          if [[ -n "$FIRST_VERSION_LINE" ]]; then
+            # Insert before the first version entry
+            HEAD=$(head -n "$((FIRST_VERSION_LINE - 1))" CHANGELOG.md)
+            TAIL=$(tail -n "+${FIRST_VERSION_LINE}" CHANGELOG.md)
+            printf "%s\n\n%s\n\n%s\n" "$HEAD" "$ENTRY" "$TAIL" > CHANGELOG.md
+          else
+            # Append at end
+            printf "\n%s\n" "$ENTRY" >> CHANGELOG.md
+          fi
+
+          echo "CHANGELOG.md updated."
+
+      - name: Commit changelog and create version tag
+        if: steps.changelog.outputs.generated == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          VERSION="${{ steps.version.outputs.next_version }}"
+
+          git add CHANGELOG.md
+          git diff --staged --quiet && echo "No changes to commit." || \
+            git commit -m "docs: update changelog for ${VERSION} [skip ci]"
+
+          # Create annotated version tag
+          git tag -a "$VERSION" -m "Release ${VERSION}"
+          git push origin HEAD:main --follow-tags
+
+          echo "Tagged and pushed: $VERSION"
+
+      - name: Create GitHub Release
+        if: steps.changelog.outputs.generated == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.PROJECT_AUTOMATION_TOKEN || secrets.GITHUB_TOKEN }}
+          script: |
+            const version = '${{ steps.version.outputs.next_version }}';
+            const fs = require('fs');
+
+            let body = '';
+            try {
+              const changelog = fs.readFileSync('CHANGELOG.md', 'utf8');
+              // Extract just the section for this version
+              const versionEscaped = version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              const match = changelog.match(
+                new RegExp(`## \\[${versionEscaped}\\].*?(?=\n## \\[|$)`, 's')
+              );
+              body = match ? match[0] : `Release ${version}`;
+            } catch (e) {
+              body = `Release ${version}`;
+            }
+
+            // Determine if this is a major/minor bump (prerelease = false for patch)
+            const isFeatureRelease = version.match(/v\d+\.\d+\.0$/);
+            const isMajorRelease = version.match(/v\d+\.0\.0$/);
+
+            try {
+              await github.rest.repos.createRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag_name: version,
+                name: version,
+                body,
+                draft: false,
+                prerelease: false,
+                make_latest: isMajorRelease || isFeatureRelease ? 'true' : 'legacy'
+              });
+              console.log(`GitHub Release ${version} created.`);
+            } catch (e) {
+              console.log(`Could not create release: ${e.message}`);
+            }
