@@ -14,6 +14,7 @@ interface MarkerFormViewProps {
     onEnterEditMode: () => void;
     onDelete: () => void;
     onOpenUrl: () => void;
+    canEdit?: boolean;
 }
 
 export default function MarkerFormView({
@@ -26,6 +27,7 @@ export default function MarkerFormView({
     onEnterEditMode,
     onDelete,
     onOpenUrl,
+    canEdit = true,
 }: MarkerFormViewProps) {
     return (
         <div className="space-y-3">
@@ -133,14 +135,16 @@ export default function MarkerFormView({
                 </p>
             </div>
             <div className="flex flex-col gap-2 border-t border-gray-200 pt-4 lg:flex-row lg:gap-2">
-                <button
-                    onClick={onEnterEditMode}
-                    className="flex min-h-[44px] w-full items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
-                    data-testid="button-edit-marker"
-                >
-                    Edit
-                </button>
-                {marker.isSaved && (
+                {canEdit && (
+                    <button
+                        onClick={onEnterEditMode}
+                        className="flex min-h-[44px] w-full items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                        data-testid="button-edit-marker"
+                    >
+                        Edit
+                    </button>
+                )}
+                {canEdit && marker.isSaved && (
                     <button
                         onClick={onDelete}
                         className="flex min-h-[44px] w-full items-center justify-center rounded-md bg-red-600 px-3 py-2 text-sm text-white transition-colors hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none"

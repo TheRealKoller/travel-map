@@ -16,7 +16,7 @@ interface UseMapInteractionsOptions {
     mapInstance: mapboxgl.Map | null;
     isSearchModeRef: React.MutableRefObject<boolean>;
     isWaypointModeRef?: React.MutableRefObject<boolean>;
-    onMarkerCreated: (marker: MarkerData) => void;
+    onMarkerCreated?: (marker: MarkerData) => void;
     onMarkerSelected: (markerId: string) => void;
     onWaypointAdded?: (waypoint: Waypoint) => void;
 }
@@ -127,7 +127,7 @@ export function useMapInteractions({
                     onMarkerSelected(markerId);
                 });
 
-                onMarkerCreated(markerData);
+                onMarkerCreated?.(markerData);
                 onMarkerSelected(markerId);
             },
         });
@@ -227,7 +227,7 @@ export function useMapInteractions({
                     onMarkerSelected(markerId);
                 });
 
-                onMarkerCreated(markerData);
+                onMarkerCreated?.(markerData);
                 onMarkerSelected(markerId);
             },
         });
@@ -338,7 +338,7 @@ export function useMapInteractions({
                     onMarkerSelected(markerId);
                 });
 
-                onMarkerCreated(markerData);
+                onMarkerCreated?.(markerData);
                 onMarkerSelected(markerId);
             },
         });
@@ -450,7 +450,7 @@ export function useMapInteractions({
                 onMarkerSelected(markerId);
             });
 
-            onMarkerCreated(markerData);
+            onMarkerCreated?.(markerData);
             onMarkerSelected(markerId);
         };
 

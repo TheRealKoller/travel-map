@@ -34,10 +34,11 @@ class TripPolicy
 
     /**
      * Determine whether the user can update the model.
+     * Viewers have read-only access and cannot update trips.
      */
     public function update(User $user, Trip $trip): bool
     {
-        return $user->isAdmin() || $trip->hasAccess($user);
+        return $user->isAdmin() || $trip->canEdit($user);
     }
 
     /**

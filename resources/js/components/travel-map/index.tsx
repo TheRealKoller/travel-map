@@ -54,6 +54,7 @@ interface TravelMapProps {
     ) => Promise<void>;
     tripName?: string;
     owner?: TripOwner;
+    canEdit?: boolean;
 }
 
 /**
@@ -83,6 +84,7 @@ export default function TravelMap({
     onSetViewport,
     tripName,
     owner,
+    canEdit = true,
 }: TravelMapProps) {
     // Detect mobile/desktop breakpoint
     const { isMobileLayout } = useBreakpoint();
@@ -284,7 +286,7 @@ export default function TravelMap({
     // Search results management
     useSearchResults({
         mapInstance,
-        onMarkerCreated: addMarker,
+        onMarkerCreated: canEdit ? addMarker : undefined,
         onMarkerSelected: setSelectedMarkerId,
     });
 
@@ -317,7 +319,7 @@ export default function TravelMap({
     // Geocoder - provides callbacks for SearchBox component
     const { handleSearchResult } = useGeocoder({
         mapInstance,
-        onMarkerCreated: addMarker,
+        onMarkerCreated: canEdit ? addMarker : undefined,
         onMarkerSelected: setSelectedMarkerId,
     });
 
@@ -326,9 +328,9 @@ export default function TravelMap({
         mapInstance,
         isSearchModeRef,
         isWaypointModeRef,
-        onMarkerCreated: addMarker,
+        onMarkerCreated: canEdit ? addMarker : undefined,
         onMarkerSelected: setSelectedMarkerId,
-        onWaypointAdded: addWaypoint,
+        onWaypointAdded: canEdit ? addWaypoint : undefined,
     });
 
     // Auto-open markers panel when a marker is selected, except when managing a tour in the open Tour panel
@@ -399,6 +401,7 @@ export default function TravelMap({
         pendingWaypoints,
         onRemoveWaypoint: removeWaypoint,
         onClearWaypoints: clearWaypoints,
+        canEdit,
     };
 
     return (

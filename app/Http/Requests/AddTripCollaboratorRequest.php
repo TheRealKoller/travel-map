@@ -23,7 +23,7 @@ class AddTripCollaboratorRequest extends FormRequest
     {
         return [
             'email' => ['required', 'email', 'exists:users,email'],
-            'role' => ['nullable', 'in:editor'],
+            'role' => ['nullable', 'in:editor,viewer'],
         ];
     }
 }

@@ -41,6 +41,8 @@ class MarkerController extends Controller
         $tripId = $request->input('trip_id');
         $trip = $this->tripService->getActiveTrip(auth()->user(), $tripId);
 
+        $this->authorize('update', $trip);
+
         // Extract tour_id before creating the marker (it's not a column on markers table)
         $tourId = $validated['tour_id'] ?? null;
         unset($validated['tour_id']);

@@ -92,6 +92,9 @@ interface MobilePanelsProps {
         east: number;
         west: number;
     } | null;
+
+    // Access control
+    canEdit?: boolean;
 }
 
 /**
@@ -141,6 +144,7 @@ export function MobilePanels({
     pendingWaypoints,
     onRemoveWaypoint,
     onClearWaypoints,
+    canEdit = true,
 }: MobilePanelsProps) {
     const { t } = useTranslation();
 
@@ -180,13 +184,18 @@ export function MobilePanels({
                                 onClose={handleCloseForm}
                                 tours={tours}
                                 onToggleMarkerInTour={handleToggleMarkerInTour}
+                                canEdit={canEdit}
                             />
                         ) : (
                             <MarkerList
                                 markers={markers}
                                 selectedMarkerId={selectedMarkerId}
                                 onSelectMarker={setSelectedMarkerId}
-                                onMarkerImageFetched={handleMarkerImageUpdate}
+                                onMarkerImageFetched={
+                                    canEdit
+                                        ? handleMarkerImageUpdate
+                                        : undefined
+                                }
                             />
                         )}
                     </DraggableSheet>
@@ -220,6 +229,7 @@ export function MobilePanels({
                                 handleSelectAvailableMarker
                             }
                             onAddMarkerToTour={handleAddAvailableMarkerToTour}
+                            canEdit={canEdit}
                         />
                     </DraggableSheet>
                 )}
@@ -250,10 +260,13 @@ export function MobilePanels({
                                 onSelectedAlternativeIndexChange
                             }
                             isWaypointMode={isWaypointMode}
-                            onWaypointModeChange={setIsWaypointMode}
+                            onWaypointModeChange={
+                                canEdit ? setIsWaypointMode : undefined
+                            }
                             pendingWaypoints={pendingWaypoints}
                             onRemoveWaypoint={onRemoveWaypoint}
                             onClearWaypoints={onClearWaypoints}
+                            canEdit={canEdit}
                         />
                     </DraggableSheet>
                 )}

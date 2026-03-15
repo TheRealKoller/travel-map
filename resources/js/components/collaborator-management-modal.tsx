@@ -9,6 +9,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 import { type Collaborator } from '@/types/trip';
@@ -35,10 +42,12 @@ export default function CollaboratorManagementModal({
     const [loadError, setLoadError] = useState<string | null>(null);
 
     const [email, setEmail] = useState('');
+    const [newRole, setNewRole] = useState<'editor' | 'viewer'>('editor');
     const [isAdding, setIsAdding] = useState(false);
     const [addError, setAddError] = useState<string | null>(null);
 
     const [removingId, setRemovingId] = useState<number | null>(null);
+    const [updatingRoleId, setUpdatingRoleId] = useState<number | null>(null);
 
     const loadCollaborators = useCallback(async () => {
         setIsLoading(true);
@@ -74,9 +83,13 @@ export default function CollaboratorManagementModal({
         try {
             const response = await axios.post<{
                 collaborator: Collaborator;
-            }>(`/trips/${tripId}/collaborators`, { email: email.trim() });
+            }>(`/trips/${tripId}/collaborators`, {
+                email: email.trim(),
+                role: newRole,
+            });
             setCollaborators((prev) => [...prev, response.data.collaborator]);
             setEmail('');
+            setNewRole('editor');
         } catch (err) {
             if (axios.isAxiosError(err) && err.response?.data?.error) {
                 setAddError(err.response.data.error as string);
@@ -107,9 +120,32 @@ export default function CollaboratorManagementModal({
         }
     };
 
+    const handleUpdateRole = async (
+        userId: number,
+        role: 'editor' | 'viewer',
+    ) => {
+        setUpdatingRoleId(userId);
+
+        try {
+            await axios.patch(`/trips/${tripId}/collaborators/${userId}`, {
+                role,
+            });
+            setCollaborators((prev) =>
+                prev.map((c) =>
+                    c.id === userId ? { ...c, collaboration_role: role } : c,
+                ),
+            );
+        } catch {
+            // Silently handle on failure
+        } finally {
+            setUpdatingRoleId(null);
+        }
+    };
+
     const handleClose = () => {
         setEmail('');
         setAddError(null);
+        setNewRole('editor');
         onClose();
     };
 
@@ -190,14 +226,38 @@ export default function CollaboratorManagementModal({
                                             </p>
                                         </div>
                                         <div className="flex shrink-0 items-center gap-2">
-                                            <Badge
-                                                variant="outline"
-                                                className="capitalize"
-                                            >
-                                                {
+                                            <Select
+                                                value={
                                                     collaborator.collaboration_role
                                                 }
-                                            </Badge>
+                                                onValueChange={(value) =>
+                                                    handleUpdateRole(
+                                                        collaborator.id,
+                                                        value as
+                                                            | 'editor'
+                                                            | 'viewer',
+                                                    )
+                                                }
+                                                disabled={
+                                                    updatingRoleId ===
+                                                    collaborator.id
+                                                }
+                                            >
+                                                <SelectTrigger
+                                                    className="h-7 w-24 text-xs"
+                                                    data-testid={`role-select-${collaborator.id}`}
+                                                >
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="editor">
+                                                        Editor
+                                                    </SelectItem>
+                                                    <SelectItem value="viewer">
+                                                        Viewer
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                             <Button
                                                 data-testid={`remove-collaborator-${collaborator.id}`}
                                                 variant="ghost"
@@ -210,7 +270,9 @@ export default function CollaboratorManagementModal({
                                                 }
                                                 disabled={
                                                     removingId ===
-                                                    collaborator.id
+                                                        collaborator.id ||
+                                                    updatingRoleId ===
+                                                        collaborator.id
                                                 }
                                                 aria-label={`Remove ${collaborator.name}`}
                                             >
@@ -264,6 +326,30 @@ export default function CollaboratorManagementModal({
                                         disabled={isAdding}
                                         className="flex-1"
                                     />
+                                    <Select
+                                        value={newRole}
+                                        onValueChange={(value) =>
+                                            setNewRole(
+                                                value as 'editor' | 'viewer',
+                                            )
+                                        }
+                                        disabled={isAdding}
+                                    >
+                                        <SelectTrigger
+                                            className="w-28"
+                                            data-testid="new-collaborator-role-select"
+                                        >
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="editor">
+                                                Editor
+                                            </SelectItem>
+                                            <SelectItem value="viewer">
+                                                Viewer
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                     <Button
                                         data-testid="add-collaborator-button"
                                         type="submit"

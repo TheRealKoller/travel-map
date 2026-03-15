@@ -15,10 +15,11 @@ type MapPageProps = SharedData & {
         name: string;
     };
     owner?: TripOwner;
+    canEdit?: boolean;
 };
 
 export default function MapPage() {
-    const { trip, owner } = usePage<MapPageProps>().props;
+    const { trip, owner, canEdit = true } = usePage<MapPageProps>().props;
     const { t } = useTranslation();
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -126,6 +127,7 @@ export default function MapPage() {
                     trip?.name
                 }
                 owner={owner}
+                canEdit={canEdit}
             />
             <ModalManager
                 isCreateTripModalOpen={modalState.isCreateTripModalOpen}

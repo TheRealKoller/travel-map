@@ -302,3 +302,253 @@ test('non-collaborator cannot access map for trip', function () {
 
     $response->assertStatus(403);
 });
+
+// --- Viewer role tests ---
+
+test('owner can add viewer collaborator to trip', function () {
+    $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
+
+    $response = $this->actingAs($this->owner)->postJson("/trips/{$trip->id}/collaborators", [
+        'email' => $this->collaborator->email,
+        'role' => 'viewer',
+    ]);
+
+    $response->assertStatus(201)
+        ->assertJsonFragment(['email' => $this->collaborator->email]);
+
+    $this->assertDatabaseHas('trip_user', [
+        'trip_id' => $trip->id,
+        'user_id' => $this->collaborator->id,
+        'collaboration_role' => 'viewer',
+    ]);
+});
+
+test('viewer can view shared trip', function () {
+    $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'viewer']);
+
+    $response = $this->actingAs($this->collaborator)->getJson("/trips/{$trip->id}");
+
+    $response->assertStatus(200)
+        ->assertJsonFragment(['id' => $trip->id]);
+});
+
+test('viewer cannot update shared trip', function () {
+    $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'viewer']);
+
+    $response = $this->actingAs($this->collaborator)->putJson("/trips/{$trip->id}", [
+        'name' => 'Updated Trip Name',
+    ]);
+
+    $response->assertStatus(403);
+});
+
+test('viewer can view markers in shared trip', function () {
+    $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'viewer']);
+
+    $marker = Marker::factory()->create([
+        'user_id' => $this->owner->id,
+        'trip_id' => $trip->id,
+    ]);
+
+    $response = $this->actingAs($this->collaborator)->getJson("/markers?trip_id={$trip->id}");
+
+    $response->assertStatus(200)
+        ->assertJsonFragment(['id' => $marker->id]);
+});
+
+test('viewer cannot create markers in shared trip', function () {
+    $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'viewer']);
+
+    $markerId = \Illuminate\Support\Str::uuid()->toString();
+
+    $response = $this->actingAs($this->collaborator)->postJson('/markers', [
+        'id' => $markerId,
+        'trip_id' => $trip->id,
+        'name' => 'Viewer Marker',
+        'type' => 'city',
+        'latitude' => 48.8566,
+        'longitude' => 2.3522,
+    ]);
+
+    $response->assertStatus(403);
+});
+
+test('viewer cannot update markers in shared trip', function () {
+    $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'viewer']);
+
+    $marker = Marker::factory()->create([
+        'user_id' => $this->owner->id,
+        'trip_id' => $trip->id,
+    ]);
+
+    $response = $this->actingAs($this->collaborator)->putJson("/markers/{$marker->id}", [
+        'name' => 'Updated Marker Name',
+    ]);
+
+    $response->assertStatus(403);
+});
+
+test('viewer cannot delete markers in shared trip', function () {
+    $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'viewer']);
+
+    $marker = Marker::factory()->create([
+        'user_id' => $this->owner->id,
+        'trip_id' => $trip->id,
+    ]);
+
+    $response = $this->actingAs($this->collaborator)->deleteJson("/markers/{$marker->id}");
+
+    $response->assertStatus(403);
+});
+
+test('viewer cannot create tours in shared trip', function () {
+    $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'viewer']);
+
+    $response = $this->actingAs($this->collaborator)->postJson('/tours', [
+        'trip_id' => $trip->id,
+        'name' => 'Viewer Tour',
+    ]);
+
+    $response->assertStatus(403);
+});
+
+test('viewer cannot update tours in shared trip', function () {
+    $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'viewer']);
+
+    $tour = Tour::factory()->create(['trip_id' => $trip->id]);
+
+    $response = $this->actingAs($this->collaborator)->putJson("/tours/{$tour->id}", [
+        'name' => 'Updated Tour Name',
+    ]);
+
+    $response->assertStatus(403);
+});
+
+test('viewer cannot delete tours in shared trip', function () {
+    $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'viewer']);
+
+    $tour = Tour::factory()->create(['trip_id' => $trip->id]);
+
+    $response = $this->actingAs($this->collaborator)->deleteJson("/tours/{$tour->id}");
+
+    $response->assertStatus(403);
+});
+
+test('viewer cannot create routes in shared trip', function () {
+    $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'viewer']);
+
+    $startMarker = Marker::factory()->create(['user_id' => $this->owner->id, 'trip_id' => $trip->id]);
+    $endMarker = Marker::factory()->create(['user_id' => $this->owner->id, 'trip_id' => $trip->id]);
+
+    $response = $this->actingAs($this->collaborator)->postJson('/routes', [
+        'trip_id' => $trip->id,
+        'start_marker_id' => $startMarker->id,
+        'end_marker_id' => $endMarker->id,
+        'transport_mode' => 'driving-car',
+    ]);
+
+    $response->assertStatus(403);
+});
+
+test('owner can update collaborator role from editor to viewer', function () {
+    $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'editor']);
+
+    $response = $this->actingAs($this->owner)->patchJson("/trips/{$trip->id}/collaborators/{$this->collaborator->id}", [
+        'role' => 'viewer',
+    ]);
+
+    $response->assertStatus(204);
+
+    $this->assertDatabaseHas('trip_user', [
+        'trip_id' => $trip->id,
+        'user_id' => $this->collaborator->id,
+        'collaboration_role' => 'viewer',
+    ]);
+});
+
+test('non-owner cannot update collaborator role', function () {
+    $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'editor']);
+
+    $response = $this->actingAs($this->collaborator)->patchJson("/trips/{$trip->id}/collaborators/{$this->collaborator->id}", [
+        'role' => 'viewer',
+    ]);
+
+    $response->assertStatus(403);
+});
+
+test('viewer can access map for shared trip', function () {
+    $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'viewer']);
+
+    $response = $this->actingAs($this->collaborator)->get("/map/{$trip->id}");
+
+    $response->assertStatus(200);
+});
+
+test('map page passes canEdit false for viewer', function () {
+    $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'viewer']);
+
+    $response = $this->actingAs($this->collaborator)->get("/map/{$trip->id}");
+
+    $response->assertStatus(200);
+    $response->assertInertia(fn ($page) => $page
+        ->component('map')
+        ->where('canEdit', false)
+    );
+});
+
+test('map page passes canEdit true for editor', function () {
+    $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
+    $trip->sharedUsers()->attach($this->collaborator->id, ['collaboration_role' => 'editor']);
+
+    $response = $this->actingAs($this->collaborator)->get("/map/{$trip->id}");
+
+    $response->assertStatus(200);
+    $response->assertInertia(fn ($page) => $page
+        ->component('map')
+        ->where('canEdit', true)
+    );
+});
+
+test('map page passes canEdit true for owner', function () {
+    $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
+
+    $response = $this->actingAs($this->owner)->get("/map/{$trip->id}");
+
+    $response->assertStatus(200);
+    $response->assertInertia(fn ($page) => $page
+        ->component('map')
+        ->where('canEdit', true)
+    );
+});
+
+test('invitation role is used when joining trip', function () {
+    $trip = Trip::factory()->create([
+        'user_id' => $this->owner->id,
+        'invitation_token' => 'test-token-viewer',
+        'invitation_role' => 'viewer',
+    ]);
+
+    $response = $this->actingAs($this->collaborator)->postJson('/trips/preview/test-token-viewer/join');
+
+    $response->assertStatus(200);
+
+    $this->assertDatabaseHas('trip_user', [
+        'trip_id' => $trip->id,
+        'user_id' => $this->collaborator->id,
+        'collaboration_role' => 'viewer',
+    ]);
+});

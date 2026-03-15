@@ -190,15 +190,24 @@ class TripController extends Controller
     /**
      * Generate or refresh the invitation token for a trip.
      */
-    public function generateInvitationToken(Trip $trip): JsonResponse
+    public function generateInvitationToken(Request $request, Trip $trip): JsonResponse
     {
         $this->authorize('update', $trip);
+
+        $validated = $request->validate([
+            'invitation_role' => ['nullable', 'in:editor,viewer'],
+        ]);
+
+        if (isset($validated['invitation_role'])) {
+            $trip->update(['invitation_role' => $validated['invitation_role']]);
+        }
 
         $token = $trip->generateInvitationToken();
 
         return response()->json([
             'token' => $token,
             'url' => $trip->getInvitationUrl(),
+            'invitation_role' => $trip->fresh()->invitation_role,
         ]);
     }
 
@@ -241,8 +250,8 @@ class TripController extends Controller
             throw new \App\Exceptions\BusinessLogicException('You are already a collaborator on this trip', 400);
         }
 
-        // Add user as collaborator with 'editor' role
-        $trip->sharedUsers()->attach($user->id, ['collaboration_role' => 'editor']);
+        // Add user as collaborator with the trip's configured invitation role
+        $trip->sharedUsers()->attach($user->id, ['collaboration_role' => $trip->invitation_role ?? 'editor']);
 
         return response()->json([
             'message' => 'Successfully joined the trip',

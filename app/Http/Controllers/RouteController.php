@@ -47,6 +47,8 @@ class RouteController extends Controller
 
         $trip = $this->tripService->findTripForUser($request->user(), $validated['trip_id']);
 
+        $this->authorize('update', $trip);
+
         $startMarker = Marker::findOrFail($validated['start_marker_id']);
         $endMarker = Marker::findOrFail($validated['end_marker_id']);
 

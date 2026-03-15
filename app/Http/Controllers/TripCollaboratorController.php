@@ -7,6 +7,7 @@ use App\Models\Trip;
 use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class TripCollaboratorController extends Controller
 {
@@ -72,6 +73,34 @@ class TripCollaboratorController extends Controller
                 'collaboration_role' => $validated['role'] ?? 'editor',
             ],
         ], 201);
+    }
+
+    /**
+     * Update a collaborator's role for a trip.
+     */
+    public function update(Request $request, Trip $trip, User $user): JsonResponse
+    {
+        $this->authorize('manageCollaborators', $trip);
+
+        $validated = $request->validate([
+            'role' => ['required', 'in:editor,viewer'],
+        ]);
+
+        // Cannot change the owner's role
+        if ($trip->user_id === $user->id) {
+            return response()->json(['error' => 'Cannot change the role of the trip owner'], 422);
+        }
+
+        // Ensure user is actually a collaborator
+        if (! $trip->sharedUsers()->where('user_id', $user->id)->exists()) {
+            return response()->json(['error' => 'User is not a collaborator on this trip'], 422);
+        }
+
+        $trip->sharedUsers()->updateExistingPivot($user->id, [
+            'collaboration_role' => $validated['role'],
+        ]);
+
+        return response()->json(null, 204);
     }
 
     /**

@@ -33,6 +33,7 @@ interface MarkerFormProps {
         tourId: number,
         isInTour: boolean,
     ) => void;
+    canEdit?: boolean;
 }
 
 export default function MarkerForm({
@@ -42,6 +43,7 @@ export default function MarkerForm({
     onClose,
     tours = [],
     onToggleMarkerInTour,
+    canEdit = true,
 }: MarkerFormProps) {
     // Initialize local state from marker prop
     // The key={selectedMarkerId} in parent ensures this component remounts with each new marker
@@ -111,11 +113,12 @@ export default function MarkerForm({
                     onEnterEditMode={handlers.handleEnterEditMode}
                     onDelete={handleDelete}
                     onOpenUrl={handleOpenUrl}
+                    canEdit={canEdit}
                 />
             )}
 
-            {/* Edit Mode */}
-            {formState.isEditMode && (
+            {/* Edit Mode (only available when user can edit) */}
+            {formState.isEditMode && canEdit && (
                 <MarkerFormEdit
                     marker={marker}
                     name={formState.name}

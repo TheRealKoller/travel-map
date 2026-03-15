@@ -30,6 +30,7 @@ class Trip extends Model
         'planned_end_day',
         'planned_duration_days',
         'invitation_token',
+        'invitation_role',
         'notes',
     ];
 
@@ -91,8 +92,28 @@ class Trip extends Model
     }
 
     /**
-     * Check if a user is the owner of this trip.
+     * Check if a user has edit access to this trip (is owner, admin, or editor collaborator).
+     * Viewers have read-only access and this method returns false for them.
+     * Uses the already-loaded relation when available to avoid N+1 queries.
      */
+    public function canEdit(User $user): bool
+    {
+        if ($user->isAdmin() || $this->isOwner($user)) {
+            return true;
+        }
+
+        if ($this->relationLoaded('sharedUsers')) {
+            $sharedUser = $this->sharedUsers->firstWhere('id', $user->id);
+
+            return $sharedUser && $sharedUser->pivot->collaboration_role === 'editor';
+        }
+
+        return $this->sharedUsers()
+            ->where('user_id', $user->id)
+            ->where('collaboration_role', 'editor')
+            ->exists();
+    }
+
     public function isOwner(User $user): bool
     {
         return $this->user_id === $user->id;

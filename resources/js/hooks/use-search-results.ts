@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 interface UseSearchResultsOptions {
     mapInstance: mapboxgl.Map | null;
-    onMarkerCreated: (marker: MarkerData) => void;
+    onMarkerCreated?: (marker: MarkerData) => void;
     onMarkerSelected: (markerId: string) => void;
 }
 
@@ -107,7 +107,7 @@ export function useSearchResults({
                     });
 
                     // Notify parent component about the new marker
-                    onMarkerCreated(markerData);
+                    onMarkerCreated?.(markerData);
                     onMarkerSelected(markerId);
 
                     // Remove the blue circle marker since we've created a marker from it

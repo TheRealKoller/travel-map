@@ -92,6 +92,9 @@ interface DesktopPanelsProps {
         east: number;
         west: number;
     } | null;
+
+    // Access control
+    canEdit?: boolean;
 }
 
 /**
@@ -141,6 +144,7 @@ export function DesktopPanels({
     pendingWaypoints,
     onRemoveWaypoint,
     onClearWaypoints,
+    canEdit = true,
 }: DesktopPanelsProps) {
     const { t } = useTranslation();
 
@@ -211,13 +215,16 @@ export function DesktopPanels({
                         onClose={handleCloseForm}
                         tours={tours}
                         onToggleMarkerInTour={handleToggleMarkerInTour}
+                        canEdit={canEdit}
                     />
                 ) : (
                     <MarkerList
                         markers={markers}
                         selectedMarkerId={selectedMarkerId}
                         onSelectMarker={setSelectedMarkerId}
-                        onMarkerImageFetched={handleMarkerImageUpdate}
+                        onMarkerImageFetched={
+                            canEdit ? handleMarkerImageUpdate : undefined
+                        }
                     />
                 )}
             </FloatingPanel>
@@ -244,6 +251,7 @@ export function DesktopPanels({
                     selectedAvailableMarkerId={selectedAvailableMarkerId}
                     onSelectAvailableMarker={handleSelectAvailableMarker}
                     onAddMarkerToTour={handleAddAvailableMarkerToTour}
+                    canEdit={canEdit}
                 />
             </FloatingPanel>
 
@@ -275,10 +283,13 @@ export function DesktopPanels({
                             onSelectedAlternativeIndexChange
                         }
                         isWaypointMode={isWaypointMode}
-                        onWaypointModeChange={setIsWaypointMode}
+                        onWaypointModeChange={
+                            canEdit ? setIsWaypointMode : undefined
+                        }
                         pendingWaypoints={pendingWaypoints}
                         onRemoveWaypoint={onRemoveWaypoint}
                         onClearWaypoints={onClearWaypoints}
+                        canEdit={canEdit}
                     />
                 </FloatingPanel>
             )}
