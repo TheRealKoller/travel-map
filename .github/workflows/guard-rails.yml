@@ -72,7 +72,13 @@ jobs:
       - name: Validate PR body contains issue link
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
+          BRANCH: ${{ github.head_ref }}
         run: |
+          # Automated branches (dependabot, copilot) don't have issue links — skip check
+          if [[ "$BRANCH" =~ ^(copilot|dependabot)/ ]]; then
+            echo "Automated branch '$BRANCH' — skipping issue link check."
+            exit 0
+          fi
           if echo "$PR_BODY" | grep -qiE '(closes|fixes|resolves) #[0-9]+'; then
             echo "PR body contains a valid issue link."
           else
