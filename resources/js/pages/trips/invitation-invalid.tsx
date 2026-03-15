@@ -35,8 +35,8 @@ export default function TripInvitationInvalid({
                     </h1>
                     <p className="text-muted-foreground">
                         {isExpired
-                            ? 'This invitation link has expired. Please ask the trip owner to generate a new invitation link.'
-                            : 'This invitation link has been revoked by the trip owner. Please ask them for a new invitation link.'}
+                            ? 'This invitation link has expired. Please ask the trip owner for a new link.'
+                            : 'This invitation link has been revoked. Please ask the trip owner for a new link.'}
                     </p>
                     <Button asChild variant="outline">
                         <Link href="/trips">Go to my trips</Link>

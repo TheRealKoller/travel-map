@@ -151,9 +151,8 @@ export default function InvitationDialog({
                 <DialogHeader>
                     <DialogTitle>Invite to trip</DialogTitle>
                     <DialogDescription>
-                        Share this link with others to let them join &ldquo;
-                        {tripName}&rdquo;. Configure the role and expiry for the
-                        invitation link.
+                        Share this link to invite others to &ldquo;{tripName}
+                        &rdquo;.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -172,8 +171,7 @@ export default function InvitationDialog({
 
                     {!isLoading && isRevoked && (
                         <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
-                            The invitation link has been revoked. Generate a new
-                            one if you'd like to invite people again.
+                            Link revoked. Generate a new one to invite people.
                         </div>
                     )}
 
@@ -273,30 +271,27 @@ export default function InvitationDialog({
                             <p className="text-xs text-muted-foreground">
                                 {expiresAt ? (
                                     <>
-                                        This link expires on{' '}
+                                        Expires{' '}
                                         <strong>
                                             {formatExpiresAt(expiresAt)}
                                         </strong>
-                                        . Anyone who joins via this link will
-                                        receive the{' '}
+                                        . Role:{' '}
                                         <strong>
                                             {invitationRole === 'viewer'
                                                 ? 'viewer'
                                                 : 'editor'}
-                                        </strong>{' '}
-                                        role.
+                                        </strong>
+                                        .
                                     </>
                                 ) : (
                                     <>
-                                        This link will remain valid as long as
-                                        the trip exists. Anyone who joins via
-                                        this link will receive the{' '}
+                                        No expiry. Role:{' '}
                                         <strong>
                                             {invitationRole === 'viewer'
                                                 ? 'viewer'
                                                 : 'editor'}
-                                        </strong>{' '}
-                                        role.
+                                        </strong>
+                                        .
                                     </>
                                 )}
                             </p>
