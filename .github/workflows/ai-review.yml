@@ -1,0 +1,423 @@
+name: AI Code Review
+
+# Stage 2 — AI-powered review gate.
+# Runs after guard-rails pass. Agents run BEFORE copilot-pull-request-reviewer.
+# Agents: Backend Architect, Frontend Developer, Security Engineer,
+#         Database Optimizer, Reality Checker (aggregator).
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  # ── Backend Architect ──────────────────────────────────────────────────────
+  review-backend:
+    name: 'Backend Architect'
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get PHP diff
+        id: diff
+        run: |
+          git diff origin/${{ github.base_ref }}...HEAD -- '*.php' > /tmp/php.diff
+          LINES=$(wc -l < /tmp/php.diff)
+          echo "lines=$LINES" >> $GITHUB_OUTPUT
+          echo "PHP diff: $LINES lines"
+
+      - name: Run Backend Architect review
+        if: steps.diff.outputs.lines > 0
+        env:
+          LECHAT_API_KEY: ${{ secrets.LECHAT_API_KEY }}
+        run: |
+          cat > /tmp/sys-backend.txt << 'SYSTEM'
+          You are a senior Laravel 12 + Inertia.js v2 backend code reviewer for a travel map application.
+
+          Stack context:
+          - PHP 8.4, Laravel 12, Pest v4, MariaDB in production
+          - Domain models: Trip → Tour → Marker hierarchy; users, collaboration, invitations
+          - Services: LeChatAgentService (Mistral AI), MapboxStaticImageService, UnsplashService
+          - Auth: Laravel Fortify, policies for authorization
+          - Queues: database driver, queue workers managed via queue-worker-control.sh
+
+          Review ONLY for these issues (max 5, ranked by severity):
+          1. Eloquent N+1 queries — missing ->with() eager loading
+          2. Missing Form Request validation classes (inline validation in controllers)
+          3. env() called outside of config/ files
+          4. Mass assignment vulnerabilities ($fillable/$guarded misconfiguration)
+          5. Missing explicit return type hints on public methods
+          6. Inertia::render() anti-patterns (passing full models instead of shaped arrays)
+          7. Authorization gaps — Eloquent operations without policy/gate checks
+          8. Missing ->force() on artisan migrate calls in test/CI code
+
+          Format your response as GitHub Markdown with specific file:line references where possible.
+          If no issues found, respond with exactly: ✅ No backend issues detected.
+          Be concise. Do NOT repeat the diff back.
+          SYSTEM
+
+          # Truncate diff to ~200 lines to stay within token limits
+          head -c 12000 /tmp/php.diff > /tmp/user-backend.txt
+          TOTAL=$(wc -l < /tmp/php.diff)
+          if [[ $TOTAL -gt 400 ]]; then
+            echo "" >> /tmp/user-backend.txt
+            echo "[Diff truncated — $TOTAL lines total. Review full diff on GitHub.]" >> /tmp/user-backend.txt
+          fi
+
+          chmod +x .github/scripts/lechat.sh
+          REVIEW=$(.github/scripts/lechat.sh /tmp/sys-backend.txt /tmp/user-backend.txt 1500)
+          echo "$REVIEW" > /tmp/backend-review.txt
+          echo "Review complete."
+
+      - name: Post backend review comment
+        if: steps.diff.outputs.lines > 0
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const review = fs.existsSync('/tmp/backend-review.txt')
+              ? fs.readFileSync('/tmp/backend-review.txt', 'utf8').trim()
+              : '⚠️ Review script did not produce output.';
+
+            if (review.startsWith('✅')) {
+              console.log('No backend issues — skipping comment.');
+              return;
+            }
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## Backend Architect Review\n\n${review}\n\n---\n*AI review via Mistral — verify before acting on suggestions*`
+            });
+
+  # ── Frontend Developer ─────────────────────────────────────────────────────
+  review-frontend:
+    name: 'Frontend Developer'
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if frontend files changed
+        id: frontend
+        run: |
+          LINES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'resources/js/**' | wc -l)
+          echo "changed=$LINES" >> $GITHUB_OUTPUT
+          echo "Frontend files changed: $LINES"
+
+      - name: Get frontend diff
+        if: steps.frontend.outputs.changed > 0
+        run: |
+          git diff origin/${{ github.base_ref }}...HEAD -- 'resources/js/**' > /tmp/frontend.diff
+
+      - name: Run Frontend Developer review
+        if: steps.frontend.outputs.changed > 0
+        env:
+          LECHAT_API_KEY: ${{ secrets.LECHAT_API_KEY }}
+        run: |
+          cat > /tmp/sys-frontend.txt << 'SYSTEM'
+          You are a React 19 + Inertia.js v2 + Tailwind CSS v4 + TypeScript reviewer.
+
+          Stack context:
+          - React 19, Inertia.js v2, TypeScript strict mode, Tailwind CSS v4
+          - Wayfinder for type-safe Laravel routes (import { method } from '@/actions/...' — named imports only)
+          - Mapbox GL JS v3 for maps
+          - Framer Motion for animations
+          - Radix UI primitives + shadcn/ui components
+          - i18next for translations
+          - Pages in resources/js/Pages, components in resources/js/components
+
+          Review ONLY for these issues (max 5, ranked by severity):
+          1. Wayfinder default imports (should be named imports for tree-shaking)
+          2. Inertia <Form> vs useForm misuse (wrong tool for the job)
+          3. Missing dark: class variants where sibling components have them
+          4. Tailwind v4 deprecated utilities: bg-opacity-*, flex-shrink-*, flex-grow-*, overflow-ellipsis
+          5. Missing TypeScript types (any, implicit any, missing prop interfaces)
+          6. React 19 anti-patterns (key in wrong place, missing Suspense for lazy)
+          7. Wayfinder query parameter patterns — passing { query: {} } correctly
+          8. Console.log statements left in production code
+
+          Format as GitHub Markdown with file:line references where possible.
+          If no issues found, respond with exactly: ✅ No frontend issues detected.
+          Be concise. Do NOT repeat the diff back.
+          SYSTEM
+
+          head -c 12000 /tmp/frontend.diff > /tmp/user-frontend.txt
+          TOTAL=$(wc -l < /tmp/frontend.diff)
+          if [[ $TOTAL -gt 400 ]]; then
+            echo "" >> /tmp/user-frontend.txt
+            echo "[Diff truncated — $TOTAL lines total. Review full diff on GitHub.]" >> /tmp/user-frontend.txt
+          fi
+
+          chmod +x .github/scripts/lechat.sh
+          REVIEW=$(.github/scripts/lechat.sh /tmp/sys-frontend.txt /tmp/user-frontend.txt 1500)
+          echo "$REVIEW" > /tmp/frontend-review.txt
+          echo "Review complete."
+
+      - name: Post frontend review comment
+        if: steps.frontend.outputs.changed > 0
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const review = fs.existsSync('/tmp/frontend-review.txt')
+              ? fs.readFileSync('/tmp/frontend-review.txt', 'utf8').trim()
+              : '⚠️ Review script did not produce output.';
+
+            if (review.startsWith('✅')) {
+              console.log('No frontend issues — skipping comment.');
+              return;
+            }
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## Frontend Developer Review\n\n${review}\n\n---\n*AI review via Mistral — verify before acting on suggestions*`
+            });
+
+  # ── Security Engineer ──────────────────────────────────────────────────────
+  review-security:
+    name: 'Security Engineer'
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Deterministic secret scan (no AI needed)
+        run: |
+          # Check for hardcoded secret patterns in added lines only
+          ADDED=$(git diff origin/${{ github.base_ref }}...HEAD | grep '^+' | grep -v '^+++')
+          FOUND=0
+
+          # Common secret patterns (not ${{ }} template expressions — those are fine)
+          if echo "$ADDED" | grep -qiE "(api[_-]?key|secret|password|token)\s*=\s*['\"][^'\"\$\{][^'\"]{8,}['\"]"; then
+            echo "::warning::Possible hardcoded secret detected in diff — check AI review below."
+            FOUND=1
+          fi
+
+          echo "deterministic_found=$FOUND" >> $GITHUB_OUTPUT
+        id: secrets
+
+      - name: Get full diff for AI security scan
+        run: |
+          git diff origin/${{ github.base_ref }}...HEAD -- '*.php' '*.ts' '*.tsx' '*.js' '*.env*' > /tmp/security.diff
+
+      - name: Run Security Engineer review
+        env:
+          LECHAT_API_KEY: ${{ secrets.LECHAT_API_KEY }}
+        run: |
+          cat > /tmp/sys-security.txt << 'SYSTEM'
+          You are a security reviewer for a Laravel 12 + React 19 travel map application.
+
+          Sensitive assets in this app:
+          - API keys: LECHAT_API_KEY (Mistral), MAPBOX_ACCESS_TOKEN, GOOGLE_MAPS_API_KEY, UNSPLASH_ACCESS_KEY
+          - User data: Trip/Tour/Marker ownership, collaboration invitations
+          - Auth: Laravel Fortify sessions, CSRF tokens
+
+          Review ONLY for CRITICAL or HIGH severity issues (max 3):
+          1. Hardcoded API keys or secrets in PHP/TS/JS files
+          2. env() called directly outside config/ files (leaks to Inertia shared data)
+          3. Direct Object Reference — user accessing another user's Trip/Tour/Marker without auth check
+          4. Missing ->authorize() in Form Requests or missing policy checks in controllers
+          5. Unescaped user content passed to Inertia::share() (XSS via shared props)
+          6. SQL injection via raw DB::statement() with user input
+          7. CSRF bypass — API routes that should be web routes (or vice versa)
+
+          If no critical/high issues found, respond with exactly: ✅ No critical security issues detected.
+          Be very specific. Include file:line references. Do NOT report low-severity style issues.
+          Do NOT repeat the diff back.
+          SYSTEM
+
+          head -c 10000 /tmp/security.diff > /tmp/user-security.txt
+
+          chmod +x .github/scripts/lechat.sh
+          REVIEW=$(.github/scripts/lechat.sh /tmp/sys-security.txt /tmp/user-security.txt 800)
+          echo "$REVIEW" > /tmp/security-review.txt
+          echo "Review complete."
+
+      - name: Post security review comment and add label
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const review = fs.existsSync('/tmp/security-review.txt')
+              ? fs.readFileSync('/tmp/security-review.txt', 'utf8').trim()
+              : '⚠️ Review script did not produce output.';
+
+            if (review.startsWith('✅')) {
+              console.log('No security issues — skipping comment.');
+              return;
+            }
+
+            // Only post + label if real issues found
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## Security Engineer Review\n\n${review}\n\n---\n*AI review via Mistral — always verify findings before acting*`
+            });
+
+            try {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: ['security-review-needed']
+              });
+            } catch (e) {
+              // Label may not exist yet — not a blocking failure
+              console.log('Could not add label:', e.message);
+            }
+
+  # ── Database Optimizer ─────────────────────────────────────────────────────
+  review-database:
+    name: 'Database Optimizer'
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if migrations changed
+        id: migrations
+        run: |
+          LINES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'database/migrations/**' | wc -l)
+          echo "changed=$LINES" >> $GITHUB_OUTPUT
+          echo "Migration files changed: $LINES"
+
+      - name: Get migration + model diff
+        if: steps.migrations.outputs.changed > 0
+        run: |
+          git diff origin/${{ github.base_ref }}...HEAD -- 'database/migrations/**' 'app/Models/**' > /tmp/db.diff
+
+      - name: Run Database Optimizer review
+        if: steps.migrations.outputs.changed > 0
+        env:
+          LECHAT_API_KEY: ${{ secrets.LECHAT_API_KEY }}
+        run: |
+          cat > /tmp/sys-db.txt << 'SYSTEM'
+          You are a database migration and Eloquent query reviewer for a Laravel 12 app (MariaDB production).
+
+          Important context:
+          - Migrations are NOT auto-run on production deploy (manual safety measure)
+          - Production uses MariaDB 11; tests use MariaDB 11 via Docker service
+          - Models: User, Trip, Tour, Marker, TripCollaborator, TripInvitation, and more
+          - Migrations must be safe for both fresh install and upgrade from current schema
+
+          Review ONLY for these issues (max 5):
+          1. Adding a non-nullable column without a default — breaks existing rows on upgrade
+          2. Renaming a column (data loss risk) — suggest add+copy+drop pattern instead
+          3. Missing ->onDelete() cascade or restrict on foreign key constraints
+          4. Missing index on foreign key columns (e.g., trip_id, user_id, tour_id)
+          5. Missing ->down() method (or empty down()) that prevents rollback
+          6. Eloquent N+1 in new model relationships — missing with() in scopes/accessors
+          7. Using DB:: raw queries where Eloquent query builder would work
+
+          Format as a risk table: | Column/Change | Risk Level | Recommendation |
+          If no issues found, respond with exactly: ✅ No database issues detected.
+          SYSTEM
+
+          head -c 8000 /tmp/db.diff > /tmp/user-db.txt
+
+          chmod +x .github/scripts/lechat.sh
+          REVIEW=$(.github/scripts/lechat.sh /tmp/sys-db.txt /tmp/user-db.txt 1000)
+          echo "$REVIEW" > /tmp/db-review.txt
+          echo "Review complete."
+
+      - name: Post database review comment
+        if: steps.migrations.outputs.changed > 0
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const review = fs.existsSync('/tmp/db-review.txt')
+              ? fs.readFileSync('/tmp/db-review.txt', 'utf8').trim()
+              : '⚠️ Review script did not produce output.';
+
+            if (review.startsWith('✅')) {
+              console.log('No database issues — skipping comment.');
+              return;
+            }
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## Database Optimizer Review\n\n${review}\n\n---\n*AI review via Mistral — migrations are NOT auto-deployed; verify before running manually*`
+            });
+
+  # ── Reality Checker ────────────────────────────────────────────────────────
+  # Runs after all review jobs, posts a single consolidated summary.
+  # Does NOT block the merge — it aggregates findings for the human to decide.
+  reality-check:
+    name: 'Reality Checker'
+    runs-on: ubuntu-latest
+    needs: [review-backend, review-frontend, review-security, review-database]
+    if: always() && github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Request Copilot review
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              await github.rest.pulls.requestReviewers({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+                reviewers: ['copilot-pull-request-reviewer']
+              });
+              console.log('Copilot review requested.');
+            } catch (e) {
+              // Non-fatal: reviewer may already be requested or unavailable
+              console.log('Could not request Copilot review:', e.message);
+            }
+
+      - name: Post AI review summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const needs = ${{ toJSON(needs) }};
+            const results = {
+              backend:  needs['review-backend'].result,
+              frontend: needs['review-frontend'].result,
+              security: needs['review-security'].result,
+              database: needs['review-database'].result,
+            };
+
+            const icon = (r) => r === 'success' ? '✅' : r === 'skipped' ? '⏭️' : '❌';
+            const body = `## AI Review Summary
+
+            | Agent | Status |
+            |---|---|
+            | Backend Architect | ${icon(results.backend)} ${results.backend} |
+            | Frontend Developer | ${icon(results.frontend)} ${results.frontend} |
+            | Security Engineer | ${icon(results.security)} ${results.security} |
+            | Database Optimizer | ${icon(results.database)} ${results.database} |
+
+            AI reviews (if any issues were found) are posted as comments above.
+            Copilot review has been requested and will follow.
+
+            > This PR is ready for human review.`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });
