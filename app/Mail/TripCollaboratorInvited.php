@@ -4,7 +4,6 @@ namespace App\Mail;
 
 use App\Models\Trip;
 use App\Models\User;
-use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -12,7 +11,7 @@ use Illuminate\Queue\SerializesModels;
 
 class TripCollaboratorInvited extends Mailable
 {
-    use Queueable, SerializesModels;
+    use SerializesModels;
 
     /**
      * Create a new message instance.

@@ -52,7 +52,7 @@ class TripCollaboratorController extends Controller
 
         // Silently return success if the user does not exist
         if ($user === null) {
-            return response()->json(['message' => 'Collaborator added successfully'], 201);
+            return response()->json(['message' => 'Collaborator added successfully', 'collaborator' => null], 201);
         }
 
         // Check if user is already the owner
