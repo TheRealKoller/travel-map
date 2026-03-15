@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
-import { AlertTriangle, Clock } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 
 interface InvitationInvalidProps {
     reason: 'expired' | 'revoked';
@@ -26,11 +26,7 @@ export default function TripInvitationInvalid({
             <div className="flex h-full flex-1 flex-col items-center justify-center gap-6 p-6">
                 <div className="flex max-w-md flex-col items-center gap-4 text-center">
                     <div className="flex size-16 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/20">
-                        {isExpired ? (
-                            <Clock className="size-8 text-amber-600 dark:text-amber-400" />
-                        ) : (
-                            <AlertTriangle className="size-8 text-amber-600 dark:text-amber-400" />
-                        )}
+                        <AlertTriangle className="size-8 text-amber-600 dark:text-amber-400" />
                     </div>
                     <h1 className="text-2xl font-semibold">
                         {isExpired
