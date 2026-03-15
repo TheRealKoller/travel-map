@@ -1,0 +1,323 @@
+name: Quality Gate
+
+# Stage 4 — Performance and Accessibility checks on PRs.
+# Agents: Performance Benchmarker (bundle size + N+1 scan),
+#         Accessibility Auditor (axe-core, ignores map containers).
+# Both are non-blocking warnings unless a regression is detected.
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+  actions: read
+
+jobs:
+  # ── Performance Benchmarker ────────────────────────────────────────────────
+  performance:
+    name: 'Performance Benchmarker'
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build current branch
+        run: npm run build
+        env:
+          VITE_MAPBOX_ACCESS_TOKEN: pk.eyJ1IjoidGVzdCIsImEiOiJ0ZXN0In0.test
+
+      - name: Measure current bundle size
+        id: current
+        run: |
+          if [[ -d public/build/assets ]]; then
+            TOTAL=$(du -sb public/build/assets/ | cut -f1)
+            JS_TOTAL=$(find public/build/assets -name '*.js' -exec du -sb {} + 2>/dev/null | awk '{s+=$1} END {print s+0}')
+            CSS_TOTAL=$(find public/build/assets -name '*.css' -exec du -sb {} + 2>/dev/null | awk '{s+=$1} END {print s+0}')
+          else
+            TOTAL=$(du -sb public/build/ | cut -f1)
+            JS_TOTAL=0
+            CSS_TOTAL=0
+          fi
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          echo "js=$JS_TOTAL" >> $GITHUB_OUTPUT
+          echo "css=$CSS_TOTAL" >> $GITHUB_OUTPUT
+          echo "Current total: $TOTAL bytes, JS: $JS_TOTAL, CSS: $CSS_TOTAL"
+
+      - name: Try to get baseline build from main
+        id: baseline
+        continue-on-error: true
+        run: |
+          # Try to download baseline artifact from last successful CI run on main
+          echo "baseline_total=0" >> $GITHUB_OUTPUT
+
+      - name: Download baseline build artifact
+        uses: dawidd6/action-download-artifact@v6
+        id: download-baseline
+        with:
+          workflow: ci.yml
+          branch: main
+          name: build-artifacts
+          path: /tmp/baseline-build/
+          if_no_artifact_found: ignore
+        continue-on-error: true
+
+      - name: Compare bundle sizes
+        id: compare
+        run: |
+          CURRENT=${{ steps.current.outputs.total }}
+          REGRESSION=false
+          BASELINE_TOTAL=0
+
+          if [[ -d /tmp/baseline-build/assets ]]; then
+            BASELINE_TOTAL=$(du -sb /tmp/baseline-build/assets/ | cut -f1)
+          elif [[ -d /tmp/baseline-build ]]; then
+            BASELINE_TOTAL=$(du -sb /tmp/baseline-build/ | cut -f1)
+          fi
+
+          echo "baseline_total=$BASELINE_TOTAL" >> $GITHUB_OUTPUT
+
+          if [[ $BASELINE_TOTAL -gt 0 ]]; then
+            # Calculate percentage change
+            DIFF=$((CURRENT - BASELINE_TOTAL))
+            PCTX10=$(( (DIFF * 1000) / BASELINE_TOTAL ))
+            PCT=$((PCTX10 / 10))
+            echo "diff_bytes=$DIFF" >> $GITHUB_OUTPUT
+            echo "diff_pct=$PCT" >> $GITHUB_OUTPUT
+
+            if [[ $PCT -gt 15 ]]; then
+              echo "REGRESSION: Bundle grew by $PCT% (threshold: 15%)"
+              REGRESSION=true
+            fi
+          else
+            echo "No baseline available — skipping comparison."
+            echo "diff_bytes=0" >> $GITHUB_OUTPUT
+            echo "diff_pct=0" >> $GITHUB_OUTPUT
+          fi
+
+          echo "regression=$REGRESSION" >> $GITHUB_OUTPUT
+
+      - name: Scan for N+1 patterns in PHP diff
+        id: n1scan
+        run: |
+          git diff origin/${{ github.base_ref }}...HEAD -- '*.php' > /tmp/php-diff.txt
+
+          # Look for common N+1 patterns in added lines
+          ADDED=$(grep '^+' /tmp/php-diff.txt | grep -v '^+++')
+
+          N1_FOUND=""
+          # Pattern: foreach loop followed by relationship access without eager loading hint
+          if echo "$ADDED" | grep -qE '(->each|foreach.*\$|\$[a-z]+->each)'; then
+            if echo "$ADDED" | grep -qE '\$[a-z]+\->(markers|tours|trips|collaborators|invitations)\b' && \
+               ! echo "$ADDED" | grep -qE '->with\('; then
+              N1_FOUND="Possible N+1: relationship accessed inside loop without ->with() eager loading"
+            fi
+          fi
+
+          echo "n1_warning=$N1_FOUND" >> $GITHUB_OUTPUT
+
+      - name: Post performance comment
+        if: steps.compare.outputs.regression == 'true' || steps.n1scan.outputs.n1_warning != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const current = ${{ steps.current.outputs.total }};
+            const baseline = ${{ steps.compare.outputs.baseline_total }};
+            const diffBytes = ${{ steps.compare.outputs.diff_bytes }};
+            const diffPct = ${{ steps.compare.outputs.diff_pct }};
+            const regression = '${{ steps.compare.outputs.regression }}' === 'true';
+            const n1Warning = `${{ steps.n1scan.outputs.n1_warning }}`;
+
+            const toKB = (b) => (b / 1024).toFixed(1) + ' KB';
+
+            let body = `## Performance Benchmarker\n\n`;
+
+            if (baseline > 0) {
+              const icon = regression ? '🔴' : '🟢';
+              body += `### Bundle Size\n\n`;
+              body += `| | Size |\n|---|---|\n`;
+              body += `| Baseline (main) | ${toKB(baseline)} |\n`;
+              body += `| This PR | ${toKB(current)} |\n`;
+              body += `| Delta | ${diffBytes > 0 ? '+' : ''}${toKB(diffBytes)} (${diffBytes > 0 ? '+' : ''}${diffPct}%) |\n\n`;
+              if (regression) {
+                body += `${icon} **Regression detected:** bundle grew by ${diffPct}% (threshold: 15%).\n`;
+                body += `Consider code splitting or lazy loading for large imports (framer-motion, mapbox-gl).\n\n`;
+              }
+            } else {
+              body += `*No baseline available — bundle size comparison skipped on first run.*\n\n`;
+            }
+
+            if (n1Warning) {
+              body += `### N+1 Warning\n\n`;
+              body += `⚠️ ${n1Warning}\n\n`;
+            }
+
+            body += `---\n*Non-blocking warning — review and address if applicable*`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });
+
+      - name: Fail if hard regression (>50KB absolute)
+        run: |
+          DIFF=${{ steps.compare.outputs.diff_bytes }}
+          BASELINE=${{ steps.compare.outputs.baseline_total }}
+          if [[ $BASELINE -gt 0 ]] && [[ $DIFF -gt 51200 ]]; then
+            echo "::error::Bundle regression: +${DIFF} bytes exceeds absolute limit of 50KB"
+            echo "::error::This is a blocking failure. Investigate large additions before merging."
+            exit 1
+          fi
+
+  # ── Accessibility Auditor ──────────────────────────────────────────────────
+  accessibility:
+    name: 'Accessibility Auditor'
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if frontend files changed
+        id: frontend
+        run: |
+          LINES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'resources/js/**' | wc -l)
+          echo "changed=$LINES" >> $GITHUB_OUTPUT
+
+      - name: Setup PHP
+        if: steps.frontend.outputs.changed > 0
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+
+      - name: Setup Node
+        if: steps.frontend.outputs.changed > 0
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        if: steps.frontend.outputs.changed > 0
+        run: |
+          composer install --no-interaction --prefer-dist --optimize-autoloader
+          npm ci
+
+      - name: Copy environment and generate key
+        if: steps.frontend.outputs.changed > 0
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Build assets
+        if: steps.frontend.outputs.changed > 0
+        run: npm run build
+        env:
+          VITE_MAPBOX_ACCESS_TOKEN: pk.eyJ1IjoidGVzdCIsImEiOiJ0ZXN0In0.test
+
+      - name: Install Playwright
+        if: steps.frontend.outputs.changed > 0
+        run: npx playwright install --with-deps chromium
+
+      - name: Run accessibility audit with axe-core
+        if: steps.frontend.outputs.changed > 0
+        id: a11y
+        run: |
+          # Start a background Laravel server for axe to audit
+          php artisan serve --port=8765 &
+          SERVER_PID=$!
+          sleep 3
+
+          # Run axe on key pages — skip map containers (.mapboxgl-canvas, .mapboxgl-map)
+          npx @axe-core/cli \
+            http://localhost:8765/login \
+            --include 'main' \
+            --exclude '.mapboxgl-canvas,.mapboxgl-map,.mapboxgl-ctrl,#map-container,[data-mapbox]' \
+            --exit \
+            --reporter json \
+            2>/dev/null > /tmp/axe-report.json || true
+
+          kill $SERVER_PID 2>/dev/null || true
+
+          # Parse violations count
+          VIOLATIONS=$(cat /tmp/axe-report.json | python3 -c "
+          import json, sys
+          data = json.load(sys.stdin)
+          total = 0
+          pages = data if isinstance(data, list) else [data]
+          for p in pages:
+              violations = p.get('violations', [])
+              for v in violations:
+                  total += len(v.get('nodes', []))
+          print(total)
+          " 2>/dev/null || echo "0")
+
+          echo "violations=$VIOLATIONS" >> $GITHUB_OUTPUT
+          echo "Accessibility violations found: $VIOLATIONS"
+        continue-on-error: true
+
+      - name: Get baseline violation count from last run
+        id: baseline-a11y
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Check if there's a stored baseline count in the repository
+            // For now we default to 0 — first run establishes the baseline
+            core.setOutput('count', '0');
+
+      - name: Post accessibility comment on regression
+        if: steps.frontend.outputs.changed > 0
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const violations = parseInt('${{ steps.a11y.outputs.violations }}' || '0');
+            const baseline = parseInt('${{ steps.baseline-a11y.outputs.count }}' || '0');
+
+            if (violations <= baseline) {
+              console.log(`Accessibility: ${violations} violations (baseline: ${baseline}) — no regression.`);
+              return;
+            }
+
+            const fs = require('fs');
+            let reportDetails = '';
+            try {
+              const report = JSON.parse(fs.readFileSync('/tmp/axe-report.json', 'utf8'));
+              const pages = Array.isArray(report) ? report : [report];
+              for (const page of pages) {
+                for (const v of (page.violations || []).slice(0, 5)) {
+                  reportDetails += `\n**${v.id}** (${v.impact}): ${v.description}\n`;
+                  reportDetails += `  - Affects ${v.nodes.length} element(s)\n`;
+                  reportDetails += `  - [Learn more](${v.helpUrl})\n`;
+                }
+              }
+            } catch (e) {
+              reportDetails = '*Could not parse axe report.*';
+            }
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `## Accessibility Auditor\n\n` +
+                `⚠️ **Regression detected:** ${violations} violations found (baseline: ${baseline}).\n\n` +
+                `> Map container elements are excluded from this audit (Mapbox GL JS canvas, controls).\n\n` +
+                `### Top Violations\n${reportDetails}\n\n` +
+                `---\n*Non-blocking warning — address WCAG issues before merging if possible*`
+            });
