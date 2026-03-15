@@ -44,6 +44,7 @@ export default function InvitationDialog({
     const [expiresAt, setExpiresAt] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isRevoking, setIsRevoking] = useState(false);
+    const [isRevoked, setIsRevoked] = useState(false);
     const [isCopied, setIsCopied] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -90,6 +91,7 @@ export default function InvitationDialog({
             await axios.delete(`/trips/${tripId}/revoke-invitation-token`);
             setInvitationUrl(null);
             setExpiresAt(null);
+            setIsRevoked(true);
         } catch (err) {
             console.error('Error revoking invitation link:', err);
             setError('Failed to revoke invitation link. Please try again.');
@@ -99,10 +101,10 @@ export default function InvitationDialog({
     };
 
     useEffect(() => {
-        if (isOpen && !invitationUrl) {
+        if (isOpen && !invitationUrl && !isRevoked) {
             void generateInvitationLink();
         }
-    }, [isOpen, invitationUrl, generateInvitationLink]);
+    }, [isOpen, invitationUrl, isRevoked, generateInvitationLink]);
 
     const handleRoleChange = async (role: 'editor' | 'viewer') => {
         setInvitationRole(role);
@@ -131,6 +133,7 @@ export default function InvitationDialog({
         setInvitationUrl(null);
         setExpiresAt(null);
         setExpiresIn('never');
+        setIsRevoked(false);
         onClose();
     };
 
@@ -164,6 +167,13 @@ export default function InvitationDialog({
                     {error && (
                         <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-200">
                             {error}
+                        </div>
+                    )}
+
+                    {!isLoading && isRevoked && (
+                        <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
+                            The invitation link has been revoked. Generate a new
+                            one if you'd like to invite people again.
                         </div>
                     )}
 
@@ -310,6 +320,19 @@ export default function InvitationDialog({
                                     <Trash2 className="mr-2 size-4" />
                                 )}
                                 Revoke link
+                            </Button>
+                        )}
+                        {isRevoked && (
+                            <Button
+                                data-testid="generate-invitation-link-button"
+                                onClick={() => {
+                                    setIsRevoked(false);
+                                    void generateInvitationLink();
+                                }}
+                                variant="outline"
+                                size="sm"
+                            >
+                                Generate new link
                             </Button>
                         )}
                         {error && (

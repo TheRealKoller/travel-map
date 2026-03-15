@@ -212,11 +212,13 @@ class TripController extends Controller
 
         $token = $trip->generateInvitationToken($expiresAt);
 
+        $trip = $trip->fresh();
+
         return response()->json([
             'token' => $token,
             'url' => $trip->getInvitationUrl(),
-            'invitation_role' => $trip->fresh()->invitation_role,
-            'invitation_token_expires_at' => $trip->fresh()->invitation_token_expires_at?->toIso8601String(),
+            'invitation_role' => $trip->invitation_role,
+            'invitation_token_expires_at' => $trip->invitation_token_expires_at?->toIso8601String(),
         ]);
     }
 
@@ -238,7 +240,13 @@ class TripController extends Controller
      */
     public function showPreview(string $token): Response
     {
-        $trip = Trip::where('invitation_token', $token)->firstOrFail();
+        $trip = Trip::where('invitation_token', $token)->first();
+
+        if (! $trip) {
+            return Inertia::render('trips/invitation-invalid', [
+                'reason' => 'revoked',
+            ]);
+        }
 
         // Check if the invitation token has expired
         if ($trip->isInvitationTokenExpired()) {
@@ -265,7 +273,11 @@ class TripController extends Controller
      */
     public function joinTrip(string $token): JsonResponse
     {
-        $trip = Trip::where('invitation_token', $token)->firstOrFail();
+        $trip = Trip::where('invitation_token', $token)->first();
+
+        if (! $trip) {
+            throw new \App\Exceptions\BusinessLogicException('This invitation link has been revoked', 410);
+        }
 
         // Check if the invitation token has expired
         if ($trip->isInvitationTokenExpired()) {

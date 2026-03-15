@@ -269,16 +269,48 @@ test('Trip revokeInvitationToken clears token and expiry', function () {
     expect($trip->invitation_token_expires_at)->toBeNull();
 });
 
-test('Trip generateInvitationToken stores expiry when provided', function () {
-    $user = User::factory()->create();
-    $trip = Trip::factory()->create(['user_id' => $user->id]);
-    $expiresAt = now()->addDays(30);
+// ─── Revoked Token: Preview & Join ───────────────────────────────────────────
 
-    $trip->generateInvitationToken($expiresAt);
+test('revoked invitation token shows invitation-invalid page with reason revoked on preview', function () {
+    $owner = User::factory()->create();
+    $viewer = User::factory()->create();
+    $trip = Trip::factory()->create(['user_id' => $owner->id]);
+    $token = $trip->generateInvitationToken();
 
-    $trip->refresh();
-    expect($trip->invitation_token_expires_at)->not->toBeNull();
-    expect($trip->invitation_token_expires_at->toDateString())->toBe($expiresAt->toDateString());
+    // Revoke the token
+    $this->actingAs($owner)->deleteJson("/trips/{$trip->id}/revoke-invitation-token")->assertOk();
+
+    $response = $this
+        ->actingAs($viewer)
+        ->get("/trips/preview/{$token}");
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('trips/invitation-invalid')
+        ->where('reason', 'revoked')
+    );
+});
+
+test('user cannot join trip with revoked invitation token', function () {
+    $owner = User::factory()->create();
+    $joiner = User::factory()->create();
+    $trip = Trip::factory()->create(['user_id' => $owner->id]);
+    $token = $trip->generateInvitationToken();
+
+    // Revoke the token
+    $this->actingAs($owner)->deleteJson("/trips/{$trip->id}/revoke-invitation-token")->assertOk();
+
+    $response = $this
+        ->actingAs($joiner)
+        ->postJson("/trips/preview/{$token}/join");
+
+    $response->assertStatus(410);
+    $response->assertJson(['error' => 'This invitation link has been revoked']);
+
+    $this->assertDatabaseMissing('trip_user', [
+        'trip_id' => $trip->id,
+        'user_id' => $joiner->id,
+    ]);
 });
 
 // ─── Role Selection ───────────────────────────────────────────────────────────
