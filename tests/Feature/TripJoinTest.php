@@ -138,10 +138,11 @@ test('unauthenticated user cannot join trip', function () {
     $response->assertStatus(401);
 });
 
-test('joining trip with invalid token returns 404', function () {
+test('joining trip with invalid token returns 410', function () {
     $response = $this->actingAs($this->user)->postJson('/trips/preview/invalid-token/join');
 
-    $response->assertStatus(404);
+    $response->assertStatus(410);
+    $response->assertJson(['error' => 'This invitation link has been revoked']);
 });
 
 test('owner sees collaborator status on their own trip preview', function () {

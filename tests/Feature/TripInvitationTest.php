@@ -82,14 +82,18 @@ test('unauthenticated user cannot access trip preview', function () {
     $response->assertRedirect(route('login'));
 });
 
-test('trip preview returns 404 for invalid token', function () {
+test('trip preview returns invitation-invalid page for unknown token', function () {
     $user = User::factory()->create();
 
     $response = $this
         ->actingAs($user)
         ->get('/trips/preview/invalid-token');
 
-    $response->assertNotFound();
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('trips/invitation-invalid')
+        ->where('reason', 'revoked')
+    );
 });
 
 test('trip preview includes markers', function () {

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\PdfTemplate;
 use App\Http\Controllers\Concerns\BuildsAdminOwnerProps;
 use App\Http\Requests\FetchTripImageRequest;
+use App\Http\Requests\GenerateInvitationTokenRequest;
 use App\Http\Requests\StoreTripRequest;
 use App\Http\Requests\UpdateTripRequest;
 use App\Models\Trip;
@@ -190,25 +191,47 @@ class TripController extends Controller
     /**
      * Generate or refresh the invitation token for a trip.
      */
-    public function generateInvitationToken(Request $request, Trip $trip): JsonResponse
+    public function generateInvitationToken(GenerateInvitationTokenRequest $request, Trip $trip): JsonResponse
     {
         $this->authorize('update', $trip);
 
-        $validated = $request->validate([
-            'invitation_role' => ['nullable', 'in:editor,viewer'],
-        ]);
+        $validated = $request->validated();
 
         if (isset($validated['invitation_role'])) {
             $trip->update(['invitation_role' => $validated['invitation_role']]);
         }
 
-        $token = $trip->generateInvitationToken();
+        $expiresAt = null;
+        if (isset($validated['expires_in']) && $validated['expires_in'] !== 'never') {
+            $expiresAt = match ($validated['expires_in']) {
+                '7_days' => now()->addDays(7),
+                '30_days' => now()->addDays(30),
+                default => null,
+            };
+        }
+
+        $token = $trip->generateInvitationToken($expiresAt);
+
+        $trip = $trip->fresh();
 
         return response()->json([
             'token' => $token,
             'url' => $trip->getInvitationUrl(),
-            'invitation_role' => $trip->fresh()->invitation_role,
+            'invitation_role' => $trip->invitation_role,
+            'invitation_token_expires_at' => $trip->invitation_token_expires_at?->toIso8601String(),
         ]);
+    }
+
+    /**
+     * Revoke the invitation token for a trip (invalidates the link).
+     */
+    public function revokeInvitationToken(Trip $trip): JsonResponse
+    {
+        $this->authorize('update', $trip);
+
+        $trip->revokeInvitationToken();
+
+        return response()->json(['message' => 'Invitation link revoked successfully']);
     }
 
     /**
@@ -217,7 +240,20 @@ class TripController extends Controller
      */
     public function showPreview(string $token): Response
     {
-        $trip = Trip::where('invitation_token', $token)->firstOrFail();
+        $trip = Trip::where('invitation_token', $token)->first();
+
+        if (! $trip) {
+            return Inertia::render('trips/invitation-invalid', [
+                'reason' => 'revoked',
+            ]);
+        }
+
+        // Check if the invitation token has expired
+        if ($trip->isInvitationTokenExpired()) {
+            return Inertia::render('trips/invitation-invalid', [
+                'reason' => 'expired',
+            ]);
+        }
 
         // Load the trip with its markers
         $trip->load(['markers']);
@@ -237,7 +273,17 @@ class TripController extends Controller
      */
     public function joinTrip(string $token): JsonResponse
     {
-        $trip = Trip::where('invitation_token', $token)->firstOrFail();
+        $trip = Trip::where('invitation_token', $token)->first();
+
+        if (! $trip) {
+            throw new \App\Exceptions\BusinessLogicException('This invitation link has been revoked', 410);
+        }
+
+        // Check if the invitation token has expired
+        if ($trip->isInvitationTokenExpired()) {
+            throw new \App\Exceptions\BusinessLogicException('This invitation link has expired', 410);
+        }
+
         $user = auth()->user();
 
         // Check if user is already the owner
