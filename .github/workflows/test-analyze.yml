@@ -1,0 +1,176 @@
+name: AI Test Analysis
+
+# Stage 3 — Triggered when the 'tests' workflow completes on a PR.
+# Agent: Test Results Analyzer
+# Reads Pest failure output and posts an actionable explanation comment.
+
+on:
+  workflow_run:
+    workflows: ['tests']
+    types: [completed]
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: read
+  actions: read
+
+jobs:
+  analyze-failures:
+    name: 'Test Results Analyzer'
+    runs-on: ubuntu-latest
+    # Only run when tests actually fail — saves API calls
+    if: github.event.workflow_run.conclusion == 'failure'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      # Download browser test screenshots if available
+      - name: Download browser test screenshots
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+          name: browser-test-screenshots
+          path: /tmp/screenshots/
+        continue-on-error: true
+
+      - name: Extract failure logs from failed jobs
+        id: logs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runId = context.payload.workflow_run.id;
+
+            const jobs = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: runId,
+            });
+
+            let failedLogs = '';
+            for (const job of jobs.data.jobs) {
+              if (job.conclusion !== 'failure') continue;
+
+              try {
+                // Get the log download URL (redirect)
+                const logsResponse = await github.rest.actions.downloadJobLogsForWorkflowRun({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  job_id: job.id,
+                });
+
+                // Follow the redirect to get actual log content
+                const logText = await fetch(logsResponse.url).then(r => r.text());
+
+                // Find Pest output — look for the failure section
+                const lines = logText.split('\n');
+                let startIdx = -1;
+
+                // Try to find Pest output markers
+                for (let i = 0; i < lines.length; i++) {
+                  if (lines[i].includes('FAILED') || lines[i].includes('Tests\\') ||
+                      lines[i].includes('● ') || lines[i].match(/\d+ (failed|passed)/)) {
+                    startIdx = Math.max(0, i - 5);
+                    break;
+                  }
+                }
+
+                const relevantLines = startIdx >= 0
+                  ? lines.slice(startIdx, startIdx + 150)
+                  : lines.slice(-100);
+
+                failedLogs += `\n### Job: ${job.name}\n\`\`\`\n${relevantLines.join('\n')}\n\`\`\`\n`;
+              } catch (e) {
+                failedLogs += `\n### Job: ${job.name}\n*Could not fetch logs: ${e.message}*\n`;
+              }
+            }
+
+            // Write to file — GitHub output has size limits
+            const fs = require('fs');
+            const truncated = failedLogs.substring(0, 8000);
+            fs.writeFileSync('/tmp/failed-logs.txt', truncated || 'No failure logs extracted.');
+            core.setOutput('has_logs', failedLogs.length > 0 ? 'true' : 'false');
+
+      - name: Get PHP diff for context
+        run: |
+          BASE_SHA="${{ github.event.workflow_run.pull_requests[0] && github.event.workflow_run.pull_requests[0].base.sha || '' }}"
+          if [[ -n "$BASE_SHA" ]]; then
+            git diff "$BASE_SHA"...HEAD -- '*.php' > /tmp/php-context.diff 2>/dev/null || echo "" > /tmp/php-context.diff
+          else
+            # Fall back to diff against main
+            git fetch origin main --depth=1 2>/dev/null || true
+            git diff origin/main...HEAD -- '*.php' > /tmp/php-context.diff 2>/dev/null || echo "" > /tmp/php-context.diff
+          fi
+          # Truncate to first 3000 chars for context
+          head -c 3000 /tmp/php-context.diff > /tmp/php-context-short.diff || true
+          echo "PHP context diff ready."
+
+      - name: Run Test Results Analyzer
+        if: steps.logs.outputs.has_logs == 'true'
+        env:
+          LECHAT_API_KEY: ${{ secrets.LECHAT_API_KEY }}
+        run: |
+          cat > /tmp/sys-test-analyzer.txt << 'SYSTEM'
+          You are a Pest v4 test failure analyst for a Laravel 12 travel map application.
+
+          Application context:
+          - PHP 8.4, Laravel 12, Pest v4, MariaDB in CI (via Docker service)
+          - Domain: Trip → Tour → Marker hierarchy; collaboration, invitations, AI enrichment
+          - Services: LeChatAgentService (Mistral), MapboxStaticImageService, UnsplashService
+          - Browser tests run with Playwright via Pest v4 browser testing
+          - External APIs are mocked with Http::fake() in tests
+          - Test env uses MariaDB 11 (not SQLite for feature tests)
+
+          For each failing test:
+          1. State the test name and file:line clearly
+          2. Describe what assertion failed (actual vs expected values if shown)
+          3. Cross-reference the PHP diff (provided after logs) to find the most likely cause
+          4. Give a SPECIFIC, actionable fix with file and approximate line number
+
+          Format as GitHub Markdown. Be direct and concise.
+          For browser test failures: note that screenshots are available as workflow artifacts.
+          SYSTEM
+
+          # Combine logs and diff context
+          echo "## Failed Test Logs" > /tmp/user-test-analyzer.txt
+          cat /tmp/failed-logs.txt >> /tmp/user-test-analyzer.txt
+          echo "" >> /tmp/user-test-analyzer.txt
+          echo "## PHP Diff (for context)" >> /tmp/user-test-analyzer.txt
+          cat /tmp/php-context-short.diff >> /tmp/user-test-analyzer.txt
+
+          chmod +x .github/scripts/lechat.sh
+          ANALYSIS=$(.github/scripts/lechat.sh /tmp/sys-test-analyzer.txt /tmp/user-test-analyzer.txt 2000)
+          echo "$ANALYSIS" > /tmp/test-analysis.txt
+          echo "Analysis complete."
+
+      - name: Post test analysis comment on PR
+        if: steps.logs.outputs.has_logs == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const analysis = fs.existsSync('/tmp/test-analysis.txt')
+              ? fs.readFileSync('/tmp/test-analysis.txt', 'utf8').trim()
+              : '⚠️ Analysis script did not produce output.';
+
+            // Find the PR associated with this workflow run
+            const prs = context.payload.workflow_run.pull_requests;
+            if (!prs || prs.length === 0) {
+              console.log('No PR associated with this workflow run — skipping comment.');
+              return;
+            }
+
+            const prNumber = prs[0].number;
+            const runUrl = context.payload.workflow_run.html_url;
+
+            const screenshotsNote = `\n\n---\n*Screenshots for browser test failures: check [workflow artifacts](${runUrl})*`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: `## Test Results Analyzer\n\n${analysis}${screenshotsNote}\n\n*AI analysis via Mistral — review before acting on suggestions*`
+            });
