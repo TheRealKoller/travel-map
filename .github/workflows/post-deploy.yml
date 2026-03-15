@@ -1,0 +1,511 @@
+name: Post-Deploy SRE
+
+# Stage 6 — Triggered when deploy-dev or deploy-prod workflow completes.
+# Agents: SRE (health-check), Incident Response Commander (incident-response).
+#
+# Key constraints:
+# - No stable test user exists in dev DB — all smoke checks are unauthenticated only.
+# - php artisan migrate is intentionally commented out in the deploy workflows.
+#   The SRE agent flags schema mismatches but must NOT auto-run migrations.
+# - No atomic rollback available (all-inkl.com shared hosting, SFTP/SSH/unzip only).
+
+on:
+  workflow_run:
+    workflows: ['Deploy to DEV', 'Deploy to PROD']
+    types: [completed]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  # ── SRE Agent: Health Check ─────────────────────────────────────────────────
+  health-check:
+    name: 'SRE'
+    runs-on: ubuntu-latest
+    # Run regardless of deploy outcome so we can detect regressions
+    if: github.event.workflow_run.conclusion == 'success' || github.event.workflow_run.conclusion == 'failure'
+    outputs:
+      environment: ${{ steps.env.outputs.environment }}
+      base_url: ${{ steps.env.outputs.base_url }}
+      healthy: ${{ steps.poll.outputs.healthy }}
+      status_code: ${{ steps.poll.outputs.status_code }}
+      response_time_ms: ${{ steps.poll.outputs.response_time_ms }}
+      schema_mismatch: ${{ steps.schema.outputs.mismatch }}
+    steps:
+      - name: Determine target environment
+        id: env
+        run: |
+          WORKFLOW="${{ github.event.workflow_run.name }}"
+          if [[ "$WORKFLOW" == *"DEV"* ]]; then
+            echo "environment=DEV" >> $GITHUB_OUTPUT
+            echo "base_url=https://dev.travelmap.koller.dk" >> $GITHUB_OUTPUT
+          else
+            echo "environment=PROD" >> $GITHUB_OUTPUT
+            echo "base_url=https://travelmap.koller.dk" >> $GITHUB_OUTPUT
+          fi
+
+      # Wait for the server to settle after deploy before polling
+      - name: Wait for server to settle
+        run: sleep 15
+
+      - name: Poll health endpoint (up to 5 attempts)
+        id: poll
+        run: |
+          BASE_URL="${{ steps.env.outputs.base_url }}"
+          HEALTHY="false"
+          STATUS_CODE=""
+          RESPONSE_TIME_MS=""
+
+          for i in 1 2 3 4 5; do
+            echo "Attempt $i / 5 — polling ${BASE_URL}/ ..."
+
+            START_MS=$(date +%s%3N)
+            RESPONSE=$(curl -s -o /tmp/health-body.txt -w "%{http_code}" \
+              --max-time 15 \
+              --connect-timeout 10 \
+              "${BASE_URL}/" 2>/dev/null || echo "000")
+            END_MS=$(date +%s%3N)
+
+            STATUS_CODE="$RESPONSE"
+            RESPONSE_TIME_MS=$((END_MS - START_MS))
+
+            echo "  HTTP $STATUS_CODE in ${RESPONSE_TIME_MS}ms"
+
+            # 2xx or 3xx = healthy
+            if [[ "$STATUS_CODE" =~ ^[23] ]]; then
+              HEALTHY="true"
+              break
+            fi
+
+            if [[ $i -lt 5 ]]; then
+              echo "  Waiting 20s before next attempt..."
+              sleep 20
+            fi
+          done
+
+          echo "healthy=$HEALTHY" >> $GITHUB_OUTPUT
+          echo "status_code=$STATUS_CODE" >> $GITHUB_OUTPUT
+          echo "response_time_ms=$RESPONSE_TIME_MS" >> $GITHUB_OUTPUT
+
+          if [[ "$HEALTHY" == "true" ]]; then
+            echo "Health check PASSED — HTTP $STATUS_CODE in ${RESPONSE_TIME_MS}ms"
+          else
+            echo "Health check FAILED — last HTTP $STATUS_CODE"
+          fi
+
+      - name: Check for schema mismatch indicators in response
+        id: schema
+        run: |
+          MISMATCH="false"
+          # Laravel renders a 500 with specific phrases on schema mismatches
+          if [[ -f /tmp/health-body.txt ]]; then
+            if grep -qi "SQLSTATE\|table.*doesn.*exist\|column.*not.*found\|Unknown column\|Base table" /tmp/health-body.txt; then
+              MISMATCH="true"
+              echo "WARNING: Schema mismatch indicators detected in response body."
+            fi
+          fi
+          echo "mismatch=$MISMATCH" >> $GITHUB_OUTPUT
+
+      - name: Write health check summary
+        run: |
+          BASE_URL="${{ steps.env.outputs.base_url }}"
+          ENV="${{ steps.env.outputs.environment }}"
+          HEALTHY="${{ steps.poll.outputs.healthy }}"
+          STATUS="${{ steps.poll.outputs.status_code }}"
+          RT="${{ steps.poll.outputs.response_time_ms }}"
+          SCHEMA="${{ steps.schema.outputs.mismatch }}"
+
+          if [[ "$HEALTHY" == "true" ]]; then
+            echo "### SRE Health Check: $ENV — PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Check | Result |" >> $GITHUB_STEP_SUMMARY
+            echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+            echo "| URL | $BASE_URL |" >> $GITHUB_STEP_SUMMARY
+            echo "| HTTP Status | $STATUS |" >> $GITHUB_STEP_SUMMARY
+            echo "| Response Time | ${RT}ms |" >> $GITHUB_STEP_SUMMARY
+            echo "| Schema Mismatch | $([[ "$SCHEMA" == "true" ]] && echo "WARNING" || echo "None detected") |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### SRE Health Check: $ENV — FAILED" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Check | Result |" >> $GITHUB_STEP_SUMMARY
+            echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+            echo "| URL | $BASE_URL |" >> $GITHUB_STEP_SUMMARY
+            echo "| HTTP Status | $STATUS (expected 2xx/3xx) |" >> $GITHUB_STEP_SUMMARY
+            echo "| Response Time | ${RT}ms |" >> $GITHUB_STEP_SUMMARY
+            echo "| Schema Mismatch | $([[ "$SCHEMA" == "true" ]] && echo "WARNING — possible missing migration" || echo "No") |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # ── Smoke Tests: Unauthenticated browser checks ─────────────────────────────
+  smoke-test:
+    name: 'Smoke Test'
+    runs-on: ubuntu-latest
+    needs: health-check
+    # Only run smoke tests if deploy succeeded AND site is reachable
+    if: |
+      github.event.workflow_run.conclusion == 'success' &&
+      needs.health-check.outputs.healthy == 'true'
+    outputs:
+      passed: ${{ steps.run.outputs.passed }}
+      report: ${{ steps.run.outputs.report }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Run unauthenticated smoke checks
+        id: run
+        env:
+          SMOKE_BASE_URL: ${{ needs.health-check.outputs.base_url }}
+        run: |
+          BASE_URL="$SMOKE_BASE_URL"
+          PASSED="true"
+          REPORT=""
+
+          echo "Running unauthenticated smoke checks against $BASE_URL ..."
+
+          # Check 1: Homepage loads and returns valid HTML
+          echo "## Check 1: Homepage" >> /tmp/smoke-report.txt
+          STATUS=$(curl -s -o /tmp/smoke-home.html -w "%{http_code}" --max-time 20 "${BASE_URL}/" 2>/dev/null || echo "000")
+          if [[ "$STATUS" =~ ^[23] ]]; then
+            echo "PASS — HTTP $STATUS" >> /tmp/smoke-report.txt
+          else
+            echo "FAIL — HTTP $STATUS" >> /tmp/smoke-report.txt
+            PASSED="false"
+          fi
+
+          # Check 2: Login page is reachable (unauthenticated entry point)
+          echo "## Check 2: Login page" >> /tmp/smoke-report.txt
+          STATUS=$(curl -s -o /tmp/smoke-login.html -w "%{http_code}" --max-time 20 "${BASE_URL}/login" 2>/dev/null || echo "000")
+          if [[ "$STATUS" =~ ^[23] ]]; then
+            echo "PASS — HTTP $STATUS" >> /tmp/smoke-report.txt
+            # Verify login form elements are present
+            if grep -qi "email\|password\|login\|sign" /tmp/smoke-login.html; then
+              echo "PASS — Login form elements present" >> /tmp/smoke-report.txt
+            else
+              echo "WARN — Login page returned $STATUS but form elements not detected" >> /tmp/smoke-report.txt
+            fi
+          else
+            echo "FAIL — HTTP $STATUS" >> /tmp/smoke-report.txt
+            PASSED="false"
+          fi
+
+          # Check 3: Static assets (Vite manifest indicates successful build)
+          echo "## Check 3: Vite manifest / build" >> /tmp/smoke-report.txt
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "${BASE_URL}/build/manifest.json" 2>/dev/null || echo "000")
+          if [[ "$STATUS" == "200" ]]; then
+            echo "PASS — Vite manifest accessible (HTTP 200)" >> /tmp/smoke-report.txt
+          elif [[ "$STATUS" == "404" ]]; then
+            # 404 on manifest is expected in production (not publicly exposed), not a failure
+            echo "INFO — Manifest not publicly accessible (HTTP 404) — expected" >> /tmp/smoke-report.txt
+          else
+            echo "WARN — HTTP $STATUS on /build/manifest.json" >> /tmp/smoke-report.txt
+          fi
+
+          # Check 4: No JavaScript errors on login page via Playwright
+          echo "## Check 4: JavaScript errors (Playwright)" >> /tmp/smoke-report.txt
+          node - << JSCHECK
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch();
+            const page = await browser.newPage();
+            const errors = [];
+            page.on('console', msg => {
+              if (msg.type() === 'error') errors.push(msg.text());
+            });
+            page.on('pageerror', err => errors.push(err.message));
+            try {
+              await page.goto('${BASE_URL}/login', { timeout: 20000, waitUntil: 'networkidle' });
+              await page.screenshot({ path: '/tmp/smoke-login.png', fullPage: true });
+            } catch(e) {
+              console.error('Navigation error: ' + e.message);
+              process.exit(1);
+            }
+            await browser.close();
+            if (errors.length > 0) {
+              console.error('JS_ERRORS: ' + errors.join(' | '));
+              process.exit(2);
+            }
+            console.log('NO_JS_ERRORS');
+          })();
+          JSCHECK
+          PW_EXIT=$?
+          if [[ $PW_EXIT -eq 0 ]]; then
+            echo "PASS — No JavaScript console errors on login page" >> /tmp/smoke-report.txt
+          elif [[ $PW_EXIT -eq 2 ]]; then
+            echo "FAIL — JavaScript errors detected on login page" >> /tmp/smoke-report.txt
+            PASSED="false"
+          else
+            echo "WARN — Could not navigate to login page" >> /tmp/smoke-report.txt
+          fi
+
+          # Check 5: Verify no Laravel debug error page exposed
+          echo "## Check 5: No debug error page exposed" >> /tmp/smoke-report.txt
+          if grep -qi "Ignition\|Whoops\|APP_DEBUG\|Stack trace" /tmp/smoke-home.html 2>/dev/null; then
+            echo "FAIL — Laravel debug/error page detected on homepage (APP_DEBUG may be true)" >> /tmp/smoke-report.txt
+            PASSED="false"
+          else
+            echo "PASS — No debug page detected on homepage" >> /tmp/smoke-report.txt
+          fi
+
+          echo "passed=$PASSED" >> $GITHUB_OUTPUT
+          REPORT=$(cat /tmp/smoke-report.txt)
+          # Truncate for output limit
+          REPORT="${REPORT:0:3000}"
+          {
+            echo "report<<REPORT_EOF"
+            echo "$REPORT"
+            echo "REPORT_EOF"
+          } >> $GITHUB_OUTPUT
+
+          if [[ "$PASSED" == "true" ]]; then
+            echo "All smoke checks PASSED."
+          else
+            echo "One or more smoke checks FAILED."
+          fi
+
+      - name: Upload smoke test screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-screenshots
+          path: /tmp/smoke-*.png
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Write smoke test summary
+        if: always()
+        run: |
+          ENV="${{ needs.health-check.outputs.environment }}"
+          PASSED="${{ steps.run.outputs.passed }}"
+
+          if [[ "$PASSED" == "true" ]]; then
+            echo "### Smoke Tests: $ENV — PASSED" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### Smoke Tests: $ENV — FAILED" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat /tmp/smoke-report.txt >> $GITHUB_STEP_SUMMARY || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+  # ── Incident Response Commander ──────────────────────────────────────────────
+  incident-response:
+    name: 'Incident Response Commander'
+    runs-on: ubuntu-latest
+    needs: [health-check, smoke-test]
+    # Trigger on: health check failure, smoke test failure, or schema mismatch warning
+    if: |
+      always() && (
+        needs.health-check.outputs.healthy == 'false' ||
+        needs.smoke-test.outputs.passed == 'false' ||
+        needs.health-check.outputs.schema_mismatch == 'true'
+      )
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Collect incident context
+        id: context
+        run: |
+          ENV="${{ needs.health-check.outputs.environment }}"
+          BASE_URL="${{ needs.health-check.outputs.base_url }}"
+          HEALTHY="${{ needs.health-check.outputs.healthy }}"
+          STATUS_CODE="${{ needs.health-check.outputs.status_code }}"
+          RT="${{ needs.health-check.outputs.response_time_ms }}"
+          SCHEMA_MISMATCH="${{ needs.health-check.outputs.schema_mismatch }}"
+          SMOKE_PASSED="${{ needs.smoke-test.outputs.passed }}"
+          DEPLOY_WORKFLOW="${{ github.event.workflow_run.name }}"
+          DEPLOY_RUN_URL="${{ github.event.workflow_run.html_url }}"
+          SHA="${{ github.event.workflow_run.head_sha }}"
+          SHORT_SHA="${SHA:0:7}"
+
+          # Determine severity
+          if [[ "$HEALTHY" == "false" ]]; then
+            SEVERITY="critical"
+            TITLE="[Incident] $ENV down after deploy — HTTP $STATUS_CODE"
+          elif [[ "$SCHEMA_MISMATCH" == "true" ]]; then
+            SEVERITY="high"
+            TITLE="[Incident] Schema mismatch detected after $ENV deploy"
+          else
+            SEVERITY="high"
+            TITLE="[Incident] Smoke test failure on $ENV after deploy"
+          fi
+
+          echo "severity=$SEVERITY" >> $GITHUB_OUTPUT
+          echo "title=$TITLE" >> $GITHUB_OUTPUT
+          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+
+          # Write context file for LeChat
+          cat > /tmp/incident-context.txt << EOF
+          Environment: $ENV
+          URL: $BASE_URL
+          Deploy Workflow: $DEPLOY_WORKFLOW
+          Deploy Run: $DEPLOY_RUN_URL
+          Commit: $SHORT_SHA
+          Health Check: $([[ "$HEALTHY" == "true" ]] && echo "PASS (HTTP $STATUS_CODE, ${RT}ms)" || echo "FAIL (HTTP $STATUS_CODE)")
+          Schema Mismatch: $([[ "$SCHEMA_MISMATCH" == "true" ]] && echo "WARNING — DB schema indicators in response" || echo "None")
+          Smoke Tests: $([[ "$SMOKE_PASSED" == "true" ]] && echo "PASS" || echo "FAIL")
+
+          Smoke Test Report:
+          ${{ needs.smoke-test.outputs.report }}
+          EOF
+
+          echo "Context file written."
+          cat /tmp/incident-context.txt
+
+      - name: Generate incident runbook with LeChat
+        id: runbook
+        env:
+          LECHAT_API_KEY: ${{ secrets.LECHAT_API_KEY }}
+        run: |
+          cat > /tmp/sys-incident.txt << 'SYSTEM'
+          You are an Incident Response Commander for a Laravel 12 travel map application deployed on all-inkl.com shared hosting.
+
+          Application context:
+          - Deploy method: SFTP + SSH + unzip (no Docker, no atomic rollback)
+          - php artisan migrate is intentionally commented out in deploy scripts — migrations are MANUAL
+          - No queue daemon restart is guaranteed to succeed
+          - Environments: dev.travelmap.koller.dk (DEV), travelmap.koller.dk (PROD)
+          - Stack: PHP 8.4, Laravel 12, Inertia.js + React 19, MariaDB, Vite assets
+
+          Critical constraints:
+          - DO NOT suggest running php artisan migrate automatically — it is intentionally manual
+          - DO NOT suggest rollback via git revert to auto-deploy — explain manual SFTP re-deploy instead
+          - DO NOT suggest Docker commands or container restarts
+          - For schema mismatch: flag the missing migration, provide the SSH command to check and run manually
+
+          Given the incident details, produce:
+          1. **Severity & Impact** — who is affected and how badly
+          2. **Likely Root Cause(s)** — top 2-3 hypotheses based on the symptoms
+          3. **Immediate Actions** — ordered numbered list of steps to investigate NOW
+          4. **Rollback Steps** — how to manually roll back via SFTP/SSH if needed (no atomic rollback)
+          5. **Migration Check** — if schema mismatch suspected, provide the exact SSH command to check and manually run pending migrations
+          6. **Post-Resolution** — what to verify after the fix
+
+          Format as GitHub Markdown. Be specific and actionable. Use code blocks for all commands.
+          SYSTEM
+
+          chmod +x .github/scripts/lechat.sh
+          RUNBOOK=$(.github/scripts/lechat.sh /tmp/sys-incident.txt /tmp/incident-context.txt 2000)
+          echo "$RUNBOOK" > /tmp/incident-runbook.txt
+          echo "Runbook generated."
+          cat /tmp/incident-runbook.txt
+
+      - name: Create incident issue
+        id: issue
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+
+            const title = '${{ steps.context.outputs.title }}';
+            const env = '${{ needs.health-check.outputs.environment }}';
+            const baseUrl = '${{ needs.health-check.outputs.base_url }}';
+            const sha = '${{ steps.context.outputs.short_sha }}';
+            const deployRunUrl = '${{ github.event.workflow_run.html_url }}';
+            const healthy = '${{ needs.health-check.outputs.healthy }}';
+            const statusCode = '${{ needs.health-check.outputs.status_code }}';
+            const schemaMismatch = '${{ needs.health-check.outputs.schema_mismatch }}';
+            const smokePassed = '${{ needs.smoke-test.outputs.passed }}';
+            const severity = '${{ steps.context.outputs.severity }}';
+
+            const runbook = fs.existsSync('/tmp/incident-runbook.txt')
+              ? fs.readFileSync('/tmp/incident-runbook.txt', 'utf8').trim()
+              : '_LeChat runbook generation failed — follow manual runbook below._';
+
+            // Truncate to avoid GitHub body limit
+            const truncatedRunbook = runbook.substring(0, 50000);
+
+            const statusTable = [
+              `| Check | Status |`,
+              `|-------|--------|`,
+              `| Environment | ${env} |`,
+              `| URL | ${baseUrl} |`,
+              `| HTTP Status | ${statusCode} |`,
+              `| Health Check | ${healthy === 'true' ? 'PASS' : 'FAIL'} |`,
+              `| Schema Mismatch | ${schemaMismatch === 'true' ? 'WARNING' : 'None'} |`,
+              `| Smoke Tests | ${smokePassed === 'true' ? 'PASS' : 'FAIL'} |`,
+              `| Commit | \`${sha}\` |`,
+              `| Deploy Run | [View](${deployRunUrl}) |`,
+            ].join('\n');
+
+            const migrationWarning = schemaMismatch === 'true'
+              ? `\n\n> [!WARNING]\n> **Schema mismatch detected.** ` +
+                `\`php artisan migrate\` is intentionally disabled in the deploy workflow. ` +
+                `A DBA or developer must manually SSH in and run pending migrations after reviewing them.`
+              : '';
+
+            const body = `## Incident Summary\n\n${statusTable}${migrationWarning}\n\n---\n\n` +
+              `## AI Runbook (Incident Response Commander)\n\n${truncatedRunbook}\n\n---\n\n` +
+              `## Manual Runbook (Fallback)\n\n` +
+              `**If LeChat runbook above is unavailable, follow these steps:**\n\n` +
+              `1. SSH into the server and check \`storage/logs/laravel.log\` for errors\n` +
+              `2. Run \`php artisan config:clear && php artisan cache:clear\` if config seems stale\n` +
+              `3. Check \`php artisan migrate:status\` for pending migrations **before** running any\n` +
+              `4. To re-deploy the previous version: re-upload the previous \`deployment.zip\` via SFTP and extract\n` +
+              `5. Notify the team and keep this issue updated\n\n` +
+              `_Auto-created by Incident Response Commander (post-deploy stage) — commit \`${sha}\`_`;
+
+            // Try to find a label — create it if missing
+            let labels = ['incident'];
+            try {
+              await github.rest.issues.getLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: 'incident'
+              });
+            } catch (e) {
+              try {
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: 'incident',
+                  color: 'B60205',
+                  description: 'Production or staging incident'
+                });
+              } catch (le) {
+                labels = []; // Label creation failed — open without label
+              }
+            }
+
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+              labels,
+            });
+
+            console.log(`Incident issue created: #${issue.data.number} — ${issue.data.html_url}`);
+            core.setOutput('issue_number', issue.data.number.toString());
+            core.setOutput('issue_url', issue.data.html_url);
+
+      - name: Write incident response summary
+        run: |
+          ENV="${{ needs.health-check.outputs.environment }}"
+          ISSUE_URL="${{ steps.issue.outputs.issue_url }}"
+          ISSUE_NUM="${{ steps.issue.outputs.issue_number }}"
+
+          echo "### Incident Response: $ENV" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "An incident issue has been created with the AI-generated runbook." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Issue:** [#${ISSUE_NUM}](${ISSUE_URL})" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "> **Migration reminder:** \`php artisan migrate\` is disabled in the deploy workflow." >> $GITHUB_STEP_SUMMARY
+          echo "> Check \`php artisan migrate:status\` manually before running any migrations." >> $GITHUB_STEP_SUMMARY
