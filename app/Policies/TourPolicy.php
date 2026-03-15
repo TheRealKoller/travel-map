@@ -37,7 +37,7 @@ class TourPolicy
      */
     public function update(User $user, Tour $tour): bool
     {
-        return $this->canAccessTour($user, $tour);
+        return $this->canEditTour($user, $tour);
     }
 
     /**
@@ -45,7 +45,7 @@ class TourPolicy
      */
     public function delete(User $user, Tour $tour): bool
     {
-        return $this->canAccessTour($user, $tour);
+        return $this->canEditTour($user, $tour);
     }
 
     /**
@@ -76,5 +76,19 @@ class TourPolicy
 
         // Check if user has access to the trip
         return $tour->trip->hasAccess($user);
+    }
+
+    /**
+     * Check if a user can edit a tour (write access).
+     * Viewers have read-only trip access and cannot edit/delete tours.
+     */
+    private function canEditTour(User $user, Tour $tour): bool
+    {
+        // Admin has always access
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        return $tour->trip->canEdit($user);
     }
 }

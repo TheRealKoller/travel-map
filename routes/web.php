@@ -49,6 +49,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Trip collaborator routes
     Route::get('/trips/{trip}/collaborators', [TripCollaboratorController::class, 'index'])->name('trips.collaborators.index');
     Route::post('/trips/{trip}/collaborators', [TripCollaboratorController::class, 'store'])->name('trips.collaborators.store');
+    Route::patch('/trips/{trip}/collaborators/{user}', [TripCollaboratorController::class, 'update'])->name('trips.collaborators.update');
     Route::delete('/trips/{trip}/collaborators/{user}', [TripCollaboratorController::class, 'destroy'])->name('trips.collaborators.destroy');
 
     // Map route - show map for a specific trip

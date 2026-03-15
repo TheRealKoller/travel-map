@@ -33,6 +33,7 @@ interface TourPanelProps {
     selectedAvailableMarkerId?: string | null;
     onSelectAvailableMarker?: (markerId: string | null) => void;
     onAddMarkerToTour?: (markerId: string) => void;
+    canEdit?: boolean;
 }
 
 interface TourTabProps {
@@ -177,6 +178,7 @@ interface TourCardProps {
     selectedAvailableMarkerId?: string | null;
     onSelectAvailableMarker?: (markerId: string | null) => void;
     onAddMarkerToTour?: (markerId: string) => void;
+    canEdit?: boolean;
 }
 
 function TourCard({
@@ -192,6 +194,7 @@ function TourCard({
     selectedAvailableMarkerId,
     onSelectAvailableMarker,
     onAddMarkerToTour,
+    canEdit = true,
 }: TourCardProps) {
     // Precompute marker counts for O(1) lookup performance
     const markerCountsInTour = useMemo(() => {
@@ -236,15 +239,17 @@ function TourCard({
                             </span>
                         )}
                 </div>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onDeleteTour(tour.id)}
-                    className="flex-shrink-0 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
-                    title="Delete tour"
-                >
-                    <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
-                </Button>
+                {canEdit && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onDeleteTour(tour.id)}
+                        className="flex-shrink-0 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
+                        title="Delete tour"
+                    >
+                        <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                    </Button>
+                )}
             </div>
             {markers.length === 0 ? (
                 <p className="text-xs leading-relaxed text-gray-500 sm:text-sm dark:text-gray-400">
@@ -260,17 +265,17 @@ function TourCard({
                                 isFirst={index === 0}
                                 isLast={index === markers.length - 1}
                                 onMoveUp={
-                                    onMoveMarkerUp
+                                    canEdit && onMoveMarkerUp
                                         ? () => onMoveMarkerUp(marker.id)
                                         : undefined
                                 }
                                 onMoveDown={
-                                    onMoveMarkerDown
+                                    canEdit && onMoveMarkerDown
                                         ? () => onMoveMarkerDown(marker.id)
                                         : undefined
                                 }
                                 onRemove={
-                                    onRemoveMarkerFromTour
+                                    canEdit && onRemoveMarkerFromTour
                                         ? () =>
                                               onRemoveMarkerFromTour(marker.id)
                                         : undefined
@@ -337,7 +342,7 @@ function TourCard({
             )}
 
             {/* Available Markers Section */}
-            {onSelectAvailableMarker && onAddMarkerToTour && (
+            {canEdit && onSelectAvailableMarker && onAddMarkerToTour && (
                 <AvailableMarkers
                     availableMarkers={availableMarkers}
                     selectedAvailableMarkerId={
@@ -367,6 +372,7 @@ export default function TourPanel({
     selectedAvailableMarkerId,
     onSelectAvailableMarker,
     onAddMarkerToTour,
+    canEdit = true,
 }: TourPanelProps) {
     const handleTabChange = (value: string) => {
         if (value === 'all') {
@@ -425,19 +431,21 @@ export default function TourPanel({
                                 markerCount={getMarkerCountForTour(tour)}
                             />
                         ))}
-                        <TabsTrigger
-                            value="create"
-                            className="ml-2"
-                            onClick={(
-                                e: React.MouseEvent<HTMLButtonElement>,
-                            ) => {
-                                e.preventDefault();
-                                onCreateTour();
-                            }}
-                            data-testid="tour-tab-create-new"
-                        >
-                            <Plus className="h-4 w-4" />
-                        </TabsTrigger>
+                        {canEdit && (
+                            <TabsTrigger
+                                value="create"
+                                className="ml-2"
+                                onClick={(
+                                    e: React.MouseEvent<HTMLButtonElement>,
+                                ) => {
+                                    e.preventDefault();
+                                    onCreateTour();
+                                }}
+                                data-testid="tour-tab-create-new"
+                            >
+                                <Plus className="h-4 w-4" />
+                            </TabsTrigger>
+                        )}
                     </TabsList>
                 </Tabs>
             </div>
@@ -458,6 +466,7 @@ export default function TourPanel({
                         selectedAvailableMarkerId={selectedAvailableMarkerId}
                         onSelectAvailableMarker={onSelectAvailableMarker}
                         onAddMarkerToTour={onAddMarkerToTour}
+                        canEdit={canEdit}
                     />
                 )}
             </div>

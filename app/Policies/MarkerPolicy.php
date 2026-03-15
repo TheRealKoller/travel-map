@@ -38,7 +38,7 @@ class MarkerPolicy
      */
     public function update(User $user, Marker $marker): bool
     {
-        return $this->canAccessMarker($user, $marker);
+        return $this->canEditMarker($user, $marker);
     }
 
     /**
@@ -46,7 +46,7 @@ class MarkerPolicy
      */
     public function delete(User $user, Marker $marker): bool
     {
-        return $this->canAccessMarker($user, $marker);
+        return $this->canEditMarker($user, $marker);
     }
 
     /**
@@ -88,5 +88,25 @@ class MarkerPolicy
         }
 
         return false;
+    }
+
+    /**
+     * Check if a user can edit a marker (write access).
+     * Viewers have read-only trip access and cannot edit/delete markers.
+     */
+    private function canEditMarker(User $user, Marker $marker): bool
+    {
+        // Admin has always access
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        // If marker belongs to a trip, check if user can edit that trip
+        if ($marker->trip_id && $marker->trip) {
+            return $marker->trip->canEdit($user);
+        }
+
+        // No trip association: user can edit if they own the marker
+        return $user->id === $marker->user_id;
     }
 }

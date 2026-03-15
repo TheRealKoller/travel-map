@@ -7,7 +7,7 @@ export interface Collaborator {
     id: number;
     name: string;
     email: string;
-    collaboration_role: 'owner' | 'editor';
+    collaboration_role: 'owner' | 'editor' | 'viewer';
     created_at: string;
 }
 
@@ -23,6 +23,7 @@ export interface Trip {
     viewport_zoom: number | null;
     viewport_static_image_url: string | null;
     invitation_token: string | null;
+    invitation_role: 'editor' | 'viewer';
     planned_start_year?: number | null;
     planned_start_month?: number | null;
     planned_start_day?: number | null;

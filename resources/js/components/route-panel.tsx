@@ -71,6 +71,7 @@ interface RoutePanelProps {
     pendingWaypoints?: Waypoint[];
     onRemoveWaypoint?: (index: number) => void;
     onClearWaypoints?: () => void;
+    canEdit?: boolean;
 }
 
 export default function RoutePanel({
@@ -94,6 +95,7 @@ export default function RoutePanel({
     pendingWaypoints = [],
     onRemoveWaypoint,
     onClearWaypoints,
+    canEdit = true,
 }: RoutePanelProps) {
     const [startMarkerId, setStartMarkerId] =
         useState<string>(initialStartMarkerId);
@@ -350,226 +352,244 @@ export default function RoutePanel({
 
     return (
         <div className="space-y-3 p-3 sm:space-y-4 sm:p-3 md:p-4">
-            <Card className="p-3 sm:p-3 md:p-4">
-                <h3 className="mb-3 text-base font-semibold sm:mb-4 sm:text-lg">
-                    Create Route
-                </h3>
+            {canEdit && (
+                <Card className="p-3 sm:p-3 md:p-4">
+                    <h3 className="mb-3 text-base font-semibold sm:mb-4 sm:text-lg">
+                        Create Route
+                    </h3>
 
-                <div className="space-y-4">
-                    <div>
-                        <Label htmlFor="start-marker">Start Marker</Label>
-                        <Select
-                            value={startMarkerId || ''}
-                            onValueChange={setStartMarkerId}
-                        >
-                            <SelectTrigger id="start-marker">
-                                <SelectValue placeholder="Select start marker" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {markers
-                                    .filter((m) => m.isSaved)
-                                    .map((marker) => (
-                                        <SelectItem
-                                            key={marker.id}
-                                            value={marker.id}
-                                        >
-                                            {marker.name || 'Unnamed Location'}
-                                        </SelectItem>
-                                    ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div>
-                        <Label htmlFor="end-marker">End Marker</Label>
-                        <Select
-                            value={endMarkerId || ''}
-                            onValueChange={setEndMarkerId}
-                        >
-                            <SelectTrigger id="end-marker">
-                                <SelectValue placeholder="Select end marker" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {markers
-                                    .filter((m) => m.isSaved)
-                                    .map((marker) => (
-                                        <SelectItem
-                                            key={marker.id}
-                                            value={marker.id}
-                                        >
-                                            {marker.name || 'Unnamed Location'}
-                                        </SelectItem>
-                                    ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div>
-                        <Label htmlFor="transport-mode">Transport Mode</Label>
-                        <Select
-                            value={transportMode}
-                            onValueChange={(value) => {
-                                const newMode = value as TransportMode;
-                                setTransportMode(newMode);
-                                if (
-                                    newMode === 'public-transport' ||
-                                    newMode === 'manual-public-transport'
-                                ) {
-                                    onClearWaypoints?.();
-                                    onWaypointModeChange?.(false);
-                                }
-                                if (newMode !== 'manual-public-transport') {
-                                    setManualSegments([]);
-                                    setManualDepartureTime('');
-                                    setManualArrivalTime('');
-                                }
-                            }}
-                        >
-                            <SelectTrigger id="transport-mode">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="driving-car">
-                                    <div className="flex items-center gap-2">
-                                        <Car className="h-4 w-4" />
-                                        <span>Car</span>
-                                    </div>
-                                </SelectItem>
-                                <SelectItem value="cycling-regular">
-                                    <div className="flex items-center gap-2">
-                                        <Bike className="h-4 w-4" />
-                                        <span>Bicycle</span>
-                                    </div>
-                                </SelectItem>
-                                <SelectItem value="foot-walking">
-                                    <div className="flex items-center gap-2">
-                                        <PersonStanding className="h-4 w-4" />
-                                        <span>Walking</span>
-                                    </div>
-                                </SelectItem>
-                                <SelectItem value="public-transport">
-                                    <div className="flex items-center gap-2">
-                                        <Train className="h-4 w-4" />
-                                        <span>Public Transport</span>
-                                    </div>
-                                </SelectItem>
-                                <SelectItem value="manual-public-transport">
-                                    <div className="flex items-center gap-2">
-                                        <Train className="h-4 w-4" />
-                                        <span>Public Transport (Manual)</span>
-                                    </div>
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Manual transit segment builder */}
-                    {isManualMode && (
-                        <div className="space-y-2">
-                            <Label className="text-sm font-medium">
-                                Transit segments
-                            </Label>
-                            <ManualTransitForm
-                                value={manualSegments}
-                                onChange={setManualSegments}
-                                departureTime={manualDepartureTime}
-                                arrivalTime={manualArrivalTime}
-                                onDepartureTimeChange={setManualDepartureTime}
-                                onArrivalTimeChange={setManualArrivalTime}
-                            />
+                    <div className="space-y-4">
+                        <div>
+                            <Label htmlFor="start-marker">Start Marker</Label>
+                            <Select
+                                value={startMarkerId || ''}
+                                onValueChange={setStartMarkerId}
+                            >
+                                <SelectTrigger id="start-marker">
+                                    <SelectValue placeholder="Select start marker" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {markers
+                                        .filter((m) => m.isSaved)
+                                        .map((marker) => (
+                                            <SelectItem
+                                                key={marker.id}
+                                                value={marker.id}
+                                            >
+                                                {marker.name ||
+                                                    'Unnamed Location'}
+                                            </SelectItem>
+                                        ))}
+                                </SelectContent>
+                            </Select>
                         </div>
-                    )}
 
-                    {/* Waypoint mode toggle - not available for public transport */}
-                    {onWaypointModeChange &&
-                        !isManualMode &&
-                        transportMode !== 'public-transport' && (
-                            <div className="space-y-2">
-                                <Button
-                                    type="button"
-                                    variant={
-                                        isWaypointMode ? 'default' : 'outline'
-                                    }
-                                    size="sm"
-                                    onClick={() =>
-                                        onWaypointModeChange(!isWaypointMode)
-                                    }
-                                    className="w-full"
-                                    data-testid="waypoint-mode-toggle"
-                                >
-                                    <MapPin className="mr-2 h-4 w-4" />
-                                    {isWaypointMode
-                                        ? 'Click map to add waypoints (active)'
-                                        : 'Add waypoints'}
-                                </Button>
-
-                                {pendingWaypoints.length > 0 && (
-                                    <div className="space-y-1 rounded-md border p-2">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xs font-medium text-muted-foreground">
-                                                Waypoints (
-                                                {pendingWaypoints.length}
-                                                /20)
-                                            </span>
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={onClearWaypoints}
-                                                className="h-5 px-2 text-xs text-muted-foreground hover:text-destructive"
-                                                data-testid="clear-waypoints"
+                        <div>
+                            <Label htmlFor="end-marker">End Marker</Label>
+                            <Select
+                                value={endMarkerId || ''}
+                                onValueChange={setEndMarkerId}
+                            >
+                                <SelectTrigger id="end-marker">
+                                    <SelectValue placeholder="Select end marker" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {markers
+                                        .filter((m) => m.isSaved)
+                                        .map((marker) => (
+                                            <SelectItem
+                                                key={marker.id}
+                                                value={marker.id}
                                             >
-                                                Clear all
-                                            </Button>
+                                                {marker.name ||
+                                                    'Unnamed Location'}
+                                            </SelectItem>
+                                        ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div>
+                            <Label htmlFor="transport-mode">
+                                Transport Mode
+                            </Label>
+                            <Select
+                                value={transportMode}
+                                onValueChange={(value) => {
+                                    const newMode = value as TransportMode;
+                                    setTransportMode(newMode);
+                                    if (
+                                        newMode === 'public-transport' ||
+                                        newMode === 'manual-public-transport'
+                                    ) {
+                                        onClearWaypoints?.();
+                                        onWaypointModeChange?.(false);
+                                    }
+                                    if (newMode !== 'manual-public-transport') {
+                                        setManualSegments([]);
+                                        setManualDepartureTime('');
+                                        setManualArrivalTime('');
+                                    }
+                                }}
+                            >
+                                <SelectTrigger id="transport-mode">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="driving-car">
+                                        <div className="flex items-center gap-2">
+                                            <Car className="h-4 w-4" />
+                                            <span>Car</span>
                                         </div>
-                                        {pendingWaypoints.map((wp, index) => (
-                                            <div
-                                                key={index}
-                                                className="flex items-center justify-between rounded bg-muted/50 px-2 py-1 text-xs"
-                                            >
-                                                <span className="font-mono text-muted-foreground">
-                                                    {index + 1}.{' '}
-                                                    {wp.lat.toFixed(5)},{' '}
-                                                    {wp.lng.toFixed(5)}
+                                    </SelectItem>
+                                    <SelectItem value="cycling-regular">
+                                        <div className="flex items-center gap-2">
+                                            <Bike className="h-4 w-4" />
+                                            <span>Bicycle</span>
+                                        </div>
+                                    </SelectItem>
+                                    <SelectItem value="foot-walking">
+                                        <div className="flex items-center gap-2">
+                                            <PersonStanding className="h-4 w-4" />
+                                            <span>Walking</span>
+                                        </div>
+                                    </SelectItem>
+                                    <SelectItem value="public-transport">
+                                        <div className="flex items-center gap-2">
+                                            <Train className="h-4 w-4" />
+                                            <span>Public Transport</span>
+                                        </div>
+                                    </SelectItem>
+                                    <SelectItem value="manual-public-transport">
+                                        <div className="flex items-center gap-2">
+                                            <Train className="h-4 w-4" />
+                                            <span>
+                                                Public Transport (Manual)
+                                            </span>
+                                        </div>
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Manual transit segment builder */}
+                        {isManualMode && (
+                            <div className="space-y-2">
+                                <Label className="text-sm font-medium">
+                                    Transit segments
+                                </Label>
+                                <ManualTransitForm
+                                    value={manualSegments}
+                                    onChange={setManualSegments}
+                                    departureTime={manualDepartureTime}
+                                    arrivalTime={manualArrivalTime}
+                                    onDepartureTimeChange={
+                                        setManualDepartureTime
+                                    }
+                                    onArrivalTimeChange={setManualArrivalTime}
+                                />
+                            </div>
+                        )}
+
+                        {/* Waypoint mode toggle - not available for public transport */}
+                        {onWaypointModeChange &&
+                            !isManualMode &&
+                            transportMode !== 'public-transport' && (
+                                <div className="space-y-2">
+                                    <Button
+                                        type="button"
+                                        variant={
+                                            isWaypointMode
+                                                ? 'default'
+                                                : 'outline'
+                                        }
+                                        size="sm"
+                                        onClick={() =>
+                                            onWaypointModeChange(
+                                                !isWaypointMode,
+                                            )
+                                        }
+                                        className="w-full"
+                                        data-testid="waypoint-mode-toggle"
+                                    >
+                                        <MapPin className="mr-2 h-4 w-4" />
+                                        {isWaypointMode
+                                            ? 'Click map to add waypoints (active)'
+                                            : 'Add waypoints'}
+                                    </Button>
+
+                                    {pendingWaypoints.length > 0 && (
+                                        <div className="space-y-1 rounded-md border p-2">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-xs font-medium text-muted-foreground">
+                                                    Waypoints (
+                                                    {pendingWaypoints.length}
+                                                    /20)
                                                 </span>
                                                 <Button
                                                     type="button"
                                                     variant="ghost"
-                                                    size="icon"
-                                                    onClick={() =>
-                                                        onRemoveWaypoint?.(
-                                                            index,
-                                                        )
-                                                    }
-                                                    className="h-4 w-4 text-muted-foreground hover:text-destructive"
-                                                    data-testid={`remove-waypoint-${index}`}
+                                                    size="sm"
+                                                    onClick={onClearWaypoints}
+                                                    className="h-5 px-2 text-xs text-muted-foreground hover:text-destructive"
+                                                    data-testid="clear-waypoints"
                                                 >
-                                                    <X className="h-3 w-3" />
+                                                    Clear all
                                                 </Button>
                                             </div>
-                                        ))}
-                                    </div>
-                                )}
+                                            {pendingWaypoints.map(
+                                                (wp, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className="flex items-center justify-between rounded bg-muted/50 px-2 py-1 text-xs"
+                                                    >
+                                                        <span className="font-mono text-muted-foreground">
+                                                            {index + 1}.{' '}
+                                                            {wp.lat.toFixed(5)},{' '}
+                                                            {wp.lng.toFixed(5)}
+                                                        </span>
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() =>
+                                                                onRemoveWaypoint?.(
+                                                                    index,
+                                                                )
+                                                            }
+                                                            className="h-4 w-4 text-muted-foreground hover:text-destructive"
+                                                            data-testid={`remove-waypoint-${index}`}
+                                                        >
+                                                            <X className="h-3 w-3" />
+                                                        </Button>
+                                                    </div>
+                                                ),
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                        {error && (
+                            <div className="rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-400">
+                                {error}
                             </div>
                         )}
 
-                    {error && (
-                        <div className="rounded-md bg-red-50 p-3 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-400">
-                            {error}
-                        </div>
-                    )}
+                        <Button
+                            onClick={handleCreateRoute}
+                            disabled={
+                                isCreating || !startMarkerId || !endMarkerId
+                            }
+                            className="w-full"
+                        >
+                            {isCreating ? 'Creating...' : 'Calculate Route'}
+                        </Button>
+                    </div>
+                </Card>
+            )}
 
-                    <Button
-                        onClick={handleCreateRoute}
-                        disabled={isCreating || !startMarkerId || !endMarkerId}
-                        className="w-full"
-                    >
-                        {isCreating ? 'Creating...' : 'Calculate Route'}
-                    </Button>
-                </div>
-            </Card>
-
-            {tourId && tours.find((t) => t.id === tourId) && (
+            {canEdit && tourId && tours.find((t) => t.id === tourId) && (
                 <Card className="p-4">
                     <h3 className="mb-4 text-lg font-semibold">
                         Tour optimization
@@ -699,17 +719,21 @@ export default function RoutePanel({
                                                     )}
                                                 </div>
                                             </CollapsibleTrigger>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() =>
-                                                    handleDeleteRoute(route.id)
-                                                }
-                                                className="ml-2 text-red-600 hover:bg-red-50 hover:text-red-700"
-                                                data-testid={`route-${route.id}-delete`}
-                                            >
-                                                <Trash2 className="h-5 w-5" />
-                                            </Button>
+                                            {canEdit && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() =>
+                                                        handleDeleteRoute(
+                                                            route.id,
+                                                        )
+                                                    }
+                                                    className="ml-2 text-red-600 hover:bg-red-50 hover:text-red-700"
+                                                    data-testid={`route-${route.id}-delete`}
+                                                >
+                                                    <Trash2 className="h-5 w-5" />
+                                                </Button>
+                                            )}
                                         </div>
 
                                         {/* Collapsible route details */}

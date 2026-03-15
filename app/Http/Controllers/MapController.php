@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Concerns\BuildsAdminOwnerProps;
 use App\Models\Trip;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Inertia\Inertia;
@@ -11,20 +10,31 @@ use Inertia\Response;
 class MapController extends Controller
 {
     use AuthorizesRequests;
-    use BuildsAdminOwnerProps;
 
     public function show(Trip $trip): Response
     {
         $this->authorize('view', $trip);
 
-        return Inertia::render('map', array_merge(
-            [
-                'trip' => [
-                    'id' => $trip->id,
-                    'name' => $trip->name,
-                ],
+        $user = auth()->user();
+
+        $props = [
+            'trip' => [
+                'id' => $trip->id,
+                'name' => $trip->name,
             ],
-            $this->buildAdminOwnerProps($trip),
-        ));
+            'canEdit' => $trip->canEdit($user),
+        ];
+
+        // Show owner banner when an admin is viewing another user's trip
+        if ($user->isAdmin() && ! $trip->isOwner($user)) {
+            $trip->loadMissing('user:id,name');
+
+            $props['owner'] = [
+                'id' => $trip->user->id,
+                'name' => $trip->user->name,
+            ];
+        }
+
+        return Inertia::render('map', $props);
     }
 }

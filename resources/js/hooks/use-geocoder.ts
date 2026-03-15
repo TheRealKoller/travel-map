@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 interface UseGeocoderOptions {
     mapInstance: mapboxgl.Map | null;
-    onMarkerCreated: (marker: MarkerData) => void;
+    onMarkerCreated?: (marker: MarkerData) => void;
     onMarkerSelected: (markerId: string) => void;
 }
 
@@ -122,7 +122,7 @@ export function useGeocoder({
                     onMarkerSelected(markerId);
                 });
 
-                onMarkerCreated(markerData);
+                onMarkerCreated?.(markerData);
                 onMarkerSelected(markerId);
             });
 

@@ -21,6 +21,7 @@ interface MapContainerProps {
     ) => Promise<void>;
     tripName?: string;
     owner?: TripOwner;
+    canEdit?: boolean;
 }
 
 export function MapContainer({
@@ -37,6 +38,7 @@ export function MapContainer({
     onSetViewport,
     tripName,
     owner,
+    canEdit = true,
 }: MapContainerProps) {
     return (
         <div className="fixed inset-0 h-screen w-screen overflow-hidden">
@@ -54,6 +56,7 @@ export function MapContainer({
                 onSetViewport={onSetViewport}
                 tripName={tripName}
                 owner={owner}
+                canEdit={canEdit}
             />
         </div>
     );
