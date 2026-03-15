@@ -28,7 +28,7 @@ test('adding a collaborator dispatches an invitation job', function () {
     });
 });
 
-test('adding a collaborator queues an invitation email to the invited user', function () {
+test('adding a collaborator sends an invitation email to the invited user', function () {
     Mail::fake();
 
     $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
@@ -37,7 +37,7 @@ test('adding a collaborator queues an invitation email to the invited user', fun
     $job = new SendTripCollaboratorInvitationJob($trip, $this->collaborator, $this->owner, 'de');
     $job->handle();
 
-    Mail::assertQueued(TripCollaboratorInvited::class, function ($mail) {
+    Mail::assertSent(TripCollaboratorInvited::class, function ($mail) {
         return $mail->hasTo($this->collaborator->email);
     });
 });
@@ -71,18 +71,19 @@ test('invitation job uses the locale from the language cookie', function () {
 
     $trip = Trip::factory()->create(['user_id' => $this->owner->id]);
 
-    // The language cookie is read server-side from an unencrypted cookie
-    // We verify the locale handling logic: valid locales are accepted, invalid ones default to 'de'
+    // postJson only includes cookies when withCredentials() is set; use
+    // withUnencryptedCookies so the raw value bypasses test-side encryption
+    // and passes through the EncryptCookies middleware's 'except' list unchanged.
     $this->actingAs($this->owner)
-        ->withCookies(['language' => 'en'])
+        ->withCredentials()
+        ->withUnencryptedCookies(['language' => 'en'])
         ->postJson(
             "/trips/{$trip->id}/collaborators",
             ['email' => $this->collaborator->email],
         )->assertStatus(201);
 
     Queue::assertPushed(SendTripCollaboratorInvitationJob::class, function ($job) {
-        // The locale should be either 'en' (if cookie was forwarded) or 'de' (default fallback)
-        return $job->locale === 'en' || $job->locale === 'de';
+        return $job->locale === 'en';
     });
 });
 
@@ -109,7 +110,7 @@ test('invitation job sends email with correct trip and inviter details', functio
     $job = new SendTripCollaboratorInvitationJob($trip, $this->collaborator, $this->owner, 'en');
     $job->handle();
 
-    Mail::assertQueued(TripCollaboratorInvited::class, function ($mail) use ($trip) {
+    Mail::assertSent(TripCollaboratorInvited::class, function ($mail) use ($trip) {
         return $mail->hasTo($this->collaborator->email)
             && $mail->trip->is($trip)
             && $mail->inviter->is($this->owner);

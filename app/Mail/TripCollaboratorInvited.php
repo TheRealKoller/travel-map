@@ -5,13 +5,12 @@ namespace App\Mail;
 use App\Models\Trip;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class TripCollaboratorInvited extends Mailable implements ShouldQueue
+class TripCollaboratorInvited extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -44,7 +43,7 @@ class TripCollaboratorInvited extends Mailable implements ShouldQueue
             with: [
                 'tripName' => $this->trip->name,
                 'inviterName' => $this->inviter->name,
-                'tripUrl' => url("/map/{$this->trip->id}"),
+                'tripUrl' => route('map.show', $this->trip),
             ],
         );
     }

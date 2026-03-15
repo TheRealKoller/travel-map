@@ -82,12 +82,16 @@ export default function CollaboratorManagementModal({
 
         try {
             const response = await axios.post<{
-                collaborator: Collaborator;
+                collaborator?: Collaborator;
             }>(`/trips/${tripId}/collaborators`, {
                 email: email.trim(),
                 role: newRole,
             });
-            setCollaborators((prev) => [...prev, response.data.collaborator]);
+            setCollaborators((prev) =>
+                response.data.collaborator
+                    ? [...prev, response.data.collaborator]
+                    : prev,
+            );
             setEmail('');
             setNewRole('editor');
         } catch (err) {
