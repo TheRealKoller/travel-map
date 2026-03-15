@@ -4,6 +4,7 @@ import AppLayout from '@/layouts/app-layout';
 import { COUNTRIES } from '@/lib/countries';
 import type { BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
+import { Unlink } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { useCallback, useEffect, useRef } from 'react';
@@ -40,8 +41,9 @@ interface Trip {
 }
 
 interface TripPreviewProps {
-    trip: Trip;
-    isCollaborator: boolean;
+    trip?: Trip;
+    isCollaborator?: boolean;
+    tokenExpired?: boolean;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -54,6 +56,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function TripPreview({
     trip,
     isCollaborator,
+    tokenExpired,
 }: TripPreviewProps) {
     const mapRef = useRef<HTMLDivElement>(null);
     const mapInstance = useRef<mapboxgl.Map | null>(null);
@@ -116,7 +119,7 @@ export default function TripPreview({
 
     const addMarkersToMap = useCallback(
         (map: mapboxgl.Map) => {
-            trip.markers.forEach((marker) => {
+            trip?.markers.forEach((marker) => {
                 // Create a custom marker element
                 const el = document.createElement('div');
                 el.className = 'custom-marker';
@@ -140,11 +143,11 @@ export default function TripPreview({
                     .addTo(map);
             });
         },
-        [trip.markers],
+        [trip?.markers],
     );
 
     useEffect(() => {
-        if (!mapRef.current) return;
+        if (!mapRef.current || !trip) return;
 
         // Get Mapbox token from environment variables
         const mapboxToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || '';
@@ -222,6 +225,38 @@ export default function TripPreview({
             map.remove();
         };
     }, [trip, addMarkersToMap]);
+
+    if (tokenExpired) {
+        return (
+            <AppLayout breadcrumbs={breadcrumbs}>
+                <Head title="Invitation link expired" />
+                <div className="flex h-full flex-1 flex-col items-center justify-center gap-4 p-6">
+                    <div className="flex flex-col items-center gap-4 text-center">
+                        <div className="flex size-16 items-center justify-center rounded-full bg-muted">
+                            <Unlink className="size-8 text-muted-foreground" />
+                        </div>
+                        <h1
+                            className="text-2xl font-semibold"
+                            data-testid="token-expired-heading"
+                        >
+                            Invitation link expired
+                        </h1>
+                        <p className="max-w-sm text-muted-foreground">
+                            This invitation link has expired. Please ask the
+                            trip owner to generate a new link.
+                        </p>
+                        <Button onClick={() => router.visit('/trips')}>
+                            Go to my trips
+                        </Button>
+                    </div>
+                </div>
+            </AppLayout>
+        );
+    }
+
+    if (!trip) {
+        return null;
+    }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>

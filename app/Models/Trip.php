@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -31,7 +32,12 @@ class Trip extends Model
         'planned_duration_days',
         'invitation_token',
         'invitation_role',
+        'invitation_token_expires_at',
         'notes',
+    ];
+
+    protected $casts = [
+        'invitation_token_expires_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
@@ -122,12 +128,24 @@ class Trip extends Model
     /**
      * Generate or refresh the invitation token for this trip.
      */
-    public function generateInvitationToken(): string
+    public function generateInvitationToken(?Carbon $expiresAt = null): string
     {
         $token = bin2hex(random_bytes(32));
-        $this->update(['invitation_token' => $token]);
+        $this->update([
+            'invitation_token' => $token,
+            'invitation_token_expires_at' => $expiresAt,
+        ]);
 
         return $token;
+    }
+
+    /**
+     * Determine if the invitation token has expired.
+     */
+    public function isInvitationExpired(): bool
+    {
+        return $this->invitation_token_expires_at !== null
+            && $this->invitation_token_expires_at->isPast();
     }
 
     /**

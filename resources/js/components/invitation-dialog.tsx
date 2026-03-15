@@ -18,8 +18,10 @@ import {
 } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import axios from 'axios';
-import { Check, Copy } from 'lucide-react';
+import { Check, Copy, Unlink } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+
+type ExpiresIn = '7' | '30' | 'never';
 
 interface InvitationDialogProps {
     tripId: number;
@@ -38,24 +40,37 @@ export default function InvitationDialog({
     const [invitationRole, setInvitationRole] = useState<'editor' | 'viewer'>(
         'editor',
     );
+    const [expiresIn, setExpiresIn] = useState<ExpiresIn>('never');
+    const [expiresAt, setExpiresAt] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [isRevoking, setIsRevoking] = useState(false);
     const [isCopied, setIsCopied] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const generateInvitationLink = useCallback(
-        async (role?: 'editor' | 'viewer') => {
+        async (role?: 'editor' | 'viewer', expiry?: ExpiresIn) => {
             setIsLoading(true);
             setError(null);
+
+            const payload: Record<string, string> = {};
+            if (role !== undefined) {
+                payload.invitation_role = role;
+            }
+            const effectiveExpiry = expiry ?? expiresIn;
+            if (effectiveExpiry !== 'never') {
+                payload.expires_in = effectiveExpiry;
+            }
 
             try {
                 const response = await axios.post(
                     `/trips/${tripId}/generate-invitation-token`,
-                    role !== undefined ? { invitation_role: role } : {},
+                    payload,
                 );
                 setInvitationUrl(response.data.url);
                 if (response.data.invitation_role) {
                     setInvitationRole(response.data.invitation_role);
                 }
+                setExpiresAt(response.data.invitation_token_expires_at ?? null);
             } catch (err) {
                 console.error('Error generating invitation link:', err);
                 setError(
@@ -65,8 +80,24 @@ export default function InvitationDialog({
                 setIsLoading(false);
             }
         },
-        [tripId],
+        [tripId, expiresIn],
     );
+
+    const revokeInvitationLink = async () => {
+        setIsRevoking(true);
+        setError(null);
+
+        try {
+            await axios.delete(`/trips/${tripId}/invitation-token`);
+            setInvitationUrl(null);
+            setExpiresAt(null);
+        } catch (err) {
+            console.error('Error revoking invitation link:', err);
+            setError('Failed to revoke invitation link. Please try again.');
+        } finally {
+            setIsRevoking(false);
+        }
+    };
 
     useEffect(() => {
         if (isOpen && !invitationUrl) {
@@ -77,6 +108,11 @@ export default function InvitationDialog({
     const handleRoleChange = async (role: 'editor' | 'viewer') => {
         setInvitationRole(role);
         await generateInvitationLink(role);
+    };
+
+    const handleExpiryChange = async (value: ExpiresIn) => {
+        setExpiresIn(value);
+        await generateInvitationLink(undefined, value);
     };
 
     const handleCopyToClipboard = async () => {
@@ -94,7 +130,17 @@ export default function InvitationDialog({
     const handleClose = () => {
         setIsCopied(false);
         setInvitationUrl(null);
+        setExpiresAt(null);
         onClose();
+    };
+
+    const formatExpiresAt = (dateStr: string): string => {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString(undefined, {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+        });
     };
 
     return (
@@ -153,6 +199,38 @@ export default function InvitationDialog({
                         </div>
                     )}
 
+                    {!isLoading && (
+                        <div className="space-y-2">
+                            <Label htmlFor="invitation-expiry">
+                                Link expiry
+                            </Label>
+                            <Select
+                                value={expiresIn}
+                                onValueChange={(value) =>
+                                    void handleExpiryChange(value as ExpiresIn)
+                                }
+                            >
+                                <SelectTrigger
+                                    id="invitation-expiry"
+                                    data-testid="invitation-expiry-select"
+                                >
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="7">
+                                        Expires in 7 days
+                                    </SelectItem>
+                                    <SelectItem value="30">
+                                        Expires in 30 days
+                                    </SelectItem>
+                                    <SelectItem value="never">
+                                        Never expires
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+
                     {invitationUrl && !isLoading && (
                         <div className="space-y-2">
                             <Label htmlFor="invitation-link">
@@ -182,9 +260,10 @@ export default function InvitationDialog({
                                 </Button>
                             </div>
                             <p className="text-xs text-muted-foreground">
-                                This link will remain valid as long as the trip
-                                exists. Anyone who joins via this link will
-                                receive the{' '}
+                                {expiresAt
+                                    ? `This link expires on ${formatExpiresAt(expiresAt)}.`
+                                    : 'This link will remain valid as long as the trip exists.'}{' '}
+                                Anyone who joins via this link will receive the{' '}
                                 <strong>
                                     {invitationRole === 'viewer'
                                         ? 'viewer'
@@ -203,6 +282,21 @@ export default function InvitationDialog({
                             variant="outline"
                         >
                             Try again
+                        </Button>
+                    )}
+                    {invitationUrl && !isLoading && (
+                        <Button
+                            data-testid="revoke-invitation-link-button"
+                            onClick={() => void revokeInvitationLink()}
+                            variant="outline"
+                            disabled={isRevoking}
+                        >
+                            {isRevoking ? (
+                                <Spinner className="mr-2 size-4" />
+                            ) : (
+                                <Unlink className="mr-2 size-4" />
+                            )}
+                            Revoke link
                         </Button>
                     )}
                     <Button onClick={handleClose}>Close</Button>

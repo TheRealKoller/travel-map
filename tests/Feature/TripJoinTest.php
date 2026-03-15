@@ -159,3 +159,34 @@ test('owner sees collaborator status on their own trip preview', function () {
             ->where('isCollaborator', true)
         );
 });
+
+test('user cannot join trip with expired invitation token', function () {
+    $owner = User::factory()->create();
+    $trip = Trip::factory()->create([
+        'user_id' => $owner->id,
+        'invitation_token' => 'expired-token',
+        'invitation_token_expires_at' => now()->subDay(),
+    ]);
+
+    $response = $this->actingAs($this->user)->postJson('/trips/preview/expired-token/join');
+
+    $response->assertStatus(410)
+        ->assertJson([
+            'success' => false,
+            'error' => 'This invitation link has expired',
+        ]);
+});
+
+test('user can join trip with non-expired invitation token', function () {
+    $owner = User::factory()->create();
+    $trip = Trip::factory()->create([
+        'user_id' => $owner->id,
+        'invitation_token' => 'valid-token',
+        'invitation_token_expires_at' => now()->addDays(7),
+    ]);
+
+    $response = $this->actingAs($this->user)->postJson('/trips/preview/valid-token/join');
+
+    $response->assertStatus(200)
+        ->assertJsonFragment(['message' => 'Successfully joined the trip']);
+});

@@ -196,19 +196,42 @@ class TripController extends Controller
 
         $validated = $request->validate([
             'invitation_role' => ['nullable', 'in:editor,viewer'],
+            'expires_in' => ['nullable', 'integer', 'in:7,30'],
         ]);
 
         if (isset($validated['invitation_role'])) {
             $trip->update(['invitation_role' => $validated['invitation_role']]);
         }
 
-        $token = $trip->generateInvitationToken();
+        $expiresAt = isset($validated['expires_in'])
+            ? now()->addDays((int) $validated['expires_in'])
+            : null;
+
+        $token = $trip->generateInvitationToken($expiresAt);
+        $trip->refresh();
 
         return response()->json([
             'token' => $token,
             'url' => $trip->getInvitationUrl(),
-            'invitation_role' => $trip->fresh()->invitation_role,
+            'invitation_role' => $trip->invitation_role,
+            'invitation_token_expires_at' => $trip->invitation_token_expires_at,
         ]);
+    }
+
+    /**
+     * Revoke the invitation token for a trip.
+     * Existing collaborators are not affected.
+     */
+    public function revokeInvitationToken(Trip $trip): JsonResponse
+    {
+        $this->authorize('update', $trip);
+
+        $trip->update([
+            'invitation_token' => null,
+            'invitation_token_expires_at' => null,
+        ]);
+
+        return response()->json(null, 204);
     }
 
     /**
@@ -218,6 +241,12 @@ class TripController extends Controller
     public function showPreview(string $token): Response
     {
         $trip = Trip::where('invitation_token', $token)->firstOrFail();
+
+        if ($trip->isInvitationExpired()) {
+            return Inertia::render('trips/preview', [
+                'tokenExpired' => true,
+            ]);
+        }
 
         // Load the trip with its markers
         $trip->load(['markers']);
@@ -238,6 +267,11 @@ class TripController extends Controller
     public function joinTrip(string $token): JsonResponse
     {
         $trip = Trip::where('invitation_token', $token)->firstOrFail();
+
+        if ($trip->isInvitationExpired()) {
+            throw new \App\Exceptions\BusinessLogicException('This invitation link has expired', 410);
+        }
+
         $user = auth()->user();
 
         // Check if user is already the owner

@@ -158,3 +158,146 @@ test('trip without invitation token returns null URL', function () {
 
     expect($trip->getInvitationUrl())->toBeNull();
 });
+
+test('owner can generate invitation token with expiry in 7 days', function () {
+    $user = User::factory()->create();
+    $trip = Trip::factory()->create(['user_id' => $user->id]);
+
+    $response = $this
+        ->actingAs($user)
+        ->postJson("/trips/{$trip->id}/generate-invitation-token", [
+            'expires_in' => 7,
+        ]);
+
+    $response->assertOk();
+    $response->assertJsonStructure([
+        'token',
+        'url',
+        'invitation_token_expires_at',
+    ]);
+
+    $trip->refresh();
+    expect($trip->invitation_token_expires_at)->not->toBeNull();
+    expect($trip->invitation_token_expires_at->isFuture())->toBeTrue();
+    expect($trip->invitation_token_expires_at->between(now()->addDays(6), now()->addDays(8)))->toBeTrue();
+});
+
+test('owner can generate invitation token with expiry in 30 days', function () {
+    $user = User::factory()->create();
+    $trip = Trip::factory()->create(['user_id' => $user->id]);
+
+    $response = $this
+        ->actingAs($user)
+        ->postJson("/trips/{$trip->id}/generate-invitation-token", [
+            'expires_in' => 30,
+        ]);
+
+    $response->assertOk();
+
+    $trip->refresh();
+    expect($trip->invitation_token_expires_at)->not->toBeNull();
+    expect($trip->invitation_token_expires_at->between(now()->addDays(29), now()->addDays(31)))->toBeTrue();
+});
+
+test('generating invitation token without expires_in sets no expiry', function () {
+    $user = User::factory()->create();
+    $trip = Trip::factory()->create(['user_id' => $user->id]);
+
+    $this
+        ->actingAs($user)
+        ->postJson("/trips/{$trip->id}/generate-invitation-token");
+
+    $trip->refresh();
+    expect($trip->invitation_token_expires_at)->toBeNull();
+});
+
+test('owner can revoke invitation token', function () {
+    $user = User::factory()->create();
+    $trip = Trip::factory()->create(['user_id' => $user->id]);
+    $trip->generateInvitationToken();
+
+    $response = $this
+        ->actingAs($user)
+        ->deleteJson("/trips/{$trip->id}/invitation-token");
+
+    $response->assertNoContent();
+
+    $trip->refresh();
+    expect($trip->invitation_token)->toBeNull();
+    expect($trip->invitation_token_expires_at)->toBeNull();
+});
+
+test('non-owner cannot revoke invitation token', function () {
+    $owner = User::factory()->create();
+    $otherUser = User::factory()->create();
+    $trip = Trip::factory()->create(['user_id' => $owner->id]);
+    $trip->generateInvitationToken();
+
+    $response = $this
+        ->actingAs($otherUser)
+        ->deleteJson("/trips/{$trip->id}/invitation-token");
+
+    $response->assertForbidden();
+});
+
+test('unauthenticated user cannot revoke invitation token', function () {
+    $user = User::factory()->create();
+    $trip = Trip::factory()->create(['user_id' => $user->id]);
+    $trip->generateInvitationToken();
+
+    $response = $this->deleteJson("/trips/{$trip->id}/invitation-token");
+
+    $response->assertUnauthorized();
+});
+
+test('revoking token does not affect existing collaborators', function () {
+    $owner = User::factory()->create();
+    $collaborator = User::factory()->create();
+    $trip = Trip::factory()->create(['user_id' => $owner->id]);
+    $trip->generateInvitationToken();
+    $trip->sharedUsers()->attach($collaborator->id, ['collaboration_role' => 'editor']);
+
+    $this
+        ->actingAs($owner)
+        ->deleteJson("/trips/{$trip->id}/invitation-token");
+
+    // Collaborator should still exist
+    $this->assertDatabaseHas('trip_user', [
+        'trip_id' => $trip->id,
+        'user_id' => $collaborator->id,
+        'collaboration_role' => 'editor',
+    ]);
+});
+
+test('expired token shows expired state on preview page', function () {
+    $owner = User::factory()->create();
+    $viewer = User::factory()->create();
+    $trip = Trip::factory()->create(['user_id' => $owner->id]);
+
+    // Generate token that is already expired
+    $token = $trip->generateInvitationToken(now()->subDay());
+
+    $response = $this
+        ->actingAs($viewer)
+        ->get("/trips/preview/{$token}");
+
+    $response->assertOk();
+    $response->assertInertia(fn ($page) => $page
+        ->component('trips/preview')
+        ->where('tokenExpired', true)
+        ->missing('trip')
+    );
+});
+
+test('invalid expires_in value is rejected', function () {
+    $user = User::factory()->create();
+    $trip = Trip::factory()->create(['user_id' => $user->id]);
+
+    $response = $this
+        ->actingAs($user)
+        ->postJson("/trips/{$trip->id}/generate-invitation-token", [
+            'expires_in' => 999,
+        ]);
+
+    $response->assertUnprocessable();
+});
