@@ -132,7 +132,7 @@ jobs:
           git diff origin/${{ github.base_ref }}...HEAD -- '*.php' > /tmp/php-diff.txt
 
           # Look for common N+1 patterns in added lines
-          ADDED=$(grep '^+' /tmp/php-diff.txt | grep -v '^+++')
+          ADDED=$(grep '^+' /tmp/php-diff.txt | grep -v '^+++' || true)
 
           N1_FOUND=""
           # Pattern: foreach loop followed by relationship access without eager loading hint

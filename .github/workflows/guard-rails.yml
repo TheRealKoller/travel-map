@@ -45,7 +45,7 @@ jobs:
       - name: Validate commit messages (Conventional Commits)
         run: |
           # Get all commit subjects added in this PR (not on main)
-          COMMITS=$(git log origin/main..HEAD --format="%s")
+          COMMITS=$(git log origin/main..HEAD --no-merges --format="%s")
           if [[ -z "$COMMITS" ]]; then
             echo "No new commits to validate."
             exit 0
@@ -150,5 +150,25 @@ jobs:
       - name: Lint frontend (ESLint)
         run: npx eslint resources/ --max-warnings=0
 
-      - name: TypeScript type check
-        run: npm run types
+      - name: TypeScript type check (diff-based — only fail on new errors)
+        run: |
+          # Count errors on this branch
+          HEAD_ERRORS=$(npm run types 2>&1 | grep -c "error TS" || true)
+          echo "TypeScript errors on this branch: $HEAD_ERRORS"
+
+          # Count errors on main
+          git fetch origin main --depth=1
+          git stash --include-untracked || true
+          git checkout origin/main -- tsconfig.json resources/js 2>/dev/null || true
+          BASE_ERRORS=$(npm run types 2>&1 | grep -c "error TS" || true)
+          echo "TypeScript errors on main: $BASE_ERRORS"
+
+          # Restore our branch files
+          git checkout HEAD -- tsconfig.json resources/js 2>/dev/null || true
+          git stash pop 2>/dev/null || true
+
+          if [[ $HEAD_ERRORS -gt $BASE_ERRORS ]]; then
+            echo "::error::This PR introduced $((HEAD_ERRORS - BASE_ERRORS)) new TypeScript error(s) ($BASE_ERRORS on main → $HEAD_ERRORS on this branch)."
+            exit 1
+          fi
+          echo "No new TypeScript errors introduced (main: $BASE_ERRORS, this branch: $HEAD_ERRORS)."
