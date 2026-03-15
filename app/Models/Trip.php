@@ -31,8 +31,16 @@ class Trip extends Model
         'planned_duration_days',
         'invitation_token',
         'invitation_role',
+        'invitation_token_expires_at',
         'notes',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'invitation_token_expires_at' => 'datetime',
+        ];
+    }
 
     public function user(): BelongsTo
     {
@@ -121,13 +129,41 @@ class Trip extends Model
 
     /**
      * Generate or refresh the invitation token for this trip.
+     *
+     * @param  \Carbon\Carbon|null  $expiresAt  Optional expiry timestamp
      */
-    public function generateInvitationToken(): string
+    public function generateInvitationToken(?\Carbon\Carbon $expiresAt = null): string
     {
         $token = bin2hex(random_bytes(32));
-        $this->update(['invitation_token' => $token]);
+        $this->update([
+            'invitation_token' => $token,
+            'invitation_token_expires_at' => $expiresAt,
+        ]);
 
         return $token;
+    }
+
+    /**
+     * Revoke the invitation token for this trip (sets token and expiry to null).
+     */
+    public function revokeInvitationToken(): void
+    {
+        $this->update([
+            'invitation_token' => null,
+            'invitation_token_expires_at' => null,
+        ]);
+    }
+
+    /**
+     * Check whether the invitation token has expired.
+     */
+    public function isInvitationTokenExpired(): bool
+    {
+        if ($this->invitation_token_expires_at === null) {
+            return false;
+        }
+
+        return $this->invitation_token_expires_at->isPast();
     }
 
     /**
