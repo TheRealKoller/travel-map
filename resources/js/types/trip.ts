@@ -3,6 +3,14 @@ export interface TripOwner {
     name: string;
 }
 
+export interface Collaborator {
+    id: number;
+    name: string;
+    email: string;
+    collaboration_role: 'owner' | 'editor';
+    created_at: string;
+}
+
 export interface Trip {
     id: number;
     name: string;

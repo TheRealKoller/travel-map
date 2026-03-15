@@ -1,4 +1,6 @@
+import CollaboratorManagementModal from '@/components/collaborator-management-modal';
 import InvitationDialog from '@/components/invitation-dialog';
+import { Badge } from '@/components/ui/badge';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -24,6 +26,7 @@ import {
     Plus,
     Sparkles,
     UserPlus,
+    Users,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -46,6 +49,13 @@ export default function TripsIndex() {
         id: number;
         name: string;
     } | null>(null);
+
+    const [collaboratorModalOpen, setCollaboratorModalOpen] = useState(false);
+    const [selectedTripForCollaborators, setSelectedTripForCollaborators] =
+        useState<{
+            id: number;
+            name: string;
+        } | null>(null);
 
     const handleSelectTrip = (tripId: number) => {
         router.visit(`/map/${tripId}`);
@@ -77,6 +87,16 @@ export default function TripsIndex() {
         e.stopPropagation();
         setSelectedTripForInvitation({ id: tripId, name: tripName });
         setInvitationDialogOpen(true);
+    };
+
+    const handleManageCollaborators = (
+        e: React.MouseEvent,
+        tripId: number,
+        tripName: string,
+    ) => {
+        e.stopPropagation();
+        setSelectedTripForCollaborators({ id: tripId, name: tripName });
+        setCollaboratorModalOpen(true);
     };
 
     const handleCreateTrip = () => {
@@ -176,6 +196,29 @@ export default function TripsIndex() {
                                     </div>
                                 )}
 
+                                {/* Owner / Shared badge for current user's trips */}
+                                {!isOtherUsersTrip && (
+                                    <div className="absolute top-3 left-3 z-10">
+                                        {trip.user_id === auth.user.id ? (
+                                            <Badge
+                                                data-testid={`trip-badge-owner-${trip.id}`}
+                                                variant="secondary"
+                                                className="text-xs"
+                                            >
+                                                Owner
+                                            </Badge>
+                                        ) : (
+                                            <Badge
+                                                data-testid={`trip-badge-shared-${trip.id}`}
+                                                variant="outline"
+                                                className="bg-background/80 text-xs backdrop-blur-sm"
+                                            >
+                                                Shared
+                                            </Badge>
+                                        )}
+                                    </div>
+                                )}
+
                                 {/* Action Buttons */}
                                 <div className="absolute top-3 right-3 z-10">
                                     <DropdownMenu>
@@ -189,19 +232,38 @@ export default function TripsIndex() {
                                             </button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
-                                            <DropdownMenuItem
-                                                data-testid={`invite-button-${trip.id}`}
-                                                onClick={(e) =>
-                                                    handleInvite(
-                                                        e,
-                                                        trip.id,
-                                                        trip.name,
-                                                    )
-                                                }
-                                            >
-                                                <UserPlus className="mr-2 size-4" />
-                                                {t('trips.invite_users')}
-                                            </DropdownMenuItem>
+                                            {trip.user_id === auth.user.id && (
+                                                <DropdownMenuItem
+                                                    data-testid={`invite-button-${trip.id}`}
+                                                    onClick={(e) =>
+                                                        handleInvite(
+                                                            e,
+                                                            trip.id,
+                                                            trip.name,
+                                                        )
+                                                    }
+                                                >
+                                                    <UserPlus className="mr-2 size-4" />
+                                                    {t('trips.invite_users')}
+                                                </DropdownMenuItem>
+                                            )}
+                                            {trip.user_id === auth.user.id && (
+                                                <DropdownMenuItem
+                                                    data-testid={`manage-collaborators-button-${trip.id}`}
+                                                    onClick={(e) =>
+                                                        handleManageCollaborators(
+                                                            e,
+                                                            trip.id,
+                                                            trip.name,
+                                                        )
+                                                    }
+                                                >
+                                                    <Users className="mr-2 size-4" />
+                                                    {t(
+                                                        'trips.manage_collaborators',
+                                                    )}
+                                                </DropdownMenuItem>
+                                            )}
                                             <DropdownMenuSub>
                                                 <DropdownMenuSubTrigger
                                                     data-testid={`export-pdf-button-${trip.id}`}
@@ -399,6 +461,16 @@ export default function TripsIndex() {
                         tripName={selectedTripForInvitation.name}
                         isOpen={invitationDialogOpen}
                         onClose={() => setInvitationDialogOpen(false)}
+                    />
+                )}
+
+                {/* Collaborator Management Modal */}
+                {selectedTripForCollaborators && (
+                    <CollaboratorManagementModal
+                        tripId={selectedTripForCollaborators.id}
+                        tripName={selectedTripForCollaborators.name}
+                        isOpen={collaboratorModalOpen}
+                        onClose={() => setCollaboratorModalOpen(false)}
                     />
                 )}
             </div>

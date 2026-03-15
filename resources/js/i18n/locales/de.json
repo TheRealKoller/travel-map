@@ -164,6 +164,23 @@
             "access_info": "Jeder mit diesem Link und einem Konto kann die Reisedetails und Markierungen ansehen.",
             "try_again_button": "Erneut versuchen",
             "close_button": "Schließen"
+        },
+        "manage_collaborators": "Mitarbeiter verwalten",
+        "collaborators_modal": {
+            "title": "Mitarbeiter verwalten",
+            "description": "Füge Mitarbeiter hinzu oder entferne sie aus dieser Reise.",
+            "current_members": "Aktuelle Mitglieder",
+            "no_collaborators": "Noch keine Mitarbeiter.",
+            "add_collaborator": "Mitarbeiter hinzufügen",
+            "email_label": "E-Mail-Adresse",
+            "email_placeholder": "kollege@beispiel.de",
+            "add_button": "Hinzufügen",
+            "adding_button": "Wird hinzugefügt...",
+            "remove_button": "Entfernen",
+            "role_owner": "Eigentümer",
+            "role_editor": "Bearbeiter",
+            "badge_owner": "Eigentümer",
+            "badge_shared": "Geteilt"
         }
     },
     "tours": {
