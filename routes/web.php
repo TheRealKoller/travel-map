@@ -6,6 +6,7 @@ use App\Http\Controllers\MapboxController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\MarkerController;
 use App\Http\Controllers\RouteController;
+use App\Http\Controllers\SyncController;
 use App\Http\Controllers\TourController;
 use App\Http\Controllers\TripCollaboratorController;
 use App\Http\Controllers\TripController;
@@ -52,6 +53,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/trips/{trip}/collaborators', [TripCollaboratorController::class, 'store'])->name('trips.collaborators.store');
     Route::patch('/trips/{trip}/collaborators/{user}', [TripCollaboratorController::class, 'update'])->name('trips.collaborators.update');
     Route::delete('/trips/{trip}/collaborators/{user}', [TripCollaboratorController::class, 'destroy'])->name('trips.collaborators.destroy');
+
+    // Background sync endpoint – returns changed/deleted items since a given timestamp
+    Route::get('/trips/{trip}/sync', [SyncController::class, 'index'])->name('trips.sync');
 
     // Map route - show map for a specific trip
     Route::get('/map/{trip}', [MapController::class, 'show'])->name('map.show');

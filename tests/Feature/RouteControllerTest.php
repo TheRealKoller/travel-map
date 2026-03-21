@@ -138,7 +138,7 @@ it('can delete a route', function () {
     $response = $this->deleteJson("/routes/{$route->id}");
 
     $response->assertNoContent();
-    $this->assertDatabaseMissing('routes', ['id' => $route->id]);
+    $this->assertSoftDeleted('routes', ['id' => $route->id]);
 });
 
 it('cannot access another users routes', function () {

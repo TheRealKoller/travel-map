@@ -217,7 +217,7 @@ test('collaborator can delete markers in shared trip', function () {
 
     $response->assertStatus(204);
 
-    $this->assertDatabaseMissing('markers', [
+    $this->assertSoftDeleted('markers', [
         'id' => $marker->id,
     ]);
 });
@@ -264,7 +264,7 @@ test('collaborator can delete tours in shared trip', function () {
 
     $response->assertStatus(204);
 
-    $this->assertDatabaseMissing('tours', [
+    $this->assertSoftDeleted('tours', [
         'id' => $tour->id,
     ]);
 });

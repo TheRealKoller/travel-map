@@ -7,15 +7,27 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Tour extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'name',
         'trip_id',
     ];
+
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        // Detach all markers from the pivot table when the tour is (soft-)deleted,
+        // since the database CASCADE only fires on hard deletes.
+        static::deleting(function (Tour $tour): void {
+            $tour->markers()->detach();
+        });
+    }
 
     public function trip(): BelongsTo
     {

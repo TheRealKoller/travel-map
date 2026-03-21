@@ -18,15 +18,19 @@ import { useRoutes } from '@/hooks/use-routes';
 import { useSearchMode } from '@/hooks/use-search-mode';
 import { useSearchRadius } from '@/hooks/use-search-radius';
 import { useSearchResults } from '@/hooks/use-search-results';
+import { useSync } from '@/hooks/use-sync';
 import { useTourLines } from '@/hooks/use-tour-lines';
 import { useTourMarkers } from '@/hooks/use-tour-markers';
 import { useTripNotes } from '@/hooks/use-trip-notes';
 import { useWaypointMode } from '@/hooks/use-waypoint-mode';
 import { getBoundingBoxFromTrip } from '@/lib/map-utils';
+import { createMarkerElement } from '@/lib/marker-utils';
 import { type TripOwner } from '@/types';
+import { MarkerData, MarkerType } from '@/types/marker';
 import { Route } from '@/types/route';
 import { Tour } from '@/types/tour';
 import { Trip } from '@/types/trip';
+import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import {
     Dispatch,
@@ -246,6 +250,74 @@ export default function TravelMap({
     useEffect(() => {
         routesRef.current = routes;
     }, [routes]);
+
+    // Background sync – polls for changes from other collaborators
+    const handleAddSyncedMarker = useCallback(
+        (raw: {
+            id: string;
+            latitude: number;
+            longitude: number;
+            name: string;
+            type: MarkerType;
+            notes: string | null;
+            url: string | null;
+            image_url: string | null;
+            is_unesco: boolean;
+            ai_enriched: boolean;
+            estimated_hours: number | null;
+        }): MarkerData | null => {
+            if (!mapInstance) return null;
+
+            const el = createMarkerElement({
+                type: raw.type as MarkerType,
+                isHighlighted: false,
+                isTemporary: false,
+            });
+
+            const mapboxMarker = new mapboxgl.Marker(el)
+                .setLngLat([raw.longitude, raw.latitude])
+                .addTo(mapInstance);
+
+            const popup = new mapboxgl.Popup({ offset: 25 }).setText(
+                raw.name || 'Unnamed Location',
+            );
+            mapboxMarker.setPopup(popup);
+
+            el.addEventListener('click', (e) => {
+                e.stopPropagation();
+                setSelectedMarkerId(raw.id);
+            });
+
+            return {
+                id: raw.id,
+                lat: raw.latitude,
+                lng: raw.longitude,
+                name: raw.name ?? '',
+                type: (raw.type as MarkerType) ?? MarkerType.PointOfInterest,
+                notes: raw.notes ?? '',
+                url: raw.url ?? '',
+                imageUrl: raw.image_url ?? null,
+                isUnesco: raw.is_unesco ?? false,
+                aiEnriched: raw.ai_enriched ?? false,
+                estimatedHours: raw.estimated_hours ?? null,
+                isSaved: true,
+                marker: mapboxMarker,
+            };
+        },
+        [mapInstance],
+    );
+
+    useSync({
+        selectedTripId,
+        selectedTrip,
+        setMarkers,
+        setRoutes,
+        onToursUpdate,
+        tours,
+        selectedMarkerId,
+        expandedRoutes,
+        onAddMarker: handleAddSyncedMarker,
+    });
 
     // Tour lines - draw curved lines between markers in selected tour when no route exists
     useTourLines({
