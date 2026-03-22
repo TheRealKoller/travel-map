@@ -215,7 +215,7 @@ jobs:
           ADDED=$(git diff origin/${{ github.base_ref }}...HEAD | grep '^+' | grep -v '^+++')
           FOUND=0
 
-          # Common secret patterns (not ${{ }} template expressions — those are fine)
+          # Common secret patterns (not ${{ }} template expressions - those are fine)
           if echo "$ADDED" | grep -qiE "(api[_-]?key|secret|password|token)\s*=\s*['\"][^'\"\$\{][^'\"]{8,}['\"]"; then
             echo "::warning::Possible hardcoded secret detected in diff — check AI review below."
             FOUND=1
