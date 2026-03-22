@@ -12,6 +12,11 @@ on:
         required: false
         type: string
         default: ''
+      skip_browser_tests:
+        description: 'Skip browser tests (use when caller cannot grant checks: write)'
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   # For direct branch pushes: cancel previous runs on the same branch.
@@ -85,6 +90,7 @@ jobs:
   browser-tests:
     name: Browser Tests
     runs-on: ubuntu-latest
+    if: ${{ !inputs.skip_browser_tests }}
     permissions:
       checks: write
       contents: read
