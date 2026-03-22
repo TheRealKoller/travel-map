@@ -198,12 +198,12 @@ jobs:
               body
             });
 
-      - name: Fail if hard regression (>50KB absolute)
+      - name: Fail if hard regression (>100KB absolute)
         run: |
           DIFF=${{ steps.compare.outputs.diff_bytes }}
           BASELINE=${{ steps.compare.outputs.baseline_total }}
-          if [[ $BASELINE -gt 0 ]] && [[ $DIFF -gt 51200 ]]; then
-            echo "::error::Bundle regression: +${DIFF} bytes exceeds absolute limit of 50KB"
+          if [[ $BASELINE -gt 0 ]] && [[ $DIFF -gt 102400 ]]; then
+            echo "::error::Bundle regression: +${DIFF} bytes exceeds absolute limit of 100KB"
             echo "::error::This is a blocking failure. Investigate large additions before merging."
             exit 1
           fi

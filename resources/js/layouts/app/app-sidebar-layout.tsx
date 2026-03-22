@@ -2,11 +2,22 @@ import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
-import { ChangelogModal } from '@/components/changelog-modal';
 import { useSidebar } from '@/components/ui/sidebar';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { router, usePage } from '@inertiajs/react';
-import { type PropsWithChildren, useEffect, useState } from 'react';
+import {
+    type PropsWithChildren,
+    lazy,
+    Suspense,
+    useEffect,
+    useState,
+} from 'react';
+
+const ChangelogModal = lazy(() =>
+    import('@/components/changelog-modal').then((m) => ({
+        default: m.ChangelogModal,
+    })),
+);
 
 interface AppSidebarLayoutContentProps extends PropsWithChildren {
     breadcrumbs?: BreadcrumbItem[];
@@ -42,11 +53,13 @@ function AppSidebarLayoutContent({
                 {children}
             </AppContent>
             {changelog && changelog.newReleases.length > 0 && (
-                <ChangelogModal
-                    releases={changelog.newReleases}
-                    open={modalOpen}
-                    onClose={() => setModalOpen(false)}
-                />
+                <Suspense>
+                    <ChangelogModal
+                        releases={changelog.newReleases}
+                        open={modalOpen}
+                        onClose={() => setModalOpen(false)}
+                    />
+                </Suspense>
             )}
         </>
     );
