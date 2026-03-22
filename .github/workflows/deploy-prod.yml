@@ -1,7 +1,18 @@
 name: Deploy to PROD
 
 on:
-  workflow_dispatch: # Nur manuelles Deployment erlauben
+  # Automatically triggered when post-merge.yml creates a version tag after
+  # release.yml merges develop → main. Using tag-only trigger prevents
+  # duplicate deployments on changelog/follow-up commits to main.
+  push:
+    tags:
+      - 'v[0-9]*.[0-9]*.[0-9]*'
+  workflow_dispatch: # Manuelles Deployment (Tag oder SHA wählbar)
+    inputs:
+      ref:
+        description: 'Tag or SHA to deploy (e.g. v1.2.3)'
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -23,6 +34,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
