@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\ChangelogService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -16,6 +17,10 @@ class HandleInertiaRequests extends Middleware
      * @var string
      */
     protected $rootView = 'app';
+
+    public function __construct(
+        private readonly ChangelogService $changelogService
+    ) {}
 
     /**
      * Determines the current asset version.
@@ -53,6 +58,41 @@ class HandleInertiaRequests extends Middleware
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'csrf_token' => csrf_token(),
             'language' => $language,
+            'changelog' => $this->buildChangelogProp($request),
         ];
+    }
+
+    /**
+     * Build the changelog shared prop.
+     *
+     * Returns new releases since last_seen_version when a newer version is deployed,
+     * or null when there is nothing new to show.
+     *
+     * @return array{newReleases: list<array{version: string, date: string, sections: array<string, list<string>>}>}|null
+     */
+    private function buildChangelogProp(Request $request): ?array
+    {
+        $user = $request->user();
+        $currentVersion = config('app.version');
+
+        // No app version configured or user not authenticated – nothing to show
+        if (! $currentVersion || ! $user) {
+            return null;
+        }
+
+        $lastSeenVersion = $user->last_seen_version;
+
+        // Current version already seen – no modal needed
+        if ($lastSeenVersion === $currentVersion) {
+            return null;
+        }
+
+        $newReleases = $this->changelogService->getReleasesSince($lastSeenVersion);
+
+        if (empty($newReleases)) {
+            return null;
+        }
+
+        return ['newReleases' => $newReleases];
     }
 }
