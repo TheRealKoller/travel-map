@@ -23,6 +23,8 @@ jobs:
     name: Run Tests (manual dispatch only)
     if: github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/tests.yml
+    with:
+      ref: ${{ inputs.ref || github.sha }}
 
   # Deployment (nur wenn CI erfolgreich war, oder bei manuellem Trigger)
   deploy:

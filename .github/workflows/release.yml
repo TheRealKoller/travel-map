@@ -40,12 +40,23 @@ jobs:
     environment: production
 
     steps:
+      - name: Validate automation token
+        env:
+          TOKEN: ${{ secrets.PROJECT_AUTOMATION_TOKEN }}
+        run: |
+          if [[ -z "$TOKEN" ]]; then
+            echo "::error::PROJECT_AUTOMATION_TOKEN secret is required."
+            echo "::error::Pushes with GITHUB_TOKEN do not trigger downstream workflows (post-merge.yml, deploy-prod.yml)."
+            echo "::error::Add a PAT with 'contents:write' scope as PROJECT_AUTOMATION_TOKEN in repository secrets."
+            exit 1
+          fi
+
       - name: Checkout develop
         uses: actions/checkout@v4
         with:
           ref: develop
           fetch-depth: 0
-          token: ${{ secrets.PROJECT_AUTOMATION_TOKEN || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PROJECT_AUTOMATION_TOKEN }}
 
       - name: Configure git
         run: |
@@ -85,6 +96,7 @@ jobs:
 
           if [[ -z "$LAST_TAG" ]]; then
             NEXT="v1.0.0"
+            BUMP="initial"
           else
             MAJOR=$(echo "$LAST_TAG" | sed 's/v//' | cut -d. -f1)
             MINOR=$(echo "$LAST_TAG" | sed 's/v//' | cut -d. -f2)
@@ -204,10 +216,11 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.next_version }}"
 
-          git fetch origin main
+          # Fetch both branches so local tracking refs are current after the push above
+          git fetch origin main develop
           git checkout main
-          # Merge the local develop branch (already up-to-date after push above)
-          git merge --no-ff develop -m "chore: release ${VERSION} — merge develop into main"
+          git reset --hard origin/main
+          git merge --no-ff origin/develop -m "chore: release ${VERSION} — merge develop into main"
           git push origin main
 
           echo "develop merged into main for release $VERSION"
