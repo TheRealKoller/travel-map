@@ -34,4 +34,5 @@ export interface Trip {
     notes?: string | null;
     created_at: string;
     updated_at: string;
+    shared_users_count?: number;
 }

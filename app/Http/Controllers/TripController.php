@@ -37,6 +37,7 @@ class TripController extends Controller
             // Admin can request all trips from all users
             if ($user->isAdmin() && $request->boolean('show_all')) {
                 $trips = Trip::with('user:id,name')
+                    ->withCount('sharedUsers')
                     ->orderBy('created_at', 'asc')
                     ->get()
                     ->map(function (Trip $trip) {
@@ -52,6 +53,7 @@ class TripController extends Controller
 
             // Get all accessible trips (both owned and shared) in a single query
             $trips = Trip::accessibleBy($user)
+                ->withCount('sharedUsers')
                 ->orderBy('created_at', 'asc')
                 ->get();
 

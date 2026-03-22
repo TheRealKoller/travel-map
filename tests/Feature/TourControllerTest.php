@@ -107,7 +107,7 @@ test('authenticated user can delete their own tour', function () {
 
     $response->assertStatus(204);
 
-    $this->assertDatabaseMissing('tours', ['id' => $tour->id]);
+    $this->assertSoftDeleted('tours', ['id' => $tour->id]);
 });
 
 test('deleting a tour keeps markers associated with trip', function () {
@@ -128,7 +128,7 @@ test('deleting a tour keeps markers associated with trip', function () {
 
     $response->assertStatus(204);
 
-    $this->assertDatabaseMissing('tours', ['id' => $tour->id]);
+    $this->assertSoftDeleted('tours', ['id' => $tour->id]);
     $this->assertDatabaseMissing('marker_tour', ['tour_id' => $tour->id]);
     $this->assertDatabaseHas('markers', ['id' => $marker1->id, 'trip_id' => $this->trip->id]);
     $this->assertDatabaseHas('markers', ['id' => $marker2->id, 'trip_id' => $this->trip->id]);
