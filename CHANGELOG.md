@@ -3,6 +3,11 @@
 All notable changes to Travel Map are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v1.1.0] - 2026-03-22
+
+### Added
+- Pending migration warning in deploy workflows
+
 ## [v1.0.1] - 2026-03-22
 
 ### Changed
