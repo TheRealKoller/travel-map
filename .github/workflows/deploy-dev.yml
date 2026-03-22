@@ -275,6 +275,27 @@ jobs:
             echo "✅ Deployment completed successfully!"
           SCRIPT
 
+      - name: Check for pending migrations
+        if: success()
+        run: |
+          MIGRATE_STATUS=$(ssh \
+            -o StrictHostKeyChecking=no \
+            -o BatchMode=yes \
+            -o ConnectTimeout=10 \
+            -o ConnectionAttempts=1 \
+            ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} \
+            "cd ${{ secrets.SSH_REMOTE_PATH }} && php artisan migrate:status --no-ansi 2>/dev/null" || echo "MIGRATE_STATUS_FAILED")
+
+          if [[ "$MIGRATE_STATUS" == "MIGRATE_STATUS_FAILED" ]]; then
+            echo "::warning::Could not determine migration status — check server connectivity."
+            echo "PENDING_MIGRATIONS=unknown" >> $GITHUB_ENV
+          elif echo "$MIGRATE_STATUS" | grep -qE '^\|[[:space:]]*No[[:space:]]*\|'; then
+            echo "PENDING_MIGRATIONS=true" >> $GITHUB_ENV
+            echo "::warning::Pending migrations detected on DEV. Run manually via SSH: php artisan migrate --force"
+          else
+            echo "PENDING_MIGRATIONS=false" >> $GITHUB_ENV
+          fi
+
       - name: Create deployment summary
         if: success()
         run: |
@@ -287,6 +308,30 @@ jobs:
           echo "**Author:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
           echo "**Message:** ${{ github.event.workflow_run.display_title || github.event.head_commit.message }}" >> $GITHUB_STEP_SUMMARY
           echo "**Zeit:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "$PENDING_MIGRATIONS" == "true" ]]; then
+            echo "---" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### ⚠️ Ausstehende Migrationen!" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Es wurden ausstehende Datenbank-Migrationen erkannt." >> $GITHUB_STEP_SUMMARY
+            echo "Bitte führe die Migration **manuell per SSH** aus:" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo '```bash' >> $GITHUB_STEP_SUMMARY
+            echo "# SSH_USERNAME, SSH_HOST and SSH_REMOTE_PATH are stored as GitHub Secrets." >> $GITHUB_STEP_SUMMARY
+            echo "ssh <SSH_USERNAME>@<SSH_HOST>" >> $GITHUB_STEP_SUMMARY
+            echo "cd <SSH_REMOTE_PATH> && php artisan migrate --force" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          elif [[ "$PENDING_MIGRATIONS" == "unknown" ]]; then
+            echo "---" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### ⚠️ Migrationsstatus unbekannt" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Der Migrationsstatus konnte nicht ermittelt werden." >> $GITHUB_STEP_SUMMARY
+            echo "Bitte prüfe manuell ob Migrationen ausstehen." >> $GITHUB_STEP_SUMMARY
+          fi
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "🚀 Die Anwendung wurde erfolgreich zur DEV-Umgebung deployed." >> $GITHUB_STEP_SUMMARY
 
