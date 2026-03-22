@@ -1,31 +1,45 @@
 name: Deploy to DEV
 
 on:
-  push:
-    branches:
-      - main
+  # Trigger only after CI has completed successfully on main — avoids running
+  # tests a second time (ci.yml already ran them before this workflow starts).
+  workflow_run:
+    workflows: ['CI']
+    types: [completed]
+    branches: [main]
   workflow_dispatch: # Manuelles Deployment erlauben
 
 permissions:
   contents: read
 
 jobs:
-  # Zuerst Tests ausführen
+  # Run tests for manual dispatch (workflow_run already ran them via ci.yml)
   tests:
+    name: Run Tests (manual dispatch only)
+    if: github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/tests.yml
-    permissions:
-      checks: write
-      contents: read
 
-  # Deployment (nur wenn Tests erfolgreich)
+  # Deployment (nur wenn CI erfolgreich war, oder bei manuellem Trigger)
   deploy:
     name: Deploy to DEV (all-inkl.com)
     runs-on: ubuntu-latest
-    needs: tests
+    needs: [tests]
+    # For workflow_run: CI already passed, so deploy directly.
+    # For workflow_dispatch: wait for the tests job above (needs: [tests]).
+    # needs: [tests] is skipped when tests is skipped, so this condition handles both cases:
+    # - workflow_run: tests is skipped → needs is satisfied → deploy if CI passed
+    # - workflow_dispatch: tests must succeed → deploy
+    if: |
+      always() && (
+        github.event.workflow_run.conclusion == 'success' ||
+        (github.event_name == 'workflow_dispatch' && needs.tests.result == 'success')
+      )
     environment: development
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -261,10 +275,10 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Environment:** DEV" >> $GITHUB_STEP_SUMMARY
           echo "**URL:** https://dev.travelmap.koller.dk/" >> $GITHUB_STEP_SUMMARY
-          echo "**Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** \`${{ github.event.workflow_run.head_branch || github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`${{ github.event.workflow_run.head_sha || github.sha }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Author:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Message:** ${{ github.event.head_commit.message }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Message:** ${{ github.event.workflow_run.display_title || github.event.head_commit.message }}" >> $GITHUB_STEP_SUMMARY
           echo "**Zeit:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "🚀 Die Anwendung wurde erfolgreich zur DEV-Umgebung deployed." >> $GITHUB_STEP_SUMMARY
