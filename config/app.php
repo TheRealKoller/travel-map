@@ -17,6 +17,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application Version
+    |--------------------------------------------------------------------------
+    |
+    | This value is the current version of the application. It is set via the
+    | APP_VERSION environment variable, which is populated during the release
+    | workflow (e.g. from a git tag or workflow input). Falls back to null
+    | when not set (e.g. in local development).
+    |
+    */
+
+    'version' => env('APP_VERSION'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |
