@@ -13,17 +13,33 @@ permissions:
   contents: read
 
 jobs:
+  # Run tests for manual dispatch (workflow_run already ran them via ci.yml)
+  tests:
+    name: Run Tests (manual dispatch only)
+    if: github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/tests.yml
+
   # Deployment (nur wenn CI erfolgreich war, oder bei manuellem Trigger)
   deploy:
     name: Deploy to DEV (all-inkl.com)
     runs-on: ubuntu-latest
-    # For workflow_run: only deploy when CI passed. workflow_dispatch has no
-    # workflow_run context, so the condition evaluates to true for manual runs.
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    needs: [tests]
+    # For workflow_run: CI already passed, so deploy directly.
+    # For workflow_dispatch: wait for the tests job above (needs: [tests]).
+    # needs: [tests] is skipped when tests is skipped, so this condition handles both cases:
+    # - workflow_run: tests is skipped → needs is satisfied → deploy if CI passed
+    # - workflow_dispatch: tests must succeed → deploy
+    if: |
+      always() && (
+        github.event.workflow_run.conclusion == 'success' ||
+        (github.event_name == 'workflow_dispatch' && needs.tests.result == 'success')
+      )
     environment: development
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
