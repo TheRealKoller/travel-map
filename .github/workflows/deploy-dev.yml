@@ -38,7 +38,7 @@ jobs:
     # - workflow_dispatch: tests must succeed → deploy
     if: |
       always() && (
-        github.event.workflow_run.conclusion == 'success' ||
+        (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'develop') ||
         (github.event_name == 'workflow_dispatch' && needs.tests.result == 'success')
       )
     environment: development
