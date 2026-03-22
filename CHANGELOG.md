@@ -3,6 +3,10 @@
 All notable changes to Travel Map are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v1.0.1] - 2026-03-22
+
+### Changed
+- Improve CI workflow by triggering deploy-dev after successful CI runs and removing duplicate tests
 
 ## [v1.0.0] - 2026-03-22
 
