@@ -1,27 +1,25 @@
 name: Deploy to DEV
 
 on:
-  push:
-    branches:
-      - main
+  # Trigger only after CI has completed successfully on main — avoids running
+  # tests a second time (ci.yml already ran them before this workflow starts).
+  workflow_run:
+    workflows: ['CI']
+    types: [completed]
+    branches: [main]
   workflow_dispatch: # Manuelles Deployment erlauben
 
 permissions:
   contents: read
 
 jobs:
-  # Zuerst Tests ausführen
-  tests:
-    uses: ./.github/workflows/tests.yml
-    permissions:
-      checks: write
-      contents: read
-
-  # Deployment (nur wenn Tests erfolgreich)
+  # Deployment (nur wenn CI erfolgreich war, oder bei manuellem Trigger)
   deploy:
     name: Deploy to DEV (all-inkl.com)
     runs-on: ubuntu-latest
-    needs: tests
+    # For workflow_run: only deploy when CI passed. workflow_dispatch has no
+    # workflow_run context, so the condition evaluates to true for manual runs.
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     environment: development
     steps:
       - name: Checkout code
@@ -261,10 +259,10 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Environment:** DEV" >> $GITHUB_STEP_SUMMARY
           echo "**URL:** https://dev.travelmap.koller.dk/" >> $GITHUB_STEP_SUMMARY
-          echo "**Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** \`${{ github.event.workflow_run.head_branch || github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`${{ github.event.workflow_run.head_sha || github.sha }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Author:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Message:** ${{ github.event.head_commit.message }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Message:** ${{ github.event.workflow_run.display_title || github.event.head_commit.message }}" >> $GITHUB_STEP_SUMMARY
           echo "**Zeit:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "🚀 Die Anwendung wurde erfolgreich zur DEV-Umgebung deployed." >> $GITHUB_STEP_SUMMARY
