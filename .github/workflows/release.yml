@@ -52,6 +52,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
       - name: Get commits since last tag
         id: commits
         run: |
@@ -59,9 +64,10 @@ jobs:
           echo "last_tag=$LAST_TAG" >> $GITHUB_OUTPUT
 
           if [[ -z "$LAST_TAG" ]]; then
-            COMMITS=$(git log --format="%s" -30)
+            # Include both subject and body so BREAKING CHANGE footers are detected
+            COMMITS=$(git log --format="%B" -30)
           else
-            COMMITS=$(git log "${LAST_TAG}..HEAD" --format="%s")
+            COMMITS=$(git log "${LAST_TAG}..HEAD" --format="%B")
           fi
 
           echo "$COMMITS" > /tmp/commits.txt
@@ -90,7 +96,7 @@ jobs:
               BUMP="minor"
             elif [[ "$OVERRIDE" == "patch" ]]; then
               BUMP="patch"
-            elif echo "$COMMITS" | grep -qE '(feat|fix|refactor|perf)!:|BREAKING CHANGE'; then
+            elif echo "$COMMITS" | grep -qE '(\(.+\))?!:|BREAKING CHANGE'; then
               BUMP="major"
             elif echo "$COMMITS" | grep -qE '^feat(\(.+\))?:'; then
               BUMP="minor"
@@ -159,7 +165,7 @@ jobs:
             echo "No version files changed — skipping bump commit."
             echo "committed=false" >> $GITHUB_OUTPUT
           else
-            git commit -m "chore: bump version to ${VERSION} [skip ci]"
+            git commit -m "chore: bump version to ${VERSION}"
             echo "committed=true" >> $GITHUB_OUTPUT
             echo "Committed version bump for $VERSION"
           fi
@@ -200,7 +206,8 @@ jobs:
 
           git fetch origin main
           git checkout main
-          git merge --no-ff origin/develop -m "chore: release ${VERSION} — merge develop into main"
+          # Merge the local develop branch (already up-to-date after push above)
+          git merge --no-ff develop -m "chore: release ${VERSION} — merge develop into main"
           git push origin main
 
           echo "develop merged into main for release $VERSION"

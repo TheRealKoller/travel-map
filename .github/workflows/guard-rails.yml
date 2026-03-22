@@ -29,6 +29,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Fetch base branch
+        run: git fetch origin ${{ github.base_ref }}
+
       - name: Validate branch naming
         run: |
           BRANCH="${{ github.head_ref }}"
@@ -98,6 +101,11 @@ jobs:
     if: github.event.pull_request.draft == false
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch base branch
+        run: git fetch origin ${{ github.base_ref }}
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -166,19 +174,18 @@ jobs:
           HEAD_ERRORS=$(npm run types 2>&1 | grep -c "error TS" || true)
           echo "TypeScript errors on this branch: $HEAD_ERRORS"
 
-          # Count errors on main
-          git fetch origin main --depth=1
+          # Count errors on base branch (already fetched above)
           git stash --include-untracked || true
           git checkout origin/${{ github.base_ref }} -- tsconfig.json resources/js 2>/dev/null || true
           BASE_ERRORS=$(npm run types 2>&1 | grep -c "error TS" || true)
-          echo "TypeScript errors on main: $BASE_ERRORS"
+          echo "TypeScript errors on ${{ github.base_ref }}: $BASE_ERRORS"
 
           # Restore our branch files
           git checkout HEAD -- tsconfig.json resources/js 2>/dev/null || true
           git stash pop 2>/dev/null || true
 
           if [[ $HEAD_ERRORS -gt $BASE_ERRORS ]]; then
-            echo "::error::This PR introduced $((HEAD_ERRORS - BASE_ERRORS)) new TypeScript error(s) ($BASE_ERRORS on main → $HEAD_ERRORS on this branch)."
+            echo "::error::This PR introduced $((HEAD_ERRORS - BASE_ERRORS)) new TypeScript error(s) ($BASE_ERRORS on ${{ github.base_ref }} → $HEAD_ERRORS on this branch)."
             exit 1
           fi
-          echo "No new TypeScript errors introduced (main: $BASE_ERRORS, this branch: $HEAD_ERRORS)."
+          echo "No new TypeScript errors introduced (${{ github.base_ref }}: $BASE_ERRORS, this branch: $HEAD_ERRORS)."

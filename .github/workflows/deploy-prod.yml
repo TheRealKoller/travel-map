@@ -1,14 +1,13 @@
 name: Deploy to PROD
 
 on:
-  # Automatically triggered when release.yml merges develop → main
+  # Automatically triggered when post-merge.yml creates a version tag after
+  # release.yml merges develop → main. Using tag-only trigger prevents
+  # duplicate deployments on changelog/follow-up commits to main.
   push:
-    branches: [main]
-    # Only deploy on version tags or the merge commit from release.yml;
-    # guard against direct pushes by checking tag pattern in the deploy job.
     tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
-  workflow_dispatch: # Nur manuelles Deployment erlauben (Tag wählbar)
+      - 'v[0-9]*.[0-9]*.[0-9]*'
+  workflow_dispatch: # Manuelles Deployment (Tag oder SHA wählbar)
     inputs:
       ref:
         description: 'Tag or SHA to deploy (e.g. v1.2.3)'
