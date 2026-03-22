@@ -23,7 +23,10 @@ jobs:
   git-conventions:
     name: 'Git Workflow Master'
     runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
+    # Skip for release merges (develop → main) and automated branches
+    if: |
+      github.event.pull_request.draft == false &&
+      github.head_ref != 'develop'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -98,7 +101,10 @@ jobs:
   code-quality:
     name: 'DevOps Automator'
     runs-on: ubuntu-latest
-    if: github.event.pull_request.draft == false
+    # Skip for release merges (develop → main)
+    if: |
+      github.event.pull_request.draft == false &&
+      github.head_ref != 'develop'
     steps:
       - uses: actions/checkout@v4
         with:
