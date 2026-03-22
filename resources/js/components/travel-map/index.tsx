@@ -304,7 +304,7 @@ export default function TravelMap({
                 marker: mapboxMarker,
             };
         },
-        [mapInstance],
+        [mapInstance, setSelectedMarkerId],
     );
 
     useSync({
