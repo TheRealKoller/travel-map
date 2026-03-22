@@ -7,6 +7,12 @@ on:
       - copilot/*
   workflow_call:
 
+concurrency:
+  # For direct branch pushes: cancel previous runs on the same branch.
+  # For workflow_call: use this workflow run's ID (run_id is unique per invocation) so parallel callers never cancel each other.
+  group: ${{ github.workflow }}-${{ github.event_name == 'workflow_call' && github.run_id || github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_call' }}
+
 permissions:
   contents: write
 
