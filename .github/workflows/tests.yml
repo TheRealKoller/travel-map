@@ -9,7 +9,7 @@ on:
 
 concurrency:
   # For direct branch pushes: cancel previous runs on the same branch.
-  # For workflow_call: use the caller's run ID so parallel callers never cancel each other.
+  # For workflow_call: use this workflow run's ID so each invocation has a unique group and parallel callers never cancel each other.
   group: ${{ github.workflow }}-${{ github.event_name == 'workflow_call' && github.run_id || github.ref }}
   cancel-in-progress: ${{ github.event_name != 'workflow_call' }}
 
