@@ -91,9 +91,6 @@ jobs:
     name: Browser Tests
     runs-on: ubuntu-latest
     if: ${{ !inputs.skip_browser_tests }}
-    permissions:
-      checks: write
-      contents: read
 
     steps:
       - name: Checkout
