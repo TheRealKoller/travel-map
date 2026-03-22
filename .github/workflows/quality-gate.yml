@@ -60,11 +60,12 @@ jobs:
         id: current
         run: |
           if [[ -d public/build/assets ]]; then
-            TOTAL=$(du -sb public/build/assets/ | cut -f1)
-            JS_TOTAL=$(find public/build/assets -name '*.js' -exec du -sb {} + 2>/dev/null | awk '{s+=$1} END {print s+0}')
+            # Exclude source maps (.map) — they are dev artefacts not shipped to users
+            TOTAL=$(find public/build/assets -not -name '*.map' -type f -exec du -sb {} + 2>/dev/null | awk '{s+=$1} END {print s+0}')
+            JS_TOTAL=$(find public/build/assets -name '*.js' -not -name '*.map' -exec du -sb {} + 2>/dev/null | awk '{s+=$1} END {print s+0}')
             CSS_TOTAL=$(find public/build/assets -name '*.css' -exec du -sb {} + 2>/dev/null | awk '{s+=$1} END {print s+0}')
           else
-            TOTAL=$(du -sb public/build/ | cut -f1)
+            TOTAL=$(find public/build -not -name '*.map' -type f -exec du -sb {} + 2>/dev/null | awk '{s+=$1} END {print s+0}')
             JS_TOTAL=0
             CSS_TOTAL=0
           fi
@@ -99,9 +100,9 @@ jobs:
           BASELINE_TOTAL=0
 
           if [[ -d /tmp/baseline-build/assets ]]; then
-            BASELINE_TOTAL=$(du -sb /tmp/baseline-build/assets/ | cut -f1)
+            BASELINE_TOTAL=$(find /tmp/baseline-build/assets -not -name '*.map' -type f -exec du -sb {} + 2>/dev/null | awk '{s+=$1} END {print s+0}')
           elif [[ -d /tmp/baseline-build ]]; then
-            BASELINE_TOTAL=$(du -sb /tmp/baseline-build/ | cut -f1)
+            BASELINE_TOTAL=$(find /tmp/baseline-build -not -name '*.map' -type f -exec du -sb {} + 2>/dev/null | awk '{s+=$1} END {print s+0}')
           fi
 
           echo "baseline_total=$BASELINE_TOTAL" >> $GITHUB_OUTPUT
