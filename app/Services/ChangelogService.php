@@ -17,12 +17,19 @@ class ChangelogService
             return [];
         }
 
-        return $this->parseChangelog(file_get_contents($changelogPath));
+        $content = file_get_contents($changelogPath);
+
+        if ($content === false) {
+            return [];
+        }
+
+        return $this->parseChangelog($content);
     }
 
     /**
      * Get releases that are newer than the given version.
-     * Returns all releases if $sinceVersion is null.
+     * Returns only the latest release when $sinceVersion is null (new user),
+     * to avoid overwhelming them with the full history.
      *
      * @return array<int, array{version: string, date: string, sections: array<string, list<string>>}>
      */

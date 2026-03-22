@@ -10,8 +10,9 @@ import {
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { sectionColor, sectionLabel } from '@/lib/changelog-ui';
 import { type ChangelogRelease } from '@/types';
-import { router } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 import { Sparkles } from 'lucide-react';
 
 interface ChangelogModalProps {
@@ -20,51 +21,28 @@ interface ChangelogModalProps {
     onClose: () => void;
 }
 
-const SECTION_LABEL: Record<string, string> = {
-    Added: 'Neu',
-    Changed: 'Geändert',
-    Fixed: 'Behoben',
-    Deprecated: 'Veraltet',
-    Removed: 'Entfernt',
-    Security: 'Sicherheit',
-};
-
-function sectionLabel(name: string): string {
-    return SECTION_LABEL[name] ?? name;
-}
-
-function sectionColor(name: string): string {
-    const map: Record<string, string> = {
-        Added: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
-        Changed:
-            'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
-        Fixed: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
-        Deprecated:
-            'bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300',
-        Removed: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
-        Security:
-            'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300',
-    };
-    return map[name] ?? 'bg-muted text-muted-foreground';
-}
-
 export function ChangelogModal({
     releases,
     open,
     onClose,
 }: ChangelogModalProps) {
+    const { csrf_token } = usePage<{ csrf_token: string }>().props;
+
     const handleClose = () => {
-        router.post(
-            acknowledge(),
-            {},
-            {
-                preserveState: true,
-                preserveScroll: true,
-                only: ['changelog'],
-                onSuccess: onClose,
-                onError: onClose,
+        // Close optimistically so the UI responds immediately.
+        onClose();
+
+        // Fire-and-forget: record the current version as seen.
+        fetch(acknowledge.url(), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrf_token,
             },
-        );
+        }).catch(() => {
+            // Silently ignore — the modal won't reappear until the next page
+            // load anyway because open state is managed in memory.
+        });
     };
 
     return (

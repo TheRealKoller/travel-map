@@ -22,7 +22,8 @@ return [
     |
     | This value is the current version of the application. It is set via the
     | APP_VERSION environment variable, which is populated during the release
-    | workflow from package.json. Falls back to null when not set.
+    | workflow (e.g. from a git tag or workflow input). Falls back to null
+    | when not set (e.g. in local development).
     |
     */
 

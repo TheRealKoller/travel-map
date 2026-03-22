@@ -93,6 +93,20 @@ class HandleInertiaRequests extends Middleware
             return null;
         }
 
+        // Filter out releases that are ahead of the currently deployed version,
+        // e.g. when the changelog in the repo is ahead of the latest deployment.
+        $normalizedCurrentVersion = ltrim((string) $currentVersion, 'vV');
+
+        $newReleases = array_values(array_filter(
+            $newReleases,
+            static fn (array $release): bool => isset($release['version']) &&
+                version_compare(ltrim($release['version'], 'vV'), $normalizedCurrentVersion, '<=')
+        ));
+
+        if (empty($newReleases)) {
+            return null;
+        }
+
         return ['newReleases' => $newReleases];
     }
 }
