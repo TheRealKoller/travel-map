@@ -18,13 +18,16 @@ permissions:
   contents: read
 
 jobs:
-  # Run tests for manual dispatch (workflow_run already ran them via ci.yml)
+  # Run unit/feature tests for manual dispatch only (workflow_run already ran CI)
+  # Browser tests are skipped here — they require checks: write which workflow_dispatch
+  # does not grant to reusable workflows. CI already ran them before this workflow.
   tests:
     name: Run Tests (manual dispatch only)
     if: github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/tests.yml
     with:
       ref: ${{ inputs.ref || github.sha }}
+      skip_browser_tests: true
 
   # Deployment (nur wenn CI erfolgreich war, oder bei manuellem Trigger)
   deploy:
@@ -38,7 +41,7 @@ jobs:
     # - workflow_dispatch: tests must succeed → deploy
     if: |
       always() && (
-        github.event.workflow_run.conclusion == 'success' ||
+        (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'develop') ||
         (github.event_name == 'workflow_dispatch' && needs.tests.result == 'success')
       )
     environment: development

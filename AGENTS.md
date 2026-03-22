@@ -512,11 +512,12 @@ When working on an issue, you MUST follow this exact workflow:
 
 #### 1. Prepare Branch
 
-- Switch to main branch: `git checkout main`
-- Pull latest changes: `git pull origin main`
+- Switch to develop branch: `git checkout develop`
+- Pull latest changes: `git pull origin develop`
 - Create feature branch with descriptive name based on issue:
     - Format: `feature/issue-{number}-brief-description` or `fix/issue-{number}-brief-description`
     - Example: `feature/issue-42-add-marker-export` or `fix/issue-23-map-zoom-bug`
+- Feature branches always branch off `develop`, never off `main`
 
 #### 2. Implement Changes
 
@@ -541,6 +542,7 @@ Before creating a pull request, run ALL of the following:
 
 - Push branch to remote: `git push origin <branch-name>`
 - Create pull request using GitHub CLI or web interface
+- **CRITICAL**: PRs target `develop`, not `main`. Only `release.yml` merges develop → main.
 - **CRITICAL**: Link the PR to the issue using GitHub keywords in PR description:
     - Use: "Closes #123" or "Fixes #123" or "Resolves #123"
     - This automatically links and closes the issue when PR is merged
@@ -577,6 +579,7 @@ Before creating a pull request, run ALL of the following:
 - Bug fixes: `fix/issue-{number}-brief-description`
 - Hotfixes: `hotfix/issue-{number}-brief-description`
 - Chores/refactoring: `chore/issue-{number}-brief-description`
+- All branches (except hotfixes) branch off `develop` and are merged back into `develop` via PR
 
 ### Commit Message Guidelines
 

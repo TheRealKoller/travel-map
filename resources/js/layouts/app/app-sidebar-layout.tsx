@@ -3,9 +3,21 @@ import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
 import { useSidebar } from '@/components/ui/sidebar';
-import { type BreadcrumbItem } from '@/types';
-import { router } from '@inertiajs/react';
-import { type PropsWithChildren, useEffect } from 'react';
+import { type BreadcrumbItem, type SharedData } from '@/types';
+import { router, usePage } from '@inertiajs/react';
+import {
+    type PropsWithChildren,
+    lazy,
+    Suspense,
+    useEffect,
+    useState,
+} from 'react';
+
+const ChangelogModal = lazy(() =>
+    import('@/components/changelog-modal').then((m) => ({
+        default: m.ChangelogModal,
+    })),
+);
 
 interface AppSidebarLayoutContentProps extends PropsWithChildren {
     breadcrumbs?: BreadcrumbItem[];
@@ -16,6 +28,10 @@ function AppSidebarLayoutContent({
     breadcrumbs = [],
 }: AppSidebarLayoutContentProps) {
     const { setOpen, isMobile } = useSidebar();
+    const { changelog } = usePage<SharedData>().props;
+    const [modalOpen, setModalOpen] = useState(() => {
+        return changelog !== null && (changelog?.newReleases?.length ?? 0) > 0;
+    });
 
     // Close sidebar on navigation (only on desktop)
     useEffect(() => {
@@ -36,6 +52,15 @@ function AppSidebarLayoutContent({
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
                 {children}
             </AppContent>
+            {changelog && changelog.newReleases.length > 0 && (
+                <Suspense>
+                    <ChangelogModal
+                        releases={changelog.newReleases}
+                        open={modalOpen}
+                        onClose={() => setModalOpen(false)}
+                    />
+                </Suspense>
+            )}
         </>
     );
 }

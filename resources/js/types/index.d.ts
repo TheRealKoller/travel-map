@@ -23,6 +23,20 @@ export interface NavItem {
     external?: boolean;
 }
 
+export interface ChangelogSection {
+    [sectionName: string]: string[];
+}
+
+export interface ChangelogRelease {
+    version: string;
+    date: string;
+    sections: ChangelogSection;
+}
+
+export interface ChangelogProp {
+    newReleases: ChangelogRelease[];
+}
+
 export interface SharedData {
     name: string;
     quote: { message: string; author: string };
@@ -30,6 +44,7 @@ export interface SharedData {
     sidebarOpen: boolean;
     csrf_token: string;
     language: string;
+    changelog: ChangelogProp | null;
     [key: string]: unknown;
 }
 
@@ -43,6 +58,7 @@ export interface User {
     role: 'admin' | 'user';
     created_at: string;
     updated_at: string;
+    last_seen_version: string | null;
     [key: string]: unknown; // This allows for additional properties...
 }
 

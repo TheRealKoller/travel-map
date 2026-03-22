@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\LeChatAgentController;
+use App\Http\Controllers\ChangelogController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\MapboxController;
 use App\Http\Controllers\MapController;
@@ -91,6 +92,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Mapbox routes
     Route::get('/mapbox/usage', [MapboxController::class, 'usage'])->name('mapbox.usage');
+
+    // Changelog routes
+    Route::get('/changelog', [ChangelogController::class, 'index'])->name('changelog.index');
+    Route::post('/changelog/acknowledge', [ChangelogController::class, 'acknowledge'])->name('changelog.acknowledge');
 });
 
 require __DIR__.'/settings.php';
