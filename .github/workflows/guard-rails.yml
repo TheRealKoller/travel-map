@@ -1,13 +1,13 @@
 name: Guard Rails
 
-# Stage 1 — Runs on every feature/copilot PR targeting main.
+# Stage 1 — Runs on every feature/copilot PR targeting develop or main.
 # Agents: Git Workflow Master + DevOps Automator
 # Checks branch naming, conventional commits, PR issue link,
 # Pint formatting, Prettier, ESLint, and TypeScript types.
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, develop]
     types: [opened, synchronize, ready_for_review]
 
 concurrency:
@@ -49,7 +49,7 @@ jobs:
       - name: Validate commit messages (Conventional Commits)
         run: |
           # Get all commit subjects added in this PR (not on main)
-          COMMITS=$(git log origin/main..HEAD --no-merges --format="%s")
+          COMMITS=$(git log origin/${{ github.base_ref }}..HEAD --no-merges --format="%s")
           if [[ -z "$COMMITS" ]]; then
             echo "No new commits to validate."
             exit 0
@@ -169,7 +169,7 @@ jobs:
           # Count errors on main
           git fetch origin main --depth=1
           git stash --include-untracked || true
-          git checkout origin/main -- tsconfig.json resources/js 2>/dev/null || true
+          git checkout origin/${{ github.base_ref }} -- tsconfig.json resources/js 2>/dev/null || true
           BASE_ERRORS=$(npm run types 2>&1 | grep -c "error TS" || true)
           echo "TypeScript errors on main: $BASE_ERRORS"
 

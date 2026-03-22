@@ -1,0 +1,216 @@
+name: Release
+
+# Stage 6 — Manual release workflow.
+# Triggered on develop; determines next semver from Conventional Commits,
+# bumps package.json + composer.json, commits to develop, then merges
+# develop → main. The push to main triggers post-merge.yml (CHANGELOG +
+# version tag + GitHub Release) and deploy-prod.yml (PROD deployment).
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump override (auto = determine from commits)'
+        required: false
+        default: 'auto'
+        type: choice
+        options:
+          - auto
+          - patch
+          - minor
+          - major
+      dry_run:
+        description: 'Dry run — show what would happen without pushing'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Release (develop → main)
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          fetch-depth: 0
+          token: ${{ secrets.PROJECT_AUTOMATION_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Get commits since last tag
+        id: commits
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          echo "last_tag=$LAST_TAG" >> $GITHUB_OUTPUT
+
+          if [[ -z "$LAST_TAG" ]]; then
+            COMMITS=$(git log --format="%s" -30)
+          else
+            COMMITS=$(git log "${LAST_TAG}..HEAD" --format="%s")
+          fi
+
+          echo "$COMMITS" > /tmp/commits.txt
+          COUNT=$(grep -c '.' /tmp/commits.txt 2>/dev/null || echo "0")
+          echo "count=$COUNT" >> $GITHUB_OUTPUT
+          echo "Commits since ${LAST_TAG:-beginning}: $COUNT"
+          cat /tmp/commits.txt
+
+      - name: Determine next version
+        id: version
+        run: |
+          LAST_TAG="${{ steps.commits.outputs.last_tag }}"
+          COMMITS=$(cat /tmp/commits.txt)
+          OVERRIDE="${{ inputs.bump }}"
+
+          if [[ -z "$LAST_TAG" ]]; then
+            NEXT="v1.0.0"
+          else
+            MAJOR=$(echo "$LAST_TAG" | sed 's/v//' | cut -d. -f1)
+            MINOR=$(echo "$LAST_TAG" | sed 's/v//' | cut -d. -f2)
+            PATCH=$(echo "$LAST_TAG" | sed 's/v//' | cut -d. -f3)
+
+            if [[ "$OVERRIDE" == "major" ]]; then
+              BUMP="major"
+            elif [[ "$OVERRIDE" == "minor" ]]; then
+              BUMP="minor"
+            elif [[ "$OVERRIDE" == "patch" ]]; then
+              BUMP="patch"
+            elif echo "$COMMITS" | grep -qE '(feat|fix|refactor|perf)!:|BREAKING CHANGE'; then
+              BUMP="major"
+            elif echo "$COMMITS" | grep -qE '^feat(\(.+\))?:'; then
+              BUMP="minor"
+            else
+              BUMP="patch"
+            fi
+
+            case "$BUMP" in
+              major) NEXT="v$((MAJOR + 1)).0.0" ;;
+              minor) NEXT="v${MAJOR}.$((MINOR + 1)).0" ;;
+              patch) NEXT="v${MAJOR}.${MINOR}.$((PATCH + 1))" ;;
+            esac
+          fi
+
+          echo "next_version=$NEXT" >> $GITHUB_OUTPUT
+          echo "bump_type=$BUMP" >> $GITHUB_OUTPUT
+          echo "Next version: $NEXT (bump: ${BUMP:-initial})"
+
+      - name: Bump package.json version
+        id: bump_npm
+        run: |
+          VERSION="${{ steps.version.outputs.next_version }}"
+          # Strip leading 'v' for package.json
+          VERSION_PLAIN="${VERSION#v}"
+
+          if [[ -f package.json ]]; then
+            # Use node to update version field safely
+            node -e "
+              const fs = require('fs');
+              const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+              pkg.version = '${VERSION_PLAIN}';
+              fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+              console.log('package.json version set to', pkg.version);
+            "
+            echo "npm_bumped=true" >> $GITHUB_OUTPUT
+          else
+            echo "npm_bumped=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Bump composer.json version
+        id: bump_composer
+        run: |
+          VERSION="${{ steps.version.outputs.next_version }}"
+          VERSION_PLAIN="${VERSION#v}"
+
+          if [[ -f composer.json ]]; then
+            node -e "
+              const fs = require('fs');
+              const pkg = JSON.parse(fs.readFileSync('composer.json', 'utf8'));
+              pkg.version = '${VERSION_PLAIN}';
+              fs.writeFileSync('composer.json', JSON.stringify(pkg, null, 2) + '\n');
+              console.log('composer.json version set to', pkg.version);
+            "
+            echo "composer_bumped=true" >> $GITHUB_OUTPUT
+          else
+            echo "composer_bumped=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit version bumps to develop
+        id: bump_commit
+        run: |
+          VERSION="${{ steps.version.outputs.next_version }}"
+
+          git add package.json composer.json 2>/dev/null || true
+          if git diff --staged --quiet; then
+            echo "No version files changed — skipping bump commit."
+            echo "committed=false" >> $GITHUB_OUTPUT
+          else
+            git commit -m "chore: bump version to ${VERSION} [skip ci]"
+            echo "committed=true" >> $GITHUB_OUTPUT
+            echo "Committed version bump for $VERSION"
+          fi
+
+      - name: Dry run summary
+        if: inputs.dry_run == true
+        run: |
+          VERSION="${{ steps.version.outputs.next_version }}"
+          LAST_TAG="${{ steps.commits.outputs.last_tag }}"
+          COUNT="${{ steps.commits.outputs.count }}"
+          BUMP="${{ steps.version.outputs.bump_type }}"
+
+          echo "### Dry Run — Release would do the following:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Last tag:** \`${LAST_TAG:-none}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commits since last tag:** $COUNT" >> $GITHUB_STEP_SUMMARY
+          echo "- **Bump type:** $BUMP" >> $GITHUB_STEP_SUMMARY
+          echo "- **Next version:** \`$VERSION\`" >> $GITHUB_STEP_SUMMARY
+          echo "- package.json bumped: ${{ steps.bump_npm.outputs.npm_bumped }}" >> $GITHUB_STEP_SUMMARY
+          echo "- composer.json bumped: ${{ steps.bump_composer.outputs.composer_bumped }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**No changes were pushed** (dry run mode)." >> $GITHUB_STEP_SUMMARY
+
+          # Reset any changes made during dry run
+          git reset --hard HEAD
+          exit 0
+
+      - name: Push version bump to develop
+        if: inputs.dry_run != true && steps.bump_commit.outputs.committed == 'true'
+        run: |
+          git push origin develop
+          echo "Version bump pushed to develop."
+
+      - name: Merge develop into main
+        if: inputs.dry_run != true
+        run: |
+          VERSION="${{ steps.version.outputs.next_version }}"
+
+          git fetch origin main
+          git checkout main
+          git merge --no-ff origin/develop -m "chore: release ${VERSION} — merge develop into main"
+          git push origin main
+
+          echo "develop merged into main for release $VERSION"
+
+      - name: Create release summary
+        if: inputs.dry_run != true
+        run: |
+          VERSION="${{ steps.version.outputs.next_version }}"
+          echo "### Release $VERSION triggered" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- develop merged → main" >> $GITHUB_STEP_SUMMARY
+          echo "- **post-merge.yml** will generate CHANGELOG + git tag + GitHub Release" >> $GITHUB_STEP_SUMMARY
+          echo "- **deploy-prod.yml** will deploy to PROD automatically" >> $GITHUB_STEP_SUMMARY

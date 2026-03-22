@@ -7,7 +7,7 @@ name: AI Code Review
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, develop]
     types: [opened, synchronize, ready_for_review]
 
 concurrency:

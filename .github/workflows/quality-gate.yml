@@ -7,7 +7,7 @@ name: Quality Gate
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, develop]
     types: [opened, synchronize, ready_for_review]
 
 concurrency:
