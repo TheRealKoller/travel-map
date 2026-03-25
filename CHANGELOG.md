@@ -3,6 +3,18 @@
 All notable changes to Travel Map are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v1.2.0] - 2026-03-25
+
+### Added
+- Add create-pull-request skill for standardized PR workflow
+
+### Fixed
+- Use GitHub App for release workflow
+- Use GitHub App token in post-merge workflow
+- Prevent tag collision in post-merge automation
+- Fix ai-review and deploy-dev workflow failures
+- Remove checks: write from tests.yml to fix deploy-dev workflow_call
+
 ## [v1.1.1] - 2026-03-25
 
 ### Fixed
