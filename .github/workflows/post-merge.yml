@@ -362,8 +362,15 @@ jobs:
           git diff --staged --quiet && echo "No changes to commit." || \
             git commit -m "docs: update changelog for ${VERSION} [skip ci]"
 
-          # Create annotated version tag
-          git tag -a "$VERSION" -m "Release ${VERSION}"
+          # Check if tag already exists
+          if git rev-parse "$VERSION" >/dev/null 2>&1; then
+            echo "Tag $VERSION already exists — skipping tag creation."
+          else
+            # Create annotated version tag
+            git tag -a "$VERSION" -m "Release ${VERSION}"
+            echo "Tag $VERSION created."
+          fi
+
           git push origin HEAD:main --follow-tags
 
           echo "Tagged and pushed: $VERSION"
