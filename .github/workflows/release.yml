@@ -5,6 +5,10 @@ name: Release
 # bumps package.json + composer.json, commits to develop, then merges
 # develop → main. The push to main triggers post-merge.yml (CHANGELOG +
 # version tag + GitHub Release) and deploy-prod.yml (PROD deployment).
+#
+# IMPORTANT: Uses GitHub App "travel-map-automation" to trigger downstream
+# workflows (GITHUB_TOKEN cannot trigger post-merge.yml or deploy-prod.yml).
+# Requires APP_ID and APP_PRIVATE_KEY secrets configured.
 
 on:
   workflow_dispatch:
@@ -40,23 +44,19 @@ jobs:
     environment: production
 
     steps:
-      - name: Validate automation token
-        env:
-          TOKEN: ${{ secrets.PROJECT_AUTOMATION_TOKEN }}
-        run: |
-          if [[ -z "$TOKEN" ]]; then
-            echo "::error::PROJECT_AUTOMATION_TOKEN secret is required."
-            echo "::error::Pushes with GITHUB_TOKEN do not trigger downstream workflows (post-merge.yml, deploy-prod.yml)."
-            echo "::error::Add a PAT with 'contents:write' scope as PROJECT_AUTOMATION_TOKEN in repository secrets."
-            exit 1
-          fi
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
       - name: Checkout develop
         uses: actions/checkout@v4
         with:
           ref: develop
           fetch-depth: 0
-          token: ${{ secrets.PROJECT_AUTOMATION_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Configure git
         run: |
