@@ -67,21 +67,19 @@ Ensure the branch follows naming conventions:
 - `feature/` - New features or enhancements
 - `fix/` - Bug fixes
 - `hotfix/` - Critical production fixes
-- `refactor/` - Code refactoring
-- `docs/` - Documentation changes
 - `chore/` - Maintenance tasks
 
 **Examples:**
 
 - `feature/issue-532-restructure-setup-docs`
 - `fix/issue-23-map-zoom-bug`
-- `refactor/issue-105-optimize-queries`
+- `chore/issue-105-optimize-queries`
 
 **If branch doesn't exist or has wrong name:**
 
 ```bash
-git checkout main
-git pull origin main
+git checkout develop
+git pull origin develop
 git checkout -b <type>/issue-<number>-<description>
 ```
 
@@ -128,7 +126,7 @@ npm run lint
 **Summary command (run all checks):**
 
 ```bash
-vendor/bin/pint && npm run format && php artisan test --compact
+vendor/bin/pint && npm run format && npm run lint && php artisan test --compact
 ```
 
 ### Step 4: Commit Changes
@@ -158,7 +156,7 @@ Use `gh pr create` with the following structure:
 gh pr create \
   --repo TheRealKoller/travel-map \
   --title "<emoji> <Title matching issue>" \
-  --base main \
+  --base develop \
   --body "$(cat <<'EOF'
 ## Summary
 
@@ -264,6 +262,21 @@ gh issue comment <issue-number> --body "✅ Pull request created: #<PR_NUMBER>"
 
 The PR must pass these automated checks:
 
+### Guard Rails Workflow (`guard-rails.yml`)
+
+**Git Workflow Master** - Validates git conventions:
+
+- ✅ Branch naming (must match `feature/issue-N-*`, `fix/issue-N-*`, `hotfix/issue-N-*`, or `chore/issue-N-*`)
+- ✅ Conventional commit messages
+- ✅ PR body contains issue link (`Closes #N`, `Fixes #N`, or `Resolves #N`)
+
+**DevOps Automator** - Validates code quality:
+
+- ✅ PHP formatting (Pint --test)
+- ✅ Frontend formatting (Prettier)
+- ✅ Linting (ESLint)
+- ✅ TypeScript types (no new errors)
+
 ### CI Workflow (`ci.yml`)
 
 - ✅ PHP code formatting (Laravel Pint)
@@ -290,11 +303,11 @@ The PR must pass these automated checks:
 
 ## Branch Protection Rules
 
-PRs targeting `main` must satisfy:
+PRs targeting `develop` must satisfy:
 
 - ✅ All CI checks pass
 - ✅ At least 1 approval (if required)
-- ✅ Branch is up-to-date with main
+- ✅ Branch is up-to-date with develop
 - ✅ No merge conflicts
 
 ## Handling Copilot Review Feedback
@@ -331,15 +344,15 @@ gh pr merge <PR_NUMBER> --squash --delete-branch
 ### Cleanup Local Branch
 
 ```bash
-git checkout main
-git pull origin main
+git checkout develop
+git pull origin develop
 git branch -d <branch-name>
 ```
 
 ### Verify Deployment
 
 1. Check GitHub Actions for deployment status
-2. DEV is auto-deployed after merge to `main`
+2. DEV is auto-deployed after merge to `develop`
 3. Visit https://dev.travelmap.koller.dk/ to verify changes
 4. Issue automatically closes when PR is merged
 
@@ -411,7 +424,7 @@ git push -u origin feature/issue-<number>-<description>
 ❌ Blindly implement all review suggestions
 ❌ Merge without approval (if required)
 ❌ Leave branches undeleted after merge
-❌ Commit directly to `main` branch
+❌ Commit directly to `develop` or `main` branches
 
 ## Quick Reference
 
@@ -421,8 +434,8 @@ git push -u origin feature/issue-<number>-<description>
 # 1. Verify issue exists (e.g., #532)
 
 # 2. Prepare branch
-git checkout main
-git pull origin main
+git checkout develop
+git pull origin develop
 git checkout -b feature/issue-532-brief-description
 
 # 3. Make changes and commit
@@ -432,13 +445,13 @@ git commit -m "docs: add feature X
 Closes #532"
 
 # 4. Quality checks
-vendor/bin/pint && npm run format && php artisan test --compact
+vendor/bin/pint && npm run format && npm run lint && php artisan test --compact
 
 # 5. Push branch
 git push -u origin feature/issue-532-brief-description
 
 # 6. Create PR
-gh pr create --title "📁 Feature Title" --base main --body "...Closes #532"
+gh pr create --title "📁 Feature Title" --base develop --body "...Closes #532"
 
 # 7. Request review
 gh pr edit <PR_NUMBER> --add-reviewer copilot-pull-request-reviewer
@@ -454,10 +467,10 @@ gh issue comment 532 --body "✅ Pull request created: #<PR_NUMBER>"
 
 ## Related Documentation
 
-- [Branching Strategy](../../docs/BRANCHING_STRATEGY.md) - Complete GitHub Flow guide
-- [Workflow Checklist](../../docs/WORKFLOW-CHECKLIST.md) - Step-by-step workflow
-- [Contributing Guide](../../docs/CONTRIBUTING.md) - Contribution guidelines
-- [AGENTS.md](../../AGENTS.md) - Issue implementation workflow (lines 538-598)
+- [Branching Strategy](../../../docs/BRANCHING_STRATEGY.md) - Complete GitHub Flow guide
+- [Workflow Checklist](../../../docs/WORKFLOW-CHECKLIST.md) - Step-by-step workflow
+- [Contributing Guide](../../../docs/CONTRIBUTING.md) - Contribution guidelines
+- [AGENTS.md](../../../AGENTS.md) - Issue implementation workflow (lines 538-598)
 
 ## Summary
 
