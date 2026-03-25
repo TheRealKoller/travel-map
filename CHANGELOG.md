@@ -3,6 +3,14 @@
 All notable changes to Travel Map are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v1.1.1] - 2026-03-25
+
+### Fixed
+- Prevent tag collision in post-merge automation
+- Use GitHub App token in post-merge workflow
+- Fix AI review and deploy-dev workflow failures
+- Remove redundant `checks: write` permission from tests workflow to resolve deploy-dev issues
+
 ## [v1.1.0] - 2026-03-22
 
 ### Added
