@@ -226,7 +226,7 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
         run: |
           # Check for hardcoded secret patterns in added lines only
-          ADDED=$(git diff origin/${BASE_REF}...HEAD | grep '^+' | grep -v '^+++')
+          ADDED=$(git diff origin/${BASE_REF}...HEAD | grep '^+' | grep -v '^+++' || true)
           FOUND=0
 
           # Common secret patterns (not template expressions - those are fine)
