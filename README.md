@@ -21,21 +21,37 @@ This project follows the **GitHub Flow** branching strategy for a streamlined de
 
 ### 📖 Documentation
 
-- **[GitHub Environments Setup Guide](./docs/GITHUB-ENVIRONMENTS-SETUP.md)** - **Complete DEV/PROD setup guide** ⭐
-- **[Deployment Setup](./docs/DEPLOYMENT.md)** - Complete deployment guide for all-inkl.com
-- **[Branching Strategy Guide](./docs/BRANCHING_STRATEGY.md)** - Complete guide to GitHub Flow workflow
-- **[Contributing Guide](./docs/CONTRIBUTING.md)** - How to contribute to this project
-- **[Pipeline Overview](./docs/PIPELINE.md)** - Detailed CI/CD pipeline documentation
-- **[GitHub Secrets Configuration](./docs/GITHUB-SECRETS.md)** - Configure environment variables via GitHub Secrets (legacy)
-- **[Secrets Quick Start](./docs/SECRETS-SETUP-QUICK-START.md)** - Quick reference for setting up GitHub Secrets (legacy)
-- **[Secrets Workflow Diagram](./docs/GITHUB-SECRETS-WORKFLOW.md)** - Visual guide to how secrets are deployed
-- **[Workflow Checklist](./docs/WORKFLOW-CHECKLIST.md)** - Step-by-step checklist for development workflow
-- **[GitHub Actions](./docs/WORKFLOWS.md)** - Detailed CI/CD pipeline documentation
-- **[Workflow Diagrams](./docs/WORKFLOW_DIAGRAM.md)** - Visual workflow diagrams
-- **[Quick Reference](./docs/QUICK_REFERENCE.md)** - Common commands and troubleshooting
-- **[Mapbox Geocoder Feature](./docs/GEOCODER_FEATURE.md)** - Location search functionality documentation
-- **[Mapbox Migration Guide](./docs/MAPBOX_MIGRATION.md)** - Migration from Leaflet to Mapbox GL JS
-- **[Trip Collaboration](./docs/TRIP-COLLABORATION.md)** - Multi-user trip collaboration feature documentation
+**Setup & Configuration:**
+
+- **[Setup Documentation](./docs/setup/)** - Installation and configuration
+    - [Local Development Setup](./docs/setup/local-development.md)
+    - [Environment Variables](./docs/setup/environment-variables.md)
+    - [External Services](./docs/setup/external-services.md)
+
+**Deployment:**
+
+- [GitHub Environments Setup Guide](./docs/GITHUB-ENVIRONMENTS-SETUP.md) - DEV/PROD setup guide ⭐
+- [Deployment Setup](./docs/DEPLOYMENT.md) - Complete deployment guide
+- [GitHub Secrets Configuration](./docs/GITHUB-SECRETS.md) - Environment variables via GitHub Secrets
+
+**Development:**
+
+- [Branching Strategy Guide](./docs/BRANCHING_STRATEGY.md) - GitHub Flow workflow
+- [Contributing Guide](./docs/CONTRIBUTING.md) - How to contribute
+- [Workflow Checklist](./docs/WORKFLOW-CHECKLIST.md) - Development workflow steps
+- [Quick Reference](./docs/QUICK_REFERENCE.md) - Common commands
+
+**Features:**
+
+- [Mapbox Geocoder Feature](./docs/GEOCODER_FEATURE.md) - Location search functionality
+- [Mapbox Migration Guide](./docs/MAPBOX_MIGRATION.md) - Migration from Leaflet to Mapbox
+- [Trip Collaboration](./docs/TRIP-COLLABORATION.md) - Multi-user collaboration
+
+**CI/CD:**
+
+- [Pipeline Overview](./docs/PIPELINE.md) - CI/CD pipeline documentation
+- [GitHub Actions](./docs/WORKFLOWS.md) - Detailed workflow documentation
+- [Workflow Diagrams](./docs/WORKFLOW_DIAGRAM.md) - Visual workflow diagrams
 
 ### 🚀 Quick Start
 
@@ -84,174 +100,49 @@ For detailed instructions and project conventions, see [`.github/copilot-instruc
 - Composer
 - Node.js 18 or higher
 - npm or yarn
-- MySQL or PostgreSQL database
+- MySQL, PostgreSQL, or SQLite database
 
-## Installation & Setup
+## Quick Start
 
-### 1. Install PHP Dependencies
-
-```bash
-composer install
-```
-
-### 2. Install JavaScript Dependencies
+Get started quickly with these commands:
 
 ```bash
-npm install
-```
+# Install dependencies
+composer install && npm install
 
-### 3. Configure Environment
-
-Copy the example environment file and configure your database:
-
-```bash
+# Configure environment
 cp .env.example .env
-```
-
-Edit `.env` and set your database credentials:
-
-```
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=your_database_name
-DB_USERNAME=your_username
-DB_PASSWORD=your_password
-```
-
-### 4. Generate Application Key
-
-```bash
 php artisan key:generate
-```
-
-### 5. Run Database Migrations
-
-```bash
 php artisan migrate
-```
 
-### 6. Configure External Services (Optional)
-
-#### Mapbox (Required for map functionality)
-
-Get your Mapbox access token from [Mapbox Account](https://account.mapbox.com/):
-
-```
-MAPBOX_ACCESS_TOKEN=your_mapbox_token_here
-```
-
-#### Unsplash (Optional - for on-demand trip and marker images)
-
-Get your Unsplash access key from [Unsplash Developers](https://unsplash.com/developers):
-
-```
-UNSPLASH_ACCESS_KEY=your_unsplash_access_key_here
-UNSPLASH_UTM_SOURCE="${APP_NAME}"
-```
-
-**Features:**
-
-- On-demand image fetching for trips and markers (click placeholder to load)
-- Uses official Unsplash PHP wrapper for proper API compliance
-- Images are cached for 30 days to minimize API calls
-- Properly tracks downloads to increment photo views
-- Hotlinks images directly from Unsplash (as per API guidelines)
-- **Rate Limit:** 50 requests/hour (free tier)
-- Falls back to placeholder images if API is unavailable
-
-**Usage:**
-1. Click on the image placeholder icon for any trip or marker
-2. The application fetches a relevant image from Unsplash
-3. Image is displayed and cached for future use
-4. Photo views are tracked to benefit photographers
-
-**Note:** If you don't configure an Unsplash API key, the application will display clickable placeholder images. Configure the `UNSPLASH_UTM_SOURCE` to attribute traffic to your application (defaults to `APP_NAME`).
-
-#### Le Chat Agent (Optional - for AI-powered marker enrichment)
-
-Get your API key from [Mistral AI Console](https://console.mistral.ai/):
-
-```
-LECHAT_API_KEY=your_lechat_api_key_here
-LECHAT_MARKER_ENRICHMENT_AGENT_ID=your_agent_id_here
-LECHAT_TRAVEL_RECOMMENDATION_AGENT_ID=your_agent_id_here
-```
-
-### 7. Build Frontend Assets
-
-For development:
-
-```bash
+# Start development servers
+php artisan serve &
 npm run dev
 ```
 
-For production:
+Visit `http://localhost:8000` to see the application.
 
-```bash
-npm run build
-```
+## Installation & Setup
 
-## Running the Application
+For detailed setup instructions, see **[Setup Documentation](./docs/setup/)**:
 
-### Development Mode
-
-1. **Start the Laravel development server** (in one terminal):
-
-    ```bash
-    php artisan serve
-    ```
-
-2. **Start the Vite development server** (in another terminal):
-
-    ```bash
-    npm run dev
-    ```
-
-3. **Open your browser** and visit:
-    ```
-    http://localhost:8000
-    ```
-
-### Production Mode
-
-1. Build the frontend assets:
-
-    ```bash
-    npm run build
-    ```
-
-2. Configure your web server (Apache/Nginx) to point to the `public` directory
-
-3. Ensure proper file permissions:
-    ```bash
-    chmod -R 775 storage bootstrap/cache
-    ```
+- **[Local Development Setup](./docs/setup/local-development.md)** - Complete installation guide
+- **[Environment Variables](./docs/setup/environment-variables.md)** - Configuration reference
+- **[External Services](./docs/setup/external-services.md)** - Mapbox, Unsplash, Le Chat setup
 
 ## Testing
 
-### Unit and Feature Tests
-
-Run the PHP test suite:
+Run the test suite:
 
 ```bash
 php artisan test
 ```
 
-Or using Pest directly:
-
-```bash
-./vendor/bin/pest
-```
+For detailed testing documentation, see **[Testing Documentation](./docs/testing/)**.
 
 ## Contributing
 
-We welcome contributions! Please read our [Contributing Guide](./CONTRIBUTING.md) for details on:
-
-- Setting up your development environment
-- Our code of conduct
-- The pull request process
-- Coding standards
+We welcome contributions! Please read our **[Contributing Guide](./docs/development/contributing.md)** for details on our development workflow, code standards, and pull request process.
 
 ## Additional Commands
 
@@ -264,15 +155,25 @@ php artisan route:clear
 php artisan view:clear
 ```
 
-### Create Database Seeder Data
+### Code Formatting
 
 ```bash
-php artisan db:seed
+# Format PHP code
+vendor/bin/pint
+
+# Format JavaScript/TypeScript
+npm run format
 ```
+
+For more commands, see the **[Quick Reference](./docs/development/quick-reference.md)**.
 
 ## Troubleshooting
 
-- **Port 8000 already in use**: Specify a different port with `php artisan serve --port=8001`
+Common issues and solutions:
+
+- **Port 8000 already in use**: `php artisan serve --port=8001`
 - **Database connection errors**: Verify your `.env` database credentials
-- **Permission errors**: Ensure `storage` and `bootstrap/cache` directories are writable
-- **Frontend not loading**: Make sure `npm run dev` is running alongside `php artisan serve`
+- **Permission errors**: `chmod -R 775 storage bootstrap/cache`
+- **Frontend not loading**: Ensure `npm run dev` is running
+
+For more troubleshooting help, see **[Local Development Setup](./docs/setup/local-development.md#troubleshooting)**.
