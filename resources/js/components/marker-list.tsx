@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/select';
 import { getMarkerTypeIcon, UnescoIcon } from '@/lib/marker-icons';
 import { MarkerData, MarkerType } from '@/types/marker';
+import DOMPurify from 'isomorphic-dompurify';
 import { Filter, Image, Loader2 } from 'lucide-react';
 import { marked } from 'marked';
 import { useEffect, useMemo, useState } from 'react';
@@ -134,12 +135,15 @@ function MarkerItem({
                             <span
                                 className="text-purple-600 dark:text-purple-400"
                                 title="AI enriched marker"
+                                role="img"
+                                aria-label="AI enriched marker"
                             >
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     className="h-3.5 w-3.5 sm:h-4 sm:w-4"
                                     viewBox="0 0 20 20"
                                     fill="currentColor"
+                                    aria-hidden="true"
                                 >
                                     <path
                                         fillRule="evenodd"
@@ -166,7 +170,9 @@ function MarkerItem({
                     <div
                         className="markdown-preview mt-1.5 line-clamp-3 border-t border-blue-300 pt-1.5 text-xs leading-relaxed text-gray-700 dark:border-blue-700 dark:text-gray-300"
                         dangerouslySetInnerHTML={{
-                            __html: marked.parse(markerData.notes) as string,
+                            __html: DOMPurify.sanitize(
+                                marked.parse(markerData.notes) as string,
+                            ),
                         }}
                     />
                 )}
@@ -231,7 +237,7 @@ export default function MarkerList({
                     onClick={() => setIsFilterOpen(!isFilterOpen)}
                     title="Toggle filter menu"
                     data-testid="filter-toggle-button"
-                    className="h-7 w-7 shrink-0 sm:h-8 sm:w-8"
+                    className="relative h-7 w-7 shrink-0 sm:h-8 sm:w-8"
                 >
                     <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     {(appliedType !== 'all' ||
