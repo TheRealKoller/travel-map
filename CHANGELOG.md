@@ -9,7 +9,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Add create-pull-request skill for standardized PR workflow
 - Add cascade delete for routes when marker is deleted
 - Add route count warning in marker delete dialog
-- Set 'Walking' as default routing profile for new routes
 
 ### Changed
 - Improve marker panel design: display full marker names without truncation

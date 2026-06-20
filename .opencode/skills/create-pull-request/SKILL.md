@@ -80,8 +80,8 @@ Ensure the branch follows naming conventions:
 **If branch doesn't exist or has wrong name:**
 
 ```bash
-git checkout main
-git pull origin main
+git checkout develop
+git pull origin develop
 git checkout -b <type>/issue-<number>-<description>
 ```
 
@@ -158,7 +158,7 @@ Use `gh pr create` with the following structure:
 gh pr create \
   --repo TheRealKoller/travel-map \
   --title "<emoji> <Title matching issue>" \
-  --base main \
+  --base develop \
   --body "$(cat <<'EOF'
 ## Summary
 
@@ -331,15 +331,15 @@ gh pr merge <PR_NUMBER> --squash --delete-branch
 ### Cleanup Local Branch
 
 ```bash
-git checkout main
-git pull origin main
+git checkout develop
+git pull origin develop
 git branch -d <branch-name>
 ```
 
 ### Verify Deployment
 
 1. Check GitHub Actions for deployment status
-2. DEV is auto-deployed after merge to `main`
+2. DEV is auto-deployed after merge to `develop`
 3. Visit https://dev.travelmap.koller.dk/ to verify changes
 4. Issue automatically closes when PR is merged
 
@@ -421,8 +421,8 @@ git push -u origin feature/issue-<number>-<description>
 # 1. Verify issue exists (e.g., #532)
 
 # 2. Prepare branch
-git checkout main
-git pull origin main
+git checkout develop
+git pull origin develop
 git checkout -b feature/issue-532-brief-description
 
 # 3. Make changes and commit
@@ -438,7 +438,7 @@ vendor/bin/pint && npm run format && php artisan test --compact
 git push -u origin feature/issue-532-brief-description
 
 # 6. Create PR
-gh pr create --title "📁 Feature Title" --base main --body "...Closes #532"
+gh pr create --title "📁 Feature Title" --base develop --body "...Closes #532"
 
 # 7. Request review
 gh pr edit <PR_NUMBER> --add-reviewer copilot-pull-request-reviewer
