@@ -7,13 +7,15 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
 
 interface DeleteMarkerDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onConfirm: () => void;
     markerName: string;
-    routeCount?: number;
+    markerId: string;
 }
 
 export default function DeleteMarkerDialog({
@@ -21,8 +23,35 @@ export default function DeleteMarkerDialog({
     onOpenChange,
     onConfirm,
     markerName,
-    routeCount = 0,
+    markerId,
 }: DeleteMarkerDialogProps) {
+    const [routeCount, setRouteCount] = useState<number>(0);
+    const [loading, setLoading] = useState(false);
+
+    // Fetch fresh route count when dialog opens
+    useEffect(() => {
+        const fetchRouteCount = async () => {
+            if (!open || !markerId) {
+                return;
+            }
+
+            setLoading(true);
+            try {
+                const response = await axios.get(
+                    `/markers/${markerId}/route-count`,
+                );
+                setRouteCount(response.data.route_count || 0);
+            } catch (error) {
+                console.error('Failed to fetch route count:', error);
+                setRouteCount(0);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchRouteCount();
+    }, [open, markerId]);
+
     const handleConfirm = () => {
         onConfirm();
     };
@@ -35,11 +64,18 @@ export default function DeleteMarkerDialog({
                     <DialogDescription>
                         Are you sure you want to delete "{markerName}"? This
                         action cannot be undone.
-                        {routeCount > 0 && (
-                            <span className="mt-2 block font-semibold text-destructive">
-                                Warning: This will also delete {routeCount}{' '}
-                                associated route{routeCount !== 1 ? 's' : ''}.
+                        {loading ? (
+                            <span className="mt-2 block text-muted-foreground">
+                                Checking associated routes...
                             </span>
+                        ) : (
+                            routeCount > 0 && (
+                                <span className="mt-2 block font-semibold text-destructive">
+                                    Warning: This will also delete {routeCount}{' '}
+                                    associated route
+                                    {routeCount !== 1 ? 's' : ''}.
+                                </span>
+                            )
                         )}
                     </DialogDescription>
                 </DialogHeader>
@@ -56,10 +92,12 @@ export default function DeleteMarkerDialog({
                         type="button"
                         variant="destructive"
                         onClick={handleConfirm}
+                        disabled={loading}
                         data-testid="delete-marker-dialog-confirm-button"
                     >
                         Delete marker
-                        {routeCount > 0 &&
+                        {!loading &&
+                            routeCount > 0 &&
                             ` and ${routeCount} route${routeCount !== 1 ? 's' : ''}`}
                     </Button>
                 </DialogFooter>

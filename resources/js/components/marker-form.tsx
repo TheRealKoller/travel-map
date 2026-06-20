@@ -10,7 +10,6 @@ import { useMarkerForm } from '@/hooks/use-marker-form';
 import { isValidUrl } from '@/lib/marker-utils';
 import { MarkerData, MarkerType } from '@/types/marker';
 import { Tour } from '@/types/tour';
-import axios from 'axios';
 import 'easymde/dist/easymde.min.css';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -65,29 +64,9 @@ export default function MarkerForm({
 
     // Delete dialog state
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-    const [routeCount, setRouteCount] = useState<number>(0);
 
     // SimpleMDE options
     const mdeOptions = useMemo(() => getSimpleMDEOptions(), []);
-
-    // Fetch route count when marker is saved (has an id and isSaved)
-    useEffect(() => {
-        const fetchRouteCount = async () => {
-            if (marker?.isSaved && marker.id) {
-                try {
-                    const response = await axios.get(
-                        `/markers/${marker.id}/route-count`,
-                    );
-                    setRouteCount(response.data.route_count || 0);
-                } catch (error) {
-                    console.error('Failed to fetch route count:', error);
-                    setRouteCount(0);
-                }
-            }
-        };
-
-        fetchRouteCount();
-    }, [marker?.id, marker?.isSaved]);
 
     if (!marker) {
         return null;
@@ -172,7 +151,7 @@ export default function MarkerForm({
                 onOpenChange={setShowDeleteDialog}
                 onConfirm={handleConfirmDelete}
                 markerName={formState.name || 'this marker'}
-                routeCount={routeCount}
+                markerId={marker.id}
             />
         </div>
     );
