@@ -101,7 +101,7 @@ export default function RoutePanel({
         useState<string>(initialStartMarkerId);
     const [endMarkerId, setEndMarkerId] = useState<string>(initialEndMarkerId);
     const [transportMode, setTransportMode] =
-        useState<TransportMode>('driving-car');
+        useState<TransportMode>('foot-walking');
     const [isCreating, setIsCreating] = useState(false);
     const [isSorting, setIsSorting] = useState(false);
     const [isAdopting, setIsAdopting] = useState(false);
@@ -180,7 +180,7 @@ export default function RoutePanel({
             // Reset form
             setStartMarkerId('');
             setEndMarkerId('');
-            setTransportMode('driving-car');
+            setTransportMode('foot-walking');
             setManualSegments([]);
             setManualDepartureTime('');
             setManualArrivalTime('');
