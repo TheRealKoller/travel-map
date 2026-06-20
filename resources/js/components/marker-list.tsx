@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/select';
 import { getMarkerTypeIcon, UnescoIcon } from '@/lib/marker-icons';
 import { MarkerData, MarkerType } from '@/types/marker';
+import DOMPurify from 'isomorphic-dompurify';
 import { Filter, Image, Loader2 } from 'lucide-react';
 import { marked } from 'marked';
 import { useEffect, useMemo, useState } from 'react';
@@ -93,13 +94,13 @@ function MarkerItem({
                 <img
                     src={markerData.imageUrl}
                     alt={markerData.name || 'Marker'}
-                    className="h-14 w-14 flex-shrink-0 rounded object-cover sm:h-16 sm:w-16"
+                    className="h-14 w-14 shrink-0 rounded object-cover sm:h-16 sm:w-16"
                     loading="lazy"
                 />
             ) : (
                 <button
                     onClick={handleFetchImage}
-                    className="flex h-14 min-h-11 w-14 min-w-11 flex-shrink-0 items-center justify-center rounded bg-gray-200 transition-colors hover:bg-gray-300 sm:h-16 sm:w-16 dark:bg-gray-700 dark:hover:bg-gray-600"
+                    className="flex h-14 min-h-11 w-14 min-w-11 shrink-0 items-center justify-center rounded bg-gray-200 transition-colors hover:bg-gray-300 sm:h-16 sm:w-16 dark:bg-gray-700 dark:hover:bg-gray-600"
                     title="Click to load image"
                     disabled={loadingImage}
                 >
@@ -115,57 +116,64 @@ function MarkerItem({
                 data-testid="marker-list-item-select"
                 onClick={() => onSelect(markerData.id)}
             >
-                <div className="mb-0.5 truncate text-sm leading-snug font-medium text-gray-900 sm:text-base dark:text-gray-100">
+                <div className="mb-1 text-sm leading-snug font-medium text-gray-900 sm:text-base dark:text-gray-100">
                     {markerData.name || 'Unnamed Location'}
                 </div>
-                <div className="mb-1 text-xs leading-relaxed text-gray-600 sm:text-sm dark:text-gray-400">
-                    <span className="font-medium">Lat:</span>{' '}
-                    {markerData.lat.toFixed(6)},
-                    <span className="ml-2 font-medium">Lng:</span>{' '}
-                    {markerData.lng.toFixed(6)}
+                <div className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-600 sm:text-sm dark:text-gray-400">
+                    <div className="flex items-center gap-1">
+                        <Icon
+                            iconNode={getMarkerTypeIcon(markerData.type)}
+                            className="h-3.5 w-3.5 text-gray-600 sm:h-4 sm:w-4 dark:text-gray-400"
+                        />
+                        {markerData.isUnesco && (
+                            <Icon
+                                iconNode={UnescoIcon}
+                                className="h-3.5 w-3.5 text-blue-600 sm:h-4 sm:w-4"
+                            />
+                        )}
+                        {markerData.aiEnriched && (
+                            <span
+                                className="text-purple-600 dark:text-purple-400"
+                                title="AI enriched marker"
+                                role="img"
+                                aria-label="AI enriched marker"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                                    viewBox="0 0 20 20"
+                                    fill="currentColor"
+                                    aria-hidden="true"
+                                >
+                                    <path
+                                        fillRule="evenodd"
+                                        d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
+                                        clipRule="evenodd"
+                                    />
+                                </svg>
+                            </span>
+                        )}
+                    </div>
                     {markerData.estimatedHours && (
-                        <span className="ml-2 text-gray-500 dark:text-gray-400">
+                        <span className="text-gray-500 dark:text-gray-400">
                             ~{markerData.estimatedHours}h
                         </span>
                     )}
                 </div>
+                <div className="text-xs leading-relaxed text-gray-600 sm:text-sm dark:text-gray-400">
+                    <span className="font-medium">Lat:</span>{' '}
+                    {markerData.lat.toFixed(6)},
+                    <span className="ml-2 font-medium">Lng:</span>{' '}
+                    {markerData.lng.toFixed(6)}
+                </div>
                 {isSelected && markerData.notes && (
                     <div
-                        className="markdown-preview mt-1.5 border-t border-blue-300 pt-1.5 text-xs leading-relaxed text-gray-700 dark:border-blue-700 dark:text-gray-300"
+                        className="markdown-preview mt-1.5 line-clamp-3 border-t border-blue-300 pt-1.5 text-xs leading-relaxed text-gray-700 dark:border-blue-700 dark:text-gray-300"
                         dangerouslySetInnerHTML={{
-                            __html: marked.parse(markerData.notes) as string,
+                            __html: DOMPurify.sanitize(
+                                marked.parse(markerData.notes) as string,
+                            ),
                         }}
-                    />
-                )}
-            </div>
-            <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
-                {markerData.aiEnriched && (
-                    <span
-                        className="text-purple-600"
-                        title="AI enriched marker"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-3.5 w-3.5 sm:h-4 sm:w-4"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                        >
-                            <path
-                                fillRule="evenodd"
-                                d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"
-                                clipRule="evenodd"
-                            />
-                        </svg>
-                    </span>
-                )}
-                <Icon
-                    iconNode={getMarkerTypeIcon(markerData.type)}
-                    className="h-3.5 w-3.5 text-gray-600 sm:h-4 sm:w-4 dark:text-gray-400"
-                />
-                {markerData.isUnesco && (
-                    <Icon
-                        iconNode={UnescoIcon}
-                        className="h-3.5 w-3.5 text-blue-600 sm:h-4 sm:w-4"
                     />
                 )}
             </div>
@@ -229,7 +237,7 @@ export default function MarkerList({
                     onClick={() => setIsFilterOpen(!isFilterOpen)}
                     title="Toggle filter menu"
                     data-testid="filter-toggle-button"
-                    className="relative h-7 w-7 flex-shrink-0 sm:h-8 sm:w-8"
+                    className="relative h-7 w-7 shrink-0 sm:h-8 sm:w-8"
                 >
                     <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     {(appliedType !== 'all' ||
