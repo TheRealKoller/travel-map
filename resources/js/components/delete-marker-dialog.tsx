@@ -46,7 +46,7 @@ export default function DeleteMarkerDialog({
                     `/markers/${markerId}/route-count`,
                 );
                 setRouteCount(response.data.route_count || 0);
-            } catch (error) {
+            } catch {
                 toast.error('Failed to fetch route count. Please try again.');
                 setRouteCount(0);
             } finally {
