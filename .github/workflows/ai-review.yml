@@ -102,12 +102,39 @@ jobs:
               return;
             }
 
-            await github.rest.issues.createComment({
+            const commentBody = `## Backend Architect Review\n\n${review}\n\n---\n*AI review via Mistral — verify before acting on suggestions*`;
+            const commentMarker = '## Backend Architect Review';
+
+            // Find existing comment from this agent
+            const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `## Backend Architect Review\n\n${review}\n\n---\n*AI review via Mistral — verify before acting on suggestions*`
             });
+
+            const existingComment = comments.find(c => 
+              c.user.type === 'Bot' && c.body.includes(commentMarker)
+            );
+
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: commentBody
+              });
+              console.log(`Updated existing comment ${existingComment.id}`);
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody
+              });
+              console.log('Created new comment');
+            }
 
   # ── Frontend Developer ─────────────────────────────────────────────────────
   review-frontend:
@@ -199,12 +226,39 @@ jobs:
               return;
             }
 
-            await github.rest.issues.createComment({
+            const commentBody = `## Frontend Developer Review\n\n${review}\n\n---\n*AI review via Mistral — verify before acting on suggestions*`;
+            const commentMarker = '## Frontend Developer Review';
+
+            // Find existing comment from this agent
+            const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `## Frontend Developer Review\n\n${review}\n\n---\n*AI review via Mistral — verify before acting on suggestions*`
             });
+
+            const existingComment = comments.find(c => 
+              c.user.type === 'Bot' && c.body.includes(commentMarker)
+            );
+
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: commentBody
+              });
+              console.log(`Updated existing comment ${existingComment.id}`);
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody
+              });
+              console.log('Created new comment');
+            }
 
   # ── Security Engineer ──────────────────────────────────────────────────────
   review-security:
@@ -291,14 +345,41 @@ jobs:
               return;
             }
 
-            // Only post + label if real issues found
-            await github.rest.issues.createComment({
+            const commentBody = `## Security Engineer Review\n\n${review}\n\n---\n*AI review via Mistral — always verify findings before acting*`;
+            const commentMarker = '## Security Engineer Review';
+
+            // Find existing comment from this agent
+            const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `## Security Engineer Review\n\n${review}\n\n---\n*AI review via Mistral — always verify findings before acting*`
             });
 
+            const existingComment = comments.find(c => 
+              c.user.type === 'Bot' && c.body.includes(commentMarker)
+            );
+
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: commentBody
+              });
+              console.log(`Updated existing comment ${existingComment.id}`);
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody
+              });
+              console.log('Created new comment');
+            }
+
+            // Add security label if real issues found
             try {
               await github.rest.issues.addLabels({
                 owner: context.repo.owner,
@@ -391,12 +472,39 @@ jobs:
               return;
             }
 
-            await github.rest.issues.createComment({
+            const commentBody = `## Database Optimizer Review\n\n${review}\n\n---\n*AI review via Mistral — migrations are NOT auto-deployed; verify before running manually*`;
+            const commentMarker = '## Database Optimizer Review';
+
+            // Find existing comment from this agent
+            const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: `## Database Optimizer Review\n\n${review}\n\n---\n*AI review via Mistral — migrations are NOT auto-deployed; verify before running manually*`
             });
+
+            const existingComment = comments.find(c => 
+              c.user.type === 'Bot' && c.body.includes(commentMarker)
+            );
+
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: commentBody
+              });
+              console.log(`Updated existing comment ${existingComment.id}`);
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody
+              });
+              console.log('Created new comment');
+            }
 
   # ── Reality Checker ────────────────────────────────────────────────────────
   # Runs after all review jobs, posts a single consolidated summary.
@@ -439,7 +547,7 @@ jobs:
             };
 
             const icon = (r) => r === 'success' ? '✅' : r === 'skipped' ? '⏭️' : '❌';
-            const body = `## AI Review Summary
+            const commentBody = `## AI Review Summary
 
             | Agent | Status |
             |---|---|
@@ -453,9 +561,35 @@ jobs:
 
             > This PR is ready for human review.`;
 
-            await github.rest.issues.createComment({
+            const commentMarker = '## AI Review Summary';
+
+            // Find existing summary comment
+            const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body
             });
+
+            const existingComment = comments.find(c => 
+              c.user.type === 'Bot' && c.body.includes(commentMarker)
+            );
+
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: commentBody
+              });
+              console.log(`Updated existing summary comment ${existingComment.id}`);
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: commentBody
+              });
+              console.log('Created new summary comment');
+            }
