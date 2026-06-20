@@ -282,7 +282,17 @@ export function useMarkers({
         async (id: string) => {
             try {
                 // First call API to delete from database
-                await axios.delete(destroy.url(id));
+                const response = await axios.delete(destroy.url(id));
+
+                // Show success toast with cascade info
+                const cascadeCount = response.data?.cascade_deleted_routes || 0;
+                if (cascadeCount > 0) {
+                    toast.success(
+                        `Marker deleted along with ${cascadeCount} associated route${cascadeCount !== 1 ? 's' : ''}`,
+                    );
+                } else {
+                    toast.success('Marker deleted successfully');
+                }
 
                 // Remove from map and state in one operation
                 setMarkers((prev) => {

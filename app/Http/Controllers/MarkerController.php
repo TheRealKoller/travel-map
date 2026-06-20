@@ -75,9 +75,33 @@ class MarkerController extends Controller
     {
         $this->authorize('delete', $marker);
 
+        // Count routes that will be cascade deleted
+        $routesAsStart = $marker->routesAsStart()->count();
+        $routesAsEnd = $marker->routesAsEnd()->count();
+        $totalRoutes = $routesAsStart + $routesAsEnd;
+
         $marker->delete();
 
-        return response()->json(null, 204);
+        return response()->json([
+            'message' => 'Marker deleted successfully',
+            'cascade_deleted_routes' => $totalRoutes,
+        ], 200);
+    }
+
+    /**
+     * Get the count of routes associated with a marker.
+     */
+    public function routeCount(Marker $marker): JsonResponse
+    {
+        $this->authorize('view', $marker);
+
+        $routesAsStart = $marker->routesAsStart()->count();
+        $routesAsEnd = $marker->routesAsEnd()->count();
+        $totalRoutes = $routesAsStart + $routesAsEnd;
+
+        return response()->json([
+            'route_count' => $totalRoutes,
+        ]);
     }
 
     /**
