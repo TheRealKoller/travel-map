@@ -9,6 +9,11 @@ import {
 } from '@/components/ui/dialog';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+
+interface RouteCountResponse {
+    route_count: number;
+}
 
 interface DeleteMarkerDialogProps {
     open: boolean;
@@ -37,12 +42,12 @@ export default function DeleteMarkerDialog({
 
             setLoading(true);
             try {
-                const response = await axios.get(
+                const response = await axios.get<RouteCountResponse>(
                     `/markers/${markerId}/route-count`,
                 );
                 setRouteCount(response.data.route_count || 0);
             } catch (error) {
-                console.error('Failed to fetch route count:', error);
+                toast.error('Failed to fetch route count. Please try again.');
                 setRouteCount(0);
             } finally {
                 setLoading(false);
