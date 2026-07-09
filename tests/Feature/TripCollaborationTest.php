@@ -215,7 +215,8 @@ test('collaborator can delete markers in shared trip', function () {
 
     $response = $this->actingAs($this->collaborator)->deleteJson("/markers/{$marker->id}");
 
-    $response->assertStatus(204);
+    $response->assertOk()
+        ->assertJsonStructure(['message', 'cascade_deleted_routes']);
 
     $this->assertSoftDeleted('markers', [
         'id' => $marker->id,

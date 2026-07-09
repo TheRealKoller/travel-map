@@ -151,6 +151,7 @@ export default function MarkerForm({
                 onOpenChange={setShowDeleteDialog}
                 onConfirm={handleConfirmDelete}
                 markerName={formState.name || 'this marker'}
+                markerId={marker.id}
             />
         </div>
     );

@@ -3,17 +3,25 @@
 All notable changes to Travel Map are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [v1.2.0] - 2026-03-25
+## [v1.2.0] - 2026-07-09
 
 ### Added
 - Add create-pull-request skill for standardized PR workflow
+- Add cascade delete for routes when marker is deleted
+- Add route count warning in marker delete dialog
+
+### Changed
+- Improve marker panel design: display full marker names without truncation
+- Reorganize marker metadata (icons, badges, duration) into compact layout
+- Add multi-line support for long marker names
+- Improve visual hierarchy in marker list and available markers components
+- Fetch route count when delete dialog opens for accurate cascade warning
 
 ### Fixed
-- Use GitHub App for release workflow
-- Use GitHub App token in post-merge workflow
-- Prevent tag collision in post-merge automation
-- Fix ai-review and deploy-dev workflow failures
-- Remove checks: write from tests.yml to fix deploy-dev workflow_call
+- Add XSS protection with DOMPurify for marker notes rendering
+- Fix filter button positioning for indicator dot
+- Improve accessibility with aria-label for AI badge icon
+- Ensure data integrity when deleting markers with associated routes
 
 ## [v1.1.1] - 2026-03-25
 
