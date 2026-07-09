@@ -112,7 +112,7 @@ function MarkerItem({
                     {index + 1}.
                 </span>
                 <div className="min-w-0 flex-1">
-                    <div className="leading-snug font-medium text-gray-900 dark:text-gray-100">
+                    <div className="leading-snug font-medium break-words text-gray-900 dark:text-gray-100">
                         {marker.name || 'Unnamed Location'}
                     </div>
                     <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -135,7 +135,7 @@ function MarkerItem({
                         )}
                     </div>
                 </div>
-                <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
+                <div className="flex shrink-0 items-center gap-1 sm:gap-2">
                     {onRemove && (
                         <Button
                             variant="ghost"
