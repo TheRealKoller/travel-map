@@ -3,7 +3,7 @@
 All notable changes to Travel Map are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [v1.2.0] - 2026-03-25
+## [v1.2.0] - 2026-07-09
 
 ### Added
 - Add create-pull-request skill for standardized PR workflow
@@ -18,11 +18,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fetch route count when delete dialog opens for accurate cascade warning
 
 ### Fixed
-- Use GitHub App for release workflow
-- Use GitHub App token in post-merge workflow
-- Prevent tag collision in post-merge automation
-- Fix ai-review and deploy-dev workflow failures
-- Remove checks: write from tests.yml to fix deploy-dev workflow_call
 - Add XSS protection with DOMPurify for marker notes rendering
 - Fix filter button positioning for indicator dot
 - Improve accessibility with aria-label for AI badge icon

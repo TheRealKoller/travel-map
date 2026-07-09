@@ -67,15 +67,13 @@ Ensure the branch follows naming conventions:
 - `feature/` - New features or enhancements
 - `fix/` - Bug fixes
 - `hotfix/` - Critical production fixes
-- `refactor/` - Code refactoring
-- `docs/` - Documentation changes
 - `chore/` - Maintenance tasks
 
 **Examples:**
 
 - `feature/issue-532-restructure-setup-docs`
 - `fix/issue-23-map-zoom-bug`
-- `refactor/issue-105-optimize-queries`
+- `chore/issue-105-optimize-queries`
 
 **If branch doesn't exist or has wrong name:**
 
@@ -128,7 +126,7 @@ npm run lint
 **Summary command (run all checks):**
 
 ```bash
-vendor/bin/pint && npm run format && php artisan test --compact
+vendor/bin/pint --dirty && npm run format && npm run lint && php artisan test --compact
 ```
 
 ### Step 4: Commit Changes
@@ -237,11 +235,15 @@ After PR is created, verify it's linked to the issue:
 **If linking fails:**
 
 ```bash
-# Get PR number from gh pr create output
+# Get PR number from gh pr create output (if not captured already)
 PR_NUMBER=<number>
 
-# Manually link using GitHub CLI
-gh issue develop <issue-number> --repo TheRealKoller/travel-map --pr <PR_NUMBER>
+# Option 1: Edit the PR body to include a closing keyword
+gh pr edit "$PR_NUMBER" --body "Closes #<issue-number>"
+
+# Option 2: Use the GitHub web UI
+# - Open the issue in your browser
+# - Use the "Development" sidebar to link the existing pull request
 ```
 
 ### Step 8: Request Copilot Review (Optional but Recommended)
@@ -264,6 +266,21 @@ gh issue comment <issue-number> --body "✅ Pull request created: #<PR_NUMBER>"
 
 The PR must pass these automated checks:
 
+### Guard Rails Workflow (`guard-rails.yml`)
+
+**Git Workflow Master** - Validates git conventions:
+
+- ✅ Branch naming (must match `feature/issue-N-*`, `fix/issue-N-*`, `hotfix/issue-N-*`, or `chore/issue-N-*`)
+- ✅ Conventional commit messages
+- ✅ PR body contains issue link (`Closes #N`, `Fixes #N`, or `Resolves #N`)
+
+**DevOps Automator** - Validates code quality:
+
+- ✅ PHP formatting (Pint --test)
+- ✅ Frontend formatting (Prettier)
+- ✅ Linting (ESLint)
+- ✅ TypeScript types (no new errors)
+
 ### CI Workflow (`ci.yml`)
 
 - ✅ PHP code formatting (Laravel Pint)
@@ -278,8 +295,8 @@ The PR must pass these automated checks:
 
 ### Lint Workflow (`lint.yml`)
 
-- ✅ PHP syntax check
-- ✅ JavaScript/TypeScript linting
+- ✅ PHP code formatting (Laravel Pint)
+- ✅ JavaScript/TypeScript formatting (Prettier) and linting (ESLint)
 
 **If checks fail:**
 
@@ -290,11 +307,11 @@ The PR must pass these automated checks:
 
 ## Branch Protection Rules
 
-PRs targeting `main` must satisfy:
+PRs targeting `develop` must satisfy:
 
 - ✅ All CI checks pass
 - ✅ At least 1 approval (if required)
-- ✅ Branch is up-to-date with main
+- ✅ Branch is up-to-date with develop
 - ✅ No merge conflicts
 
 ## Handling Copilot Review Feedback
@@ -411,7 +428,7 @@ git push -u origin feature/issue-<number>-<description>
 ❌ Blindly implement all review suggestions
 ❌ Merge without approval (if required)
 ❌ Leave branches undeleted after merge
-❌ Commit directly to `main` branch
+❌ Commit directly to `develop` or `main` branches
 
 ## Quick Reference
 
@@ -432,7 +449,7 @@ git commit -m "docs: add feature X
 Closes #532"
 
 # 4. Quality checks
-vendor/bin/pint && npm run format && php artisan test --compact
+vendor/bin/pint --dirty && npm run format && npm run lint && php artisan test --compact
 
 # 5. Push branch
 git push -u origin feature/issue-532-brief-description
@@ -454,10 +471,10 @@ gh issue comment 532 --body "✅ Pull request created: #<PR_NUMBER>"
 
 ## Related Documentation
 
-- [Branching Strategy](../../docs/BRANCHING_STRATEGY.md) - Complete GitHub Flow guide
-- [Workflow Checklist](../../docs/WORKFLOW-CHECKLIST.md) - Step-by-step workflow
-- [Contributing Guide](../../docs/CONTRIBUTING.md) - Contribution guidelines
-- [AGENTS.md](../../AGENTS.md) - Issue implementation workflow (lines 538-598)
+- [AGENTS.md](../../../AGENTS.md) - **Canonical workflow** for issues, branches, and pull requests (source of truth)
+- [Workflow Checklist](../../../docs/WORKFLOW-CHECKLIST.md) - Step-by-step workflow (aligned with AGENTS.md)
+- [Branching Strategy](../../../docs/BRANCHING_STRATEGY.md) - Legacy document; may be outdated. When in doubt, follow AGENTS.md
+- [Contributing Guide](../../../docs/CONTRIBUTING.md) - Legacy contribution guidelines; AGENTS.md is the source of truth
 
 ## Summary
 
