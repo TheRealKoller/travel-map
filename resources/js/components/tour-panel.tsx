@@ -112,19 +112,30 @@ function MarkerItem({
                     {index + 1}.
                 </span>
                 <div className="min-w-0 flex-1">
-                    <div className="truncate leading-snug font-medium text-gray-900 dark:text-gray-100">
+                    <div className="leading-snug font-medium break-words text-gray-900 dark:text-gray-100">
                         {marker.name || 'Unnamed Location'}
                     </div>
-                    {marker.estimatedHours && (
-                        <div className="text-xs leading-tight text-gray-600 sm:leading-relaxed dark:text-gray-400">
-                            <span className="hidden font-medium sm:inline">
-                                Estimated duration:{' '}
-                            </span>
-                            ~{marker.estimatedHours}h
+                    <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <div className="flex items-center gap-1">
+                            <Icon
+                                iconNode={getMarkerTypeIcon(marker.type)}
+                                className="h-3.5 w-3.5 shrink-0 text-gray-600 sm:h-4 sm:w-4 dark:text-gray-400"
+                            />
+                            {marker.isUnesco && (
+                                <Icon
+                                    iconNode={UnescoIcon}
+                                    className="h-3.5 w-3.5 shrink-0 text-blue-600 sm:h-4 sm:w-4 dark:text-blue-400"
+                                />
+                            )}
                         </div>
-                    )}
+                        {marker.estimatedHours && (
+                            <div className="text-xs leading-relaxed text-gray-600 dark:text-gray-400">
+                                ~{marker.estimatedHours}h
+                            </div>
+                        )}
+                    </div>
                 </div>
-                <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
+                <div className="flex shrink-0 items-center gap-1 sm:gap-2">
                     {onRemove && (
                         <Button
                             variant="ghost"
@@ -136,16 +147,6 @@ function MarkerItem({
                         >
                             <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </Button>
-                    )}
-                    <Icon
-                        iconNode={getMarkerTypeIcon(marker.type)}
-                        className="h-3.5 w-3.5 text-gray-600 sm:h-4 sm:w-4 dark:text-gray-400"
-                    />
-                    {marker.isUnesco && (
-                        <Icon
-                            iconNode={UnescoIcon}
-                            className="h-3.5 w-3.5 text-blue-600 sm:h-4 sm:w-4"
-                        />
                     )}
                     {onRemove && (
                         <Button
