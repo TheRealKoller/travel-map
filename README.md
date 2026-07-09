@@ -96,7 +96,7 @@ For detailed instructions and project conventions, see [`.github/copilot-instruc
 
 ## Requirements
 
-- PHP 8.1 or higher
+- PHP 8.2 or higher
 - Composer
 - Node.js 18 or higher
 - npm or yarn
@@ -138,11 +138,11 @@ Run the test suite:
 php artisan test
 ```
 
-For detailed testing documentation, see **[Testing Documentation](./docs/testing/)**.
+For detailed testing documentation, see **[Testing Report](./docs/TESTING_REPORT.md)**.
 
 ## Contributing
 
-We welcome contributions! Please read our **[Contributing Guide](./docs/development/contributing.md)** for details on our development workflow, code standards, and pull request process.
+We welcome contributions! Please read our **[Contributing Guide](./docs/CONTRIBUTING.md)** for details on our development workflow, code standards, and pull request process.
 
 ## Additional Commands
 

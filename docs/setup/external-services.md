@@ -74,7 +74,6 @@ After configuration, you should be able to:
 ### Related Documentation
 
 - [Mapbox API Documentation](https://docs.mapbox.com/api/)
-- [API Reference](../api/mapbox.md)
 
 ---
 
@@ -157,7 +156,6 @@ When configured, users can:
 ### Related Documentation
 
 - [Google Directions API](https://developers.google.com/maps/documentation/directions)
-- [API Reference](../api/) (when available)
 
 ---
 
@@ -247,7 +245,6 @@ UNSPLASH_UTM_SOURCE="${APP_NAME}"
 
 - [Unsplash API Documentation](https://unsplash.com/documentation)
 - [Unsplash API Guidelines](https://help.unsplash.com/en/articles/2511245-unsplash-api-guidelines)
-- [API Reference](../api/unsplash.md)
 
 ---
 
@@ -331,8 +328,8 @@ Once configured:
 ### Related Documentation
 
 - [Mistral AI Documentation](https://docs.mistral.ai/)
-- [Le Chat Integration Guide](../api/lechat.md)
-- [Le Chat Agent Setup](../api/lechat.md#agent-setup)
+- [Le Chat Integration Guide](../LECHAT_INTEGRATION.md)
+- [Le Chat Agent Setup](../LECHAT_AGENT_SETUP.md)
 
 ---
 

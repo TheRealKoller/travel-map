@@ -60,6 +60,14 @@ Complete reference for all environment variables used in the Travel Map applicat
     - Local: `http://localhost:8000`
     - Production: `https://travelmap.koller.dk`
 
+### `APP_VERSION`
+
+- **Type:** String
+- **Default:** Not set
+- **Description:** Application version displayed in UI and used for tracking. Typically set by CI/CD pipelines during deployment.
+- **Example:** `1.2.0`
+- **Note:** Managed automatically by release workflow in production. For local development, leave unset or set manually.
+
 ### `APP_LOCALE`
 
 - **Type:** String

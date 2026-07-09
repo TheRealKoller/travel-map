@@ -6,7 +6,7 @@ Complete guide to setting up the Travel Map application on your local machine.
 
 Before starting, ensure you have the following installed:
 
-- **PHP 8.1 or higher** - [Download PHP](https://www.php.net/downloads)
+- **PHP 8.2 or higher** - [Download PHP](https://www.php.net/downloads)
 - **Composer** - [Install Composer](https://getcomposer.org/download/)
 - **Node.js 18 or higher** - [Download Node.js](https://nodejs.org/)
 - **npm or yarn** - Comes with Node.js
@@ -286,11 +286,11 @@ php artisan key:generate --force --env=e2e
 
 - **Configure external services** - See [External Services Setup](./external-services.md)
 - **Review environment variables** - See [Environment Variables Reference](./environment-variables.md)
-- **Learn the development workflow** - See [Development Workflow](../development/)
-- **Run tests** - See [Testing Documentation](../testing/)
+- **Learn the development workflow** - See [Contributing Guide](../CONTRIBUTING.md)
+- **Run tests** - See [Testing Report](../TESTING_REPORT.md)
 
 ## Need More Help?
 
 - Check the [Environment Variables](./environment-variables.md) reference
 - Review the [External Services](./external-services.md) setup guide
-- See the [Quick Reference](../development/quick-reference.md) for common commands
+- See the [Quick Reference](../QUICK_REFERENCE.md) for common commands

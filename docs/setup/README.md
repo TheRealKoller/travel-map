@@ -12,7 +12,7 @@ This section contains all documentation related to setting up and configuring th
 
 The Travel Map application is built with Laravel 12 and React 19. Setting up the application requires:
 
-1. **System Requirements** - PHP 8.1+, Node.js 18+, Composer, npm
+1. **System Requirements** - PHP 8.2+, Node.js 18+, Composer, npm
 2. **Local Development Environment** - Installing dependencies and configuring the application
 3. **Environment Configuration** - Setting up `.env` files with required variables
 4. **External Services** - Configuring API keys for third-party services
@@ -54,6 +54,6 @@ Visit `http://localhost:8000` to see the application running.
 
 ## Related Documentation
 
-- **Development Workflow** - See [../development/](../development/) for branching strategy and contribution guidelines
-- **Deployment** - See [../deployment/](../deployment/) for production deployment instructions
-- **Testing** - See [../testing/](../testing/) for running tests
+- **Development Workflow** - See [Contributing Guide](../CONTRIBUTING.md) for branching strategy and contribution guidelines
+- **Deployment** - See [Local Development Setup](./local-development.md) for development setup and deployment preparation
+- **Testing** - See [Testing Report](../TESTING_REPORT.md) for running tests and quality assurance
